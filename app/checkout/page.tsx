@@ -169,11 +169,6 @@ export default function CheckoutPage() {
                       className={`w-full border rounded-lg px-4 py-3 outline-none focus:ring-1 transition ${errors.mobile ? 'border-red-400 focus:ring-red-400' : 'border-gray-200 focus:border-blue-500 focus:ring-blue-500'}`}
                     />
                     {errors.mobile && <p className="text-red-500 text-xs mt-1">{errors.mobile}</p>}
-                    {!errors.mobile && form.mobile.length > 0 && (
-                      <p className={`text-xs mt-1 ${form.mobile.length === 10 ? 'text-green-500' : 'text-gray-400'}`}>
-                        {form.mobile.length}/10 digits
-                      </p>
-                    )}
                   </div>
                 </div>
 
