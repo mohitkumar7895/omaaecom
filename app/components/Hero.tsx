@@ -1,5 +1,6 @@
 import { Search, Scissors, ShoppingCart } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Hero({ categories = [] }: { categories?: any[] }) {
   
@@ -31,8 +32,8 @@ export default function Hero({ categories = [] }: { categories?: any[] }) {
             Home Services at Your <br /> Doorsteps
           </h1>
 
-          {/* Search Bar */}
-          <div className="relative w-full shadow-lg">
+          {/* Mobile Search Bar (Only visible on mobile) */}
+          <div className="relative w-full shadow-lg lg:hidden">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <Search className="h-5 w-5 text-gray-400" />
             </div>
@@ -118,28 +119,52 @@ export default function Hero({ categories = [] }: { categories?: any[] }) {
         </div>
 
         {/* Right Side: Masonry Image Grid */}
-        <div className="w-full lg:w-[45%] h-full flex gap-4 pt-2 pb-2">
-           {/* Left Tall Image */}
-           <div className="w-1/2 h-full flex flex-col">
-              <img 
-                src="/Hero1.webp" 
-                alt="Cleaning Service" 
-                className="w-full h-[220px] lg:h-[550px] object-cover rounded-2xl lg:rounded-3xl shadow-2xl border-4 border-white/40"
-              />
-           </div>
+        <div className="w-full lg:w-[45%] h-full flex flex-col gap-4 pt-2 pb-2">
            
-           {/* Right Stacked Images */}
-           <div className="w-1/2 h-[220px] lg:h-[550px] flex flex-col gap-4">
-              <img 
-                src="/Hero 2.webp" 
-                alt="RO Repair" 
-                className="w-full h-[48%] object-cover rounded-2xl lg:rounded-3xl shadow-2xl border-4 border-white/40"
-              />
-              <img 
-                src="/Hero3.webp" 
-                alt="AC Repair" 
-                className="w-full h-[48%] object-cover rounded-2xl lg:rounded-3xl shadow-2xl border-4 border-white/40"
-              />
+           {/* Desktop Search Bar (Only visible on desktop) */}
+           <div className="relative w-full shadow-lg hidden lg:block">
+             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+               <Search className="h-5 w-5 text-gray-400" />
+             </div>
+             <input
+               type="text"
+               className="block w-full pl-12 pr-4 py-4 rounded-xl leading-5 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-600 sm:text-base border-none shadow-sm"
+               placeholder="Search for Services ..."
+             />
+           </div>
+
+           <div className="flex gap-4 p-3 border-4 border-white/40 rounded-3xl bg-white/10 shadow-xl">
+             {/* Left Tall Image */}
+             <div className="w-1/2 flex flex-col justify-center">
+                <Image 
+                  src="/Hero1.webp" 
+                  alt="Cleaning Service" 
+                  width={600}
+                  height={800}
+                  priority
+                  className="w-full h-auto lg:h-[550px] object-contain lg:object-cover rounded-2xl shadow-md"
+                />
+             </div>
+             
+             {/* Right Stacked Images */}
+             <div className="w-1/2 flex flex-col gap-4 justify-center lg:h-[550px]">
+                <Image 
+                  src="/Hero 2.webp" 
+                  alt="RO Repair" 
+                  width={600}
+                  height={400}
+                  priority
+                  className="w-full h-auto lg:h-[48%] object-contain lg:object-cover rounded-2xl shadow-md"
+                />
+                <Image 
+                  src="/Hero3.webp" 
+                  alt="AC Repair" 
+                  width={600}
+                  height={400}
+                  priority
+                  className="w-full h-auto lg:h-[48%] object-contain lg:object-cover rounded-2xl shadow-md"
+                />
+             </div>
            </div>
         </div>
 

@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ChevronDown, MapPin, ShoppingCart, User, Menu, X } from "lucide-react";
 import LocationSelector from "./LocationSelector";
+import LoginModal from "./LoginModal";
 import { useEffect, useState } from "react";
 import { getActiveCategories } from "../actions/categories";
 
@@ -11,6 +12,7 @@ export default function Navbar() {
   const [categories, setCategories] = useState<any[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileServicesOpen, setIsMobileServicesOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   useEffect(() => {
     getActiveCategories().then(setCategories).catch(console.error);
@@ -71,11 +73,13 @@ export default function Navbar() {
           <LocationSelector />
 
           {/* User Button */}
-          <Link href="/login">
-            <button className="bg-[#6069c9] p-1.5 lg:p-2.5 rounded-[8px] lg:rounded-[10px] text-white hover:bg-[#525ab5] transition shadow-sm flex items-center justify-center">
-              <User className="w-4 h-4 lg:w-5 lg:h-5 stroke-[1.5]" />
-            </button>
-          </Link>
+          <button 
+            onClick={() => setIsLoginModalOpen(true)}
+            className="bg-[#6069c9] p-1.5 lg:p-2.5 rounded-[8px] lg:rounded-[10px] text-white hover:bg-[#525ab5] transition shadow-sm flex items-center justify-center"
+          >
+            <User className="w-4 h-4 lg:w-5 lg:h-5 stroke-[1.5]" />
+          </button>
+          <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
           
           {/* Cart Button */}
           <Link href="/cart">
