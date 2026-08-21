@@ -11,6 +11,7 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<'online' | 'cash'>('online');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [orderId, setOrderId] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [form, setForm] = useState({
@@ -18,6 +19,8 @@ export default function CheckoutPage() {
     mobile: '',
     email: '',
     address: '',
+    booking_date: '',
+    time_slot: '',
   });
 
   useEffect(() => {
@@ -47,6 +50,8 @@ export default function CheckoutPage() {
     if (!form.name.trim()) newErrors.name = 'Full name is required';
     if (!form.mobile || form.mobile.length !== 10) newErrors.mobile = 'Enter a valid 10-digit mobile number';
     if (!form.address.trim()) newErrors.address = 'Address is required';
+    if (!form.booking_date) newErrors.booking_date = 'Please select a booking date';
+    if (!form.time_slot) newErrors.time_slot = 'Please select a time slot';
     return newErrors;
   };
 
@@ -67,6 +72,8 @@ export default function CheckoutPage() {
           mobile: form.mobile,
           email: form.email,
           address: form.address,
+          booking_date: form.booking_date,
+          time_slot: form.time_slot,
           payment_method: paymentMethod,
           total_amount: totalAmount,
           cart_items: cart,
@@ -74,10 +81,13 @@ export default function CheckoutPage() {
       });
 
       if (res.ok) {
+        const data = await res.json();
         localStorage.removeItem('omaa_cart');
+        setOrderId(data.order_id || '');
         setSuccess(true);
       } else {
-        alert('Something went wrong. Please try again.');
+        const err = await res.json();
+        alert(err.error || 'Something went wrong. Please try again.');
       }
     } catch (err) {
       alert('Error submitting booking. Please try again.');
@@ -96,9 +106,16 @@ export default function CheckoutPage() {
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle2 className="w-10 h-10 text-green-500" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">Booking Confirmed!</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">Booking Confirmed! 🎉</h2>
             <p className="text-gray-500 mb-2">Thank you, <span className="font-semibold text-gray-800">{form.name}</span>!</p>
-            <p className="text-gray-500 text-sm mb-6">Our team will contact you on <span className="font-semibold">{form.mobile}</span> shortly to confirm the appointment.</p>
+            {orderId && (
+              <div className="bg-purple-50 border border-purple-200 rounded-xl px-4 py-3 mb-3">
+                <p className="text-xs text-gray-500 mb-1">Your Order ID</p>
+                <p className="font-bold text-[#673ab7] text-lg tracking-widest">{orderId}</p>
+              </div>
+            )}
+            <p className="text-gray-500 text-sm mb-2">📅 <span className="font-semibold">{form.booking_date}</span> &nbsp;⏰ <span className="font-semibold">{form.time_slot}</span></p>
+            <p className="text-gray-500 text-sm mb-6">Our team will contact you on <span className="font-semibold">{form.mobile}</span> shortly.</p>
             <button
               onClick={() => router.push('/')}
               className="w-full bg-[#673ab7] hover:bg-[#5e35b1] text-white font-bold py-3 rounded-xl transition"
@@ -182,8 +199,43 @@ export default function CheckoutPage() {
                     placeholder="House No, Street, Landmark, City, Pincode" 
                     className={`w-full border rounded-lg px-4 py-3 outline-none focus:ring-1 transition resize-none ${errors.address ? 'border-red-400 focus:ring-red-400' : 'border-gray-200 focus:border-blue-500 focus:ring-blue-500'}`}
                   ></textarea>
-                  {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
+                    {errors.address && <p className="text-red-500 text-xs mt-1">{errors.address}</p>}
                 </div>
+
+                {/* Booking Date & Time Slot */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Booking Date *</label>
+                    <input
+                      type="date"
+                      name="booking_date"
+                      value={form.booking_date}
+                      onChange={handleChange}
+                      min={new Date().toISOString().split('T')[0]}
+                      className={`w-full border rounded-lg px-4 py-3 outline-none focus:ring-1 transition ${errors.booking_date ? 'border-red-400 focus:ring-red-400' : 'border-gray-200 focus:border-blue-500 focus:ring-blue-500'}`}
+                    />
+                    {errors.booking_date && <p className="text-red-500 text-xs mt-1">{errors.booking_date}</p>}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">Time Slot *</label>
+                    <select
+                      name="time_slot"
+                      value={form.time_slot}
+                      onChange={(e) => { setForm(prev => ({ ...prev, time_slot: e.target.value })); setErrors(prev => ({ ...prev, time_slot: '' })); }}
+                      className={`w-full border rounded-lg px-4 py-3 outline-none focus:ring-1 transition bg-white ${errors.time_slot ? 'border-red-400 focus:ring-red-400' : 'border-gray-200 focus:border-blue-500 focus:ring-blue-500'}`}
+                    >
+                      <option value="">Select a slot</option>
+                      <option value="08:00 AM - 10:00 AM">08:00 AM - 10:00 AM</option>
+                      <option value="10:00 AM - 12:00 PM">10:00 AM - 12:00 PM</option>
+                      <option value="12:00 PM - 02:00 PM">12:00 PM - 02:00 PM</option>
+                      <option value="02:00 PM - 04:00 PM">02:00 PM - 04:00 PM</option>
+                      <option value="04:00 PM - 06:00 PM">04:00 PM - 06:00 PM</option>
+                      <option value="06:00 PM - 08:00 PM">06:00 PM - 08:00 PM</option>
+                    </select>
+                    {errors.time_slot && <p className="text-red-500 text-xs mt-1">{errors.time_slot}</p>}
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>

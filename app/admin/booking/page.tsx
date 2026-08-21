@@ -1,9 +1,9 @@
 import pool from "../../../lib/db";
 import { Copy, FileSpreadsheet, FileIcon as FilePdf, Printer, MessageCircle } from "lucide-react";
 import Link from "next/link";
-import { revalidatePath } from "next/cache";
 import ExportButtons from "../components/ExportButtons";
 import WorkingStatusSelect from "./components/WorkingStatusSelect";
+import { updateWorkingStatus, updateTotal } from "./actions";
 
 export const dynamic = 'force-dynamic';
 
@@ -13,24 +13,24 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
   
   let bookings: any[] = [];
 
-  async function updateWorkingStatus(formData: FormData) {
-    "use server";
-    const id = formData.get("id");
-    const status = formData.get("working_status");
-    if (id && status) {
-      await pool.query("UPDATE bookings SET working_status = ? WHERE id = ?", [status, id]);
-      revalidatePath("/admin/booking");
+  try {
+    let query = `SELECT * FROM bookings ORDER BY created_at DESC`;
+    if (filter !== "All") {
+      query = `SELECT * FROM bookings WHERE type = '${filter}' ORDER BY created_at DESC`;
     }
-  }
-
-  async function updateTotal(formData: FormData) {
-    "use server";
-    const id = formData.get("id");
-    const total = formData.get("total");
-    if (id && total) {
-      await pool.query("UPDATE bookings SET total = ? WHERE id = ?", [total, id]);
-      revalidatePath("/admin/booking");
-    }
+    const [rows]: any = await pool.query(query);
+    bookings = rows.map((row: any) => {
+      // Parse services JSON if it's a string
+      let parsedServices = row.services;
+      try {
+        if (typeof row.services === 'string') {
+          parsedServices = JSON.parse(row.services);
+        }
+      } catch {}
+      return { ...row, services: parsedServices };
+    });
+  } catch (e) {
+    console.error("Failed to fetch bookings:", e);
   }
 
   return (
@@ -104,7 +104,7 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                 <th className="px-3 py-4 border-r border-gray-600/30">ID</th>
                 <th className="px-3 py-4 border-r border-gray-600/30">Order ID</th>
                 <th className="px-3 py-4 border-r border-gray-600/30">Type</th>
-                <th className="px-3 py-4 border-r border-gray-600/30 text-center">Address</th>
+                <th className="px-3 py-4 border-r border-gray-600/30">Address</th>
                 <th className="px-3 py-4 border-r border-gray-600/30">Cus. Name</th>
                 <th className="px-3 py-4 border-r border-gray-600/30">Mobile</th>
                 <th className="px-3 py-4 border-r border-gray-600/30">Category</th>
@@ -127,14 +127,13 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                     
                     <td className="px-3 py-4 border-r border-gray-200 text-center">
                       <span className="bg-gray-600 text-white text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap">
-                        {row.type}
+                        {row.type || 'Online'}
                       </span>
                     </td>
                     
-                    <td className="px-3 py-4 border-r border-gray-200 text-center">
-                      <button className="bg-[#00bcd4] hover:bg-[#00acc1] text-white px-3 py-1 rounded shadow-sm text-[11px] transition">
-                        View
-                      </button>
+                    {/* Address */}
+                    <td className="px-3 py-4 border-r border-gray-200 text-[11px] max-w-[160px] leading-snug">
+                      {row.address || '—'}
                     </td>
                     
                     <td className="px-3 py-4 border-r border-gray-200 leading-tight">
@@ -145,16 +144,32 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                       {row.mobile}
                     </td>
                     
-                    <td className="px-3 py-4 border-r border-gray-200 leading-tight max-w-[120px]">
-                      {row.category}
+                    <td className="px-3 py-4 border-r border-gray-200 leading-tight max-w-[140px]">
+                      {row.category || '—'}
                     </td>
                     
-                    <td className="px-3 py-4 border-r border-gray-200 leading-tight max-w-[120px]">
-                      {row.services}
+                    {/* Services — parse JSON array */}
+                    <td className="px-3 py-4 border-r border-gray-200 leading-tight max-w-[200px]">
+                      {Array.isArray(row.services) ? (
+                        <ul className="space-y-1">
+                          {row.services.map((s: any, i: number) => (
+                            <li key={i} className="text-[11px] text-gray-700">
+                              <span className="font-semibold">{s.title}</span>
+                              {s.quantity > 1 && <span className="text-gray-400 ml-1">x{s.quantity}</span>}
+                              <span className="text-gray-500 ml-1">₹{s.price}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <span className="text-gray-500 text-[11px]">{String(row.services || '—')}</span>
+                      )}
                     </td>
 
                     <td className="px-3 py-4 border-r border-gray-200 leading-tight whitespace-nowrap text-[11px]">
-                      {new Date(row.booking_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-')}
+                      {row.booking_date 
+                        ? new Date(row.booking_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-') 
+                        : new Date(row.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-')
+                      }
                     </td>
                     
                     <td className="px-3 py-4 border-r border-gray-200 leading-tight whitespace-nowrap text-[11px]">
