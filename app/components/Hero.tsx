@@ -51,7 +51,7 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
               </div>
               <div className="grid grid-cols-3 gap-3 lg:gap-6 text-center justify-items-center">
                 {homeServices.map((service, index) => (
-                  <Link href={`/category/${service.id}`} key={index} className="flex flex-col items-center space-y-2 cursor-pointer group w-full">
+                  <div key={index} className="flex flex-col items-center space-y-2 group w-full">
                     <div className="w-[72px] h-[72px] sm:w-20 sm:h-20 bg-[#f4f7fb] rounded-xl flex items-center justify-center text-[34px] sm:text-4xl shadow-sm group-hover:shadow-md transition overflow-hidden p-2">
                       {service.image_url && service.image_url.length > 5 ? (
                         <img src={service.image_url} alt={service.title} className="w-full h-full object-contain" />
@@ -60,7 +60,7 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
                       )}
                     </div>
                     <span className="text-[13px] font-bold text-gray-700 leading-tight">{service.title}</span>
-                  </Link>
+                  </div>
                 ))}
               </div>
             </div>
@@ -77,7 +77,7 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
                     <ShoppingCart className="w-4 h-4 lg:w-5 lg:h-5" fill="currentColor" />
                     <h3 className="font-bold text-[11px] lg:text-sm">New Products</h3>
                   </div>
-                  <Link href={`/category/${newProducts[0].id}`} className="border border-gray-100 rounded-xl p-2 lg:p-3 flex justify-between items-center bg-[#fbfcfd] shadow-sm cursor-pointer hover:shadow-md transition">
+                  <div className="border border-gray-100 rounded-xl p-2 lg:p-3 flex justify-between items-center bg-[#fbfcfd] shadow-sm hover:shadow-md transition">
                     <span className="text-[10px] lg:text-[13px] font-bold text-gray-800 leading-tight pr-1 line-clamp-2">{newProducts[0].title}</span>
                     <div className="w-10 h-10 lg:w-14 lg:h-14 bg-[#f4f7fb] rounded-lg flex-shrink-0 flex items-center justify-center text-xl lg:text-2xl shadow-inner border border-gray-50 overflow-hidden p-1">
                       {newProducts[0].image_url && newProducts[0].image_url.length > 5 ? (
@@ -86,7 +86,7 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
                         <span>📦</span>
                       )}
                     </div>
-                  </Link>
+                  </div>
                 </div>
               )}
 
@@ -96,7 +96,7 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
                   <div className="flex items-center text-[#21a868] mb-2 lg:mb-3">
                     <h3 className="font-bold text-[11px] lg:text-sm">AMC Products</h3>
                   </div>
-                  <Link href={`/category/${amcProducts[0].id}`} className="border border-gray-100 rounded-xl p-2 lg:p-3 flex justify-between items-center bg-[#fbfcfd] shadow-sm cursor-pointer hover:shadow-md transition">
+                  <div className="border border-gray-100 rounded-xl p-2 lg:p-3 flex justify-between items-center bg-[#fbfcfd] shadow-sm hover:shadow-md transition">
                     <span className="text-[10px] lg:text-[13px] font-bold text-gray-800 leading-tight pr-1 line-clamp-2">{amcProducts[0].title}</span>
                     <div className="w-10 h-10 lg:w-14 lg:h-14 bg-[#f4f7fb] rounded-lg flex-shrink-0 flex items-center justify-center text-xl lg:text-2xl shadow-inner border border-gray-50 relative overflow-hidden p-1">
                       {amcProducts[0].image_url && amcProducts[0].image_url.length > 5 ? (
@@ -106,7 +106,7 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
                       )}
                       <span className="absolute -top-1.5 -right-1.5 bg-[#4cda64] text-white text-[8px] px-1 py-0.5 rounded-sm font-bold shadow-sm z-10">AMC</span>
                     </div>
-                  </Link>
+                  </div>
                 </div>
               )}
             </div>
