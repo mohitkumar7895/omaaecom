@@ -11,14 +11,17 @@ export default function WorkingStatusSelect({ id, defaultValue, action }: { id: 
     'bg-yellow-100 text-yellow-800 border-yellow-300';
 
   return (
-    <form action={action}>
-      <input type="hidden" name="id" value={id} />
+    <div>
       <select 
         name="working_status"
         value={value}
         onChange={(e) => {
-          setValue(e.target.value);
-          e.target.form?.requestSubmit();
+          const newValue = e.target.value;
+          setValue(newValue);
+          const formData = new FormData();
+          formData.append("id", String(id));
+          formData.append("working_status", newValue);
+          action(formData);
         }}
         className={`border rounded px-2 py-1 text-[11px] font-bold outline-none min-w-[90px] cursor-pointer transition ${colorClass}`}
       >
@@ -26,6 +29,6 @@ export default function WorkingStatusSelect({ id, defaultValue, action }: { id: 
         <option value="Complete">Complete</option>
         <option value="Reject">Reject</option>
       </select>
-    </form>
+    </div>
   );
 }

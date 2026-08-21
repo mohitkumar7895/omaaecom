@@ -8,7 +8,7 @@ export async function updateWorkingStatus(formData: FormData) {
   const status = formData.get("working_status");
   if (id && status) {
     await pool.query("UPDATE bookings SET working_status = ? WHERE id = ?", [status, id]);
-    revalidatePath("/admin/booking");
+    revalidatePath("/admin/booking", 'layout');
   }
 }
 
@@ -17,6 +17,6 @@ export async function updateTotal(formData: FormData) {
   const total = formData.get("total");
   if (id && total) {
     await pool.query("UPDATE bookings SET total = ? WHERE id = ?", [total, id]);
-    revalidatePath("/admin/booking");
+    revalidatePath("/admin/booking", 'layout');
   }
 }

@@ -1,57 +1,121 @@
-import ExportButtons from "../../../admin/components/ExportButtons";
+import pool from "../../../../lib/db";
+import { Copy, FileSpreadsheet, FileIcon as FilePdf, Printer, MessageCircle } from "lucide-react";
+import Link from "next/link";
+import ExportButtons from "../../components/ExportButtons";
+import WorkingStatusSelect from "../components/WorkingStatusSelect";
+import { updateWorkingStatus, updateTotal } from "../actions";
 
 export const dynamic = 'force-dynamic';
 
-export const metadata = {
-  title: "Completed Booking - OMAA Admin",
-};
-
-export default async function CompletedBookingPage() {
+export default async function ManageBookingPage({ searchParams }: { searchParams: Promise<{ filter?: string }> }) {
+  const resolvedSearchParams = await searchParams;
+  const filter = resolvedSearchParams.filter || "All";
   
   let bookings: any[] = [];
 
-  return (
-    <div className="flex-1 bg-white min-h-screen">
-      <div className="p-8">
-        
-        {/* Header Section */}
-        <div className="mb-6">
-          <h1 className="text-[22px] font-bold text-gray-800 tracking-tight">Manage Booking</h1>
-        </div>
+  try {
+    let query = `SELECT * FROM bookings WHERE working_status = 'Complete' ORDER BY created_at DESC`;
+    if (filter !== "All") {
+      query = `SELECT * FROM bookings WHERE type = '${filter}' AND working_status = 'Complete' ORDER BY created_at DESC`;
+    }
+    const [rows]: any = await pool.query(query);
+    bookings = rows.map((row: any) => {
+      // Parse services JSON if it's a string
+      let parsedServices = row.services;
+      try {
+        if (typeof row.services === 'string') {
+          parsedServices = JSON.parse(row.services);
+        }
+      } catch {}
+      return { ...row, services: parsedServices };
+    });
+  } catch (e) {
+    console.error("Failed to fetch bookings:", e);
+  }
 
-        {/* Action Bar */}
-        <div className="flex justify-between items-end mb-4">
-          <ExportButtons tableId="completed-booking-table" />
+  return (
+    <div className="p-8 font-sans bg-white min-h-screen text-[13px]">
+      
+      {/* Title */}
+      <h1 className="text-[22px] font-bold text-gray-800 tracking-tight mb-4">Completed Bookings</h1>
+
+      {/* Tabs */}
+      <div className="flex items-center space-x-2 mb-6">
+        <Link href="?filter=All">
+          <button className={`px-4 py-1.5 rounded font-medium transition ${
+            filter === "All" ? "bg-[#2962ff] text-white" : "text-[#2962ff] hover:bg-blue-50"
+          }`}>
+            All
+          </button>
+        </Link>
+        <Link href="?filter=Normal Service">
+          <button className={`px-4 py-1.5 rounded font-medium transition ${
+            filter === "Normal Service" ? "bg-[#2962ff] text-white" : "text-[#2962ff] hover:bg-blue-50"
+          }`}>
+            Normal Service
+          </button>
+        </Link>
+        <Link href="?filter=New Product">
+          <button className={`px-4 py-1.5 rounded font-medium transition ${
+            filter === "New Product" ? "bg-[#2962ff] text-white" : "text-[#2962ff] hover:bg-blue-50"
+          }`}>
+            New Product
+          </button>
+        </Link>
+        <Link href="?filter=AMC">
+          <button className={`px-4 py-1.5 rounded font-medium transition ${
+            filter === "AMC" ? "bg-[#2962ff] text-white" : "text-[#2962ff] hover:bg-blue-50"
+          }`}>
+            AMC
+          </button>
+        </Link>
+      </div>
+
+      {/* Toolbar */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 space-y-4 md:space-y-0">
+        <div className="flex flex-col space-y-2">
+          {/* Action Buttons */}
+          <ExportButtons tableId="bookingsTable" filename="omaa-bookings" />
           
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-600 font-medium">Search:</span>
-            <input 
-              type="text" 
-              className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500 shadow-sm w-64"
-            />
+          {/* Show entries */}
+          <div className="flex items-center space-x-2 text-gray-600">
+            <span>Show</span>
+            <select className="border border-gray-300 rounded px-2 py-0.5 outline-none focus:border-blue-500">
+              <option>50</option>
+              <option>100</option>
+            </select>
+            <span>entries</span>
           </div>
         </div>
 
-        {/* Table Container */}
-        <div className="border border-gray-200 overflow-x-auto">
-          <table id="completed-booking-table" className="w-full text-left border-collapse min-w-[1600px]">
+        {/* Search */}
+        <div className="flex items-center space-x-2">
+          <span className="text-gray-600">Search:</span>
+          <input type="text" className="border border-gray-300 rounded px-2 py-1 outline-none focus:border-blue-500 w-48" />
+        </div>
+      </div>
+
+      {/* Data Table */}
+      <div className="border border-gray-200 overflow-hidden shadow-[0_2px_12px_rgb(0,0,0,0.04)]">
+        <div className="overflow-x-auto">
+          <table id="bookingsTable" className="w-full text-left border-collapse min-w-[1600px]">
             <thead>
-              <tr className="bg-[#2c3e50] text-white text-[12px] whitespace-nowrap">
-                <th className="px-3 py-3 border-r border-gray-600 font-medium">ID <span className="text-[9px] ml-0.5 text-gray-400">▲▼</span></th>
-                <th className="px-3 py-3 border-r border-gray-600 font-medium">Order ID <span className="text-[9px] ml-0.5 text-gray-400">▲▼</span></th>
-                <th className="px-3 py-3 border-r border-gray-600 font-medium">Address <span className="text-[9px] ml-0.5 text-gray-400">▲▼</span></th>
-                <th className="px-3 py-3 border-r border-gray-600 font-medium">Cus. Name <span className="text-[9px] ml-0.5 text-gray-400">▲▼</span></th>
-                <th className="px-3 py-3 border-r border-gray-600 font-medium">Mobile <span className="text-[9px] ml-0.5 text-gray-400">▲▼</span></th>
-                <th className="px-3 py-3 border-r border-gray-600 font-medium max-w-[120px]">Category <span className="text-[9px] ml-0.5 text-gray-400">▲▼</span></th>
-                <th className="px-3 py-3 border-r border-gray-600 font-medium max-w-[150px]">Services <span className="text-[9px] ml-0.5 text-gray-400">▲▼</span></th>
-                <th className="px-3 py-3 border-r border-gray-600 font-medium">Date <span className="text-[9px] ml-0.5 text-gray-400">▲▼</span></th>
-                <th className="px-3 py-3 border-r border-gray-600 font-medium">Slot <span className="text-[9px] ml-0.5 text-gray-400">▲▼</span></th>
-                <th className="px-3 py-3 border-r border-gray-600 font-medium">Total <span className="text-[9px] ml-0.5 text-gray-400">▲▼</span></th>
-                <th className="px-3 py-3 border-r border-gray-600 font-medium">Share <span className="text-[9px] ml-0.5 text-gray-400">▲▼</span></th>
-                <th className="px-3 py-3 border-r border-gray-600 font-medium">Payment <span className="text-[9px] ml-0.5 text-gray-400">▲▼</span></th>
-                <th className="px-3 py-3 border-r border-gray-600 font-medium">Payment<br/>Status <span className="text-[9px] ml-0.5 text-gray-400">▲▼</span></th>
-                <th className="px-3 py-3 border-r border-gray-600 font-medium">Working<br/>Status <span className="text-[9px] ml-0.5 text-gray-400">▲▼</span></th>
-                <th className="px-3 py-3 font-medium">Working<br/>Status <span className="text-[9px] ml-0.5 text-gray-400">▲▼</span></th>
+              <tr className="bg-[#2f3d51] text-white text-[11px] font-bold">
+                <th className="px-3 py-4 border-r border-gray-600/30">ID</th>
+                <th className="px-3 py-4 border-r border-gray-600/30">Order ID</th>
+                <th className="px-3 py-4 border-r border-gray-600/30">Type</th>
+                <th className="px-3 py-4 border-r border-gray-600/30">Address</th>
+                <th className="px-3 py-4 border-r border-gray-600/30">Cus. Name</th>
+                <th className="px-3 py-4 border-r border-gray-600/30">Mobile</th>
+                <th className="px-3 py-4 border-r border-gray-600/30">Category</th>
+                <th className="px-3 py-4 border-r border-gray-600/30">Services</th>
+                <th className="px-3 py-4 border-r border-gray-600/30">Date</th>
+                <th className="px-3 py-4 border-r border-gray-600/30">Slot</th>
+                <th className="px-3 py-4 border-r border-gray-600/30">Total</th>
+                <th className="px-3 py-4 border-r border-gray-600/30 text-center">Share</th>
+                <th className="px-3 py-4 border-r border-gray-600/30">Payment</th>
+                <th className="px-3 py-4 border-r border-gray-600/30">Payment Status</th>
+                <th className="px-3 py-4">Working Status</th>
               </tr>
             </thead>
             <tbody className="bg-white">
@@ -60,40 +124,87 @@ export default async function CompletedBookingPage() {
                   <tr key={row.id} className="border-b border-gray-200 hover:bg-gray-50 transition align-middle text-[12px] text-gray-700">
                     <td className="px-3 py-4 border-r border-gray-200">{row.id}</td>
                     <td className="px-3 py-4 border-r border-gray-200 font-medium">{row.order_id}</td>
+                    
                     <td className="px-3 py-4 border-r border-gray-200 text-center">
-                      <button className="bg-[#00bcd4] hover:bg-[#00acc1] text-white px-3 py-1 rounded shadow-sm text-[11px] transition">
-                        View
-                      </button>
+                      <span className="bg-gray-600 text-white text-[10px] px-2 py-0.5 rounded-full whitespace-nowrap">
+                        {row.type || 'Online'}
+                      </span>
                     </td>
+                    
+                    {/* Address */}
+                    <td className="px-3 py-4 border-r border-gray-200 text-[11px] max-w-[160px] leading-snug">
+                      {row.address || '—'}
+                    </td>
+                    
                     <td className="px-3 py-4 border-r border-gray-200 leading-tight">
                       {row.customer_name}
                     </td>
-                    <td className="px-3 py-4 border-r border-gray-200 font-medium text-blue-600 underline cursor-pointer">
+
+                    <td className="px-3 py-4 border-r border-gray-200 font-medium text-gray-800">
                       {row.mobile}
                     </td>
-                    <td className="px-3 py-4 border-r border-gray-200 leading-tight max-w-[120px]">
-                      {row.category}
+                    
+                    <td className="px-3 py-4 border-r border-gray-200 leading-tight max-w-[140px]">
+                      {row.category || '—'}
                     </td>
-                    <td className="px-3 py-4 border-r border-gray-200 leading-tight max-w-[150px]">
-                      {row.services}
+                    
+                    {/* Services — parse JSON array */}
+                    <td className="px-3 py-4 border-r border-gray-200 leading-tight max-w-[200px]">
+                      {Array.isArray(row.services) ? (
+                        <ul className="space-y-1">
+                          {row.services.map((s: any, i: number) => (
+                            <li key={i} className="text-[11px] text-gray-700">
+                              <span className="font-semibold">{s.title}</span>
+                              {s.quantity > 1 && <span className="text-gray-400 ml-1">x{s.quantity}</span>}
+                              <span className="text-gray-500 ml-1">₹{s.price}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <span className="text-gray-500 text-[11px]">{String(row.services || '—')}</span>
+                      )}
                     </td>
+
                     <td className="px-3 py-4 border-r border-gray-200 leading-tight whitespace-nowrap text-[11px]">
-                      {new Date(row.booking_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-')}
+                      {row.booking_date 
+                        ? new Date(row.booking_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-') 
+                        : new Date(row.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-')
+                      }
                     </td>
+                    
                     <td className="px-3 py-4 border-r border-gray-200 leading-tight whitespace-nowrap text-[11px]">
                       {row.time_slot}
                     </td>
+
                     <td className="px-3 py-4 border-r border-gray-200">
-                      ₹ {row.total}
+                      <form action={updateTotal} className="flex items-center space-x-1">
+                        <input type="hidden" name="id" value={row.id} />
+                        <div className="relative">
+                          <span className="absolute left-2 top-1 text-gray-500">₹</span>
+                          <input 
+                            type="number" 
+                            name="total" 
+                            defaultValue={row.total}
+                            className="border border-gray-300 rounded pl-5 pr-2 py-1 w-20 text-[11px] outline-none focus:border-blue-500"
+                          />
+                        </div>
+                        <button type="submit" className="border border-blue-400 text-blue-500 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded text-[10px] transition">
+                          Update
+                        </button>
+                      </form>
                     </td>
+
                     <td className="px-3 py-4 border-r border-gray-200 text-center">
-                      <button className="bg-[#1b6b50] hover:bg-[#15533e] text-white px-3 py-1.5 rounded shadow-sm text-[11px] transition flex items-center space-x-1 mx-auto">
+                      <button className="bg-[#1b6b50] hover:bg-[#15533e] text-white px-2 py-1 rounded shadow-sm text-[11px] transition flex flex-col items-center mx-auto">
+                        <MessageCircle className="w-3.5 h-3.5 mb-0.5" />
                         <span>Share</span>
                       </button>
                     </td>
-                    <td className="px-3 py-4 border-r border-gray-200 text-[11px]">
-                      {row.payment_method === 'cashfree' ? 'cod' : row.payment_method}
+
+                    <td className="px-3 py-4 border-r border-gray-200">
+                      {row.payment_method}
                     </td>
+
                     <td className="px-3 py-4 border-r border-gray-200 text-center">
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full text-white whitespace-nowrap ${
                         row.payment_status === 'Completed' ? 'bg-[#1b6b50]' : 'bg-[#ffc107] text-gray-900'
@@ -101,47 +212,22 @@ export default async function CompletedBookingPage() {
                         {row.payment_status}
                       </span>
                     </td>
-                    <td className="px-3 py-4 border-r border-gray-200 text-center">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded text-white whitespace-nowrap ${
-                        row.working_status === 'Reject' ? 'bg-red-500' : 
-                        row.working_status === 'Complete' ? 'bg-gray-600' : 'bg-yellow-500 text-gray-900'
-                      }`}>
-                        {row.working_status === 'Pendi' ? 'Pending' : row.working_status}
-                      </span>
-                    </td>
+
                     <td className="px-3 py-4 text-center">
-                       <select 
-                          name="working_status"
-                          defaultValue={row.working_status}
-                          className="border border-gray-300 rounded px-2 py-1 text-[11px] outline-none focus:border-blue-500 bg-white min-w-[80px]"
-                        >
-                          <option value="Complete">Complete</option>
-                          <option value="Reject">Reject</option>
-                          <option value="Pendi">Pendi</option>
-                        </select>
+<WorkingStatusSelect id={row.id} defaultValue={row.working_status} action={updateWorkingStatus} />
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={15} className="px-4 py-8 text-center text-gray-500 text-sm bg-gray-50/50">
-                    No data available in table
+                  <td colSpan={15} className="px-6 py-12 text-center text-gray-500 bg-gray-50">
+                    No bookings found.
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
-        
-        {/* Pagination Footer */}
-        <div className="bg-white border-t border-gray-200 px-4 py-3 flex items-center justify-between text-sm text-gray-600 mt-2">
-          <div>Showing {bookings.length > 0 ? 1 : 0} to {bookings.length} of {bookings.length} entries</div>
-          <div className="flex space-x-1">
-            <button className="px-3 py-1 border border-gray-300 rounded text-gray-500 hover:bg-gray-50 disabled:opacity-50 text-[13px] bg-gray-100">Previous</button>
-            <button className="px-3 py-1 border border-gray-300 rounded text-gray-500 hover:bg-gray-50 disabled:opacity-50 text-[13px] bg-gray-100">Next</button>
-          </div>
-        </div>
-        
       </div>
     </div>
   );

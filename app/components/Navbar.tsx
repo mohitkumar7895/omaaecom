@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronDown, MapPin, ShoppingCart, User } from "lucide-react";
+import { ChevronDown, MapPin, ShoppingCart, User, Menu, X } from "lucide-react";
 import LocationSelector from "./LocationSelector";
 import { useEffect, useState } from "react";
 import { getActiveCategories } from "../actions/categories";
 
 export default function Navbar() {
   const [categories, setCategories] = useState<any[]>([]);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileServicesOpen, setIsMobileServicesOpen] = useState(false);
 
   useEffect(() => {
     getActiveCategories().then(setCategories).catch(console.error);
@@ -64,7 +66,7 @@ export default function Navbar() {
         </div>
 
         {/* Right section: Location & Icons */}
-        <div className="flex items-center space-x-3 z-10">
+        <div className="flex items-center space-x-2 lg:space-x-3 z-10">
           {/* Location Button (Client Component Modal) */}
           <LocationSelector />
 
@@ -81,9 +83,53 @@ export default function Navbar() {
               <ShoppingCart className="w-4 h-4 lg:w-5 lg:h-5 stroke-[1.5]" />
             </button>
           </Link>
+
+          {/* Mobile Menu Toggle Button */}
+          <button 
+            className="lg:hidden p-1.5 ml-1 text-gray-700 hover:text-[#5c67b8] transition"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
         </div>
-        
       </div>
+
+      {/* Mobile Menu Dropdown */}
+      {isMobileMenuOpen && (
+        <div className="lg:hidden absolute top-full left-0 w-full bg-white shadow-2xl border-t border-gray-100 flex flex-col z-[90]">
+          <Link href="/" className="px-6 py-4 border-b border-gray-50 font-semibold text-gray-800" onClick={() => setIsMobileMenuOpen(false)}>
+            Home
+          </Link>
+          <Link href="/about" className="px-6 py-4 border-b border-gray-50 font-semibold text-gray-800" onClick={() => setIsMobileMenuOpen(false)}>
+            About Us
+          </Link>
+          <div className="flex flex-col border-b border-gray-50">
+            <div 
+              className="px-6 py-4 flex justify-between items-center font-semibold text-gray-800 cursor-pointer"
+              onClick={() => setIsMobileServicesOpen(!isMobileServicesOpen)}
+            >
+              <span>Services</span>
+              <ChevronDown className={`w-5 h-5 transition-transform ${isMobileServicesOpen ? 'rotate-180 text-[#5c67b8]' : 'text-gray-500'}`} />
+            </div>
+            {isMobileServicesOpen && (
+              <div className="bg-gray-50 flex flex-col">
+                {categories.length > 0 ? (
+                  categories.map((cat) => (
+                    <Link key={cat.id} href={`/services/${cat.id}`} className="px-10 py-3 text-[14px] text-gray-600 border-b border-gray-100 last:border-0 hover:text-[#5c67b8]" onClick={() => setIsMobileMenuOpen(false)}>
+                      {cat.title}
+                    </Link>
+                  ))
+                ) : (
+                  <div className="px-10 py-3 text-[14px] text-gray-500">No services</div>
+                )}
+              </div>
+            )}
+          </div>
+          <Link href="/contact" className="px-6 py-4 font-semibold text-gray-800" onClick={() => setIsMobileMenuOpen(false)}>
+            Contact Us
+          </Link>
+        </div>
+      )}
     </nav>
   );
 }

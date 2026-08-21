@@ -43,69 +43,76 @@ export default function Hero({ categories = [] }: { categories?: any[] }) {
             />
           </div>
 
-          {/* Home Services Box */}
-          <div className="bg-white rounded-2xl p-6 shadow-xl text-gray-800">
-            <div className="flex items-center space-x-2 mb-6">
-              <Scissors className="w-5 h-5 text-gray-700" />
-              <h3 className="font-bold text-[17px]">Home Services...</h3>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 text-center justify-items-center">
-              {homeServices.map((service, index) => (
-                <Link href={`/category/${service.id}`} key={index} className="flex flex-col items-center space-y-3 cursor-pointer group">
-                  <div className="w-20 h-20 bg-[#f4f7fb] rounded-xl flex items-center justify-center text-4xl shadow-sm group-hover:shadow-md transition overflow-hidden p-2">
-                    {service.image_url && service.image_url.length > 5 ? (
-                      <img src={service.image_url} alt={service.title} className="w-full h-full object-contain" />
-                    ) : (
-                      <span>{getIcon(service.title)}</span>
-                    )}
-                  </div>
-                  <span className="text-[11px] font-bold text-gray-700 leading-tight">{service.title}</span>
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {/* Bottom Row: New Products & AMC */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">
-            {/* New Products Card */}
-            {newProducts.length > 0 && (
-              <div className="bg-white rounded-2xl p-5 shadow-xl text-gray-800 flex flex-col">
-                <div className="flex items-center space-x-2 text-[#2c8af8] mb-4">
-                  <ShoppingCart className="w-5 h-5" fill="currentColor" />
-                  <h3 className="font-bold text-sm">New Products</h3>
-                </div>
-                <Link href={`/category/${newProducts[0].id}`} className="border border-gray-100 rounded-xl p-3 flex justify-between items-center bg-[#fbfcfd] shadow-sm cursor-pointer hover:shadow-md transition">
-                  <span className="text-[13px] font-bold text-gray-800">{newProducts[0].title}</span>
-                  <div className="w-14 h-14 bg-[#f4f7fb] rounded-lg flex items-center justify-center text-2xl shadow-inner border border-gray-50 overflow-hidden p-1">
-                    {newProducts[0].image_url && newProducts[0].image_url.length > 5 ? (
-                      <img src={newProducts[0].image_url} alt={newProducts[0].title} className="w-full h-full object-contain" />
-                    ) : (
-                      <span>📦</span>
-                    )}
-                  </div>
-                </Link>
+          {/* Unified Services Box */}
+          <div className="bg-white rounded-2xl p-6 shadow-xl text-gray-800 flex flex-col space-y-6">
+            
+            {/* Top Section: Home Services */}
+            <div>
+              <div className="flex items-center space-x-2 mb-6">
+                <Scissors className="w-5 h-5 text-gray-700" />
+                <h3 className="font-bold text-[17px]">Home Services...</h3>
               </div>
-            )}
-
-            {/* AMC Products Card */}
-            {amcProducts.length > 0 && (
-              <div className="bg-white rounded-2xl p-5 shadow-xl text-gray-800 flex flex-col">
-                <div className="flex items-center text-[#21a868] mb-4">
-                  <h3 className="font-bold text-sm">AMC Products</h3>
-                </div>
-                <Link href={`/category/${amcProducts[0].id}`} className="border border-gray-100 rounded-xl p-3 flex justify-between items-center bg-[#fbfcfd] shadow-sm cursor-pointer hover:shadow-md transition">
-                  <span className="text-[13px] font-bold text-gray-800">{amcProducts[0].title}</span>
-                  <div className="w-14 h-14 bg-[#f4f7fb] rounded-lg flex items-center justify-center text-2xl shadow-inner border border-gray-50 relative overflow-hidden p-1">
-                    {amcProducts[0].image_url && amcProducts[0].image_url.length > 5 ? (
-                      <img src={amcProducts[0].image_url} alt={amcProducts[0].title} className="w-full h-full object-contain" />
-                    ) : (
-                      <span>🛡️</span>
-                    )}
-                    <span className="absolute -top-1.5 -right-1.5 bg-[#4cda64] text-white text-[8px] px-1 py-0.5 rounded-sm font-bold shadow-sm z-10">AMC</span>
-                  </div>
-                </Link>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 text-center justify-items-center">
+                {homeServices.map((service, index) => (
+                  <Link href={`/category/${service.id}`} key={index} className="flex flex-col items-center space-y-3 cursor-pointer group">
+                    <div className="w-20 h-20 bg-[#f4f7fb] rounded-xl flex items-center justify-center text-4xl shadow-sm group-hover:shadow-md transition overflow-hidden p-2">
+                      {service.image_url && service.image_url.length > 5 ? (
+                        <img src={service.image_url} alt={service.title} className="w-full h-full object-contain" />
+                      ) : (
+                        <span>{getIcon(service.title)}</span>
+                      )}
+                    </div>
+                    <span className="text-[11px] font-bold text-gray-700 leading-tight">{service.title}</span>
+                  </Link>
+                ))}
               </div>
-            )}
+            </div>
+
+            {/* Divider */}
+            <div className="w-full h-px bg-gray-100"></div>
+
+            {/* Bottom Section: New Products & AMC */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">
+              {/* New Products Card */}
+              {newProducts.length > 0 && (
+                <div className="flex flex-col">
+                  <div className="flex items-center space-x-2 text-[#2c8af8] mb-3">
+                    <ShoppingCart className="w-5 h-5" fill="currentColor" />
+                    <h3 className="font-bold text-sm">New Products</h3>
+                  </div>
+                  <Link href={`/category/${newProducts[0].id}`} className="border border-gray-100 rounded-xl p-3 flex justify-between items-center bg-[#fbfcfd] shadow-sm cursor-pointer hover:shadow-md transition">
+                    <span className="text-[13px] font-bold text-gray-800">{newProducts[0].title}</span>
+                    <div className="w-14 h-14 bg-[#f4f7fb] rounded-lg flex items-center justify-center text-2xl shadow-inner border border-gray-50 overflow-hidden p-1">
+                      {newProducts[0].image_url && newProducts[0].image_url.length > 5 ? (
+                        <img src={newProducts[0].image_url} alt={newProducts[0].title} className="w-full h-full object-contain" />
+                      ) : (
+                        <span>📦</span>
+                      )}
+                    </div>
+                  </Link>
+                </div>
+              )}
+
+              {/* AMC Products Card */}
+              {amcProducts.length > 0 && (
+                <div className="flex flex-col">
+                  <div className="flex items-center text-[#21a868] mb-3">
+                    <h3 className="font-bold text-sm">AMC Products</h3>
+                  </div>
+                  <Link href={`/category/${amcProducts[0].id}`} className="border border-gray-100 rounded-xl p-3 flex justify-between items-center bg-[#fbfcfd] shadow-sm cursor-pointer hover:shadow-md transition">
+                    <span className="text-[13px] font-bold text-gray-800">{amcProducts[0].title}</span>
+                    <div className="w-14 h-14 bg-[#f4f7fb] rounded-lg flex items-center justify-center text-2xl shadow-inner border border-gray-50 relative overflow-hidden p-1">
+                      {amcProducts[0].image_url && amcProducts[0].image_url.length > 5 ? (
+                        <img src={amcProducts[0].image_url} alt={amcProducts[0].title} className="w-full h-full object-contain" />
+                      ) : (
+                        <span>🛡️</span>
+                      )}
+                      <span className="absolute -top-1.5 -right-1.5 bg-[#4cda64] text-white text-[8px] px-1 py-0.5 rounded-sm font-bold shadow-sm z-10">AMC</span>
+                    </div>
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
 
         </div>
