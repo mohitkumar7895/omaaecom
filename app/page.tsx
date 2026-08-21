@@ -59,10 +59,10 @@ export default async function Home() {
             />
             {/* Inject a banner image after every category if available */}
             {banners[index] && (
-              <div className="max-w-7xl mx-auto px-8 py-8 my-8">
-                <div className="w-full relative rounded-3xl overflow-hidden shadow-lg bg-gray-50 flex items-center justify-center">
+              <div className="max-w-7xl mx-auto px-3 lg:px-8 py-3 lg:py-6 my-2 lg:my-6">
+                <div className="w-full relative rounded-xl lg:rounded-3xl overflow-hidden shadow-lg bg-gray-50 flex items-center justify-center">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={banners[index]} alt="Promo Banner" className="w-full h-auto object-contain max-h-[500px]" />
+                  <img src={banners[index]} alt="Promo Banner" className="w-full h-auto object-contain max-h-[200px] lg:max-h-[500px]" />
                 </div>
               </div>
             )}
@@ -71,10 +71,10 @@ export default async function Home() {
         
         {/* Render any remaining banners at the bottom */}
         {banners.slice(categories.length).map((bannerUrl: string, index: number) => (
-          <div key={`extra-banner-${index}`} className="max-w-7xl mx-auto px-8 py-8 my-8">
-            <div className="w-full relative rounded-3xl overflow-hidden shadow-lg bg-gray-50 flex items-center justify-center">
+          <div key={`extra-banner-${index}`} className="max-w-7xl mx-auto px-3 lg:px-8 py-3 lg:py-6 my-2 lg:my-6">
+            <div className="w-full relative rounded-xl lg:rounded-3xl overflow-hidden shadow-lg bg-gray-50 flex items-center justify-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={bannerUrl} alt="Promo Banner" className="w-full h-auto object-contain max-h-[500px]" />
+              <img src={bannerUrl} alt="Promo Banner" className="w-full h-auto object-contain max-h-[200px] lg:max-h-[500px]" />
             </div>
           </div>
         ))}

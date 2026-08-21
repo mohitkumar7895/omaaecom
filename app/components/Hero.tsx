@@ -111,27 +111,27 @@ export default function Hero({ categories = [] }: { categories?: any[] }) {
         </div>
 
         {/* Right Side: Masonry Image Grid */}
-        <div className="w-full lg:w-[45%] h-full hidden lg:flex gap-4 pt-4 pb-2">
+        <div className="w-full lg:w-[45%] h-full flex gap-4 pt-2 pb-2">
            {/* Left Tall Image */}
            <div className="w-1/2 h-full flex flex-col">
               <img 
                 src="/Hero1.webp" 
                 alt="Cleaning Service" 
-                className="w-full h-[550px] object-cover rounded-3xl shadow-2xl border-4 border-white/40"
+                className="w-full h-[220px] lg:h-[550px] object-cover rounded-2xl lg:rounded-3xl shadow-2xl border-4 border-white/40"
               />
            </div>
            
            {/* Right Stacked Images */}
-           <div className="w-1/2 h-[550px] flex flex-col gap-4">
+           <div className="w-1/2 h-[220px] lg:h-[550px] flex flex-col gap-4">
               <img 
                 src="/Hero 2.webp" 
                 alt="RO Repair" 
-                className="w-full h-[48%] object-cover rounded-3xl shadow-2xl border-4 border-white/40"
+                className="w-full h-[48%] object-cover rounded-2xl lg:rounded-3xl shadow-2xl border-4 border-white/40"
               />
               <img 
                 src="/Hero3.webp" 
                 alt="AC Repair" 
-                className="w-full h-[48%] object-cover rounded-3xl shadow-2xl border-4 border-white/40"
+                className="w-full h-[48%] object-cover rounded-2xl lg:rounded-3xl shadow-2xl border-4 border-white/40"
               />
            </div>
         </div>

@@ -16,7 +16,7 @@ export default function Navbar() {
 
   return (
     <nav className="relative z-[100] bg-white shadow-sm border-b border-gray-100 font-sans w-full">
-      <div className="max-w-7xl mx-auto px-6 lg:px-12 py-3 relative flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 lg:px-12 py-2 lg:py-3 relative flex items-center justify-between">
         
         {/* Left section: Logo */}
         <div className="flex items-center z-10">
@@ -27,7 +27,7 @@ export default function Navbar() {
               alt="OMAA Logo" 
               width={160} 
               height={50} 
-              className="h-10 lg:h-12 w-auto object-contain cursor-pointer"
+              className="h-7 lg:h-12 w-auto object-contain cursor-pointer"
               priority
             />
           </Link>
@@ -70,15 +70,15 @@ export default function Navbar() {
 
           {/* User Button */}
           <Link href="/login">
-            <button className="bg-[#6069c9] p-2.5 rounded-[10px] text-white hover:bg-[#525ab5] transition shadow-sm flex items-center justify-center">
-              <User className="w-5 h-5 stroke-[1.5]" />
+            <button className="bg-[#6069c9] p-1.5 lg:p-2.5 rounded-[8px] lg:rounded-[10px] text-white hover:bg-[#525ab5] transition shadow-sm flex items-center justify-center">
+              <User className="w-4 h-4 lg:w-5 lg:h-5 stroke-[1.5]" />
             </button>
           </Link>
           
           {/* Cart Button */}
           <Link href="/cart">
-            <button className="bg-[#6069c9] p-2.5 rounded-[10px] text-white hover:bg-[#525ab5] transition shadow-sm flex items-center justify-center">
-              <ShoppingCart className="w-5 h-5 stroke-[1.5]" />
+            <button className="bg-[#6069c9] p-1.5 lg:p-2.5 rounded-[8px] lg:rounded-[10px] text-white hover:bg-[#525ab5] transition shadow-sm flex items-center justify-center">
+              <ShoppingCart className="w-4 h-4 lg:w-5 lg:h-5 stroke-[1.5]" />
             </button>
           </Link>
         </div>
