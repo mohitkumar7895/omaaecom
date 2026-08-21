@@ -1,69 +1,86 @@
-import Image from "next/image";
+import Navbar from "./components/Navbar";
+import Hero from "./components/Hero";
+import PromoBanner from "./components/PromoBanner";
+import NewProductsSection from "./components/NewProductsSection";
+import CategoryGrid from "./components/CategoryGrid";
+import ImageBanner from "./components/ImageBanner";
+import Footer from "./components/Footer";
+import pool from "../lib/db";
 
-export default function Home() {
+// Cache the page for 60 seconds (Incremental Static Regeneration) for fast loading
+export const revalidate = 60;
+
+export default async function Home() {
+  let categories: any[] = [];
+  let banners: any[] = [];
+
+  try {
+    // Fetch categories and their associated services
+    const [catRows]: any = await pool.query("SELECT * FROM categories WHERE status = 'Active'");
+    
+    // For each category, fetch its services
+    categories = await Promise.all(
+      catRows.map(async (cat: any) => {
+        const [services]: any = await pool.query("SELECT * FROM services WHERE category_id = ?", [cat.id]);
+        return {
+          ...cat,
+          services: services,
+        };
+      })
+    );
+
+    // Fetch banners (the new schema groups them in 3s)
+    const [bannerRows]: any = await pool.query("SELECT * FROM banners ORDER BY created_at DESC");
+    
+    // Flatten the banners into a single array for rendering between categories
+    bannerRows.forEach((row: any) => {
+      if (row.banner1_url) banners.push(row.banner1_url);
+      if (row.banner2_url) banners.push(row.banner2_url);
+      if (row.banner3_url) banners.push(row.banner3_url);
+    });
+  } catch (error) {
+    console.error("Database connection failed or tables missing:", error);
+    // Silent fail so page renders empty sections rather than crashing
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+    <main className="min-h-screen bg-gray-50 flex flex-col font-sans">
+      <Navbar />
+      <Hero categories={categories} />
+      <NewProductsSection />
+      
+      {/* Dynamic Content Stream from Admin DB */}
+      <div className="mt-4 mb-20">
+        {categories.map((category: any, index: number) => (
+          <div key={`cat-${index}`}>
+            <CategoryGrid 
+              title={category.title} 
+              services={category.services} 
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+            {/* Inject a banner image after every category if available */}
+            {banners[index] && (
+              <div className="max-w-7xl mx-auto px-8 py-8 my-8">
+                <div className="w-full relative rounded-3xl overflow-hidden shadow-lg bg-gray-50 flex items-center justify-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={banners[index]} alt="Promo Banner" className="w-full h-auto object-contain max-h-[500px]" />
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+        
+        {/* Render any remaining banners at the bottom */}
+        {banners.slice(categories.length).map((bannerUrl: string, index: number) => (
+          <div key={`extra-banner-${index}`} className="max-w-7xl mx-auto px-8 py-8 my-8">
+            <div className="w-full relative rounded-3xl overflow-hidden shadow-lg bg-gray-50 flex items-center justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={bannerUrl} alt="Promo Banner" className="w-full h-auto object-contain max-h-[500px]" />
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      <Footer />
+    </main>
   );
 }

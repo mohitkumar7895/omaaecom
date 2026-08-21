@@ -1,0 +1,201 @@
+"use client";
+
+import { X, Star, CheckCircle2, Check, FileText, ChevronDown } from "lucide-react";
+import { useState } from "react";
+
+type ServiceDetailsModalProps = {
+  service: any;
+  onClose: () => void;
+  onAdd: (service: any) => void;
+  quantity?: number;
+  onRemove?: () => void;
+};
+
+export default function ServiceDetailsModal({ service, onClose, onAdd, quantity = 0, onRemove }: ServiceDetailsModalProps) {
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+  const toggleFaq = (index: number) => {
+    setOpenFaq(openFaq === index ? null : index);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white w-full max-w-2xl h-[90vh] md:h-[85vh] md:rounded-2xl flex flex-col relative shadow-2xl animate-in zoom-in-95 duration-200">
+        
+        {/* Close Button */}
+        <button 
+          onClick={onClose}
+          className="absolute top-4 right-4 z-10 bg-white/80 backdrop-blur-md p-2 rounded-full shadow-sm hover:bg-white text-gray-700 transition"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto">
+          {/* Hero Image */}
+          <div className="w-full h-[240px] bg-gray-100 relative">
+            {service.image_url ? (
+              <img src={service.image_url} alt={service.title} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
+            )}
+          </div>
+
+          <div className="p-6 md:p-8">
+            {/* Title & Rating */}
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">{service.title}</h2>
+            <div className="flex items-center space-x-1 text-sm text-gray-500 mb-6">
+              <Star className="w-4 h-4 text-yellow-500 fill-current" />
+              <span className="font-bold text-black">{service.rating || '4.8'}</span>
+              <span>({service.reviews ? `${service.reviews}` : '0 reviews'})</span>
+            </div>
+
+            {/* OC Warranty Box */}
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex gap-3 mb-4">
+              <CheckCircle2 className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <h4 className="font-bold text-blue-700 mb-1">OC Warranty</h4>
+                <p className="text-sm text-gray-600">New paid service. {service.warranty_days || 180}-day warranty after completion.</p>
+              </div>
+            </div>
+
+            {/* Standard / Rate Card Box */}
+            <div className="border border-gray-200 rounded-xl p-3 flex gap-3 mb-8 bg-gray-50/50">
+              <button className="flex-1 bg-white border border-blue-200 text-blue-600 font-semibold py-2 rounded-lg flex items-center justify-center gap-2 shadow-sm">
+                <CheckCircle2 className="w-4 h-4" /> Standard
+              </button>
+              <button className="flex-1 bg-gray-900 text-white font-semibold py-2 rounded-lg flex items-center justify-center gap-2 shadow-sm">
+                <FileText className="w-4 h-4" /> Rate Card
+              </button>
+            </div>
+
+            {/* About the service */}
+            <div className="mb-8">
+              <h3 className="text-lg font-bold text-gray-900 inline-block mb-4 border-b-2 border-purple-500 pb-1">
+                About the service
+              </h3>
+              <ul className="space-y-3">
+                <li className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span className="text-gray-600 text-[15px]">Professional and high-quality service</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span className="text-gray-600 text-[15px]">Standard safety and hygiene protocols</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <span className="text-gray-600 text-[15px]">Experienced and verified professionals</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* How it works */}
+            <div className="mb-8">
+              <h3 className="text-lg font-bold text-gray-900 inline-block mb-6 border-b-2 border-purple-500 pb-1">
+                How it works
+              </h3>
+              <div className="space-y-6 relative before:absolute before:inset-0 before:ml-4 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 before:to-transparent">
+                
+                <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full border border-white bg-[#6069c9] text-white font-bold text-sm shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">1</div>
+                  <div className="w-[calc(100%-3rem)] md:w-[calc(50%-2.5rem)] p-4 rounded border border-slate-200 shadow-sm bg-white ml-4 md:ml-0">
+                    <h4 className="font-bold text-slate-900">Book your service</h4>
+                    <p className="text-sm text-slate-500">Select date and time slot</p>
+                  </div>
+                </div>
+
+                <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full border border-white bg-[#6069c9] text-white font-bold text-sm shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">2</div>
+                  <div className="w-[calc(100%-3rem)] md:w-[calc(50%-2.5rem)] p-4 rounded border border-slate-200 shadow-sm bg-white ml-4 md:ml-0">
+                    <h4 className="font-bold text-slate-900">Professional arrives</h4>
+                    <p className="text-sm text-slate-500">Verified and trained expert</p>
+                  </div>
+                </div>
+
+                <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full border border-white bg-[#6069c9] text-white font-bold text-sm shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">3</div>
+                  <div className="w-[calc(100%-3rem)] md:w-[calc(50%-2.5rem)] p-4 rounded border border-slate-200 shadow-sm bg-white ml-4 md:ml-0">
+                    <h4 className="font-bold text-slate-900">Service completed</h4>
+                    <p className="text-sm text-slate-500">Quality assured work</p>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            {/* FAQ */}
+            <div className="mb-8">
+              <h3 className="text-lg font-bold text-gray-900 inline-block mb-4 border-b-2 border-purple-500 pb-1">
+                Frequently Asked Questions
+              </h3>
+              <div className="space-y-2">
+                {[
+                  { q: "How long does the service take?", a: "The service typically takes 2-3 hours depending on the condition and type of appliance." },
+                  { q: "Do you provide warranty?", a: `Yes, we provide ${service.warranty_days || 180} days service warranty on all services.` },
+                  { q: "What if I need to reschedule?", a: "You can reschedule free of charge up to 2 hours before your appointment." }
+                ].map((faq, i) => (
+                  <div key={i} className="border-b border-gray-100 last:border-0 pb-2">
+                    <button 
+                      onClick={() => toggleFaq(i)}
+                      className="w-full flex justify-between items-center py-3 text-left font-semibold text-gray-800 text-[15px]"
+                    >
+                      {faq.q}
+                      <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${openFaq === i ? 'rotate-180' : ''}`} />
+                    </button>
+                    {openFaq === i && (
+                      <div className="pb-4 text-gray-600 text-sm animate-in slide-in-from-top-1">
+                        {faq.a}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Ratings & Reviews */}
+            <div className="mb-20">
+              <h3 className="text-lg font-bold text-gray-900 inline-block mb-4 border-b-2 border-purple-500 pb-1">
+                Ratings & Reviews
+              </h3>
+              <p className="text-gray-500 text-sm">Review option will appear after your work status is complete.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Bar */}
+        <div className="border-t border-gray-200 bg-white p-4 flex items-center justify-between sticky bottom-0 rounded-b-2xl">
+          <div>
+            <div className="text-2xl font-bold text-blue-600">₹{service.selling_price}</div>
+            <div className="text-sm text-gray-500">{service.duration || '45 mins'}</div>
+          </div>
+          {quantity > 0 ? (
+            <div className="bg-white border border-[#6069c9] text-[#6069c9] text-[15px] font-bold h-11 w-32 rounded-lg shadow-sm flex items-center justify-between px-2">
+              <button 
+                onClick={(e) => { e.preventDefault(); onRemove && onRemove(); }}
+                className="w-8 h-8 flex items-center justify-center hover:bg-blue-50 rounded-md transition"
+              >
+                -
+              </button>
+              <span className="text-[#6069c9]">{quantity}</span>
+              <button 
+                onClick={(e) => { e.preventDefault(); onAdd(service); }}
+                className="w-8 h-8 flex items-center justify-center hover:bg-blue-50 rounded-md transition"
+              >
+                +
+              </button>
+            </div>
+          ) : (
+            <button 
+              onClick={() => onAdd(service)}
+              className="bg-[#7780d6] text-white font-bold py-2.5 px-8 rounded-xl hover:bg-[#6069c9] transition shadow-md"
+            >
+              Add to Cart
+            </button>
+          )}
+        </div>
+
+      </div>
+    </div>
+  );
+}
