@@ -1,8 +1,10 @@
 import { Search, Scissors, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import MobileBannerCarousel from "./MobileBannerCarousel";
+import LiveSearchBar from "./LiveSearchBar";
 
-export default function Hero({ categories = [] }: { categories?: any[] }) {
+export default function Hero({ categories = [], banners = [] }: { categories?: any[], banners?: string[] }) {
   
   const getIcon = (title: string) => {
     if (title.includes("Ac Repair")) return "❄️";
@@ -21,49 +23,43 @@ export default function Hero({ categories = [] }: { categories?: any[] }) {
   const amcProducts = categories.filter(c => c.type && c.type.toLowerCase().includes("amc")).slice(0, 1);
 
   return (
-    <div className="relative bg-gradient-to-br from-[#6277db] via-[#a268b8] to-[#db5285] text-white min-h-[calc(100vh-73px)] w-full font-sans overflow-hidden py-12 px-6 lg:px-12">
+    <div className="relative bg-gradient-to-br from-[#6277db] via-[#a268b8] to-[#db5285] text-white w-full font-sans overflow-hidden py-3 lg:py-12 px-4 lg:px-12">
       
-      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-12 items-start h-full">
+      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6 lg:gap-12 items-start h-full">
         
         {/* Left Side: Content & Cards */}
-        <div className="w-full lg:w-[55%] flex flex-col space-y-6 z-10 pt-4">
+        <div className="w-full lg:w-[55%] flex flex-col space-y-4 lg:space-y-6 z-10 pt-2 lg:pt-4">
           
-          <h1 className="text-[42px] font-bold leading-[1.15] mb-2">
+          {/* Mobile Carousel placed before title or replacing title on mobile */}
+          <MobileBannerCarousel banners={banners} />
+          
+          <h1 className="hidden lg:block text-[42px] font-bold leading-[1.15] mb-2">
             Home Services at Your <br /> Doorsteps
           </h1>
 
           {/* Mobile Search Bar (Only visible on mobile) */}
-          <div className="relative w-full shadow-lg lg:hidden">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              className="block w-full pl-12 pr-4 py-4 rounded-xl leading-5 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-600 sm:text-base border-none shadow-sm"
-              placeholder="Search for Services ..."
-            />
-          </div>
+          <LiveSearchBar className="lg:hidden" />
 
           {/* Unified Services Box */}
-          <div className="bg-white rounded-2xl p-6 shadow-xl text-gray-800 flex flex-col space-y-6">
+          <div className="bg-white rounded-2xl p-4 lg:p-6 shadow-xl text-gray-800 flex flex-col space-y-4 lg:space-y-6">
             
             {/* Top Section: Home Services */}
             <div>
-              <div className="flex items-center space-x-2 mb-6">
+              <div className="flex items-center space-x-2 mb-3 lg:mb-6">
                 <Scissors className="w-5 h-5 text-gray-700" />
                 <h3 className="font-bold text-[17px]">Home Services...</h3>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 text-center justify-items-center">
+              <div className="grid grid-cols-3 gap-3 lg:gap-6 text-center justify-items-center">
                 {homeServices.map((service, index) => (
-                  <Link href={`/category/${service.id}`} key={index} className="flex flex-col items-center space-y-3 cursor-pointer group">
-                    <div className="w-20 h-20 bg-[#f4f7fb] rounded-xl flex items-center justify-center text-4xl shadow-sm group-hover:shadow-md transition overflow-hidden p-2">
+                  <Link href={`/category/${service.id}`} key={index} className="flex flex-col items-center space-y-2 cursor-pointer group w-full">
+                    <div className="w-[72px] h-[72px] sm:w-20 sm:h-20 bg-[#f4f7fb] rounded-xl flex items-center justify-center text-[34px] sm:text-4xl shadow-sm group-hover:shadow-md transition overflow-hidden p-2">
                       {service.image_url && service.image_url.length > 5 ? (
                         <img src={service.image_url} alt={service.title} className="w-full h-full object-contain" />
                       ) : (
                         <span>{getIcon(service.title)}</span>
                       )}
                     </div>
-                    <span className="text-[11px] font-bold text-gray-700 leading-tight">{service.title}</span>
+                    <span className="text-[13px] font-bold text-gray-700 leading-tight">{service.title}</span>
                   </Link>
                 ))}
               </div>
@@ -73,17 +69,17 @@ export default function Hero({ categories = [] }: { categories?: any[] }) {
             <div className="w-full h-px bg-gray-100"></div>
 
             {/* Bottom Section: New Products & AMC */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">
+            <div className="grid grid-cols-2 gap-3 lg:gap-6 w-full">
               {/* New Products Card */}
               {newProducts.length > 0 && (
                 <div className="flex flex-col">
-                  <div className="flex items-center space-x-2 text-[#2c8af8] mb-3">
-                    <ShoppingCart className="w-5 h-5" fill="currentColor" />
-                    <h3 className="font-bold text-sm">New Products</h3>
+                  <div className="flex items-center space-x-1.5 lg:space-x-2 text-[#2c8af8] mb-2 lg:mb-3">
+                    <ShoppingCart className="w-4 h-4 lg:w-5 lg:h-5" fill="currentColor" />
+                    <h3 className="font-bold text-[11px] lg:text-sm">New Products</h3>
                   </div>
-                  <Link href={`/category/${newProducts[0].id}`} className="border border-gray-100 rounded-xl p-3 flex justify-between items-center bg-[#fbfcfd] shadow-sm cursor-pointer hover:shadow-md transition">
-                    <span className="text-[13px] font-bold text-gray-800">{newProducts[0].title}</span>
-                    <div className="w-14 h-14 bg-[#f4f7fb] rounded-lg flex items-center justify-center text-2xl shadow-inner border border-gray-50 overflow-hidden p-1">
+                  <Link href={`/category/${newProducts[0].id}`} className="border border-gray-100 rounded-xl p-2 lg:p-3 flex justify-between items-center bg-[#fbfcfd] shadow-sm cursor-pointer hover:shadow-md transition">
+                    <span className="text-[10px] lg:text-[13px] font-bold text-gray-800 leading-tight pr-1 line-clamp-2">{newProducts[0].title}</span>
+                    <div className="w-10 h-10 lg:w-14 lg:h-14 bg-[#f4f7fb] rounded-lg flex-shrink-0 flex items-center justify-center text-xl lg:text-2xl shadow-inner border border-gray-50 overflow-hidden p-1">
                       {newProducts[0].image_url && newProducts[0].image_url.length > 5 ? (
                         <img src={newProducts[0].image_url} alt={newProducts[0].title} className="w-full h-full object-contain" />
                       ) : (
@@ -97,12 +93,12 @@ export default function Hero({ categories = [] }: { categories?: any[] }) {
               {/* AMC Products Card */}
               {amcProducts.length > 0 && (
                 <div className="flex flex-col">
-                  <div className="flex items-center text-[#21a868] mb-3">
-                    <h3 className="font-bold text-sm">AMC Products</h3>
+                  <div className="flex items-center text-[#21a868] mb-2 lg:mb-3">
+                    <h3 className="font-bold text-[11px] lg:text-sm">AMC Products</h3>
                   </div>
-                  <Link href={`/category/${amcProducts[0].id}`} className="border border-gray-100 rounded-xl p-3 flex justify-between items-center bg-[#fbfcfd] shadow-sm cursor-pointer hover:shadow-md transition">
-                    <span className="text-[13px] font-bold text-gray-800">{amcProducts[0].title}</span>
-                    <div className="w-14 h-14 bg-[#f4f7fb] rounded-lg flex items-center justify-center text-2xl shadow-inner border border-gray-50 relative overflow-hidden p-1">
+                  <Link href={`/category/${amcProducts[0].id}`} className="border border-gray-100 rounded-xl p-2 lg:p-3 flex justify-between items-center bg-[#fbfcfd] shadow-sm cursor-pointer hover:shadow-md transition">
+                    <span className="text-[10px] lg:text-[13px] font-bold text-gray-800 leading-tight pr-1 line-clamp-2">{amcProducts[0].title}</span>
+                    <div className="w-10 h-10 lg:w-14 lg:h-14 bg-[#f4f7fb] rounded-lg flex-shrink-0 flex items-center justify-center text-xl lg:text-2xl shadow-inner border border-gray-50 relative overflow-hidden p-1">
                       {amcProducts[0].image_url && amcProducts[0].image_url.length > 5 ? (
                         <img src={amcProducts[0].image_url} alt={amcProducts[0].title} className="w-full h-full object-contain" />
                       ) : (
@@ -122,18 +118,9 @@ export default function Hero({ categories = [] }: { categories?: any[] }) {
         <div className="w-full lg:w-[45%] h-full flex flex-col gap-4 pt-2 pb-2">
            
            {/* Desktop Search Bar (Only visible on desktop) */}
-           <div className="relative w-full shadow-lg hidden lg:block">
-             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-               <Search className="h-5 w-5 text-gray-400" />
-             </div>
-             <input
-               type="text"
-               className="block w-full pl-12 pr-4 py-4 rounded-xl leading-5 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-600 sm:text-base border-none shadow-sm"
-               placeholder="Search for Services ..."
-             />
-           </div>
+           <LiveSearchBar className="hidden lg:block" />
 
-           <div className="flex gap-4 p-3 border-4 border-white/40 rounded-3xl bg-white/10 shadow-xl">
+           <div className="hidden lg:flex gap-4 p-3 border-4 border-white/40 rounded-3xl bg-white/10 shadow-xl">
              {/* Left Tall Image */}
              <div className="w-1/2 flex flex-col justify-center">
                 <Image 

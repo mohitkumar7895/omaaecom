@@ -37,15 +37,19 @@ export default function CategoryGrid({ title, services }: CategoryGridProps) {
     container.addEventListener('touchstart', handleMouseEnter, { passive: true });
     container.addEventListener('touchend', handleMouseLeave);
 
+    let frameCount = 0;
     const scroll = () => {
       if (!isHovered && container) {
-        // Increment scroll position
-        container.scrollLeft += 1.5; 
-        
-        // If we have scrolled exactly half the total width (because we duplicated the array)
-        // reset to 0 for a truly seamless infinite loop
-        if (container.scrollLeft >= container.scrollWidth / 2) {
-          container.scrollLeft = 0;
+        frameCount++;
+        // Scroll 1 pixel every 3 frames to ensure it works on all browsers
+        if (frameCount % 3 === 0) {
+          container.scrollLeft += 1; 
+          
+          // If we have scrolled exactly half the total width (because we duplicated the array)
+          // reset to 0 for a truly seamless infinite loop
+          if (container.scrollLeft >= container.scrollWidth / 2) {
+            container.scrollLeft = 0;
+          }
         }
       }
       animationId = requestAnimationFrame(scroll);
@@ -65,8 +69,8 @@ export default function CategoryGrid({ title, services }: CategoryGridProps) {
   if (!services || services.length === 0) return null;
   
   return (
-    <div className="max-w-7xl mx-auto px-6 lg:px-12 py-8 relative group">
-      <div className="flex justify-between items-end mb-6">
+    <div className="max-w-7xl mx-auto px-6 lg:px-12 py-4 relative group">
+      <div className="flex justify-between items-end mb-4">
         <h2 className="text-2xl font-bold text-gray-900 inline-block border-b-4 border-indigo-500 pb-2">
           {title}
         </h2>
@@ -74,7 +78,7 @@ export default function CategoryGrid({ title, services }: CategoryGridProps) {
       
       <div 
         ref={scrollRef}
-        className="flex overflow-x-auto gap-4 lg:gap-6 pb-8 pt-4 -mt-4 px-4 -mx-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+        className="flex overflow-x-auto gap-4 lg:gap-6 pb-4 pt-4 -mt-4 px-4 -mx-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
       >
         {(services.length > 5 ? [...services, ...services] : services).map((service, index) => (
             <Link 

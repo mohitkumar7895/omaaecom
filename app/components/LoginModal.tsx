@@ -30,7 +30,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   if (!mounted) return null;
 
   return (
-    <div className={`fixed inset-0 z-[200] flex items-end justify-center sm:items-center sm:p-4`}>
+    <div className={`fixed inset-0 z-[200] flex items-center justify-center p-4`}>
       {/* Backdrop */}
       <div 
         className={`fixed inset-0 bg-black/60 transition-opacity duration-300 ${
@@ -41,7 +41,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
       
       {/* Modal Content */}
       <div 
-        className={`relative w-full sm:w-[420px] bg-white rounded-t-[32px] sm:rounded-[24px] shadow-2xl p-8 transform transition-transform duration-300 border border-gray-100 will-change-transform ${
+        className={`relative w-full sm:w-[420px] bg-white rounded-[24px] sm:rounded-[24px] shadow-2xl p-5 sm:p-8 transform transition-transform duration-300 border border-gray-100 will-change-transform ${
           visible ? "translate-y-0" : "translate-y-full"
         }`}
         style={{ transitionTimingFunction: "ease-out" }}
@@ -55,7 +55,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
         <div className="flex flex-col items-center mt-2">
           {/* Logo floating above the card */}
-          <div className="mb-6 transform transition-transform hover:scale-105 duration-300">
+          <div className="mb-4 sm:mb-6 transform transition-transform hover:scale-105 duration-300">
             <Image 
               src="/logoomaa.webp" 
               alt="OMAA Logo" 
@@ -66,14 +66,14 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           </div>
 
           <div className="w-full">
-            <h2 className="text-[22px] font-bold text-gray-900 tracking-tight text-center mb-6">
+            <h2 className="text-[20px] sm:text-[22px] font-bold text-gray-900 tracking-tight text-center mb-4 sm:mb-6">
               Enter your phone number
             </h2>
 
             {/* Inputs */}
-            <div className="flex items-center space-x-3 mt-6">
+            <div className="flex items-center space-x-3 mt-4 sm:mt-6">
               {/* Country Code */}
-              <div className="flex items-center justify-center space-x-1 border border-gray-200 rounded-xl px-4 py-3 bg-white text-gray-700 font-medium text-sm cursor-pointer hover:bg-gray-50 transition">
+              <div className="flex items-center justify-center space-x-1 border border-gray-200 rounded-xl px-3 py-2 sm:px-4 sm:py-3 bg-white text-gray-700 font-medium text-sm cursor-pointer hover:bg-gray-50 transition">
                 <span>+91</span>
                 <ChevronDown className="w-4 h-4 text-gray-400" />
               </div>
@@ -82,7 +82,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
               <input
                 type="tel"
                 placeholder="Enter Phone Number"
-                className="flex-1 border border-gray-200 rounded-xl px-4 py-3 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#5c67b8]/30 focus:border-[#5c67b8] transition text-sm font-medium"
+                className="flex-1 border border-gray-200 rounded-xl px-3 py-2 sm:px-4 sm:py-3 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#5c67b8]/30 focus:border-[#5c67b8] transition text-sm font-medium"
                 autoFocus
               />
             </div>
@@ -95,47 +95,10 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
               <Link href="#" className="font-semibold text-blue-600 hover:underline">Privacy policy</Link>
             </p>
 
-            <button className="w-full mt-6 bg-[#b1b7ff] hover:bg-[#9ba3fc] text-white font-semibold py-3.5 rounded-xl transition-colors shadow-sm text-sm tracking-wide">
+            <button className="w-full mt-4 sm:mt-6 bg-[#b1b7ff] hover:bg-[#9ba3fc] text-white font-semibold py-2.5 sm:py-3.5 rounded-xl transition-colors shadow-sm text-sm tracking-wide">
               Continue
             </button>
 
-            <div className="mt-6 flex items-center justify-center space-x-2">
-              <div className="h-px w-full bg-gray-200"></div>
-              <span className="text-xs text-gray-400 font-medium uppercase px-2">OR</span>
-              <div className="h-px w-full bg-gray-200"></div>
-            </div>
-
-            <div className="mt-6 flex justify-center">
-              <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}>
-                <GoogleLogin
-                  onSuccess={async (credentialResponse) => {
-                    try {
-                      const res = await fetch("/api/auth/google", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ credential: credentialResponse.credential }),
-                      });
-                      const data = await res.json();
-                      if (data.success) {
-                        onClose();
-                        window.location.reload(); 
-                      } else {
-                        console.error("Google Auth failed", data.error);
-                      }
-                    } catch (e) {
-                      console.error(e);
-                    }
-                  }}
-                  onError={() => {
-                    console.error("Google Login Failed");
-                  }}
-                  theme="outline"
-                  size="large"
-                  text="continue_with"
-                  shape="rectangular"
-                />
-              </GoogleOAuthProvider>
-            </div>
           </div>
         </div>
       </div>

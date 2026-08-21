@@ -19,13 +19,13 @@ export default function ServiceDetailsModal({ service, onClose, onAdd, quantity 
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white w-full max-w-2xl h-[90vh] md:h-[85vh] md:rounded-2xl flex flex-col relative shadow-2xl animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white w-full max-w-2xl h-[95vh] sm:h-[90vh] md:h-[85vh] rounded-t-3xl sm:rounded-3xl md:rounded-2xl flex flex-col relative shadow-2xl animate-in zoom-in-95 duration-200">
         
         {/* Close Button */}
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 bg-white/80 backdrop-blur-md p-2 rounded-full shadow-sm hover:bg-white text-gray-700 transition"
+          className="absolute top-4 right-4 z-10 bg-white/80 backdrop-blur-md p-1.5 sm:p-2 rounded-full shadow-sm hover:bg-white text-gray-700 transition"
         >
           <X className="w-5 h-5" />
         </button>
@@ -33,7 +33,7 @@ export default function ServiceDetailsModal({ service, onClose, onAdd, quantity 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto">
           {/* Hero Image */}
-          <div className="w-full h-[240px] bg-gray-100 relative">
+          <div className="w-full h-[180px] sm:h-[240px] bg-gray-100 relative">
             {service.image_url ? (
               <img src={service.image_url} alt={service.title} className="w-full h-full object-cover" />
             ) : (
@@ -41,30 +41,30 @@ export default function ServiceDetailsModal({ service, onClose, onAdd, quantity 
             )}
           </div>
 
-          <div className="p-6 md:p-8">
+          <div className="p-4 sm:p-6 md:p-8">
             {/* Title & Rating */}
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">{service.title}</h2>
-            <div className="flex items-center space-x-1 text-sm text-gray-500 mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1.5 sm:mb-2">{service.title}</h2>
+            <div className="flex items-center space-x-1 text-[13px] sm:text-sm text-gray-500 mb-4 sm:mb-6">
               <Star className="w-4 h-4 text-yellow-500 fill-current" />
               <span className="font-bold text-black">{service.rating || '4.8'}</span>
               <span>({service.reviews ? `${service.reviews}` : '0 reviews'})</span>
             </div>
 
             {/* OC Warranty Box */}
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex gap-3 mb-4">
-              <CheckCircle2 className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 sm:p-4 flex gap-3 mb-4">
+              <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0 mt-0.5" />
               <div>
-                <h4 className="font-bold text-blue-700 mb-1">OC Warranty</h4>
-                <p className="text-sm text-gray-600">New paid service. {service.warranty_days || 180}-day warranty after completion.</p>
+                <h4 className="font-bold text-blue-700 mb-0.5 sm:mb-1 text-sm sm:text-base">OC Warranty</h4>
+                <p className="text-xs sm:text-sm text-gray-600">New paid service. {service.warranty_days || 180}-day warranty after completion.</p>
               </div>
             </div>
 
             {/* Standard / Rate Card Box */}
-            <div className="border border-gray-200 rounded-xl p-3 flex gap-3 mb-8 bg-gray-50/50">
-              <button className="flex-1 bg-white border border-blue-200 text-blue-600 font-semibold py-2 rounded-lg flex items-center justify-center gap-2 shadow-sm">
+            <div className="border border-gray-200 rounded-xl p-2 sm:p-3 flex gap-2 sm:gap-3 mb-6 sm:mb-8 bg-gray-50/50">
+              <button className="flex-1 bg-white border border-blue-200 text-blue-600 font-semibold py-1.5 sm:py-2 rounded-lg flex items-center justify-center gap-1.5 sm:gap-2 shadow-sm text-sm sm:text-base">
                 <CheckCircle2 className="w-4 h-4" /> Standard
               </button>
-              <button className="flex-1 bg-gray-900 text-white font-semibold py-2 rounded-lg flex items-center justify-center gap-2 shadow-sm">
+              <button className="flex-1 bg-gray-900 text-white font-semibold py-1.5 sm:py-2 rounded-lg flex items-center justify-center gap-1.5 sm:gap-2 shadow-sm text-sm sm:text-base">
                 <FileText className="w-4 h-4" /> Rate Card
               </button>
             </div>
@@ -154,33 +154,33 @@ export default function ServiceDetailsModal({ service, onClose, onAdd, quantity 
             </div>
 
             {/* Ratings & Reviews */}
-            <div className="mb-20">
-              <h3 className="text-lg font-bold text-gray-900 inline-block mb-4 border-b-2 border-purple-500 pb-1">
+            <div className="mb-8 sm:mb-20">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 inline-block mb-3 sm:mb-4 border-b-2 border-purple-500 pb-1">
                 Ratings & Reviews
               </h3>
-              <p className="text-gray-500 text-sm">Review option will appear after your work status is complete.</p>
+              <p className="text-gray-500 text-xs sm:text-sm">Review option will appear after your work status is complete.</p>
             </div>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-gray-200 bg-white p-4 flex items-center justify-between sticky bottom-0 rounded-b-2xl">
+        <div className="border-t border-gray-200 bg-white p-3 sm:p-4 flex items-center justify-between sticky bottom-0 rounded-b-3xl sm:rounded-b-2xl">
           <div>
-            <div className="text-2xl font-bold text-blue-600">₹{service.selling_price}</div>
-            <div className="text-sm text-gray-500">{service.duration || '45 mins'}</div>
+            <div className="text-xl sm:text-2xl font-bold text-blue-600">₹{service.selling_price}</div>
+            <div className="text-xs sm:text-sm text-gray-500">{service.duration || '45 mins'}</div>
           </div>
           {quantity > 0 ? (
-            <div className="bg-white border border-[#6069c9] text-[#6069c9] text-[15px] font-bold h-11 w-32 rounded-lg shadow-sm flex items-center justify-between px-2">
+            <div className="bg-white border border-[#6069c9] text-[#6069c9] text-sm sm:text-[15px] font-bold h-9 sm:h-11 w-28 sm:w-32 rounded-lg shadow-sm flex items-center justify-between px-2">
               <button 
                 onClick={(e) => { e.preventDefault(); onRemove && onRemove(); }}
-                className="w-8 h-8 flex items-center justify-center hover:bg-blue-50 rounded-md transition"
+                className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center hover:bg-blue-50 rounded-md transition"
               >
                 -
               </button>
               <span className="text-[#6069c9]">{quantity}</span>
               <button 
                 onClick={(e) => { e.preventDefault(); onAdd(service); }}
-                className="w-8 h-8 flex items-center justify-center hover:bg-blue-50 rounded-md transition"
+                className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center hover:bg-blue-50 rounded-md transition"
               >
                 +
               </button>
@@ -188,7 +188,7 @@ export default function ServiceDetailsModal({ service, onClose, onAdd, quantity 
           ) : (
             <button 
               onClick={() => onAdd(service)}
-              className="bg-[#7780d6] text-white font-bold py-2.5 px-8 rounded-xl hover:bg-[#6069c9] transition shadow-md"
+              className="bg-[#7780d6] text-white font-bold py-2 sm:py-2.5 px-6 sm:px-8 rounded-xl hover:bg-[#6069c9] transition shadow-md text-sm sm:text-base"
             >
               Add to Cart
             </button>

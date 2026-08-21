@@ -132,21 +132,21 @@ export default function CheckoutPage() {
     <div className="min-h-screen bg-[#f8f9fa] pb-20">
       <Navbar />
       
-      <div className="max-w-6xl mx-auto px-6 py-10 mt-6">
-        <div className="flex flex-col lg:flex-row gap-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10 mt-2 sm:mt-6">
+        <div className="flex flex-col lg:flex-row gap-6 sm:gap-8">
           
           {/* Left Column - Booking Details */}
           <div className="flex-1">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
-              <div className="flex items-center gap-3 mb-8">
-                <CheckCircle2 className="w-8 h-8 text-blue-500" />
-                <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Booking Details</h1>
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 sm:p-8">
+              <div className="flex items-center gap-2 sm:gap-3 mb-6 sm:mb-8">
+                <CheckCircle2 className="w-6 h-6 sm:w-8 sm:h-8 text-blue-500" />
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">Booking Details</h1>
               </div>
 
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4 sm:space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Full Name *</label>
+                    <label className="block text-sm font-bold text-gray-700 mb-1.5 sm:mb-2">Full Name *</label>
                     <input 
                       type="text"
                       name="name"
@@ -158,7 +158,7 @@ export default function CheckoutPage() {
                     {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Mobile Number *</label>
+                    <label className="block text-sm font-bold text-gray-700 mb-1.5 sm:mb-2">Mobile Number *</label>
                     <input 
                       type="tel"
                       name="mobile"
@@ -173,7 +173,7 @@ export default function CheckoutPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Email</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-1.5 sm:mb-2">Email</label>
                   <input 
                     type="email"
                     name="email"
@@ -185,7 +185,7 @@ export default function CheckoutPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Full Address *</label>
+                  <label className="block text-sm font-bold text-gray-700 mb-1.5 sm:mb-2">Full Address *</label>
                   <textarea 
                     rows={4}
                     name="address"
@@ -198,9 +198,9 @@ export default function CheckoutPage() {
                 </div>
 
                 {/* Booking Date & Time Slot */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Booking Date *</label>
+                    <label className="block text-sm font-bold text-gray-700 mb-1.5 sm:mb-2">Booking Date *</label>
                     <input
                       type="date"
                       name="booking_date"
@@ -212,7 +212,7 @@ export default function CheckoutPage() {
                     {errors.booking_date && <p className="text-red-500 text-xs mt-1">{errors.booking_date}</p>}
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Time Slot *</label>
+                    <label className="block text-sm font-bold text-gray-700 mb-1.5 sm:mb-2">Time Slot *</label>
                     <select
                       name="time_slot"
                       value={form.time_slot}
@@ -237,10 +237,10 @@ export default function CheckoutPage() {
 
           {/* Right Column - Payment Summary */}
           <div className="lg:w-[400px]">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 sticky top-28">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Payment Summary</h2>
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 sm:p-8 sticky top-20 sm:top-28">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6">Payment Summary</h2>
               
-              <div className="space-y-4 mb-6">
+              <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
                 {cart.length === 0 ? (
                   <p className="text-gray-500 text-sm">Your cart is empty.</p>
                 ) : (
@@ -256,7 +256,7 @@ export default function CheckoutPage() {
                 )}
               </div>
 
-              <div className="border-t border-gray-200 pt-4 space-y-3 mb-6">
+              <div className="border-t border-gray-200 pt-4 space-y-2 sm:space-y-3 mb-4 sm:mb-6">
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-600 font-medium">Item Totals</span>
                   <span className="font-bold text-gray-900">₹{totalAmount.toLocaleString()}</span>
@@ -267,9 +267,9 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              <div className="flex justify-between items-center mb-8">
-                <span className="text-gray-900 font-bold text-lg">Amount to Pay</span>
-                <span className="font-bold text-gray-900 text-2xl">₹{totalAmount.toLocaleString()}</span>
+              <div className="flex justify-between items-center mb-6 sm:mb-8">
+                <span className="text-gray-900 font-bold text-base sm:text-lg">Amount to Pay</span>
+                <span className="font-bold text-gray-900 text-xl sm:text-2xl">₹{totalAmount.toLocaleString()}</span>
               </div>
 
               <div className="mb-6">

@@ -143,7 +143,7 @@ export default function LocationSelector() {
 
       {/* Modal Overlay */}
       {mounted && (
-        <div className="fixed inset-0 z-[200] flex items-end justify-center sm:items-center sm:p-4">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
           
           {/* Backdrop */}
           <div 
@@ -155,7 +155,7 @@ export default function LocationSelector() {
           
           {/* Modal Card */}
           <div 
-            className={`relative w-full sm:w-[500px] bg-white rounded-t-[32px] sm:rounded-[24px] shadow-2xl p-6 md:p-8 transform transition-transform duration-300 border border-gray-100 will-change-transform ${
+            className={`relative w-full sm:w-[500px] bg-white rounded-[24px] sm:rounded-[24px] shadow-2xl p-4 sm:p-6 md:p-8 transform transition-transform duration-300 border border-gray-100 will-change-transform ${
               visible ? "translate-y-0" : "translate-y-full"
             }`}
             style={{ transitionTimingFunction: "ease-out" }}
@@ -170,8 +170,8 @@ export default function LocationSelector() {
               <X className="w-5 h-5 stroke-[1.5]" />
             </button>
 
-            <div className="mt-2 space-y-6">
-              <h2 className="text-[22px] font-bold text-gray-900 tracking-tight text-center sm:text-left mb-6">
+            <div className="mt-2 space-y-4 sm:space-y-6">
+              <h2 className="text-[20px] sm:text-[22px] font-bold text-gray-900 tracking-tight text-center sm:text-left mb-4 sm:mb-6">
                 Select your location
               </h2>
 
@@ -187,17 +187,17 @@ export default function LocationSelector() {
               <button 
                 onClick={handleGetCurrentLocation}
                 disabled={isLoading}
-                className="w-full bg-[#f8f6fb] hover:bg-[#f0ebf9] transition rounded-[20px] p-4 flex items-center justify-between group disabled:opacity-70 disabled:cursor-not-allowed relative overflow-hidden"
+                className="w-full bg-[#f8f6fb] hover:bg-[#f0ebf9] transition rounded-[20px] p-3 sm:p-4 flex items-center justify-between group disabled:opacity-70 disabled:cursor-not-allowed relative overflow-hidden"
               >
-                <div className="flex items-center space-x-4">
-                  <div className="bg-[#6b62d9] w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm shrink-0">
+                <div className="flex items-center space-x-3 sm:space-x-4">
+                  <div className="bg-[#6b62d9] w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shadow-sm shrink-0">
                     {isLoading ? (
                       <Loader2 className="w-6 h-6 text-white stroke-[2] animate-spin" />
                     ) : (
                       <LocateFixed className="w-6 h-6 text-white stroke-[2]" />
                     )}
                   </div>
-                  <span className="font-bold text-gray-800 text-[17px] text-left">
+                  <span className="font-bold text-gray-800 text-[15px] sm:text-[17px] text-left">
                     {isLoading ? "Detecting location..." : "Use current location"}
                   </span>
                 </div>
@@ -213,9 +213,9 @@ export default function LocationSelector() {
               </div>
 
               {/* Search Bar */}
-              <div className={`relative flex items-center border border-gray-200 rounded-[20px] bg-white p-2 shadow-sm focus-within:border-[#8878e1] focus-within:ring-2 focus-within:ring-[#8878e1]/20 transition-all ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}>
-                <div className="pl-3 pr-2 flex items-center justify-center">
-                  <Search className="w-6 h-6 text-gray-400 stroke-[1.5]" />
+              <div className={`relative flex items-center border border-gray-200 rounded-[20px] bg-white p-1.5 sm:p-2 shadow-sm focus-within:border-[#8878e1] focus-within:ring-2 focus-within:ring-[#8878e1]/20 transition-all ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}>
+                <div className="pl-2 sm:pl-3 pr-2 flex items-center justify-center">
+                  <Search className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 stroke-[1.5]" />
                 </div>
                 <input
                   type="text"
@@ -225,7 +225,7 @@ export default function LocationSelector() {
                 />
                 <button 
                   disabled={isLoading}
-                  className="bg-[#6b62d9] hover:bg-[#5b52c9] transition text-white font-bold py-3 px-6 sm:px-8 rounded-2xl ml-2 shadow-sm whitespace-nowrap"
+                  className="bg-[#6b62d9] hover:bg-[#5b52c9] transition text-white font-bold py-2.5 sm:py-3 px-5 sm:px-8 rounded-2xl ml-2 shadow-sm whitespace-nowrap text-sm sm:text-base"
                 >
                   Search
                 </button>

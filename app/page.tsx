@@ -46,11 +46,11 @@ export default async function Home() {
   return (
     <main className="min-h-screen bg-gray-50 flex flex-col font-sans">
       <Navbar />
-      <Hero categories={categories} />
+      <Hero categories={categories} banners={banners} />
       <NewProductsSection />
       
       {/* Dynamic Content Stream from Admin DB */}
-      <div className="mt-4 mb-20">
+      <div className="mt-4 mb-8">
         {categories.map((category: any, index: number) => (
           <div key={`cat-${index}`}>
             <CategoryGrid 
@@ -59,7 +59,7 @@ export default async function Home() {
             />
             {/* Inject a banner image after every category if available */}
             {banners[index] && (
-              <div className="max-w-7xl mx-auto px-3 lg:px-8 py-3 lg:py-6 my-2 lg:my-6">
+              <div className="hidden lg:block max-w-7xl mx-auto px-3 lg:px-8 py-3 lg:py-6 my-2 lg:my-6">
                 <div className="w-full relative rounded-xl lg:rounded-3xl overflow-hidden shadow-lg bg-gray-50 flex items-center justify-center">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={banners[index]} alt="Promo Banner" className="w-full h-auto object-contain max-h-[200px] lg:max-h-[500px]" />
@@ -71,7 +71,7 @@ export default async function Home() {
         
         {/* Render any remaining banners at the bottom */}
         {banners.slice(categories.length).map((bannerUrl: string, index: number) => (
-          <div key={`extra-banner-${index}`} className="max-w-7xl mx-auto px-3 lg:px-8 py-3 lg:py-6 my-2 lg:my-6">
+          <div key={`extra-banner-${index}`} className="hidden lg:block max-w-7xl mx-auto px-3 lg:px-8 py-3 lg:py-6 my-2 lg:my-6">
             <div className="w-full relative rounded-xl lg:rounded-3xl overflow-hidden shadow-lg bg-gray-50 flex items-center justify-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={bannerUrl} alt="Promo Banner" className="w-full h-auto object-contain max-h-[200px] lg:max-h-[500px]" />

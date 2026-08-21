@@ -101,12 +101,12 @@ export default function CategoryView({ category, subcategories, services }: Cate
       </div>
 
       {/* Main Layout */}
-      <div className="flex flex-col lg:flex-row px-6 lg:px-12 py-8 gap-8 relative">
+      <div className="flex flex-col lg:flex-row px-4 lg:px-12 py-4 lg:py-8 gap-6 lg:gap-8 relative">
         
         {/* Left Sidebar (Sticky) */}
-        <div className="lg:w-[340px] flex-shrink-0">
-          <div className="sticky top-[100px] bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
-            <div className="grid grid-cols-3 gap-4">
+        <div className="lg:w-[340px] flex-shrink-0 w-full mb-4 lg:mb-0">
+          <div className="sticky top-[70px] lg:top-[100px] bg-white border border-gray-100 rounded-2xl p-4 lg:p-6 shadow-sm overflow-x-auto z-10 hidden-scrollbar">
+            <div className="flex lg:grid lg:grid-cols-3 gap-3 lg:gap-4 min-w-max lg:min-w-0 pb-1 lg:pb-0">
               {subcategories.map((sub) => {
                 const subServices = services.filter(s => s.subcategory_id === sub.id);
                 const fallbackImage = subServices.find(s => s.image_url)?.image_url;
@@ -115,9 +115,9 @@ export default function CategoryView({ category, subcategories, services }: Cate
                   <div 
                     key={sub.id}
                     onClick={() => scrollToSubcategory(sub.id)}
-                    className="flex flex-col items-center gap-2 cursor-pointer group"
+                    className="flex flex-col items-center gap-1.5 lg:gap-2 cursor-pointer group w-[70px] lg:w-auto"
                   >
-                    <div className={`w-[72px] h-[72px] rounded-2xl p-1 transition-all duration-300 ease-in-out transform ${
+                    <div className={`w-[60px] h-[60px] lg:w-[72px] lg:h-[72px] rounded-2xl p-1 transition-all duration-300 ease-in-out transform ${
                       activeSubcat === sub.id 
                         ? 'border-2 border-[#6069c9] scale-105' 
                         : 'border-2 border-transparent hover:border-[#6069c9] hover:scale-105 hover:shadow-md'
@@ -166,9 +166,9 @@ export default function CategoryView({ category, subcategories, services }: Cate
               <div 
                 key={sub.id} 
                 ref={(el) => { sectionRefs.current[sub.id] = el }}
-                className="mb-12"
+                className="mb-8 lg:mb-12"
               >
-                <h2 className="text-[22px] font-bold text-[#6069c9] mb-6 pb-2 border-b border-[#6069c9]">
+                <h2 className="text-[20px] lg:text-[22px] font-bold text-[#6069c9] mb-4 lg:mb-6 pb-2 border-b border-[#6069c9]">
                   {sub.title}
                 </h2>
                 <div className="flex flex-col gap-2">
