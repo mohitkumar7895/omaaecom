@@ -16,6 +16,17 @@ export default function CategoryView({ category, subcategories, services }: Cate
   const [activeSubcat, setActiveSubcat] = useState<number>(subcategories[0]?.id || 0);
   const [cart, setCart] = useState<any[]>([]);
   const [selectedService, setSelectedService] = useState<any | null>(null);
+
+  useEffect(() => {
+    const savedCart = localStorage.getItem("omaa_cart");
+    if (savedCart) {
+      try {
+        setCart(JSON.parse(savedCart));
+      } catch (e) {
+        console.error("Failed to parse cart");
+      }
+    }
+  }, []);
   
   // Create refs for each subcategory section to enable scroll spy
   const sectionRefs = useRef<{ [key: number]: HTMLDivElement | null }>({});
@@ -50,21 +61,31 @@ export default function CategoryView({ category, subcategories, services }: Cate
 
   const handleAddService = (service: any) => {
     setCart((prev) => {
+      let newCart;
       const existing = prev.find(item => item.id === service.id);
       if (existing) {
-        return prev.map(item => item.id === service.id ? { ...item, quantity: item.quantity + 1 } : item);
+        newCart = prev.map(item => item.id === service.id ? { ...item, quantity: item.quantity + 1 } : item);
+      } else {
+        newCart = [...prev, { ...service, quantity: 1 }];
       }
-      return [...prev, { ...service, quantity: 1 }];
+      localStorage.setItem('omaa_cart', JSON.stringify(newCart));
+      window.dispatchEvent(new Event("cart_updated"));
+      return newCart;
     });
   };
 
   const handleRemoveService = (serviceId: number) => {
     setCart((prev) => {
+      let newCart;
       const existing = prev.find(item => item.id === serviceId);
       if (existing && existing.quantity > 1) {
-        return prev.map(item => item.id === serviceId ? { ...item, quantity: item.quantity - 1 } : item);
+        newCart = prev.map(item => item.id === serviceId ? { ...item, quantity: item.quantity - 1 } : item);
+      } else {
+        newCart = prev.filter(item => item.id !== serviceId);
       }
-      return prev.filter(item => item.id !== serviceId);
+      localStorage.setItem('omaa_cart', JSON.stringify(newCart));
+      window.dispatchEvent(new Event("cart_updated"));
+      return newCart;
     });
   };
 
@@ -180,7 +201,6 @@ export default function CategoryView({ category, subcategories, services }: Cate
           <button 
             className="bg-white text-[#7780d6] font-bold py-2 px-6 rounded-lg hover:bg-gray-50 transition"
             onClick={() => {
-              localStorage.setItem('omaa_cart', JSON.stringify(cart));
               router.push('/checkout');
             }}
           >
