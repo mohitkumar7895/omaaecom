@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ChevronDown, MapPin, ShoppingCart, User, Menu, X } from "lucide-react";
 import LocationSelector from "./LocationSelector";
+import LiveSearchBar from "./LiveSearchBar";
 import LoginModal from "./LoginModal";
 import { useEffect, useState } from "react";
 import { getActiveCategories } from "../actions/categories";
@@ -22,8 +23,8 @@ export default function Navbar() {
     <nav className="relative z-[100] bg-white shadow-sm border-b border-gray-100 font-sans w-full">
       <div className="max-w-7xl mx-auto px-4 lg:px-12 py-2 lg:py-3 relative flex items-center justify-between">
         
-        {/* Left section: Logo */}
-        <div className="flex items-center z-10">
+        {/* Left section: Logo & Nav Links */}
+        <div className="flex items-center z-10 space-x-6 lg:space-x-10">
           <Link href="/">
             {/* Use the exact logo from the public folder */}
             <Image 
@@ -35,40 +36,45 @@ export default function Navbar() {
               priority
             />
           </Link>
-        </div>
 
-        {/* Middle section: Navigation Links (Absolutely Centered) */}
-        <div className="hidden lg:flex items-center space-x-8 absolute left-1/2 transform -translate-x-1/2 z-10">
-          <Link href="/" className="font-semibold text-gray-900 hover:text-[#5c67b8] transition text-[15px]">
-            Home
-          </Link>
-          <Link href="/about" className="font-semibold text-gray-700 hover:text-[#5c67b8] transition text-[15px]">
-            About Us
-          </Link>
-          <div className="relative group">
-            <div className="flex items-center space-x-1 cursor-pointer font-semibold text-gray-700 hover:text-[#5c67b8] transition text-[15px] py-4">
-              <span>Services</span>
-              <ChevronDown className="w-4 h-4 text-gray-500 group-hover:rotate-180 transition-transform duration-200" />
+          {/* Navigation Links */}
+          <div className="hidden lg:flex items-center space-x-6">
+            <Link href="/" className="font-semibold text-gray-900 hover:text-[#5c67b8] transition text-[15px]">
+              Home
+            </Link>
+            <Link href="/about" className="font-semibold text-gray-700 hover:text-[#5c67b8] transition text-[15px]">
+              About Us
+            </Link>
+            <div className="relative group">
+              <div className="flex items-center space-x-1 cursor-pointer font-semibold text-gray-700 hover:text-[#5c67b8] transition text-[15px] py-4">
+                <span>Services</span>
+                <ChevronDown className="w-4 h-4 text-gray-500 group-hover:rotate-180 transition-transform duration-200" />
+              </div>
+              <div className="absolute top-[80%] left-0 w-56 bg-white shadow-xl rounded-md overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 border border-gray-100">
+                {categories.length > 0 ? (
+                  categories.map((cat, idx) => (
+                    <Link key={cat.id} href={`/services/${cat.id}`} className={`block px-4 py-3 text-[14px] font-medium text-gray-700 hover:bg-gray-50 hover:text-[#5c67b8] ${idx !== categories.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                      {cat.title}
+                    </Link>
+                  ))
+                ) : (
+                  <div className="block px-4 py-3 text-[14px] text-gray-500">No services</div>
+                )}
+              </div>
             </div>
-            <div className="absolute top-[80%] left-0 w-56 bg-white shadow-xl rounded-md overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 border border-gray-100">
-              {categories.length > 0 ? (
-                categories.map((cat, idx) => (
-                  <Link key={cat.id} href={`/services/${cat.id}`} className={`block px-4 py-3 text-[14px] font-medium text-gray-700 hover:bg-gray-50 hover:text-[#5c67b8] ${idx !== categories.length - 1 ? 'border-b border-gray-50' : ''}`}>
-                    {cat.title}
-                  </Link>
-                ))
-              ) : (
-                <div className="block px-4 py-3 text-[14px] text-gray-500">No services</div>
-              )}
-            </div>
+            <Link href="/contact" className="font-semibold text-gray-700 hover:text-[#5c67b8] transition text-[15px]">
+              Contact Us
+            </Link>
           </div>
-          <Link href="/contact" className="font-semibold text-gray-700 hover:text-[#5c67b8] transition text-[15px]">
-            Contact Us
-          </Link>
         </div>
 
         {/* Right section: Location & Icons */}
-        <div className="flex items-center space-x-2 lg:space-x-3 z-10">
+        <div className="flex items-center space-x-2 lg:space-x-4 z-10 flex-1 justify-end">
+          {/* Desktop Search Bar */}
+          <div className="hidden lg:block w-[180px] xl:w-[280px]">
+            <LiveSearchBar />
+          </div>
+
           {/* Location Button (Client Component Modal) */}
           <LocationSelector />
 

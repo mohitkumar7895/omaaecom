@@ -1,11 +1,11 @@
-import Navbar from "./components/Navbar";
-import Hero from "./components/Hero";
-import PromoBanner from "./components/PromoBanner";
-import NewProductsSection from "./components/NewProductsSection";
-import CategoryGrid from "./components/CategoryGrid";
-import ImageBanner from "./components/ImageBanner";
-import Footer from "./components/Footer";
-import pool from "../lib/db";
+import Navbar from "../components/Navbar";
+import Hero from "../components/Hero";
+import PromoBanner from "../components/PromoBanner";
+import NewProductsSection from "../components/NewProductsSection";
+import CategoryGrid from "../components/CategoryGrid";
+import ImageBanner from "../components/ImageBanner";
+import Footer from "../components/Footer";
+import pool from "../../lib/db";
 
 // Cache the page for 60 seconds (Incremental Static Regeneration) for fast loading
 export const revalidate = 60;

@@ -15,7 +15,9 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
 
   try {
     let query = `SELECT * FROM bookings WHERE working_status = 'Pendi' ORDER BY created_at DESC`;
-    if (filter !== "All") {
+    if (filter === "Completed") {
+      query = `SELECT * FROM bookings WHERE working_status = 'Complete' ORDER BY created_at DESC`;
+    } else if (filter !== "All") {
       query = `SELECT * FROM bookings WHERE type = '${filter}' AND working_status = 'Pendi' ORDER BY created_at DESC`;
     }
     const [rows]: any = await pool.query(query);
@@ -67,6 +69,13 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
             filter === "AMC" ? "bg-[#2962ff] text-white" : "text-[#2962ff] hover:bg-blue-50"
           }`}>
             AMC
+          </button>
+        </Link>
+        <Link href="?filter=Completed">
+          <button className={`px-4 py-1.5 rounded font-medium transition ${
+            filter === "Completed" ? "bg-green-600 text-white" : "text-green-600 hover:bg-green-50"
+          }`}>
+            Completed
           </button>
         </Link>
       </div>
@@ -195,10 +204,27 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                     </td>
 
                     <td className="px-3 py-4 border-r border-gray-200 text-center">
-                      <button className="bg-[#1b6b50] hover:bg-[#15533e] text-white px-2 py-1 rounded shadow-sm text-[11px] transition flex flex-col items-center mx-auto">
-                        <MessageCircle className="w-3.5 h-3.5 mb-0.5" />
-                        <span>Share</span>
-                      </button>
+                      {row.coupon_code ? (
+                        <a 
+                          href={`https://wa.me/91${row.mobile}?text=${encodeURIComponent(`Hello ${row.customer_name},\n\nYour ${row.type} service is Complete!\nAs a thank you, here is a special coupon code for 10% OFF your next booking: *${row.coupon_code}*.\n\nThank you for choosing OMAA.`)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-[#1b6b50] hover:bg-[#15533e] text-white px-2 py-1 rounded shadow-sm text-[11px] transition flex flex-col items-center mx-auto w-12"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5 mb-0.5" />
+                          <span>Share</span>
+                        </a>
+                      ) : (
+                        <a 
+                          href={`https://wa.me/91${row.mobile}?text=${encodeURIComponent(`Hello ${row.customer_name},\n\nYour ${row.type || 'Service'} booking is being processed.\n\nThank you for choosing OMAA.`)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-[#1b6b50] hover:bg-[#15533e] text-white px-2 py-1 rounded shadow-sm text-[11px] transition flex flex-col items-center mx-auto w-12"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5 mb-0.5" />
+                          <span>Share</span>
+                        </a>
+                      )}
                     </td>
 
                     <td className="px-3 py-4 border-r border-gray-200">

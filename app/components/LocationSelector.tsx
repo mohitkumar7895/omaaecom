@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { ChevronDown, MapPin, X, LocateFixed, Search, ChevronRight, Loader2, AlertCircle } from "lucide-react";
 
 interface LocationData {
@@ -14,6 +15,8 @@ interface LocationData {
 }
 
 export default function LocationSelector() {
+  const router = useRouter();
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
@@ -22,13 +25,27 @@ export default function LocationSelector() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [location, setLocation] = useState<LocationData | null>(null);
+  
+  // Search States
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<LocationData[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   // Load saved location on mount, or auto-detect
   useEffect(() => {
+    const syncUrl = (city: string) => {
+      if (pathname === '/' && city) {
+        // Update URL to match city without reloading
+        window.history.replaceState(null, '', `/${city.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`);
+      }
+    };
+
     const savedLocation = localStorage.getItem("user_location");
     if (savedLocation) {
       try {
-        setLocation(JSON.parse(savedLocation));
+        const parsed = JSON.parse(savedLocation);
+        setLocation(parsed);
+        if (parsed.city) syncUrl(parsed.city);
       } catch (e) {
         console.error("Failed to parse saved location");
       }
@@ -48,6 +65,7 @@ export default function LocationSelector() {
               if (response.ok && data.success) {
                 setLocation(data.data);
                 localStorage.setItem("user_location", JSON.stringify(data.data));
+                if (data.data.city) syncUrl(data.data.city);
               }
             } catch (err) {
               console.error("Auto-detect location failed", err);
@@ -58,7 +76,7 @@ export default function LocationSelector() {
         );
       }
     }
-  }, []);
+  }, [pathname]);
 
   // Handle modal animation
   useEffect(() => {
@@ -70,10 +88,51 @@ export default function LocationSelector() {
       const timer = setTimeout(() => {
         setMounted(false);
         setError(null); // Reset error when closed
+        setSearchQuery("");
+        setSearchResults([]);
       }, 300);
       return () => clearTimeout(timer);
     }
   }, [isOpen]);
+
+  // Handle Search Input with Debounce
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const response = await fetch(`/api/location/search?q=${encodeURIComponent(searchQuery)}`);
+        const data = await response.json();
+        if (response.ok && data.success) {
+          setSearchResults(data.data);
+        } else {
+          setSearchResults([]);
+        }
+      } catch (err) {
+        console.error("Search error:", err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const handleSelectLocation = (locationData: LocationData) => {
+    setLocation(locationData);
+    localStorage.setItem("user_location", JSON.stringify(locationData));
+    
+    if (locationData.city) {
+      router.push(`/${locationData.city.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`);
+    }
+    
+    setIsOpen(false);
+  };
 
   const handleGetCurrentLocation = () => {
     setError(null);
@@ -108,6 +167,10 @@ export default function LocationSelector() {
           // Save to state and local storage
           setLocation(locationData);
           localStorage.setItem("user_location", JSON.stringify(locationData));
+          
+          if (locationData.city) {
+            router.push(`/${locationData.city.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`);
+          }
           
           // Close modal after successful detection
           setIsOpen(false);
@@ -200,8 +263,11 @@ export default function LocationSelector() {
                   type="text"
                   placeholder="Search for your location/society/apartment"
                   disabled={isLoading}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="flex-1 bg-transparent border-none focus:outline-none text-gray-800 placeholder-gray-400 text-sm sm:text-base min-w-0"
                 />
+                {isSearching && <Loader2 className="w-5 h-5 text-gray-400 animate-spin ml-2" />}
               </div>
 
               {/* Error Message */}
@@ -211,6 +277,29 @@ export default function LocationSelector() {
                   <span>{error}</span>
                 </div>
               )}
+
+              {/* Search Results */}
+              {searchResults.length > 0 ? (
+                <div className="max-h-[300px] overflow-y-auto mb-4 border border-gray-100 rounded-xl divide-y divide-gray-100 shadow-sm">
+                  {searchResults.map((res, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleSelectLocation(res)}
+                      className="w-full text-left p-4 hover:bg-gray-50 flex items-start space-x-3 transition-colors"
+                    >
+                      <MapPin className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-semibold text-gray-900 text-sm line-clamp-1">{res.address.split(',')[0]}</p>
+                        <p className="text-xs text-gray-500 mt-1 line-clamp-1">{res.address}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : searchQuery.trim() && !isSearching ? (
+                <div className="text-center py-6 text-gray-500 text-sm">
+                  No locations found for "{searchQuery}"
+                </div>
+              ) : null}
 
               {/* Use Current Location Button */}
               <button 

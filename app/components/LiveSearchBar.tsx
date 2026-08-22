@@ -74,12 +74,12 @@ export default function LiveSearchBar({
   };
 
   return (
-    <div ref={wrapperRef} className={`relative w-full shadow-lg ${className}`}>
+    <div ref={wrapperRef} className={`relative w-full ${className}`}>
       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
         {isLoading ? (
           <Loader2 className="h-5 w-5 text-purple-500 animate-spin" />
         ) : (
-          <Search className="h-5 w-5 text-gray-400" />
+          <Search className="h-4 w-4 text-gray-400" />
         )}
       </div>
       <input
@@ -87,7 +87,7 @@ export default function LiveSearchBar({
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => { if (results.length > 0) setIsOpen(true); }}
-        className="block w-full pl-12 pr-4 py-4 rounded-xl leading-5 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-600 sm:text-base border-none shadow-sm relative z-0"
+        className="block w-full pl-10 pr-4 py-2.5 rounded-lg leading-5 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-purple-600 focus:bg-white focus:border-purple-600 sm:text-sm transition-colors relative z-0"
         placeholder={placeholder}
       />
 

@@ -25,61 +25,63 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
   return (
     <div className="relative bg-gradient-to-br from-[#6277db] via-[#a268b8] to-[#db5285] text-white w-full font-sans overflow-hidden py-3 md:py-12 px-4 md:px-12">
       
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-6 md:gap-12 items-start h-full">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 md:gap-6 items-stretch">
         
         {/* Left Side: Content & Cards */}
-        <div className="w-full md:w-[55%] flex flex-col space-y-4 md:space-y-6 z-10 pt-2 md:pt-4">
+        <div className="w-full md:w-1/2 flex flex-col space-y-4 md:space-y-6 z-10 pt-2 md:pt-4">
           
           {/* Mobile Carousel placed before title or replacing title on mobile */}
           <MobileBannerCarousel banners={banners} />
           
-          <h1 className="hidden md:block text-[42px] font-bold leading-[1.15] mb-2">
-            Home Services at Your <br /> Doorsteps
+          <h1 
+            className="hidden md:block text-[38px] lg:text-[48px] xl:text-[54px] font-bold tracking-tight leading-[1.15] mb-6 text-white drop-shadow-lg"
+          >
+            Home services at your <br /> doorsteps
           </h1>
 
           {/* Mobile Search Bar (Only visible on mobile) */}
           <LiveSearchBar className="md:hidden" />
 
           {/* Unified Services Box */}
-          <div className="bg-white rounded-2xl p-4 md:p-6 shadow-xl text-gray-800 flex flex-col space-y-4 md:space-y-6">
+          <div className="bg-white rounded-[24px] p-5 md:p-6 shadow-2xl text-gray-800 flex flex-col flex-1 justify-between space-y-3">
             
             {/* Top Section: Home Services */}
             <div>
-              <div className="flex items-center space-x-2 mb-3 md:mb-6">
-                <Scissors className="w-5 h-5 text-gray-700" />
-                <h3 className="font-bold text-[17px]">Home Services...</h3>
+              <div className="flex items-center space-x-2 mb-3">
+                <Scissors className="w-5 h-5 text-gray-800" />
+                <h3 className="font-bold text-[18px] md:text-[20px] text-gray-900 tracking-tight">Home Services</h3>
               </div>
-              <div className="grid grid-cols-3 gap-3 md:gap-6 text-center justify-items-center">
+              <div className="grid grid-cols-3 gap-y-4 gap-x-2 text-center justify-items-center">
                 {homeServices.map((service, index) => (
-                  <div key={index} className="flex flex-col items-center space-y-2 group w-full">
-                    <div className="w-[72px] h-[72px] sm:w-20 sm:h-20 bg-[#f4f7fb] rounded-xl flex items-center justify-center text-[34px] sm:text-4xl shadow-sm group-hover:shadow-md transition overflow-hidden p-2">
+                  <Link href={`/services/${service.id}`} key={index} className="flex flex-col items-center group w-full cursor-pointer">
+                    <div className="w-[56px] h-[56px] md:w-[64px] md:h-[64px] bg-[#f4f5f8] rounded-[16px] flex items-center justify-center text-[26px] md:text-[32px] shadow-sm group-hover:shadow-md transition-all overflow-hidden p-2.5 mb-2 group-hover:-translate-y-1">
                       {service.image_url && service.image_url.length > 5 ? (
                         <img src={service.image_url} alt={service.title} className="w-full h-full object-contain" />
                       ) : (
                         <span>{getIcon(service.title)}</span>
                       )}
                     </div>
-                    <span className="text-[13px] font-bold text-gray-700 leading-tight">{service.title}</span>
-                  </div>
+                    <span className="text-[12px] md:text-[13px] font-medium text-gray-800 leading-tight group-hover:text-black transition-colors px-1">{service.title}</span>
+                  </Link>
                 ))}
               </div>
             </div>
 
             {/* Divider */}
-            <div className="w-full h-px bg-gray-100"></div>
+            <div className="w-full h-px bg-gray-100 my-2"></div>
 
             {/* Bottom Section: New Products & AMC */}
-            <div className="grid grid-cols-2 gap-3 md:gap-6 w-full">
+            <div className="grid grid-cols-2 gap-4 w-full pb-2">
               {/* New Products Card */}
               {newProducts.length > 0 && (
-                <div className="flex flex-col">
-                  <div className="flex items-center space-x-1.5 md:space-x-2 text-[#2c8af8] mb-2 md:mb-3">
-                    <ShoppingCart className="w-4 h-4 md:w-5 md:h-5" fill="currentColor" />
-                    <h3 className="font-bold text-[11px] md:text-sm">New Products</h3>
+                <Link href={`/services/${newProducts[0].id}`} className="flex flex-col group cursor-pointer bg-[#f4f5f8] rounded-2xl p-3 md:p-4 hover:bg-gray-100 transition-colors">
+                  <div className="flex items-center space-x-1.5 text-[#2c8af8] mb-2">
+                    <ShoppingCart className="w-4 h-4" fill="currentColor" />
+                    <h3 className="font-bold text-[12px] uppercase tracking-wide">New Products</h3>
                   </div>
-                  <div className="border border-gray-100 rounded-xl p-2 md:p-3 flex justify-between items-center bg-[#fbfcfd] shadow-sm hover:shadow-md transition">
-                    <span className="text-[10px] md:text-[13px] font-bold text-gray-800 leading-tight pr-1 line-clamp-2">{newProducts[0].title}</span>
-                    <div className="w-10 h-10 md:w-14 md:h-14 bg-[#f4f7fb] rounded-lg flex-shrink-0 flex items-center justify-center text-xl md:text-2xl shadow-inner border border-gray-50 overflow-hidden p-1">
+                  <div className="flex justify-between items-center mt-1">
+                    <span className="text-[13px] font-semibold text-gray-900 leading-tight pr-2 line-clamp-2">{newProducts[0].title}</span>
+                    <div className="w-16 h-16 md:w-[68px] md:h-[68px] bg-white rounded-[14px] flex-shrink-0 flex items-center justify-center shadow-sm overflow-hidden p-2 group-hover:-translate-y-0.5 transition-transform">
                       {newProducts[0].image_url && newProducts[0].image_url.length > 5 ? (
                         <img src={newProducts[0].image_url} alt={newProducts[0].title} className="w-full h-full object-contain" />
                       ) : (
@@ -87,27 +89,27 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
                       )}
                     </div>
                   </div>
-                </div>
+                </Link>
               )}
 
               {/* AMC Products Card */}
               {amcProducts.length > 0 && (
-                <div className="flex flex-col">
-                  <div className="flex items-center text-[#21a868] mb-2 md:mb-3">
-                    <h3 className="font-bold text-[11px] md:text-sm">AMC Products</h3>
+                <Link href={`/services/${amcProducts[0].id}`} className="flex flex-col group cursor-pointer bg-[#f4f5f8] rounded-2xl p-3 md:p-4 hover:bg-gray-100 transition-colors relative">
+                  <div className="flex items-center text-[#21a868] mb-2">
+                    <h3 className="font-bold text-[12px] uppercase tracking-wide">AMC Products</h3>
                   </div>
-                  <div className="border border-gray-100 rounded-xl p-2 md:p-3 flex justify-between items-center bg-[#fbfcfd] shadow-sm hover:shadow-md transition">
-                    <span className="text-[10px] md:text-[13px] font-bold text-gray-800 leading-tight pr-1 line-clamp-2">{amcProducts[0].title}</span>
-                    <div className="w-10 h-10 md:w-14 md:h-14 bg-[#f4f7fb] rounded-lg flex-shrink-0 flex items-center justify-center text-xl md:text-2xl shadow-inner border border-gray-50 relative overflow-hidden p-1">
+                  <div className="flex justify-between items-center mt-1">
+                    <span className="text-[13px] font-semibold text-gray-900 leading-tight pr-2 line-clamp-2">{amcProducts[0].title}</span>
+                    <div className="w-16 h-16 md:w-[68px] md:h-[68px] bg-white rounded-[14px] flex-shrink-0 flex items-center justify-center shadow-sm relative overflow-hidden p-2 group-hover:-translate-y-0.5 transition-transform">
                       {amcProducts[0].image_url && amcProducts[0].image_url.length > 5 ? (
                         <img src={amcProducts[0].image_url} alt={amcProducts[0].title} className="w-full h-full object-contain" />
                       ) : (
                         <span>🛡️</span>
                       )}
-                      <span className="absolute -top-1.5 -right-1.5 bg-[#4cda64] text-white text-[8px] px-1 py-0.5 rounded-sm font-bold shadow-sm z-10">AMC</span>
                     </div>
                   </div>
-                </div>
+                  <span className="absolute top-3 right-3 bg-[#21a868] text-white text-[9px] px-1.5 py-0.5 rounded-md font-bold shadow-sm">PRO</span>
+                </Link>
               )}
             </div>
           </div>
@@ -115,33 +117,30 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
         </div>
 
         {/* Right Side: Masonry Image Grid */}
-        <div className="w-full md:w-[45%] h-full flex flex-col gap-4 pt-2 pb-2">
+        <div className="w-full md:w-1/2 flex items-stretch justify-center pt-2 md:pt-4">
            
-           {/* Desktop Search Bar (Only visible on desktop) */}
-           <LiveSearchBar className="hidden md:block" />
-
-           <div className="hidden md:flex gap-4 p-3 border-4 border-white/40 rounded-3xl bg-white/10 shadow-xl">
+           <div className="hidden md:flex gap-3 p-3 border-4 border-white/20 rounded-[32px] bg-white/10 shadow-xl backdrop-blur-sm w-full max-w-[420px] h-full">
              {/* Left Tall Image */}
-             <div className="w-1/2 flex flex-col justify-center">
+             <div className="w-1/2 h-full">
                 <Image 
                   src="/Hero1.webp" 
                   alt="Cleaning Service" 
                   width={600}
                   height={800}
                   priority
-                  className="w-full h-auto md:h-[550px] object-contain md:object-cover rounded-2xl shadow-md"
+                  className="w-full h-full object-cover rounded-[20px] shadow-md"
                 />
              </div>
              
              {/* Right Stacked Images */}
-             <div className="w-1/2 flex flex-col gap-4 justify-center md:h-[550px]">
+             <div className="w-1/2 h-full flex flex-col gap-3">
                 <Image 
                   src="/Hero 2.webp" 
                   alt="RO Repair" 
                   width={600}
                   height={400}
                   priority
-                  className="w-full h-auto md:h-[48%] object-contain md:object-cover rounded-2xl shadow-md"
+                  className="w-full h-[calc(50%-6px)] object-cover rounded-[20px] shadow-md"
                 />
                 <Image 
                   src="/Hero3.webp" 
@@ -149,7 +148,7 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
                   width={600}
                   height={400}
                   priority
-                  className="w-full h-auto md:h-[48%] object-contain md:object-cover rounded-2xl shadow-md"
+                  className="w-full h-[calc(50%-6px)] object-cover rounded-[20px] shadow-md"
                 />
              </div>
            </div>
