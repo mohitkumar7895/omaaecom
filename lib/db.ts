@@ -14,6 +14,8 @@ const poolOptions = {
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 10000,
 };
 
 let pool: mysql.Pool;
@@ -23,14 +25,14 @@ if (process.env.NODE_ENV === "production") {
 } else {
   // In development, preserve the database connection across HMR (Hot Module Replacement) reloads
   const globalWithMysql = global as typeof globalThis & {
-    _mysqlPool?: mysql.Pool;
+    _mysqlPool2?: mysql.Pool;
   };
   
-  if (!globalWithMysql._mysqlPool) {
-    globalWithMysql._mysqlPool = mysql.createPool(poolOptions);
+  if (!globalWithMysql._mysqlPool2) {
+    globalWithMysql._mysqlPool2 = mysql.createPool(poolOptions);
   }
   
-  pool = globalWithMysql._mysqlPool;
+  pool = globalWithMysql._mysqlPool2;
 }
 
 export default pool;

@@ -5,22 +5,10 @@ import { revalidatePath } from "next/cache";
 
 export async function getSiteSettings() {
   try {
-    // Create the table if it doesn't exist
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS site_settings (
-        id INT PRIMARY KEY DEFAULT 1,
-        offer_text text,
-        offer_enabled BOOLEAN DEFAULT false,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-      )
-    `);
-
-    // Fetch settings
+    // Fetch settings directly, no DDL queries on every request!
     const [rows]: any = await pool.query("SELECT * FROM site_settings WHERE id = 1");
 
-    if (rows.length === 0) {
-      // Initialize if empty
-      await pool.query("INSERT INTO site_settings (id, offer_text, offer_enabled) VALUES (1, '', false)");
+    if (!rows || rows.length === 0) {
       return { offer_text: "", offer_enabled: false };
     }
 
@@ -28,8 +16,11 @@ export async function getSiteSettings() {
       offer_text: rows[0].offer_text,
       offer_enabled: rows[0].offer_enabled === 1,
     };
-  } catch (error) {
-    console.error("Failed to fetch site settings:", error);
+  } catch (error: any) {
+    // If the table doesn't exist yet, we just return default empty settings silently.
+    if (error.code !== 'ER_NO_SUCH_TABLE') {
+      console.error("Failed to fetch site settings:", error);
+    }
     return { offer_text: "", offer_enabled: false };
   }
 }

@@ -18,6 +18,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "OMAA",
   description: "OMAA E-Commerce Platform",
+  icons: {
+    icon: '/logoomaa.webp',
+  },
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
