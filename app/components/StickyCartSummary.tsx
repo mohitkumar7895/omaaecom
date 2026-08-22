@@ -19,17 +19,16 @@ export default function StickyCartSummary() {
         const newCount = parsed.length;
         const newTotal = parsed.reduce((sum: number, item: any) => sum + (Number(item.selling_price) * (item.quantity || 1)), 0);
         
-        if (newCount !== cartCount || newTotal !== cartTotal) {
-          // If items were added (total increased), show 'done' state
-          if (newTotal > cartTotal) {
+        setCartCount(newCount);
+
+        setCartTotal(prevTotal => {
+          if (newTotal > prevTotal) {
             setActionState('done');
           }
-          
-          setCartCount(newCount);
-          setCartTotal(newTotal);
-          setIsAnimating(true);
-          setTimeout(() => setIsAnimating(false), 300);
-        }
+          return newTotal;
+        });
+        setIsAnimating(true);
+        setTimeout(() => setIsAnimating(false), 300);
       } else {
         setCartCount(0);
         setCartTotal(0);

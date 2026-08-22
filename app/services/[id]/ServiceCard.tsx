@@ -51,7 +51,7 @@ export default function ServiceCard({ service, quantity = 0, onAdd, onRemove, on
       </div>
 
       {/* Right side: image and Add button */}
-      <div className="relative w-[135px] sm:w-[170px] flex-shrink-0 mt-1">
+      <div className="relative w-[145px] sm:w-[170px] flex-shrink-0 mt-1">
         <div className="w-full aspect-square bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 shadow-sm relative">
           {service.image_url ? (
             <img 
