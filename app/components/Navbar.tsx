@@ -6,8 +6,11 @@ import { ChevronDown, MapPin, ShoppingCart, User, Menu, X } from "lucide-react";
 import LocationSelector from "./LocationSelector";
 import LiveSearchBar from "./LiveSearchBar";
 import LoginModal from "./LoginModal";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { getActiveCategories } from "../actions/categories";
+import { auth } from "../../lib/firebase";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import ProfileDropdown from "./ProfileDropdown";
 
 export default function Navbar() {
   const [categories, setCategories] = useState<any[]>([]);
@@ -15,6 +18,9 @@ export default function Navbar() {
   const [isMobileServicesOpen, setIsMobileServicesOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [cartItemCount, setCartItemCount] = useState(0);
+  const [user, setUser] = useState<any>(null);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
 
   const updateCartCount = () => {
     try {
@@ -41,10 +47,28 @@ export default function Navbar() {
     // Listen for cart updates
     window.addEventListener("cart_updated", updateCartCount);
     window.addEventListener("storage", updateCartCount);
+
+    // Listen for auth state
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        setIsLoginModalOpen(false); // Close login modal if open
+      }
+    });
+
+    // Close dropdown on click outside
+    const handleClickOutside = (e: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setIsProfileDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
     
     return () => {
       window.removeEventListener("cart_updated", updateCartCount);
       window.removeEventListener("storage", updateCartCount);
+      unsubscribeAuth();
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -107,13 +131,31 @@ export default function Navbar() {
           {/* Location Button (Client Component Modal) */}
           <LocationSelector />
 
-          {/* User Button */}
-          <button 
-            onClick={() => setIsLoginModalOpen(true)}
-            className="bg-[#6069c9] p-1.5 lg:p-2.5 rounded-[8px] lg:rounded-[10px] text-white hover:bg-[#525ab5] transition shadow-sm flex items-center justify-center"
-          >
-            <User className="w-4 h-4 lg:w-5 lg:h-5 stroke-[1.5]" />
-          </button>
+          {/* User Button & Dropdown */}
+          <div className="relative" ref={profileRef}>
+            <button 
+              onClick={() => {
+                if (user) {
+                  setIsProfileDropdownOpen(!isProfileDropdownOpen);
+                } else {
+                  setIsLoginModalOpen(true);
+                }
+              }}
+              className={`p-1.5 lg:p-2.5 rounded-[8px] lg:rounded-[10px] transition shadow-sm flex items-center justify-center ${
+                user ? 'bg-[#5c67b8] text-white hover:bg-[#4a55a2]' : 'bg-[#6069c9] text-white hover:bg-[#525ab5]'
+              }`}
+            >
+              <User className="w-4 h-4 lg:w-5 lg:h-5 stroke-[1.5]" />
+            </button>
+            <ProfileDropdown 
+              user={user} 
+              isOpen={isProfileDropdownOpen} 
+              onLogout={async () => {
+                await signOut(auth);
+                setIsProfileDropdownOpen(false);
+              }} 
+            />
+          </div>
           <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
           
           {/* Cart Button */}

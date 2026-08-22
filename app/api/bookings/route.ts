@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import pool from "../../../lib/db";
 
 function generateOrderId(): string {
-  const timestamp = Date.now().toString().slice(-6);
+  // Generate a random 4-digit number (1000 - 9999)
   const random = Math.floor(Math.random() * 9000 + 1000);
-  return `OMAA-${timestamp}-${random}`;
+  return random.toString();
 }
 
 export async function POST(req: Request) {
@@ -18,11 +18,21 @@ export async function POST(req: Request) {
     if (String(mobile).length !== 10) {
       return NextResponse.json({ error: "Mobile must be 10 digits" }, { status: 400 });
     }
-    if (!booking_date) {
-      return NextResponse.json({ error: "Please select a booking date" }, { status: 400 });
-    }
-    if (!time_slot) {
-      return NextResponse.json({ error: "Please select a time slot" }, { status: 400 });
+
+    // Check if the order requires a schedule
+    const requiresSchedule = !cart_items.some((item: any) => {
+      const title = (item.title || "").toLowerCase();
+      const category = (item.category || "").toLowerCase();
+      return title.includes("new product") || title.includes("ro amc") || category.includes("new product") || category.includes("ro amc");
+    });
+
+    if (requiresSchedule) {
+      if (!booking_date) {
+        return NextResponse.json({ error: "Please select a booking date" }, { status: 400 });
+      }
+      if (!time_slot) {
+        return NextResponse.json({ error: "Please select a time slot" }, { status: 400 });
+      }
     }
 
     const orderId = generateOrderId();

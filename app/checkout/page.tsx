@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
-import { CheckCircle2, Lock, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Lock, ShieldCheck, Hash, IndianRupee, Calendar, Clock, MapPin, CreditCard, Edit, Home, List, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
+import BookingSchedulePicker from "../components/BookingSchedulePicker";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -32,6 +33,13 @@ export default function CheckoutPage() {
 
   const totalAmount = cart.reduce((total, item) => total + (Number(item.selling_price) * item.quantity || 0), 0);
 
+  // Check if any cart item implies it's a product that doesn't need scheduling
+  const requiresSchedule = !cart.some(item => {
+    const title = (item.title || "").toLowerCase();
+    const category = (item.category || "").toLowerCase();
+    return title.includes("new product") || title.includes("ro amc") || category.includes("new product") || category.includes("ro amc");
+  });
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     // Restrict mobile to digits only, max 10
@@ -50,8 +58,12 @@ export default function CheckoutPage() {
     if (!form.name.trim()) newErrors.name = 'Full name is required';
     if (!form.mobile || form.mobile.length !== 10) newErrors.mobile = 'Enter a valid 10-digit mobile number';
     if (!form.address.trim()) newErrors.address = 'Address is required';
-    if (!form.booking_date) newErrors.booking_date = 'Please select a booking date';
-    if (!form.time_slot) newErrors.time_slot = 'Please select a time slot';
+    
+    if (requiresSchedule) {
+      if (!form.booking_date) newErrors.booking_date = 'Please select a booking date';
+      if (!form.time_slot) newErrors.time_slot = 'Please select a time slot';
+    }
+    
     return newErrors;
   };
 
@@ -98,34 +110,164 @@ export default function CheckoutPage() {
 
   // Success screen
   if (success) {
-    return (
-      <div className="min-h-screen bg-[#f8f9fa]">
-        <Navbar />
-        <div className="flex flex-col items-center justify-center min-h-[80vh] text-center px-6">
-          <div className="bg-white rounded-2xl shadow-md p-12 max-w-md w-full">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle2 className="w-10 h-10 text-green-500" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">Booking Confirmed! 🎉</h2>
-            <p className="text-gray-500 mb-2">Thank you, <span className="font-semibold text-gray-800">{form.name}</span>!</p>
-            {orderId && (
-              <div className="bg-purple-50 border border-purple-200 rounded-xl px-4 py-3 mb-3">
-                <p className="text-xs text-gray-500 mb-1">Your Order ID</p>
-                <p className="font-bold text-[#673ab7] text-lg tracking-widest">{orderId}</p>
+    if (requiresSchedule) {
+      // Detailed Service Booking Slip
+      return (
+        <div className="min-h-screen bg-[#f4f5f8] pb-10">
+          <Navbar />
+          <div className="flex justify-center mt-6 px-4">
+            <div className="bg-white rounded-3xl shadow-xl w-full max-w-[500px] overflow-hidden border border-gray-100 pb-6 relative">
+              {/* Header */}
+              <div className="pt-10 pb-6 px-4 sm:px-8 text-center relative">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-[#328e3b] rounded-full flex items-center justify-center shadow-lg border-4 border-white">
+                  <CheckCircle2 className="w-8 h-8 text-white" />
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-[#328e3b] tracking-tight mt-4 mb-2">Booking Confirmed!</h2>
+                <p className="text-gray-500 text-[14px] sm:text-[15px] font-medium leading-relaxed">
+                  Your service has been scheduled. Pay cash to the technician after the job is done.
+                </p>
               </div>
-            )}
-            <p className="text-gray-500 text-sm mb-2">📅 <span className="font-semibold">{form.booking_date}</span> &nbsp;⏰ <span className="font-semibold">{form.time_slot}</span></p>
-            <p className="text-gray-500 text-sm mb-6">Our team will contact you on <span className="font-semibold">{form.mobile}</span> shortly.</p>
-            <button
-              onClick={() => router.push('/')}
-              className="w-full bg-[#673ab7] hover:bg-[#5e35b1] text-white font-bold py-3 rounded-xl transition"
-            >
-              Back to Home
-            </button>
+
+              {/* Details Card */}
+              <div className="mx-4 sm:mx-6 bg-[#fafafa] rounded-2xl p-4 sm:p-5 mb-6">
+                <div className="space-y-4">
+                  <div className="flex">
+                    <div className="w-[120px] flex items-center gap-2 text-gray-500 font-semibold text-sm">
+                      <Hash className="w-4 h-4" /> Order ID
+                    </div>
+                    <div className="font-extrabold text-gray-900">{orderId}</div>
+                  </div>
+                  <div className="flex">
+                    <div className="w-[120px] flex items-center gap-2 text-gray-500 font-semibold text-sm">
+                      <IndianRupee className="w-4 h-4" /> Amount
+                    </div>
+                    <div className="font-extrabold text-gray-900">₹{totalAmount}</div>
+                  </div>
+                  <div className="flex">
+                    <div className="w-[120px] flex items-center gap-2 text-gray-500 font-semibold text-sm">
+                      <Calendar className="w-4 h-4" /> Service Date
+                    </div>
+                    <div className="font-medium text-gray-800">{new Date(form.booking_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                  </div>
+                  <div className="flex">
+                    <div className="w-[120px] flex items-center gap-2 text-gray-500 font-semibold text-sm">
+                      <Clock className="w-4 h-4" /> Time Slot
+                    </div>
+                    <div className="font-medium text-gray-800">{form.time_slot}</div>
+                  </div>
+                  <div className="flex">
+                    <div className="w-[120px] flex items-center gap-2 text-gray-500 font-semibold text-sm shrink-0">
+                      <MapPin className="w-4 h-4" /> Address
+                    </div>
+                    <div className="font-medium text-gray-800 text-sm leading-snug">{form.address}</div>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-[120px] flex items-center gap-2 text-gray-500 font-semibold text-sm">
+                      <CreditCard className="w-4 h-4" /> Payment
+                    </div>
+                    <div>
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 text-xs font-bold rounded-md border border-green-200">
+                        <IndianRupee className="w-3 h-3" /> Pay at Site (COD)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Steps */}
+              <div className="px-4 sm:px-6 mb-6">
+                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">What happens next</h3>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-green-100 text-green-700 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">1</div>
+                    <p className="text-[13px] sm:text-[14px] text-gray-600 font-medium">Our team will <strong className="text-gray-800">call you</strong> to confirm your appointment shortly.</p>
+                  </div>
+                  <div className="h-px bg-gray-100 ml-9"></div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-green-100 text-green-700 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">2</div>
+                    <p className="text-[13px] sm:text-[14px] text-gray-600 font-medium">A technician will arrive on <strong className="text-gray-800">{new Date(form.booking_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</strong> at the scheduled time.</p>
+                  </div>
+                  <div className="h-px bg-gray-100 ml-9"></div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-green-100 text-green-700 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">3</div>
+                    <p className="text-[13px] sm:text-[14px] text-gray-600 font-medium">After the service, pay <strong className="text-gray-800">₹{totalAmount} cash</strong> to the technician.</p>
+                  </div>
+                  <div className="h-px bg-gray-100 ml-9"></div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-green-100 text-green-700 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">4</div>
+                    <p className="text-[13px] sm:text-[14px] text-gray-600 font-medium">You'll get a <strong className="text-gray-800">digital receipt</strong> and warranty details via SMS / WhatsApp.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Warning Alert */}
+              <div className="px-4 sm:px-6 mb-8">
+                <div className="bg-[#f0f9f2] border border-[#d3ecd8] rounded-xl p-4 flex gap-3">
+                  <AlertCircle className="w-5 h-5 text-[#328e3b] shrink-0" />
+                  <p className="text-[12px] sm:text-[13px] text-gray-700">
+                    <strong className="text-[#328e3b]">Keep ₹{totalAmount} ready in cash.</strong> Our technician may not carry a card machine at all times.
+                  </p>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="px-4 sm:px-6 flex flex-col sm:grid sm:grid-cols-2 gap-3 mb-4">
+                <button 
+                  onClick={() => router.push('/my-bookings')}
+                  className="bg-[#2c7a34] hover:bg-[#24632a] text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition"
+                >
+                  <List className="w-4 h-4" /> My Bookings
+                </button>
+                <button 
+                  onClick={() => router.push('/my-bookings')}
+                  className="bg-[#1967d2] hover:bg-[#1557b0] text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition"
+                >
+                  <Edit className="w-4 h-4" /> Modify
+                </button>
+              </div>
+              <div className="px-6 flex justify-center">
+                <button 
+                  onClick={() => router.push('/')}
+                  className="text-gray-500 hover:text-gray-800 font-semibold text-sm flex items-center gap-2 transition bg-white border border-gray-200 px-6 py-2 rounded-full shadow-sm"
+                >
+                  <Home className="w-4 h-4" /> Home
+                </button>
+              </div>
+
+            </div>
           </div>
         </div>
-      </div>
-    );
+      );
+    } else {
+      // Simple Success Screen for RO AMC / New Products
+      return (
+        <div className="min-h-screen bg-[#f8f9fa]">
+          <Navbar />
+          <div className="flex flex-col items-center justify-center min-h-[80vh] text-center px-6">
+            <div className="bg-white rounded-2xl shadow-md p-12 max-w-md w-full">
+              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle2 className="w-10 h-10 text-green-500" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">Order Placed! 🎉</h2>
+              <p className="text-gray-500 mb-2">Thank you, <span className="font-semibold text-gray-800">{form.name}</span>!</p>
+              {orderId && (
+                <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mb-3">
+                  <p className="text-xs text-gray-500 mb-1">Your Order ID</p>
+                  <p className="font-bold text-[#1967d2] text-lg tracking-widest">{orderId}</p>
+                </div>
+              )}
+              <p className="text-gray-500 text-sm mb-6">We have received your order. Our team will contact you on <span className="font-semibold">{form.mobile}</span> shortly.</p>
+              <button
+                onClick={() => router.push('/')}
+                className="w-full bg-[#1967d2] hover:bg-[#1557b0] text-white font-bold py-3 rounded-xl transition"
+              >
+                Back to Home
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
   }
 
   return (
@@ -201,41 +343,20 @@ export default function CheckoutPage() {
                 </div>
 
                 {/* Booking Date & Time Slot */}
-                <div className="pt-4 border-t border-gray-100">
-                  <h3 className="text-lg font-bold text-gray-900 mb-5">Select Schedule</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
-                    <div>
-                      <label className="block text-[13px] font-bold text-gray-500 uppercase tracking-wider mb-2">Booking Date *</label>
-                      <input
-                        type="date"
-                        name="booking_date"
-                        value={form.booking_date}
-                        onChange={handleChange}
-                        min={new Date().toISOString().split('T')[0]}
-                        className={`w-full border-2 rounded-xl px-4 py-3.5 outline-none focus:ring-4 transition-all text-gray-800 font-medium ${errors.booking_date ? 'border-red-300 focus:border-red-500 focus:ring-red-100' : 'border-gray-200 focus:border-black focus:ring-black/5 hover:border-gray-300'}`}
-                      />
-                      {errors.booking_date && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.booking_date}</p>}
-                    </div>
-                    <div>
-                      <label className="block text-[13px] font-bold text-gray-500 uppercase tracking-wider mb-2">Time Slot *</label>
-                      <select
-                        name="time_slot"
-                        value={form.time_slot}
-                        onChange={(e) => { setForm(prev => ({ ...prev, time_slot: e.target.value })); setErrors(prev => ({ ...prev, time_slot: '' })); }}
-                        className={`w-full border-2 rounded-xl px-4 py-3.5 outline-none focus:ring-4 transition-all bg-white text-gray-800 font-medium cursor-pointer ${errors.time_slot ? 'border-red-300 focus:border-red-500 focus:ring-red-100' : 'border-gray-200 focus:border-black focus:ring-black/5 hover:border-gray-300'}`}
-                      >
-                        <option value="" className="text-gray-400">Select a slot</option>
-                        <option value="08:00 AM - 10:00 AM">08:00 AM - 10:00 AM</option>
-                        <option value="10:00 AM - 12:00 PM">10:00 AM - 12:00 PM</option>
-                        <option value="12:00 PM - 02:00 PM">12:00 PM - 02:00 PM</option>
-                        <option value="02:00 PM - 04:00 PM">02:00 PM - 04:00 PM</option>
-                        <option value="04:00 PM - 06:00 PM">04:00 PM - 06:00 PM</option>
-                        <option value="06:00 PM - 08:00 PM">06:00 PM - 08:00 PM</option>
-                      </select>
-                      {errors.time_slot && <p className="text-red-500 text-xs mt-1.5 font-medium">{errors.time_slot}</p>}
-                    </div>
+                {requiresSchedule && (
+                  <div className="pt-2">
+                    <BookingSchedulePicker 
+                      selectedDate={form.booking_date}
+                      selectedTime={form.time_slot}
+                      onChange={(date, time) => {
+                        setForm(prev => ({ ...prev, booking_date: date, time_slot: time }));
+                        setErrors(prev => ({ ...prev, booking_date: '', time_slot: '' }));
+                      }}
+                      errorDate={errors.booking_date}
+                      errorTime={errors.time_slot}
+                    />
                   </div>
-                </div>
+                )}
 
               </div>
             </div>
