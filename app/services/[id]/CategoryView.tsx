@@ -68,8 +68,10 @@ export default function CategoryView({ category, subcategories, services }: Cate
       } else {
         newCart = [...prev, { ...service, quantity: 1 }];
       }
-      localStorage.setItem('omaa_cart', JSON.stringify(newCart));
-      window.dispatchEvent(new Event("cart_updated"));
+      setTimeout(() => {
+        localStorage.setItem('omaa_cart', JSON.stringify(newCart));
+        window.dispatchEvent(new Event("cart_updated"));
+      }, 0);
       return newCart;
     });
   };
@@ -83,8 +85,10 @@ export default function CategoryView({ category, subcategories, services }: Cate
       } else {
         newCart = prev.filter(item => item.id !== serviceId);
       }
-      localStorage.setItem('omaa_cart', JSON.stringify(newCart));
-      window.dispatchEvent(new Event("cart_updated"));
+      setTimeout(() => {
+        localStorage.setItem('omaa_cart', JSON.stringify(newCart));
+        window.dispatchEvent(new Event("cart_updated"));
+      }, 0);
       return newCart;
     });
   };
