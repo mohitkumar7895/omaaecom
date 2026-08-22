@@ -54,7 +54,7 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
               <div className="grid grid-cols-3 gap-y-4 gap-x-2 text-center justify-items-center">
                 {homeServices.map((service, index) => (
                   <Link href={`/services/${service.id}`} key={index} className="flex flex-col items-center group w-full cursor-pointer">
-                    <div className="w-[56px] h-[56px] md:w-[64px] md:h-[64px] bg-[#f4f5f8] rounded-[16px] flex items-center justify-center text-[26px] md:text-[32px] shadow-sm group-hover:shadow-md transition-all overflow-hidden p-2.5 mb-2 group-hover:-translate-y-1">
+                    <div className="w-[72px] h-[72px] md:w-[80px] md:h-[80px] bg-[#f4f5f8] rounded-[16px] flex items-center justify-center text-[32px] md:text-[38px] shadow-sm group-hover:shadow-md transition-all overflow-hidden p-2.5 mb-2 group-hover:-translate-y-1">
                       {service.image_url && service.image_url.length > 5 ? (
                         <img src={service.image_url} alt={service.title} className="w-full h-full object-contain" />
                       ) : (
@@ -81,7 +81,7 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
                   </div>
                   <div className="flex justify-between items-center mt-1">
                     <span className="text-[13px] font-semibold text-gray-900 leading-tight pr-2 line-clamp-2">{newProducts[0].title}</span>
-                    <div className="w-16 h-16 md:w-[68px] md:h-[68px] bg-white rounded-[14px] flex-shrink-0 flex items-center justify-center shadow-sm overflow-hidden p-2 group-hover:-translate-y-0.5 transition-transform">
+                    <div className="w-20 h-20 md:w-[84px] md:h-[84px] bg-white rounded-[14px] flex-shrink-0 flex items-center justify-center shadow-sm overflow-hidden p-2 group-hover:-translate-y-0.5 transition-transform">
                       {newProducts[0].image_url && newProducts[0].image_url.length > 5 ? (
                         <img src={newProducts[0].image_url} alt={newProducts[0].title} className="w-full h-full object-contain" />
                       ) : (
@@ -100,7 +100,7 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
                   </div>
                   <div className="flex justify-between items-center mt-1">
                     <span className="text-[13px] font-semibold text-gray-900 leading-tight pr-2 line-clamp-2">{amcProducts[0].title}</span>
-                    <div className="w-16 h-16 md:w-[68px] md:h-[68px] bg-white rounded-[14px] flex-shrink-0 flex items-center justify-center shadow-sm relative overflow-hidden p-2 group-hover:-translate-y-0.5 transition-transform">
+                    <div className="w-20 h-20 md:w-[84px] md:h-[84px] bg-white rounded-[14px] flex-shrink-0 flex items-center justify-center shadow-sm relative overflow-hidden p-2 group-hover:-translate-y-0.5 transition-transform">
                       {amcProducts[0].image_url && amcProducts[0].image_url.length > 5 ? (
                         <img src={amcProducts[0].image_url} alt={amcProducts[0].title} className="w-full h-full object-contain" />
                       ) : (

@@ -68,10 +68,10 @@ export default function LocationSelector() {
                 if (data.data.city) syncUrl(data.data.city);
               }
             } catch (err) {
-              console.error("Auto-detect location failed", err);
+              console.warn("Auto-detect location failed", err);
             }
           },
-          (err) => { console.error("Auto-detect permission denied or failed", err); },
+          (err) => { console.warn("Auto-detect permission denied or failed", err); },
           { timeout: 5000 }
         );
       }
