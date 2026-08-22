@@ -29,16 +29,16 @@ export default function MobileBannerCarousel({ banners = [] }: { banners?: strin
   return (
     <div className="relative w-full md:hidden rounded-2xl overflow-hidden shadow-lg mb-3 md:mb-6 group">
       <div 
-        className="flex transition-transform duration-500 ease-in-out h-40 sm:h-56"
+        className="flex transition-transform duration-500 ease-in-out aspect-[2/1] sm:aspect-[21/9]"
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
       >
         {images.map((src, idx) => (
-          <div key={idx} className="w-full flex-shrink-0 relative">
+          <div key={idx} className="w-full flex-shrink-0 relative bg-gray-50">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img 
               src={src}
               alt={`Banner ${idx + 1}`}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-fill"
             />
           </div>
         ))}

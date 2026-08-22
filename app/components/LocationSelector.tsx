@@ -23,7 +23,7 @@ export default function LocationSelector() {
   const [error, setError] = useState<string | null>(null);
   const [location, setLocation] = useState<LocationData | null>(null);
 
-  // Load saved location on mount
+  // Load saved location on mount, or auto-detect
   useEffect(() => {
     const savedLocation = localStorage.getItem("user_location");
     if (savedLocation) {
@@ -31,6 +31,31 @@ export default function LocationSelector() {
         setLocation(JSON.parse(savedLocation));
       } catch (e) {
         console.error("Failed to parse saved location");
+      }
+    } else {
+      // Silently try to get location if not set
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            try {
+              const { latitude, longitude } = position.coords;
+              const response = await fetch("/api/location/geocode", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ latitude, longitude }),
+              });
+              const data = await response.json();
+              if (response.ok && data.success) {
+                setLocation(data.data);
+                localStorage.setItem("user_location", JSON.stringify(data.data));
+              }
+            } catch (err) {
+              console.error("Auto-detect location failed", err);
+            }
+          },
+          (err) => { console.error("Auto-detect permission denied or failed", err); },
+          { timeout: 5000 }
+        );
       }
     }
   }, []);
@@ -134,11 +159,13 @@ export default function LocationSelector() {
       {/* Trigger Button */}
       <div 
         onClick={() => setIsOpen(true)}
-        className="flex items-center space-x-1.5 bg-gray-100/80 px-4 py-2.5 rounded-full cursor-pointer hover:bg-gray-200 transition mr-2 max-w-[150px] sm:max-w-[200px]"
+        className="flex items-center justify-between bg-white border border-gray-200 px-4 py-2.5 rounded-xl cursor-pointer hover:bg-gray-50 transition mr-2 min-w-[140px] max-w-[200px] shadow-sm"
       >
-        <MapPin className="text-[#5c67b8] w-4 h-4 shrink-0" />
-        <span className="text-[13px] font-semibold text-gray-700 truncate">{getButtonText()}</span>
-        <ChevronDown className="text-[#5c67b8] w-4 h-4 shrink-0" />
+        <div className="flex items-center space-x-2 overflow-hidden">
+          <MapPin className="text-gray-500 w-4 h-4 shrink-0" />
+          <span className="text-[14px] text-gray-700 truncate">{getButtonText()}</span>
+        </div>
+        <ChevronDown className="text-gray-400 w-4 h-4 shrink-0 ml-2" />
       </div>
 
       {/* Modal Overlay */}
@@ -155,30 +182,32 @@ export default function LocationSelector() {
           
           {/* Modal Card */}
           <div 
-            className={`relative w-full sm:w-[500px] bg-white rounded-[24px] sm:rounded-[24px] shadow-2xl p-4 sm:p-6 md:p-8 transform transition-transform duration-300 border border-gray-100 will-change-transform ${
+            className={`relative w-full sm:w-[500px] bg-white rounded-xl shadow-2xl overflow-hidden transform transition-transform duration-300 will-change-transform ${
               visible ? "translate-y-0" : "translate-y-full"
             }`}
             style={{ transitionTimingFunction: "ease-out" }}
           >
-            
-            {/* Close Button */}
-            <button 
-              onClick={() => !isLoading && setIsOpen(false)}
-              disabled={isLoading}
-              className="absolute top-6 right-6 w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition-colors disabled:opacity-50"
-            >
-              <X className="w-5 h-5 stroke-[1.5]" />
-            </button>
-
-            <div className="mt-2 space-y-4 sm:space-y-6">
-              <h2 className="text-[20px] sm:text-[22px] font-bold text-gray-900 tracking-tight text-center sm:text-left mb-4 sm:mb-6">
-                Select your location
-              </h2>
+            <div className="p-4 sm:p-6 pb-2">
+              {/* Search Bar matching UC design */}
+              <div className="flex items-center border border-gray-300 rounded-lg bg-white p-2 sm:p-3 mb-6 focus-within:border-black">
+                <button 
+                  onClick={() => !isLoading && setIsOpen(false)}
+                  className="mr-3 text-gray-700 hover:bg-gray-100 p-1 rounded-full transition"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                </button>
+                <input
+                  type="text"
+                  placeholder="Search for your location/society/apartment"
+                  disabled={isLoading}
+                  className="flex-1 bg-transparent border-none focus:outline-none text-gray-800 placeholder-gray-400 text-sm sm:text-base min-w-0"
+                />
+              </div>
 
               {/* Error Message */}
               {error && (
-                <div className="bg-red-50 text-red-600 p-3 rounded-xl flex items-start space-x-2 text-sm font-medium">
-                  <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                <div className="bg-red-50 text-red-600 p-3 rounded-lg flex items-start space-x-2 text-sm font-medium mb-4">
+                  <AlertCircle className="w-5 h-5 shrink-0" />
                   <span>{error}</span>
                 </div>
               )}
@@ -187,50 +216,24 @@ export default function LocationSelector() {
               <button 
                 onClick={handleGetCurrentLocation}
                 disabled={isLoading}
-                className="w-full bg-[#f8f6fb] hover:bg-[#f0ebf9] transition rounded-[20px] p-3 sm:p-4 flex items-center justify-between group disabled:opacity-70 disabled:cursor-not-allowed relative overflow-hidden"
+                className="w-full flex items-center space-x-3 group disabled:opacity-70 disabled:cursor-not-allowed py-2"
               >
-                <div className="flex items-center space-x-3 sm:space-x-4">
-                  <div className="bg-[#6b62d9] w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shadow-sm shrink-0">
-                    {isLoading ? (
-                      <Loader2 className="w-6 h-6 text-white stroke-[2] animate-spin" />
-                    ) : (
-                      <LocateFixed className="w-6 h-6 text-white stroke-[2]" />
-                    )}
-                  </div>
-                  <span className="font-bold text-gray-800 text-[15px] sm:text-[17px] text-left">
-                    {isLoading ? "Detecting location..." : "Use current location"}
-                  </span>
-                </div>
-                {!isLoading && (
-                  <ChevronRight className="w-5 h-5 text-[#8878e1] group-hover:translate-x-1 transition-transform" />
+                {isLoading ? (
+                  <Loader2 className="w-5 h-5 text-[#6b62d9] animate-spin" />
+                ) : (
+                  <LocateFixed className="w-5 h-5 text-[#6b62d9]" />
                 )}
+                <span className="font-semibold text-[#6b62d9] text-base">
+                  {isLoading ? "Detecting location..." : "Use current location"}
+                </span>
               </button>
+            </div>
 
-              <div className="flex items-center justify-center space-x-2 my-2">
-                <div className="h-px w-full bg-gray-100"></div>
-                <span className="text-xs text-gray-400 font-medium uppercase px-2">OR</span>
-                <div className="h-px w-full bg-gray-100"></div>
-              </div>
-
-              {/* Search Bar */}
-              <div className={`relative flex items-center border border-gray-200 rounded-[20px] bg-white p-1.5 sm:p-2 shadow-sm focus-within:border-[#8878e1] focus-within:ring-2 focus-within:ring-[#8878e1]/20 transition-all ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}>
-                <div className="pl-2 sm:pl-3 pr-2 flex items-center justify-center">
-                  <Search className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 stroke-[1.5]" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search area, street or city..."
-                  disabled={isLoading}
-                  className="flex-1 bg-transparent border-none focus:outline-none text-gray-700 placeholder-gray-400 text-base min-w-0"
-                />
-                <button 
-                  disabled={isLoading}
-                  className="bg-[#6b62d9] hover:bg-[#5b52c9] transition text-white font-bold py-2.5 sm:py-3 px-5 sm:px-8 rounded-2xl ml-2 shadow-sm whitespace-nowrap text-sm sm:text-base"
-                >
-                  Search
-                </button>
-              </div>
-
+            {/* Divider and Google text */}
+            <div className="w-full h-3 bg-gray-100 mt-4"></div>
+            <div className="py-4 flex justify-center items-center">
+              <span className="text-gray-500 text-xs font-medium mr-1">powered by</span>
+              <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" alt="Google" className="h-4 opacity-70 grayscale" />
             </div>
           </div>
         </div>
