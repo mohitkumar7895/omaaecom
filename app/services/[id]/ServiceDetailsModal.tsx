@@ -74,20 +74,31 @@ export default function ServiceDetailsModal({ service, onClose, onAdd, quantity 
               <h3 className="text-lg font-bold text-gray-900 inline-block mb-4 border-b-2 border-purple-500 pb-1">
                 About the service
               </h3>
-              <ul className="space-y-3">
-                <li className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  <span className="text-gray-600 text-[15px]">Professional and high-quality service</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  <span className="text-gray-600 text-[15px]">Standard safety and hygiene protocols</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  <span className="text-gray-600 text-[15px]">Experienced and verified professionals</span>
-                </li>
-              </ul>
+              {service.long_description ? (
+                <ul className="space-y-3">
+                  {service.long_description.split('|').map((point: string, i: number) => (
+                    <li key={i} className="flex items-start gap-3">
+                      <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                      <span className="text-gray-600 text-[15px]">{point.trim()}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                    <span className="text-gray-600 text-[15px]">Professional and high-quality service</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                    <span className="text-gray-600 text-[15px]">Standard safety and hygiene protocols</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
+                    <span className="text-gray-600 text-[15px]">Experienced and verified professionals</span>
+                  </li>
+                </ul>
+              )}
             </div>
 
             {/* How it works */}

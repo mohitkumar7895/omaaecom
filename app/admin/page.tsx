@@ -13,20 +13,19 @@ export default async function AdminDashboard() {
   let brandCount = 0;
 
   try {
-    const [admins]: any = await pool.query("SELECT COUNT(*) as count FROM admins");
-    adminCount = admins[0].count;
-
-    const [categories]: any = await pool.query("SELECT COUNT(*) as count FROM categories");
-    categoryCount = categories[0].count;
-
-    const [services]: any = await pool.query("SELECT COUNT(*) as count FROM services");
-    serviceCount = services[0].count;
-
-    const [banners]: any = await pool.query("SELECT COUNT(*) as count FROM banners");
-    bannerCount = banners[0].count;
+    const [adminsResult, categoriesResult, servicesResult, bannersResult, brandsResult] = await Promise.all([
+      pool.query("SELECT COUNT(*) as count FROM admins"),
+      pool.query("SELECT COUNT(*) as count FROM categories"),
+      pool.query("SELECT COUNT(*) as count FROM services"),
+      pool.query("SELECT COUNT(*) as count FROM banners"),
+      pool.query("SELECT COUNT(*) as count FROM brands")
+    ]);
     
-    const [brands]: any = await pool.query("SELECT COUNT(*) as count FROM brands");
-    brandCount = brands[0].count;
+    adminCount = (adminsResult[0] as any)[0].count;
+    categoryCount = (categoriesResult[0] as any)[0].count;
+    serviceCount = (servicesResult[0] as any)[0].count;
+    bannerCount = (bannersResult[0] as any)[0].count;
+    brandCount = (brandsResult[0] as any)[0].count;
   } catch (error) {
     console.error("Database connection failed or tables missing:", error);
   }

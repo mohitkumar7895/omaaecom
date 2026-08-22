@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 
 export default function WorkingStatusSelect({ id, defaultValue, action }: { id: string | number, defaultValue: string, action: any }) {
   const [value, setValue] = useState(defaultValue);
+  const [isPending, startTransition] = useTransition();
 
   const colorClass = 
     value === 'Complete' ? 'bg-green-100 text-green-700 border-green-300' :
@@ -18,12 +19,14 @@ export default function WorkingStatusSelect({ id, defaultValue, action }: { id: 
         onChange={(e) => {
           const newValue = e.target.value;
           setValue(newValue);
-          const formData = new FormData();
-          formData.append("id", String(id));
-          formData.append("working_status", newValue);
-          action(formData);
+          startTransition(() => {
+            const formData = new FormData();
+            formData.append("id", String(id));
+            formData.append("working_status", newValue);
+            action(formData);
+          });
         }}
-        className={`border rounded px-2 py-1 text-[11px] font-bold outline-none min-w-[90px] cursor-pointer transition ${colorClass}`}
+        className={`border rounded px-2 py-1 text-[11px] font-bold outline-none min-w-[90px] cursor-pointer transition ${colorClass} ${isPending ? 'opacity-50' : ''}`}
       >
         <option value="Pendi">Pending</option>
         <option value="Complete">Complete</option>
