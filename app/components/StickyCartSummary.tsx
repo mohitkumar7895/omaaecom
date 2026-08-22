@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
@@ -11,6 +11,9 @@ export default function StickyCartSummary() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [actionState, setActionState] = useState<'done' | 'view'>('view');
 
+  const prevTotalRef = useRef(0);
+  const isInitialLoad = useRef(true);
+
   const loadCart = () => {
     try {
       const savedCart = localStorage.getItem("omaa_cart");
@@ -19,19 +22,22 @@ export default function StickyCartSummary() {
         const newCount = parsed.length;
         const newTotal = parsed.reduce((sum: number, item: any) => sum + (Number(item.selling_price) * (item.quantity || 1)), 0);
         
-        setCartCount(newCount);
+        if (!isInitialLoad.current && newTotal > prevTotalRef.current) {
+          setActionState('done');
+        }
 
-        setCartTotal(prevTotal => {
-          if (newTotal > prevTotal) {
-            setActionState('done');
-          }
-          return newTotal;
-        });
+        prevTotalRef.current = newTotal;
+        isInitialLoad.current = false;
+
+        setCartCount(newCount);
+        setCartTotal(newTotal);
         setIsAnimating(true);
         setTimeout(() => setIsAnimating(false), 300);
       } else {
         setCartCount(0);
         setCartTotal(0);
+        prevTotalRef.current = 0;
+        isInitialLoad.current = false;
       }
     } catch (e) {
       console.error(e);

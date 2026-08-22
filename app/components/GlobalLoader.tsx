@@ -8,6 +8,12 @@ export default function GlobalLoader() {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
+    // Check if loader was already shown in this session
+    if (typeof window !== "undefined" && sessionStorage.getItem("omaa_loader_shown")) {
+      setShow(false);
+      return;
+    }
+
     // Simulate a fast loading progress
     const interval = setInterval(() => {
       setProgress(p => {
@@ -21,7 +27,10 @@ export default function GlobalLoader() {
 
     const timer = setTimeout(() => {
       setAnimateOut(true);
-      setTimeout(() => setShow(false), 800); 
+      setTimeout(() => {
+        setShow(false);
+        sessionStorage.setItem("omaa_loader_shown", "true");
+      }, 800); 
     }, 1200);
 
     return () => {

@@ -51,8 +51,8 @@ export default function ServiceCard({ service, quantity = 0, onAdd, onRemove, on
       </div>
 
       {/* Right side: image and Add button */}
-      <div className="relative w-[145px] sm:w-[170px] flex-shrink-0 mt-1">
-        <div className="w-full aspect-square bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 shadow-sm relative">
+      <div className="relative w-[115px] sm:w-[160px] flex-shrink-0 self-start mt-2">
+        <div className="w-full aspect-[4/5] sm:aspect-[4/5] bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 shadow-sm relative">
           {service.image_url ? (
             <img 
               src={service.image_url} 
@@ -66,17 +66,17 @@ export default function ServiceCard({ service, quantity = 0, onAdd, onRemove, on
         </div>
         
         {quantity > 0 ? (
-          <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-white border border-gray-100 text-[#6069c9] text-sm sm:text-[15px] font-bold h-10 sm:h-11 w-[100px] sm:w-[110px] rounded-xl shadow-[0_4px_16px_rgba(0,0,0,0.1)] flex items-center justify-between px-2.5 z-10">
+          <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-white border border-gray-200 text-[#6069c9] text-sm sm:text-[15px] font-bold h-9 sm:h-11 w-[90px] sm:w-[110px] rounded-xl shadow-[0_4px_16px_rgba(0,0,0,0.12)] flex items-center justify-between px-2 z-10">
             <button 
               onClick={(e) => { e.preventDefault(); onRemove && onRemove(); }}
-              className="w-7 h-7 flex items-center justify-center hover:bg-gray-50 rounded-md transition"
+              className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center hover:bg-gray-50 rounded-md transition"
             >
               <Minus className="w-4 h-4" />
             </button>
-            <span className="text-gray-800 text-base">{quantity}</span>
+            <span className="text-gray-800 text-sm sm:text-base">{quantity}</span>
             <button 
               onClick={(e) => { e.preventDefault(); onAdd(service); }}
-              className="w-7 h-7 flex items-center justify-center hover:bg-gray-50 rounded-md transition"
+              className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center hover:bg-gray-50 rounded-md transition"
             >
               <Plus className="w-4 h-4" />
             </button>
@@ -84,7 +84,7 @@ export default function ServiceCard({ service, quantity = 0, onAdd, onRemove, on
         ) : (
           <button 
             onClick={(e) => { e.preventDefault(); onAdd(service); }}
-            className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-white text-[#6069c9] text-[15px] font-bold h-10 sm:h-11 w-[100px] sm:w-[110px] rounded-xl shadow-[0_4px_16px_rgba(0,0,0,0.1)] hover:bg-gray-50 transition border border-gray-100 flex items-center justify-center z-10"
+            className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-white text-[#6069c9] text-[13px] sm:text-[15px] font-extrabold h-9 sm:h-11 w-[90px] sm:w-[110px] rounded-xl shadow-[0_4px_16px_rgba(0,0,0,0.12)] hover:bg-gray-50 transition border border-gray-200 flex items-center justify-center z-10 uppercase tracking-wide"
           >
             Add
           </button>
