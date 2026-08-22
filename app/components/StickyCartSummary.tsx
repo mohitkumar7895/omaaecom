@@ -9,7 +9,6 @@ export default function StickyCartSummary() {
   const [cartTotal, setCartTotal] = useState(0);
   const [mounted, setMounted] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [actionState, setActionState] = useState<'done' | 'view'>('view');
 
   const prevTotalRef = useRef(0);
   const isInitialLoad = useRef(true);
@@ -22,10 +21,6 @@ export default function StickyCartSummary() {
         const newCount = parsed.length;
         const newTotal = parsed.reduce((sum: number, item: any) => sum + (Number(item.selling_price) * (item.quantity || 1)), 0);
         
-        if (!isInitialLoad.current && newTotal > prevTotalRef.current) {
-          setActionState('done');
-        }
-
         prevTotalRef.current = newTotal;
         isInitialLoad.current = false;
 
@@ -71,7 +66,7 @@ export default function StickyCartSummary() {
         <div className="flex flex-col">
           <div className="flex items-center gap-2 text-gray-300 text-xs font-semibold uppercase tracking-wider mb-1">
             <span className={`transition-transform duration-300 ${isAnimating ? 'scale-125 text-indigo-400' : 'scale-100'}`}>
-              {cartCount} {cartCount === 1 ? 'Item' : 'Items'} {actionState === 'done' && 'Added'}
+              {cartCount} {cartCount === 1 ? 'Item' : 'Items'}
             </span>
           </div>
           <div className="text-white font-extrabold text-lg leading-none">
@@ -79,21 +74,12 @@ export default function StickyCartSummary() {
           </div>
         </div>
 
-        {actionState === 'done' ? (
-          <button 
-            onClick={() => setActionState('view')}
-            className="flex items-center justify-center bg-indigo-500 text-white font-bold px-8 py-2.5 rounded-xl text-sm transition-all active:scale-95 hover:bg-indigo-400 shadow-sm"
-          >
-            Done
+        <Link href="/cart">
+          <button className="flex items-center gap-2 bg-white text-gray-900 font-bold px-6 py-2.5 rounded-xl text-sm transition-all active:scale-95 hover:bg-gray-50 shadow-sm">
+            View Cart
+            <ArrowRight className="w-4 h-4" />
           </button>
-        ) : (
-          <Link href="/checkout">
-            <button className="flex items-center gap-2 bg-white text-gray-900 font-bold px-6 py-2.5 rounded-xl text-sm transition-all active:scale-95 hover:bg-gray-50 shadow-sm">
-              View Cart
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          </Link>
-        )}
+        </Link>
       </div>
     </div>
   );

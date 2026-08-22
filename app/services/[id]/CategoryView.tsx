@@ -96,8 +96,10 @@ export default function CategoryView({ category, subcategories, services }: Cate
   const totalCartPrice = cart.reduce((total, item) => total + (Number(item.selling_price) * item.quantity || 0), 0);
   const totalCartItems = cart.reduce((total, item) => total + (item.quantity || 1), 0);
 
+  const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
+
   return (
-    <div className="max-w-7xl mx-auto w-full bg-white min-h-screen">
+    <div className="max-w-7xl mx-auto w-full bg-white min-h-screen pb-24">
       {/* Header Area */}
       <div className="pt-10 pb-6 px-6 lg:px-12 border-b border-gray-100">
         <h1 className="text-3xl font-bold text-[#111827] mb-2">{category.title}</h1>
@@ -192,7 +194,7 @@ export default function CategoryView({ category, subcategories, services }: Cate
           })}
         </div>
 
-        {/* Right Sidebar (Cart) */}
+        {/* Right Sidebar (Cart - Desktop) */}
         {cart.length > 0 && (
           <div className="hidden lg:block lg:w-[320px] flex-shrink-0">
             <div className="sticky top-[100px] bg-white border border-gray-100 rounded-2xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.08)]">
@@ -221,7 +223,7 @@ export default function CategoryView({ category, subcategories, services }: Cate
               </div>
               
               <button 
-                onClick={() => router.push('/checkout')}
+                onClick={() => router.push('/cart')}
                 className="w-full bg-[#6069c9] hover:bg-[#525ab5] text-white font-bold py-3.5 rounded-xl transition shadow-md flex justify-between items-center px-4"
               >
                 <span>₹{totalCartPrice.toLocaleString()}</span>
@@ -232,7 +234,109 @@ export default function CategoryView({ category, subcategories, services }: Cate
         )}
       </div>
 
+      {/* Mobile Sticky Cart Summary */}
+      <div 
+        className={`lg:hidden fixed bottom-4 left-4 right-4 z-[99] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+          cart.length > 0 && !isMobileCartOpen 
+            ? 'translate-y-0 opacity-100 pointer-events-auto scale-100' 
+            : 'translate-y-10 opacity-0 pointer-events-none scale-95'
+        }`}
+      >
+        <div 
+          onClick={() => setIsMobileCartOpen(true)}
+          className="bg-[#6069c9] text-white rounded-2xl shadow-[0_8px_30px_rgba(96,105,201,0.4)] flex items-center justify-between p-4 cursor-pointer active:scale-[0.98] transition-transform"
+        >
+          <div className="flex flex-col">
+            <span className="text-xs font-semibold uppercase tracking-wider mb-1 text-white/80">
+              {totalCartItems} {totalCartItems === 1 ? 'Item' : 'Items'}
+            </span>
+            <span className="font-extrabold text-lg leading-none">
+              ₹{totalCartPrice.toLocaleString()}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 font-bold text-sm bg-white/20 px-4 py-2 rounded-xl">
+            View Cart
+          </div>
+        </div>
+      </div>
 
+      {/* Mobile Cart Modal Overlay */}
+      {cart.length > 0 && (
+        <div className={`lg:hidden fixed inset-0 z-[100] flex flex-col justify-end pointer-events-none`}>
+          {/* Backdrop */}
+          <div 
+            className={`absolute inset-0 bg-[#0f172a]/60 backdrop-blur-sm transition-opacity duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+              isMobileCartOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0'
+            }`}
+            onClick={() => setIsMobileCartOpen(false)}
+          ></div>
+          
+          {/* Bottom Sheet */}
+          <div 
+            className={`relative bg-white w-full rounded-t-[32px] shadow-2xl flex flex-col max-h-[85vh] transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+              isMobileCartOpen ? 'translate-y-0 pointer-events-auto' : 'translate-y-full'
+            }`}
+          >
+            {/* Handle bar for visual cue */}
+            <div className="w-full flex justify-center pt-3 pb-1" onClick={() => setIsMobileCartOpen(false)}>
+              <div className="w-12 h-1.5 bg-gray-200 rounded-full"></div>
+            </div>
+
+            <div className="flex items-center justify-between px-6 pb-4 pt-2 border-b border-gray-100">
+              <div>
+                <h2 className="text-[22px] font-extrabold text-gray-900 tracking-tight">Your Cart</h2>
+                <p className="text-sm font-medium text-gray-500">{totalCartItems} items</p>
+              </div>
+              <button 
+                onClick={() => setIsMobileCartOpen(false)}
+                className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-900 transition-colors active:scale-95"
+              >
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M1 13L13 1M1 1L13 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            </div>
+            
+            <div className="px-6 py-2 overflow-y-auto flex-1 hidden-scrollbar">
+              {cart.map((item) => (
+                <div key={item.id} className="flex justify-between items-center py-5 border-b border-gray-50/50 last:border-0">
+                  <div className="flex-1 pr-4">
+                    <h3 className="text-[15px] font-semibold text-gray-800 leading-snug mb-1.5">{item.title}</h3>
+                    <div className="text-[15px] font-extrabold text-[#6069c9]">₹{item.selling_price}</div>
+                  </div>
+                  
+                  {/* Quantity Selector */}
+                  <div className="flex items-center justify-between bg-white border border-gray-200 rounded-xl shadow-sm h-10 w-[90px] px-1.5 shrink-0">
+                    <button onClick={() => handleRemoveService(item.id)} className="w-7 h-7 flex items-center justify-center text-[#6069c9] hover:bg-gray-50 rounded-lg active:bg-gray-100 transition-colors">
+                      <span className="text-xl leading-none mt-[-2px] font-medium">-</span>
+                    </button>
+                    <span className="text-[15px] font-bold text-gray-800">{item.quantity}</span>
+                    <button onClick={() => handleAddService(item)} className="w-7 h-7 flex items-center justify-center text-[#6069c9] hover:bg-gray-50 rounded-lg active:bg-gray-100 transition-colors">
+                      <span className="text-xl leading-none mt-[-1px] font-medium">+</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className="p-5 border-t border-gray-100 bg-white/80 backdrop-blur-md pb-safe">
+              <button 
+                onClick={() => {
+                  setIsMobileCartOpen(false);
+                  setTimeout(() => router.push('/cart'), 300);
+                }}
+                className="w-full bg-[#6069c9] hover:bg-[#525ab5] active:scale-[0.98] text-white font-bold py-4 rounded-2xl transition-all duration-300 shadow-[0_8px_20px_rgba(96,105,201,0.3)] flex justify-between items-center px-6"
+              >
+                <span className="text-lg tracking-tight">₹{totalCartPrice.toLocaleString()}</span>
+                <span className="flex items-center gap-2 text-[15px]">
+                  View Cart
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Service Details Modal */}
       {selectedService && (
