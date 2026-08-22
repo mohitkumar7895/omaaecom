@@ -63,6 +63,7 @@ export default function Sidebar() {
   const topItems = [
     { name: "Dashboard", icon: <LayoutDashboard className="w-[18px] h-[18px]" />, href: "/admin", active: false },
     { name: "Warranties", icon: <ShieldCheck className="w-[18px] h-[18px]" />, href: "/admin/warranties" },
+    { name: "Settings", icon: <Settings className="w-[18px] h-[18px]" />, href: "/admin/settings" },
   ];
 
   const middleItems = [
