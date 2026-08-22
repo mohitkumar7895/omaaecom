@@ -25,7 +25,8 @@ import {
   CheckCircle2,
   MapPin,
   Settings,
-  Menu
+  Menu,
+  ChevronRight
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -39,204 +40,225 @@ export default function Sidebar() {
   const getLinkClass = (href: string, isSubItem = false) => {
     const active = isActive(href);
     if (isSubItem) {
-      return `flex items-center space-x-3 px-10 py-2.5 text-[13px] transition ${
+      return `group flex items-center space-x-3 px-10 py-2.5 text-[13px] font-medium transition-all duration-200 rounded-lg mx-3 mb-0.5 ${
         active 
-          ? "bg-white/10 border-l-4 border-blue-500 text-white" 
-          : "text-gray-400 hover:text-white hover:bg-gray-700/30 border-l-4 border-transparent"
+          ? "bg-indigo-500/15 text-indigo-400" 
+          : "text-slate-400 hover:text-slate-100 hover:bg-slate-800/50"
       }`;
     }
-    return `flex items-center justify-between px-6 py-3 text-sm transition-colors hover:bg-gray-700/50 hover:text-white ${
+    return `group flex items-center justify-between px-4 py-3 mx-3 mb-1 text-[14px] font-medium transition-all duration-200 rounded-xl ${
       active 
-        ? "bg-white/10 border-l-4 border-blue-500 text-white" 
-        : "border-l-4 border-transparent"
+        ? "bg-gradient-to-r from-indigo-500/20 to-indigo-500/5 text-indigo-400 border border-indigo-500/20 shadow-sm" 
+        : "text-slate-300 hover:bg-slate-800 hover:text-white border border-transparent"
+    }`;
+  };
+
+  const getIconClass = (href: string, isSubItem = false) => {
+    const active = isActive(href);
+    return `transition-colors duration-200 ${
+      active ? "text-indigo-400" : "text-slate-400 group-hover:text-slate-200"
     }`;
   };
 
   const topItems = [
-    { name: "Dashboard", icon: <LayoutDashboard className="w-4 h-4" />, href: "/admin", active: false },
-    { name: "Warranties", icon: <ShieldCheck className="w-4 h-4" />, href: "/admin/warranties" },
+    { name: "Dashboard", icon: <LayoutDashboard className="w-[18px] h-[18px]" />, href: "/admin", active: false },
+    { name: "Warranties", icon: <ShieldCheck className="w-[18px] h-[18px]" />, href: "/admin/warranties" },
   ];
 
   const middleItems = [
-    { name: "GST Settings", icon: <FileText className="w-4 h-4" />, href: "/admin/gst-settings" },
-    { name: "KYC", icon: <Users className="w-4 h-4" />, href: "/admin/kyc" },
-    { name: "Registration Records", icon: <ClipboardList className="w-4 h-4" />, href: "/admin/registration-records" },
+    { name: "GST Settings", icon: <FileText className="w-[18px] h-[18px]" />, href: "/admin/gst-settings" },
+    { name: "KYC", icon: <Users className="w-[18px] h-[18px]" />, href: "/admin/kyc" },
+    { name: "Registrations", icon: <ClipboardList className="w-[18px] h-[18px]" />, href: "/admin/registration-records" },
   ];
 
   const bottomItems = [
-    { name: "Brands", icon: <Tag className="w-4 h-4" />, href: "/admin/brands" },
-    { name: "Banners", icon: <ImageIcon className="w-4 h-4" />, href: "/admin/banners" },
-    { name: "Complaints", icon: <MessageSquare className="w-4 h-4" />, href: "/admin/complaints" },
+    { name: "Brands", icon: <Tag className="w-[18px] h-[18px]" />, href: "/admin/brands" },
+    { name: "Banners", icon: <ImageIcon className="w-[18px] h-[18px]" />, href: "/admin/banners" },
+    { name: "Complaints", icon: <MessageSquare className="w-[18px] h-[18px]" />, href: "/admin/complaints" },
   ];
 
   return (
-    <div className="w-64 bg-[#2f3d51] min-h-screen flex flex-col text-gray-300 pb-10 shadow-xl overflow-y-auto">
+    <div className="w-[260px] bg-[#0B1120] h-full flex flex-col text-slate-300 border-r border-slate-800/60 overflow-y-auto custom-scrollbar">
       {/* Brand Logo */}
-      <div className="p-6 bg-[#253244] border-b border-gray-700/50 flex flex-col items-center">
-        <div className="bg-white p-2 rounded shadow-sm w-3/4">
-          <img src="/logoomaa.webp" alt="OMAA Logo" className="w-full object-contain" />
+      <div className="h-16 px-6 bg-[#0B1120]/95 backdrop-blur-md border-b border-slate-800/60 flex items-center justify-start sticky top-0 z-10 shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="bg-white p-1 rounded-md shadow-sm">
+            <img src="/logoomaa.webp" alt="OMAA Logo" className="h-7 w-auto object-contain" />
+          </div>
+          <span className="font-bold tracking-wide text-white text-[15px] uppercase">Admin</span>
         </div>
       </div>
 
       {/* Navigation */}
-      <div className="flex-1 mt-4 overflow-y-auto space-y-0.5">
+      <div className="flex-1 py-6 overflow-y-auto space-y-6">
         
-        {/* Top Items */}
-        {topItems.map((item, index) => (
-          <Link
-            key={`top-${index}`}
-            href={item.href}
-            className={getLinkClass(item.href)}
-          >
-            <div className="flex items-center space-x-3">
-              {item.icon}
-              <span className="font-medium">{item.name}</span>
-            </div>
-          </Link>
-        ))}
-
-        {/* Categories Dropdown Section */}
+        {/* Main Section */}
         <div>
-          <button 
-            onClick={() => setCategoryOpen(!categoryOpen)}
-            className={`w-full flex items-center justify-between px-6 py-3 text-sm transition-colors hover:bg-gray-700/50 hover:text-white border-l-4 border-transparent`}
-          >
-            <div className="flex items-center space-x-3">
-              <ListTree className="w-4 h-4" />
-              <span className="font-medium">Categories</span>
-            </div>
-            <ChevronDown className={`w-4 h-4 opacity-50 transition-transform ${categoryOpen ? 'rotate-180' : ''}`} />
-          </button>
-          
-          {categoryOpen && (
-            <div className="bg-[#253244] py-1 border-y border-gray-700/50">
-              <Link href="/admin/categories" className={getLinkClass("/admin/categories", true)}>
-                <ListTree className="w-3.5 h-3.5 opacity-70" />
-                <span>Category</span>
-              </Link>
-              <Link href="/admin/subcategories" className={getLinkClass("/admin/subcategories", true)}>
-                <Menu className="w-3.5 h-3.5 opacity-70" />
-                <span>Subcategories</span>
-              </Link>
-              <Link href="/admin/services" className={getLinkClass("/admin/services", true)}>
-                <Settings className="w-3.5 h-3.5 opacity-70" />
-                <span>Services</span>
-              </Link>
-            </div>
-          )}
+          <div className="px-7 mb-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Overview</div>
+          {topItems.map((item, index) => (
+            <Link
+              key={`top-${index}`}
+              href={item.href}
+              className={getLinkClass(item.href)}
+            >
+              <div className="flex items-center space-x-3">
+                <span className={getIconClass(item.href)}>{item.icon}</span>
+                <span>{item.name}</span>
+              </div>
+            </Link>
+          ))}
         </div>
 
-        {/* Rate Card Dropdown Section */}
+        {/* Management Section */}
         <div>
-          <button 
-            onClick={() => setRateCardOpen(!rateCardOpen)}
-            className={`w-full flex items-center justify-between px-6 py-3 text-sm transition-colors hover:bg-gray-700/50 hover:text-white border-l-4 border-transparent`}
-          >
-            <div className="flex items-center space-x-3">
-              <IndianRupee className="w-4 h-4" />
-              <span className="font-medium">Rate Card</span>
-            </div>
-            <ChevronDown className={`w-4 h-4 opacity-50 transition-transform ${rateCardOpen ? 'rotate-180' : ''}`} />
-          </button>
+          <div className="px-7 mb-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Management</div>
           
-          {rateCardOpen && (
-            <div className="bg-[#253244] py-1 border-y border-gray-700/50">
-              <Link href="/admin/rate-headings" className={getLinkClass("/admin/rate-headings", true)}>
-                <IndianRupee className="w-3.5 h-3.5 opacity-70" />
-                <span>Rate Heading</span>
-              </Link>
-              <Link href="/admin/rate-cards" className={getLinkClass("/admin/rate-cards", true)}>
-                <IndianRupee className="w-3.5 h-3.5 opacity-70" />
-                <span>Rate Cards</span>
-              </Link>
+          {/* Categories Dropdown Section */}
+          <div className="mb-1">
+            <button 
+              onClick={() => setCategoryOpen(!categoryOpen)}
+              className={`w-[calc(100%-24px)] mx-3 flex items-center justify-between px-4 py-3 text-[14px] font-medium transition-all duration-200 rounded-xl hover:bg-slate-800 text-slate-300`}
+            >
+              <div className="flex items-center space-x-3">
+                <ListTree className="w-[18px] h-[18px] text-slate-400" />
+                <span>Categories</span>
+              </div>
+              <ChevronRight className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${categoryOpen ? 'rotate-90' : ''}`} />
+            </button>
+            
+            <div className={`overflow-hidden transition-all duration-300 ${categoryOpen ? 'max-h-48 mt-1' : 'max-h-0'}`}>
+              <div className="space-y-0.5 relative before:absolute before:left-7 before:top-2 before:bottom-2 before:w-px before:bg-slate-800">
+                <Link href="/admin/categories" className={getLinkClass("/admin/categories", true)}>
+                  <span>Category</span>
+                </Link>
+                <Link href="/admin/subcategories" className={getLinkClass("/admin/subcategories", true)}>
+                  <span>Subcategories</span>
+                </Link>
+                <Link href="/admin/services" className={getLinkClass("/admin/services", true)}>
+                  <span>Services</span>
+                </Link>
+              </div>
             </div>
-          )}
+          </div>
+
+          {/* Rate Card Dropdown Section */}
+          <div className="mb-1">
+            <button 
+              onClick={() => setRateCardOpen(!rateCardOpen)}
+              className={`w-[calc(100%-24px)] mx-3 flex items-center justify-between px-4 py-3 text-[14px] font-medium transition-all duration-200 rounded-xl hover:bg-slate-800 text-slate-300`}
+            >
+              <div className="flex items-center space-x-3">
+                <IndianRupee className="w-[18px] h-[18px] text-slate-400" />
+                <span>Rate Card</span>
+              </div>
+              <ChevronRight className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${rateCardOpen ? 'rotate-90' : ''}`} />
+            </button>
+            
+            <div className={`overflow-hidden transition-all duration-300 ${rateCardOpen ? 'max-h-32 mt-1' : 'max-h-0'}`}>
+              <div className="space-y-0.5 relative before:absolute before:left-7 before:top-2 before:bottom-2 before:w-px before:bg-slate-800">
+                <Link href="/admin/rate-headings" className={getLinkClass("/admin/rate-headings", true)}>
+                  <span>Rate Heading</span>
+                </Link>
+                <Link href="/admin/rate-cards" className={getLinkClass("/admin/rate-cards", true)}>
+                  <span>Rate Cards</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+          
+          {middleItems.map((item, index) => (
+            <Link
+              key={`mid-${index}`}
+              href={item.href}
+              className={getLinkClass(item.href)}
+            >
+              <div className="flex items-center space-x-3">
+                <span className={getIconClass(item.href)}>{item.icon}</span>
+                <span>{item.name}</span>
+              </div>
+            </Link>
+          ))}
         </div>
 
-        {/* Middle Items */}
-        {middleItems.map((item, index) => (
-          <Link
-            key={`mid-${index}`}
-            href={item.href}
-            className={getLinkClass(item.href)}
-          >
-            <div className="flex items-center space-x-3">
-              {item.icon}
-              <span className="font-medium">{item.name}</span>
-            </div>
-            {(item as any).hasSub && <ChevronDown className="w-4 h-4 opacity-50" />}
-          </Link>
-        ))}
-
-        {/* Booking Dropdown Section */}
+        {/* Sales & Support Section */}
         <div>
-          <button 
-            onClick={() => setBookingOpen(!bookingOpen)}
-            className={`w-full flex items-center justify-between px-6 py-3 text-sm transition-colors hover:bg-gray-700/50 hover:text-white border-l-4 border-transparent`}
-          >
-            <div className="flex items-center space-x-3">
-              <CalendarCheck className="w-4 h-4" />
-              <span className="font-medium">Booking</span>
-            </div>
-            <ChevronDown className={`w-4 h-4 opacity-50 transition-transform ${bookingOpen ? 'rotate-180' : ''}`} />
-          </button>
+          <div className="px-7 mb-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Operations</div>
           
-          {bookingOpen && (
-            <div className="bg-[#253244] py-1 border-y border-gray-700/50">
-              <Link href="/admin/booking" className={getLinkClass("/admin/booking", true)}>
-                <CalendarDays className="w-3.5 h-3.5 opacity-70" />
-                <span>Booking</span>
-              </Link>
-              <Link href="/admin/booking/new-booking" className={getLinkClass("/admin/booking/new-booking", true)}>
-                <PlusSquare className="w-3.5 h-3.5 opacity-70" />
-                <span>New Booking</span>
-              </Link>
-              <Link href="/admin/booking/new-product" className={getLinkClass("/admin/booking/new-product", true)}>
-                <PackagePlus className="w-3.5 h-3.5 opacity-70" />
-                <span>New Product</span>
-              </Link>
-              <Link href="/admin/booking/amc" className={getLinkClass("/admin/booking/amc", true)}>
-                <Shield className="w-3.5 h-3.5 opacity-70" />
-                <span>AMC</span>
-              </Link>
-              <Link href="/admin/booking/reject-booking" className={getLinkClass("/admin/booking/reject-booking", true)}>
-                <XCircle className="w-3.5 h-3.5 opacity-70" />
-                <span>Reject Booking</span>
-              </Link>
-              <Link href="/admin/booking/completed-booking" className={getLinkClass("/admin/booking/completed-booking", true)}>
-                <CheckCircle2 className="w-3.5 h-3.5 opacity-70" />
-                <span>Completed Booking</span>
-              </Link>
-              <Link href="/admin/booking/visit-booking" className={getLinkClass("/admin/booking/visit-booking", true)}>
-                <MapPin className="w-3.5 h-3.5 opacity-70" />
-                <span>Visit Booking</span>
-              </Link>
+          {/* Booking Dropdown Section */}
+          <div className="mb-1">
+            <button 
+              onClick={() => setBookingOpen(!bookingOpen)}
+              className={`w-[calc(100%-24px)] mx-3 flex items-center justify-between px-4 py-3 text-[14px] font-medium transition-all duration-200 rounded-xl hover:bg-slate-800 text-slate-300`}
+            >
+              <div className="flex items-center space-x-3">
+                <CalendarCheck className="w-[18px] h-[18px] text-slate-400" />
+                <span>Bookings</span>
+              </div>
+              <ChevronRight className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${bookingOpen ? 'rotate-90' : ''}`} />
+            </button>
+            
+            <div className={`overflow-hidden transition-all duration-300 ${bookingOpen ? 'max-h-96 mt-1' : 'max-h-0'}`}>
+              <div className="space-y-0.5 relative before:absolute before:left-7 before:top-2 before:bottom-2 before:w-px before:bg-slate-800">
+                <Link href="/admin/booking" className={getLinkClass("/admin/booking", true)}>
+                  <span>All Bookings</span>
+                </Link>
+                <Link href="/admin/booking/new-booking" className={getLinkClass("/admin/booking/new-booking", true)}>
+                  <span>New Booking</span>
+                </Link>
+                <Link href="/admin/booking/new-product" className={getLinkClass("/admin/booking/new-product", true)}>
+                  <span>New Product</span>
+                </Link>
+                <Link href="/admin/booking/amc" className={getLinkClass("/admin/booking/amc", true)}>
+                  <span>AMC</span>
+                </Link>
+                <Link href="/admin/booking/reject-booking" className={getLinkClass("/admin/booking/reject-booking", true)}>
+                  <span>Rejected</span>
+                </Link>
+                <Link href="/admin/booking/completed-booking" className={getLinkClass("/admin/booking/completed-booking", true)}>
+                  <span>Completed</span>
+                </Link>
+                <Link href="/admin/booking/visit-booking" className={getLinkClass("/admin/booking/visit-booking", true)}>
+                  <span>Visit Booking</span>
+                </Link>
+              </div>
             </div>
-          )}
+          </div>
+          
+          {bottomItems.map((item, index) => (
+            <Link
+              key={`bottom-${index}`}
+              href={item.href}
+              className={getLinkClass(item.href)}
+            >
+              <div className="flex items-center space-x-3">
+                <span className={getIconClass(item.href)}>{item.icon}</span>
+                <span>{item.name}</span>
+              </div>
+            </Link>
+          ))}
         </div>
-
-        {/* Bottom Items */}
-        {bottomItems.map((item, index) => (
-          <Link
-            key={`bottom-${index}`}
-            href={item.href}
-            className={getLinkClass(item.href)}
-          >
-            <div className="flex items-center space-x-3">
-              {item.icon}
-              <span className="font-medium">{item.name}</span>
-            </div>
-          </Link>
-        ))}
       </div>
 
       {/* Logout */}
-      <div className="px-6 py-4 mt-auto border-t border-gray-700/50">
-        <button className="flex items-center space-x-3 text-sm text-gray-400 hover:text-white transition">
-          <LogOut className="w-4 h-4" />
-          <span className="font-medium">Logout</span>
+      <div className="px-6 py-5 mt-auto border-t border-slate-800/60 bg-[#0B1120]/95 backdrop-blur-md sticky bottom-0">
+        <button className="flex items-center space-x-3 w-full text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800 px-4 py-2.5 rounded-xl transition-all">
+          <LogOut className="w-[18px] h-[18px]" />
+          <span>Logout</span>
         </button>
       </div>
+      
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background-color: #1e293b;
+          border-radius: 20px;
+        }
+      `}</style>
     </div>
   );
 }
