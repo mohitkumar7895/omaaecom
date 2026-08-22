@@ -34,7 +34,7 @@ export async function getSiteSettings() {
   }
 }
 
-export async function updateSiteSettings(formData: FormData) {
+export async function updateSiteSettings(formData: FormData): Promise<void> {
   const offer_text = formData.get("offer_text") as string;
   const offer_enabled = formData.get("offer_enabled") === "on";
 
@@ -55,9 +55,7 @@ export async function updateSiteSettings(formData: FormData) {
     }
 
     revalidatePath("/", "layout"); // Revalidate entire app to reflect marquee changes
-    return { success: true };
   } catch (error) {
     console.error("Failed to update site settings:", error);
-    return { error: "Failed to update settings" };
   }
 }
