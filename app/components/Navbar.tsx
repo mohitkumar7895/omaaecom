@@ -8,8 +8,6 @@ import LiveSearchBar from "./LiveSearchBar";
 import LoginModal from "./LoginModal";
 import { useEffect, useState, useRef } from "react";
 import { getActiveCategories } from "../actions/categories";
-import { auth } from "../../lib/firebase";
-import { onAuthStateChanged, signOut } from "firebase/auth";
 import ProfileDropdown from "./ProfileDropdown";
 
 export default function Navbar() {
@@ -48,13 +46,25 @@ export default function Navbar() {
     window.addEventListener("cart_updated", updateCartCount);
     window.addEventListener("storage", updateCartCount);
 
-    // Listen for auth state
-    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      if (currentUser) {
-        setIsLoginModalOpen(false); // Close login modal if open
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data.user);
+          if (data.user) {
+            setIsLoginModalOpen(false);
+          }
+        } else {
+          setUser(null);
+        }
+      } catch (error) {
+        setUser(null);
       }
-    });
+    };
+
+    checkAuth();
+    window.addEventListener("auth_changed", checkAuth);
 
     // Close dropdown on click outside
     const handleClickOutside = (e: MouseEvent) => {
@@ -67,7 +77,7 @@ export default function Navbar() {
     return () => {
       window.removeEventListener("cart_updated", updateCartCount);
       window.removeEventListener("storage", updateCartCount);
-      unsubscribeAuth();
+      window.removeEventListener("auth_changed", checkAuth);
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
@@ -151,7 +161,8 @@ export default function Navbar() {
               user={user} 
               isOpen={isProfileDropdownOpen} 
               onLogout={async () => {
-                await signOut(auth);
+                await fetch("/api/auth/logout", { method: "POST" });
+                window.dispatchEvent(new Event("auth_changed"));
                 setIsProfileDropdownOpen(false);
               }} 
             />

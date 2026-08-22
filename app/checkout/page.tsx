@@ -5,6 +5,7 @@ import Navbar from "../components/Navbar";
 import { CheckCircle2, Lock, ShieldCheck, Hash, IndianRupee, Calendar, Clock, MapPin, CreditCard, Edit, Home, List, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import BookingSchedulePicker from "../components/BookingSchedulePicker";
+import CashbackFeatures from "../components/CashbackFeatures";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -241,28 +242,69 @@ export default function CheckoutPage() {
     } else {
       // Simple Success Screen for RO AMC / New Products
       return (
-        <div className="min-h-screen bg-[#f8f9fa]">
+        <div className="min-h-screen bg-[#f4f5f8] pb-10">
           <Navbar />
-          <div className="flex flex-col items-center justify-center min-h-[80vh] text-center px-6">
-            <div className="bg-white rounded-2xl shadow-md p-12 max-w-md w-full">
-              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <CheckCircle2 className="w-10 h-10 text-green-500" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-3">Order Placed! 🎉</h2>
-              <p className="text-gray-500 mb-2">Thank you, <span className="font-semibold text-gray-800">{form.name}</span>!</p>
-              {orderId && (
-                <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mb-3">
-                  <p className="text-xs text-gray-500 mb-1">Your Order ID</p>
-                  <p className="font-bold text-[#1967d2] text-lg tracking-widest">{orderId}</p>
+          <div className="flex justify-center mt-6 px-4">
+            <div className="bg-white rounded-3xl shadow-xl w-full max-w-[500px] overflow-hidden border border-gray-100 pb-6 relative">
+              {/* Header */}
+              <div className="pt-10 pb-6 px-4 sm:px-8 text-center relative">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-[#328e3b] rounded-full flex items-center justify-center shadow-lg border-4 border-white">
+                  <CheckCircle2 className="w-8 h-8 text-white" />
                 </div>
-              )}
-              <p className="text-gray-500 text-sm mb-6">We have received your order. Our team will contact you on <span className="font-semibold">{form.mobile}</span> shortly.</p>
-              <button
-                onClick={() => router.push('/')}
-                className="w-full bg-[#1967d2] hover:bg-[#1557b0] text-white font-bold py-3 rounded-xl transition"
-              >
-                Back to Home
-              </button>
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-[#328e3b] tracking-tight mt-4 mb-2">Booking Confirmed!</h2>
+                <p className="text-gray-500 text-[14px] sm:text-[15px] font-medium leading-relaxed">
+                  Your service has been scheduled. Pay cash to the technician after the job is done.
+                </p>
+              </div>
+
+              {/* Details Card */}
+              <div className="mx-4 sm:mx-6 bg-[#fafafa] rounded-2xl p-4 sm:p-5 mb-6">
+                <div className="space-y-4">
+                  <div className="flex">
+                    <div className="w-[120px] flex items-center gap-2 text-gray-500 font-semibold text-sm">
+                      <Hash className="w-4 h-4" /> Order ID
+                    </div>
+                    <div className="font-extrabold text-gray-900">{orderId}</div>
+                  </div>
+                  <div className="flex">
+                    <div className="w-[120px] flex items-center gap-2 text-gray-500 font-semibold text-sm">
+                      <IndianRupee className="w-4 h-4" /> Amount
+                    </div>
+                    <div className="font-extrabold text-gray-900">₹{totalAmount}</div>
+                  </div>
+                  <div className="flex">
+                    <div className="w-[120px] flex items-center gap-2 text-gray-500 font-semibold text-sm shrink-0">
+                      <MapPin className="w-4 h-4" /> Address
+                    </div>
+                    <div className="font-medium text-gray-800 text-sm leading-snug">{form.address}</div>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-[120px] flex items-center gap-2 text-gray-500 font-semibold text-sm">
+                      <CreditCard className="w-4 h-4" /> Payment
+                    </div>
+                    <div>
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 text-xs font-bold rounded-md border border-green-200">
+                        <IndianRupee className="w-3 h-3" /> Pay at Site (COD)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Features (Service & Cashback) */}
+              <div className="px-4 sm:px-6 mb-8">
+                <CashbackFeatures orderId={orderId} />
+              </div>
+
+              <div className="px-6 flex justify-center">
+                <button 
+                  onClick={() => router.push('/')}
+                  className="text-gray-500 hover:text-gray-800 font-semibold text-sm flex items-center gap-2 transition bg-white border border-gray-200 px-6 py-2 rounded-full shadow-sm"
+                >
+                  <Home className="w-4 h-4" /> Home
+                </button>
+              </div>
+
             </div>
           </div>
         </div>

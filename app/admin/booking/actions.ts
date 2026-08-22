@@ -63,3 +63,12 @@ export async function updateTotal(formData: FormData) {
     revalidatePath("/admin/booking", 'layout');
   }
 }
+
+export async function updateCashback(formData: FormData) {
+  const id = formData.get("id");
+  const amount = formData.get("cashback_amount");
+  if (id && amount) {
+    await pool.query("UPDATE bookings SET cashback_amount = ? WHERE id = ?", [amount, id]);
+    revalidatePath("/admin/booking", 'layout');
+  }
+}

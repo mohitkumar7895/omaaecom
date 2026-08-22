@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import pool from "../../../lib/db";
+import jwt from "jsonwebtoken";
+import { cookies } from "next/headers";
+
+const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_for_development_only";
 
 function generateOrderId(): string {
   // Generate a random 4-digit number (1000 - 9999)
@@ -11,6 +15,16 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { name, mobile, email, address, payment_method, total_amount, cart_items, booking_date, time_slot } = body;
+
+    let user_email = null;
+    const cookieStore = await cookies();
+    const token = cookieStore.get("omaa_auth_token")?.value;
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET) as any;
+        user_email = decoded.email;
+      } catch (e) {}
+    }
 
     if (!name || !mobile || !address) {
       return NextResponse.json({ error: "Name, mobile and address are required" }, { status: 400 });
@@ -47,9 +61,9 @@ export async function POST(req: Request) {
     const categoryName = cart_items[0]?.category_title || 'Service';
 
     await pool.query(
-      `INSERT INTO bookings (order_id, type, customer_name, mobile, address, category, services, booking_date, time_slot, total, payment_method, payment_status, working_status, created_at)
-       VALUES (?, 'Normal Service', ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', 'Pendi', NOW())`,
-      [orderId, name, mobile, address, categoryName, servicesJson, booking_date, time_slot, total_amount, payment_method === 'online' ? 'cashfree' : 'Cash on Book']
+      `INSERT INTO bookings (order_id, type, customer_name, mobile, address, category, services, booking_date, time_slot, total, payment_method, payment_status, working_status, created_at, user_email)
+       VALUES (?, 'Normal Service', ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', 'Pendi', NOW(), ?)`,
+      [orderId, name, mobile, address, categoryName, servicesJson, booking_date || null, time_slot || null, total_amount, payment_method === 'online' ? 'cashfree' : 'Cash on Book', user_email]
     );
 
     return NextResponse.json({ success: true, order_id: orderId });
@@ -67,4 +81,3 @@ export async function GET() {
     return NextResponse.json({ error: "Failed to fetch bookings" }, { status: 500 });
   }
 }
-
