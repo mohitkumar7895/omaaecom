@@ -14,9 +14,38 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileServicesOpen, setIsMobileServicesOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [cartItemCount, setCartItemCount] = useState(0);
+
+  const updateCartCount = () => {
+    try {
+      const savedCart = localStorage.getItem("omaa_cart");
+      if (savedCart) {
+        const parsed = JSON.parse(savedCart);
+        // Calculate total items including quantities
+        const totalItems = parsed.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0);
+        setCartItemCount(totalItems);
+      } else {
+        setCartItemCount(0);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   useEffect(() => {
     getActiveCategories().then(setCategories).catch(console.error);
+    
+    // Initial cart load
+    updateCartCount();
+    
+    // Listen for cart updates
+    window.addEventListener("cart_updated", updateCartCount);
+    window.addEventListener("storage", updateCartCount);
+    
+    return () => {
+      window.removeEventListener("cart_updated", updateCartCount);
+      window.removeEventListener("storage", updateCartCount);
+    };
   }, []);
 
   return (
@@ -89,8 +118,13 @@ export default function Navbar() {
           
           {/* Cart Button */}
           <Link href="/cart">
-            <button className="bg-[#6069c9] p-1.5 lg:p-2.5 rounded-[8px] lg:rounded-[10px] text-white hover:bg-[#525ab5] transition shadow-sm flex items-center justify-center">
+            <button className="relative bg-[#6069c9] p-1.5 lg:p-2.5 rounded-[8px] lg:rounded-[10px] text-white hover:bg-[#525ab5] transition shadow-sm flex items-center justify-center">
               <ShoppingCart className="w-4 h-4 lg:w-5 lg:h-5 stroke-[1.5]" />
+              {cartItemCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] font-bold w-4 h-4 lg:w-[18px] lg:h-[18px] flex items-center justify-center rounded-full shadow-sm">
+                  {cartItemCount > 9 ? '9+' : cartItemCount}
+                </span>
+              )}
             </button>
           </Link>
 

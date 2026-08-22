@@ -32,11 +32,11 @@ export default function ServiceCard({ service, quantity = 0, onAdd, onRemove, on
 
         {/* Bullet Points */}
         {service.short_description && (
-          <ul className="space-y-1 sm:space-y-1.5 mb-3 sm:mb-4">
+          <ul className="space-y-1.5 sm:space-y-2 mb-3 sm:mb-4">
             {service.short_description.split('|').map((point: string, i: number) => (
-              <li key={i} className="flex items-start text-xs sm:text-[13px] text-gray-600">
-                <span className="mr-2 text-gray-400 mt-[2px]">•</span>
-                <span>{point.trim()}</span>
+              <li key={i} className="flex items-start text-xs sm:text-[13px] font-bold text-gray-800">
+                <div className="w-[5px] h-[5px] rounded-full bg-gray-800 mt-[6px] mr-2.5 flex-shrink-0"></div>
+                <span className="leading-tight">{point.trim()}</span>
               </li>
             ))}
           </ul>
