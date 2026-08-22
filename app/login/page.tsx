@@ -22,9 +22,9 @@ export default function LoginPage() {
         </div>
 
         {/* Login Card */}
-        <div className="bg-white rounded-[24px] shadow-xl p-8 max-w-[420px] w-full border border-gray-100">
+        <div className="bg-white rounded-[24px] shadow-xl p-6 sm:p-8 max-w-[420px] w-full border border-gray-100">
           
-          <h2 className="text-[22px] font-bold text-gray-900 tracking-tight">
+          <h2 className="text-[20px] sm:text-[22px] font-bold text-gray-900 tracking-tight">
             Enter your phone number
           </h2>
           <p className="text-gray-500 text-sm mt-2 leading-relaxed">
@@ -34,7 +34,7 @@ export default function LoginPage() {
           {/* Inputs */}
           <div className="flex items-center space-x-3 mt-6">
             {/* Country Code */}
-            <div className="flex items-center justify-center space-x-1 border border-gray-200 rounded-xl px-4 py-3 bg-white text-gray-700 font-medium text-sm cursor-pointer hover:bg-gray-50 transition">
+            <div className="flex items-center justify-center space-x-1 border border-gray-200 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 bg-white text-gray-700 font-medium text-sm cursor-pointer hover:bg-gray-50 transition">
               <span>+91</span>
               <ChevronDown className="w-4 h-4 text-gray-400" />
             </div>
@@ -43,7 +43,7 @@ export default function LoginPage() {
             <input
               type="tel"
               placeholder="Enter Phone Number"
-              className="flex-1 border border-gray-200 rounded-xl px-4 py-3 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#5c67b8]/30 focus:border-[#5c67b8] transition text-sm font-medium"
+              className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#5c67b8]/30 focus:border-[#5c67b8] transition text-sm font-medium"
             />
           </div>
 
@@ -56,7 +56,7 @@ export default function LoginPage() {
           </p>
 
           {/* Continue Button */}
-          <button className="w-full mt-6 bg-[#b1b7ff] hover:bg-[#9ba3fc] text-white font-semibold py-3.5 rounded-xl transition-colors shadow-sm">
+          <button className="w-full mt-5 sm:mt-6 bg-[#b1b7ff] hover:bg-[#9ba3fc] text-white font-semibold py-3 sm:py-3.5 rounded-xl transition-colors shadow-sm text-sm sm:text-base">
             Continue
           </button>
 
