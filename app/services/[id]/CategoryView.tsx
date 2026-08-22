@@ -187,27 +187,48 @@ export default function CategoryView({ category, subcategories, services }: Cate
             );
           })}
         </div>
+
+        {/* Right Sidebar (Cart) */}
+        {cart.length > 0 && (
+          <div className="hidden lg:block lg:w-[320px] flex-shrink-0">
+            <div className="sticky top-[100px] bg-white border border-gray-100 rounded-2xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.08)]">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Cart</h2>
+              
+              <div className="max-h-[40vh] overflow-y-auto mb-4 pr-1">
+                {cart.map((item) => (
+                  <div key={item.id} className="flex justify-between items-start mb-4">
+                    <div className="flex-1 pr-2">
+                      <h3 className="text-[13px] font-semibold text-gray-800 line-clamp-2 leading-snug">{item.title}</h3>
+                      <div className="text-sm font-bold mt-1 text-gray-900">₹{item.selling_price}</div>
+                    </div>
+                    
+                    {/* Quantity Selector */}
+                    <div className="flex items-center justify-between bg-white border border-[#6069c9]/30 rounded-lg shadow-sm h-8 w-[72px] px-1 shrink-0">
+                      <button onClick={() => handleRemoveService(item.id)} className="w-6 h-6 flex items-center justify-center text-[#6069c9] hover:bg-gray-50 rounded">
+                        <span className="text-lg leading-none mt-[-2px]">-</span>
+                      </button>
+                      <span className="text-sm font-bold text-[#6069c9]">{item.quantity}</span>
+                      <button onClick={() => handleAddService(item)} className="w-6 h-6 flex items-center justify-center text-[#6069c9] hover:bg-gray-50 rounded">
+                        <span className="text-lg leading-none mt-[-1px]">+</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <button 
+                onClick={() => router.push('/checkout')}
+                className="w-full bg-[#6069c9] hover:bg-[#525ab5] text-white font-bold py-3.5 rounded-xl transition shadow-md flex justify-between items-center px-4"
+              >
+                <span>₹{totalCartPrice.toLocaleString()}</span>
+                <span>View Cart</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Floating Bottom Cart Bar */}
-      {cart.length > 0 && (
-        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 w-[90%] max-w-[400px] bg-[#7780d6] rounded-xl shadow-2xl p-4 flex items-center justify-between z-50 animate-fade-in-up">
-          <div className="flex items-center gap-4">
-            <div className="bg-white text-[#7780d6] font-bold w-8 h-8 rounded flex items-center justify-center text-sm">
-              {totalCartItems}
-            </div>
-            <span className="text-white font-bold text-lg">₹{totalCartPrice.toLocaleString()}</span>
-          </div>
-          <button 
-            className="bg-white text-[#7780d6] font-bold py-2 px-6 rounded-lg hover:bg-gray-50 transition"
-            onClick={() => {
-              router.push('/checkout');
-            }}
-          >
-            Done
-          </button>
-        </div>
-      )}
+
 
       {/* Service Details Modal */}
       {selectedService && (

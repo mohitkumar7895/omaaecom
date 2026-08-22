@@ -27,7 +27,7 @@ export default function MobileBannerCarousel({ banners = [] }: { banners?: strin
   };
 
   return (
-    <div className="relative w-full lg:hidden rounded-2xl overflow-hidden shadow-lg mb-3 lg:mb-6 group">
+    <div className="relative w-full md:hidden rounded-2xl overflow-hidden shadow-lg mb-3 md:mb-6 group">
       <div 
         className="flex transition-transform duration-500 ease-in-out h-40 sm:h-56"
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}

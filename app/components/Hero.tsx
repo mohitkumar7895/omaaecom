@@ -23,33 +23,33 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
   const amcProducts = categories.filter(c => c.type && c.type.toLowerCase().includes("amc")).slice(0, 1);
 
   return (
-    <div className="relative bg-gradient-to-br from-[#6277db] via-[#a268b8] to-[#db5285] text-white w-full font-sans overflow-hidden py-3 lg:py-12 px-4 lg:px-12">
+    <div className="relative bg-gradient-to-br from-[#6277db] via-[#a268b8] to-[#db5285] text-white w-full font-sans overflow-hidden py-3 md:py-12 px-4 md:px-12">
       
-      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-6 lg:gap-12 items-start h-full">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-6 md:gap-12 items-start h-full">
         
         {/* Left Side: Content & Cards */}
-        <div className="w-full lg:w-[55%] flex flex-col space-y-4 lg:space-y-6 z-10 pt-2 lg:pt-4">
+        <div className="w-full md:w-[55%] flex flex-col space-y-4 md:space-y-6 z-10 pt-2 md:pt-4">
           
           {/* Mobile Carousel placed before title or replacing title on mobile */}
           <MobileBannerCarousel banners={banners} />
           
-          <h1 className="hidden lg:block text-[42px] font-bold leading-[1.15] mb-2">
+          <h1 className="hidden md:block text-[42px] font-bold leading-[1.15] mb-2">
             Home Services at Your <br /> Doorsteps
           </h1>
 
           {/* Mobile Search Bar (Only visible on mobile) */}
-          <LiveSearchBar className="lg:hidden" />
+          <LiveSearchBar className="md:hidden" />
 
           {/* Unified Services Box */}
-          <div className="bg-white rounded-2xl p-4 lg:p-6 shadow-xl text-gray-800 flex flex-col space-y-4 lg:space-y-6">
+          <div className="bg-white rounded-2xl p-4 md:p-6 shadow-xl text-gray-800 flex flex-col space-y-4 md:space-y-6">
             
             {/* Top Section: Home Services */}
             <div>
-              <div className="flex items-center space-x-2 mb-3 lg:mb-6">
+              <div className="flex items-center space-x-2 mb-3 md:mb-6">
                 <Scissors className="w-5 h-5 text-gray-700" />
                 <h3 className="font-bold text-[17px]">Home Services...</h3>
               </div>
-              <div className="grid grid-cols-3 gap-3 lg:gap-6 text-center justify-items-center">
+              <div className="grid grid-cols-3 gap-3 md:gap-6 text-center justify-items-center">
                 {homeServices.map((service, index) => (
                   <div key={index} className="flex flex-col items-center space-y-2 group w-full">
                     <div className="w-[72px] h-[72px] sm:w-20 sm:h-20 bg-[#f4f7fb] rounded-xl flex items-center justify-center text-[34px] sm:text-4xl shadow-sm group-hover:shadow-md transition overflow-hidden p-2">
@@ -69,17 +69,17 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
             <div className="w-full h-px bg-gray-100"></div>
 
             {/* Bottom Section: New Products & AMC */}
-            <div className="grid grid-cols-2 gap-3 lg:gap-6 w-full">
+            <div className="grid grid-cols-2 gap-3 md:gap-6 w-full">
               {/* New Products Card */}
               {newProducts.length > 0 && (
                 <div className="flex flex-col">
-                  <div className="flex items-center space-x-1.5 lg:space-x-2 text-[#2c8af8] mb-2 lg:mb-3">
-                    <ShoppingCart className="w-4 h-4 lg:w-5 lg:h-5" fill="currentColor" />
-                    <h3 className="font-bold text-[11px] lg:text-sm">New Products</h3>
+                  <div className="flex items-center space-x-1.5 md:space-x-2 text-[#2c8af8] mb-2 md:mb-3">
+                    <ShoppingCart className="w-4 h-4 md:w-5 md:h-5" fill="currentColor" />
+                    <h3 className="font-bold text-[11px] md:text-sm">New Products</h3>
                   </div>
-                  <div className="border border-gray-100 rounded-xl p-2 lg:p-3 flex justify-between items-center bg-[#fbfcfd] shadow-sm hover:shadow-md transition">
-                    <span className="text-[10px] lg:text-[13px] font-bold text-gray-800 leading-tight pr-1 line-clamp-2">{newProducts[0].title}</span>
-                    <div className="w-10 h-10 lg:w-14 lg:h-14 bg-[#f4f7fb] rounded-lg flex-shrink-0 flex items-center justify-center text-xl lg:text-2xl shadow-inner border border-gray-50 overflow-hidden p-1">
+                  <div className="border border-gray-100 rounded-xl p-2 md:p-3 flex justify-between items-center bg-[#fbfcfd] shadow-sm hover:shadow-md transition">
+                    <span className="text-[10px] md:text-[13px] font-bold text-gray-800 leading-tight pr-1 line-clamp-2">{newProducts[0].title}</span>
+                    <div className="w-10 h-10 md:w-14 md:h-14 bg-[#f4f7fb] rounded-lg flex-shrink-0 flex items-center justify-center text-xl md:text-2xl shadow-inner border border-gray-50 overflow-hidden p-1">
                       {newProducts[0].image_url && newProducts[0].image_url.length > 5 ? (
                         <img src={newProducts[0].image_url} alt={newProducts[0].title} className="w-full h-full object-contain" />
                       ) : (
@@ -93,12 +93,12 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
               {/* AMC Products Card */}
               {amcProducts.length > 0 && (
                 <div className="flex flex-col">
-                  <div className="flex items-center text-[#21a868] mb-2 lg:mb-3">
-                    <h3 className="font-bold text-[11px] lg:text-sm">AMC Products</h3>
+                  <div className="flex items-center text-[#21a868] mb-2 md:mb-3">
+                    <h3 className="font-bold text-[11px] md:text-sm">AMC Products</h3>
                   </div>
-                  <div className="border border-gray-100 rounded-xl p-2 lg:p-3 flex justify-between items-center bg-[#fbfcfd] shadow-sm hover:shadow-md transition">
-                    <span className="text-[10px] lg:text-[13px] font-bold text-gray-800 leading-tight pr-1 line-clamp-2">{amcProducts[0].title}</span>
-                    <div className="w-10 h-10 lg:w-14 lg:h-14 bg-[#f4f7fb] rounded-lg flex-shrink-0 flex items-center justify-center text-xl lg:text-2xl shadow-inner border border-gray-50 relative overflow-hidden p-1">
+                  <div className="border border-gray-100 rounded-xl p-2 md:p-3 flex justify-between items-center bg-[#fbfcfd] shadow-sm hover:shadow-md transition">
+                    <span className="text-[10px] md:text-[13px] font-bold text-gray-800 leading-tight pr-1 line-clamp-2">{amcProducts[0].title}</span>
+                    <div className="w-10 h-10 md:w-14 md:h-14 bg-[#f4f7fb] rounded-lg flex-shrink-0 flex items-center justify-center text-xl md:text-2xl shadow-inner border border-gray-50 relative overflow-hidden p-1">
                       {amcProducts[0].image_url && amcProducts[0].image_url.length > 5 ? (
                         <img src={amcProducts[0].image_url} alt={amcProducts[0].title} className="w-full h-full object-contain" />
                       ) : (
@@ -115,12 +115,12 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
         </div>
 
         {/* Right Side: Masonry Image Grid */}
-        <div className="w-full lg:w-[45%] h-full flex flex-col gap-4 pt-2 pb-2">
+        <div className="w-full md:w-[45%] h-full flex flex-col gap-4 pt-2 pb-2">
            
            {/* Desktop Search Bar (Only visible on desktop) */}
-           <LiveSearchBar className="hidden lg:block" />
+           <LiveSearchBar className="hidden md:block" />
 
-           <div className="hidden lg:flex gap-4 p-3 border-4 border-white/40 rounded-3xl bg-white/10 shadow-xl">
+           <div className="hidden md:flex gap-4 p-3 border-4 border-white/40 rounded-3xl bg-white/10 shadow-xl">
              {/* Left Tall Image */}
              <div className="w-1/2 flex flex-col justify-center">
                 <Image 
@@ -129,19 +129,19 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
                   width={600}
                   height={800}
                   priority
-                  className="w-full h-auto lg:h-[550px] object-contain lg:object-cover rounded-2xl shadow-md"
+                  className="w-full h-auto md:h-[550px] object-contain md:object-cover rounded-2xl shadow-md"
                 />
              </div>
              
              {/* Right Stacked Images */}
-             <div className="w-1/2 flex flex-col gap-4 justify-center lg:h-[550px]">
+             <div className="w-1/2 flex flex-col gap-4 justify-center md:h-[550px]">
                 <Image 
                   src="/Hero 2.webp" 
                   alt="RO Repair" 
                   width={600}
                   height={400}
                   priority
-                  className="w-full h-auto lg:h-[48%] object-contain lg:object-cover rounded-2xl shadow-md"
+                  className="w-full h-auto md:h-[48%] object-contain md:object-cover rounded-2xl shadow-md"
                 />
                 <Image 
                   src="/Hero3.webp" 
@@ -149,7 +149,7 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
                   width={600}
                   height={400}
                   priority
-                  className="w-full h-auto lg:h-[48%] object-contain lg:object-cover rounded-2xl shadow-md"
+                  className="w-full h-auto md:h-[48%] object-contain md:object-cover rounded-2xl shadow-md"
                 />
              </div>
            </div>
