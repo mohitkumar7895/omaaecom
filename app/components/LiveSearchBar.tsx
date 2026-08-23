@@ -19,6 +19,41 @@ export default function LiveSearchBar({
   const wrapperRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
+  // Typewriter effect state
+  const searchTerms = ["AC Repair", "RO AMC", "Refrigerator Repair", "Washing Machine", "Microwave Repair", "Deep Cleaning"];
+  const [placeholderText, setPlaceholderText] = useState("");
+  const [termIndex, setTermIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    let typingSpeed = isDeleting ? 40 : 120;
+    
+    if (!isDeleting && placeholderText === searchTerms[termIndex]) {
+      // Pause at the end of typing
+      const timeout = setTimeout(() => setIsDeleting(true), 2000);
+      return () => clearTimeout(timeout);
+    } else if (isDeleting && placeholderText === "") {
+      // Pause before starting the next word
+      setIsDeleting(false);
+      setTermIndex((prev) => (prev + 1) % searchTerms.length);
+      const timeout = setTimeout(() => {}, 500);
+      return () => clearTimeout(timeout);
+    }
+
+    const timeout = setTimeout(() => {
+      setPlaceholderText((prev) => {
+        const fullTerm = searchTerms[termIndex];
+        if (isDeleting) {
+          return fullTerm.substring(0, prev.length - 1);
+        } else {
+          return fullTerm.substring(0, prev.length + 1);
+        }
+      });
+    }, typingSpeed);
+
+    return () => clearTimeout(timeout);
+  }, [placeholderText, isDeleting, termIndex]);
+
   // Debounce search
   useEffect(() => {
     if (!query || query.trim().length < 2) {
@@ -88,7 +123,7 @@ export default function LiveSearchBar({
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => { if (results.length > 0) setIsOpen(true); }}
         className="block w-full pl-10 pr-4 py-2.5 rounded-lg leading-5 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-1 focus:ring-purple-600 focus:bg-white focus:border-purple-600 sm:text-sm transition-colors relative z-0"
-        placeholder={placeholder}
+        placeholder={`Search for "${placeholderText}"`}
       />
 
       {/* Dropdown Results */}
