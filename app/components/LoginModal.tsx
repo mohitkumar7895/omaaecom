@@ -124,28 +124,28 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
       />
       
       <div 
-        className={`relative w-full sm:w-[440px] bg-white rounded-t-[32px] sm:rounded-[32px] shadow-2xl p-6 sm:p-10 transform transition-transform duration-300 border border-gray-100 mt-auto sm:mt-0 ${
-          visible ? "translate-y-0" : "translate-y-full sm:translate-y-12 sm:opacity-0"
+        className={`relative w-full max-w-[400px] sm:w-[440px] bg-white rounded-[24px] sm:rounded-[32px] shadow-2xl p-5 sm:p-8 transform transition-all duration-300 border border-gray-100 ${
+          visible ? "translate-y-0 opacity-100 scale-100" : "translate-y-8 opacity-0 scale-95"
         }`}
         style={{ transitionTimingFunction: "ease-out" }}
       >
         <button 
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 bg-gray-50 rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-800 transition-colors z-10"
+          className="absolute top-4 right-4 p-1.5 sm:p-2 bg-gray-50 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-800 transition-colors z-10"
         >
           <X className="w-5 h-5" />
         </button>
 
-        <div className="flex flex-col items-center mt-2">
-          <div className="mb-4 sm:mb-6 transform transition-transform hover:scale-105 duration-300">
-            <Image src="/logoomaa.webp" alt="OMAA Logo" width={160} height={50} className="h-10 sm:h-12 w-auto object-contain"/>
+        <div className="flex flex-col items-center mt-1">
+          <div className="mb-4 sm:mb-5 transform transition-transform hover:scale-105 duration-300">
+            <Image src="/logoomaa.webp" alt="OMAA Logo" width={140} height={40} className="h-8 sm:h-10 w-auto object-contain"/>
           </div>
 
           <div className="w-full">
-            <h2 className="text-[22px] sm:text-[26px] font-bold text-gray-900 tracking-tight text-center mb-2">
+            <h2 className="text-[20px] sm:text-[24px] font-bold text-gray-900 tracking-tight text-center mb-1.5">
               Welcome to OMAA
             </h2>
-            <p className="text-gray-500 text-[14px] text-center mb-8 font-medium">
+            <p className="text-gray-500 text-[13px] text-center mb-6 font-medium">
               Log in or sign up to continue
             </p>
 

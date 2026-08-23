@@ -18,7 +18,7 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
   };
 
   // Filter categories by type
-  const homeServices = categories.filter(c => c.type && c.type.toLowerCase().includes("service")).slice(0, 10);
+  const homeServices = categories.filter(c => c.type && c.type.toLowerCase().includes("service")).slice(0, 6);
   const newProducts = categories.filter(c => c.type && c.type.toLowerCase().includes("product")).slice(0, 1);
   const amcProducts = categories.filter(c => c.type && c.type.toLowerCase().includes("amc")).slice(0, 1);
 
@@ -51,9 +51,9 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
                 <Scissors className="w-5 h-5 text-gray-800" />
                 <h3 className="font-bold text-[18px] md:text-[20px] text-gray-900 tracking-tight">Home Services</h3>
               </div>
-              <div className="flex overflow-x-auto gap-4 pb-3 snap-x snap-mandatory hidden-scrollbar">
+              <div className="grid grid-cols-3 gap-y-4 gap-x-2 text-center justify-items-center pb-2">
                 {homeServices.map((service, index) => (
-                  <Link href={`/services/${service.id}`} key={index} className="flex flex-col items-center group flex-shrink-0 w-[84px] md:w-auto snap-center cursor-pointer">
+                  <Link href={`/services/${service.id}`} key={index} className="flex flex-col items-center group w-full cursor-pointer">
                     <div className="w-[84px] h-[84px] md:w-[92px] md:h-[92px] bg-[#f4f5f8] rounded-[16px] flex items-center justify-center text-[32px] md:text-[38px] shadow-sm group-hover:shadow-md transition-all overflow-hidden p-1.5 mb-1.5 group-hover:-translate-y-1">
                       {service.image_url && service.image_url.length > 5 ? (
                         <img src={service.image_url} alt={service.title} className="w-full h-full object-contain" />

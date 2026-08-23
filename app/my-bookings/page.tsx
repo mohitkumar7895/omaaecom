@@ -1,7 +1,7 @@
 "use client";
 
 import Navbar from "../components/Navbar";
-import { Clock, CheckCircle2, XCircle, ChevronRight, Navigation, FileText, Wallet } from "lucide-react";
+import { Clock, CheckCircle2, XCircle, ChevronRight, Navigation, FileText, Wallet, Calendar, List } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import CashbackFeatures from "../components/CashbackFeatures";
@@ -97,96 +97,114 @@ export default function MyBookingsPage() {
             </Link>
           </div>
         ) : (
-          <div className="space-y-4 sm:space-y-6">
+          <div className="space-y-6 sm:space-y-8">
             {bookings.map((booking, index) => (
-              <div key={index} className="bg-white rounded-[20px] shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-gray-100 overflow-hidden hover:shadow-xl hover:border-gray-200 transition-all duration-300">
-                <div className="border-b border-gray-50 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gray-50/50">
+              <div key={index} className="bg-white rounded-[24px] shadow-[0_8px_40px_rgba(0,0,0,0.03)] border border-gray-100/80 overflow-hidden hover:shadow-[0_12px_50px_rgba(0,0,0,0.06)] hover:border-gray-200 transition-all duration-300 relative group">
+                
+                {/* Status indicator line on the left */}
+                <div className={`absolute left-0 top-0 bottom-0 w-1.5 transition-colors ${
+                  booking.working_status === 'Complete' ? 'bg-emerald-400' :
+                  booking.working_status === 'Reject' ? 'bg-red-400' :
+                  'bg-amber-400'
+                }`} />
+
+                {/* Header */}
+                <div className="border-b border-gray-50/80 p-5 sm:px-7 sm:py-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-gray-50/50 to-white">
                   <div className="flex items-center gap-3">
-                    <span className={`px-2.5 py-1 rounded-md text-[11px] font-black uppercase tracking-wider ${
-                      booking.working_status === 'Complete' ? 'bg-emerald-100 text-emerald-700' :
-                      booking.working_status === 'Reject' ? 'bg-red-100 text-red-700' :
-                      'bg-amber-100 text-amber-700'
+                    <span className={`px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-widest shadow-sm ${
+                      booking.working_status === 'Complete' ? 'bg-gradient-to-r from-emerald-50 to-emerald-100/50 text-emerald-700 border border-emerald-100' :
+                      booking.working_status === 'Reject' ? 'bg-gradient-to-r from-red-50 to-red-100/50 text-red-700 border border-red-100' :
+                      'bg-gradient-to-r from-amber-50 to-amber-100/50 text-amber-700 border border-amber-100'
                     }`}>
                       {booking.working_status === 'Pendi' ? 'Pending' : booking.working_status}
                     </span>
-                    <span className="text-gray-500 text-xs font-bold font-mono bg-white px-2 py-1 rounded border border-gray-100">
-                      ID: {booking.order_id}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-400 text-xs font-semibold">Order ID</span>
+                      <span className="text-gray-900 text-sm font-black font-mono tracking-tight bg-white px-2.5 py-1 rounded-md border border-gray-200 shadow-sm">
+                        #{booking.order_id}
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-right text-xs font-bold text-gray-500">
+                  <div className="text-left sm:text-right text-[12px] font-bold text-gray-400 flex items-center sm:justify-end gap-1.5">
+                    <Calendar className="w-3.5 h-3.5" /> 
                     Placed on {new Date(booking.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </div>
                 </div>
 
-                <div className="p-4 sm:p-6 flex flex-col md:flex-row gap-6 md:gap-8">
-                  <div className="flex-1 space-y-4">
+                {/* Body */}
+                <div className="p-5 sm:p-7 flex flex-col md:flex-row gap-6 md:gap-10">
+                  <div className="flex-1 space-y-5">
                     <div>
-                      <h3 className="text-[11px] font-black uppercase tracking-wider text-gray-400 mb-2">Service Details</h3>
+                      <h3 className="text-[11px] font-black uppercase tracking-widest text-gray-400 mb-3 flex items-center gap-1.5"><List className="w-3.5 h-3.5"/> Services</h3>
                       {Array.isArray(booking.services) ? (
-                        <div className="space-y-2">
+                        <div className="space-y-3 bg-[#f8f9fa] rounded-2xl p-4 border border-gray-100">
                           {booking.services.map((s: any, idx: number) => (
                             <div key={idx} className="flex justify-between items-center text-sm">
-                              <span className="font-semibold text-gray-800">{s.title} <span className="text-gray-400 text-xs ml-1">x{s.quantity || 1}</span></span>
-                              <span className="font-bold text-gray-900">₹{Number(s.price)}</span>
+                              <div className="flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-[#6069c9]/40"></div>
+                                <span className="font-bold text-gray-800">{s.title}</span>
+                                <span className="text-gray-400 text-[11px] font-bold bg-white px-1.5 py-0.5 rounded border border-gray-200">x{s.quantity || 1}</span>
+                              </div>
+                              <span className="font-black text-gray-900">₹{Number(s.price)}</span>
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <div className="text-sm font-semibold text-gray-800">{booking.category || 'Service'}</div>
+                        <div className="text-sm font-bold text-gray-800 bg-[#f8f9fa] rounded-2xl p-4 border border-gray-100 flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#6069c9]/40"></div>
+                          {booking.category || 'Service'}
+                        </div>
                       )}
                     </div>
 
-                    <div className="pt-4 border-t border-gray-50">
-                      <div className="flex justify-between items-center text-[15px]">
-                        <span className="font-bold text-gray-500">Total Amount</span>
-                        <span className="font-black text-[#6069c9] text-lg">₹{Number(booking.total)}</span>
+                    <div className="pt-2">
+                      <div className="flex justify-between items-end p-5 rounded-2xl bg-gradient-to-br from-gray-900 to-black text-white shadow-lg relative overflow-hidden">
+                        <div className="absolute -right-4 -top-4 w-20 h-20 bg-white/10 rounded-full blur-xl"></div>
+                        <div>
+                          <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest block mb-0.5">Total Amount</span>
+                          <span className="text-xs text-gray-400/80 font-medium">Incl. all taxes</span>
+                        </div>
+                        <span className="font-black text-2xl tracking-tight relative z-10">₹{Number(booking.total)}</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="md:w-[280px] shrink-0 bg-gray-50 rounded-xl p-4 sm:p-5 border border-gray-100 space-y-4">
-                    <div>
-                      <h3 className="text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1">Schedule</h3>
-                      <div className="text-sm font-bold text-gray-800 flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-[#6069c9]" />
-                        {booking.booking_date ? new Date(booking.booking_date).toLocaleDateString('en-GB') : 'Not Scheduled'} • {booking.time_slot || 'N/A'}
+                  {/* Right Panel / Logistics */}
+                  <div className="md:w-[300px] shrink-0 space-y-4">
+                    <div className="bg-[#f8f9fa] rounded-2xl p-5 border border-gray-100/80 hover:border-gray-200 transition-colors">
+                      <div className="mb-5">
+                        <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 flex items-center gap-1.5"><Clock className="w-3.5 h-3.5"/> Schedule</h3>
+                        <div className="text-[14px] font-bold text-gray-900 flex items-center gap-2 bg-white px-3 py-2.5 rounded-xl border border-gray-100 shadow-sm">
+                          <div className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></div>
+                          {booking.booking_date ? new Date(booking.booking_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : 'Not Scheduled'} • {booking.time_slot || 'N/A'}
+                        </div>
                       </div>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1">Service Address</h3>
-                      <div className="text-[13px] font-medium text-gray-600 flex items-start gap-2">
-                        <Navigation className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" />
-                        <span className="line-clamp-2">{booking.address || 'Online / Remote'}</span>
+                      
+                      <div>
+                        <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 flex items-center gap-1.5"><Navigation className="w-3.5 h-3.5"/> Service Address</h3>
+                        <div className="text-[13px] font-semibold text-gray-600 leading-relaxed bg-white px-3 py-2.5 rounded-xl border border-gray-100 shadow-sm">
+                          {booking.address || 'Online / Remote'}
+                        </div>
                       </div>
                     </div>
 
                     {booking.coupon_code && (
-                      <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-3 mt-4">
-                        <h3 className="text-[10px] font-black uppercase tracking-wider text-indigo-500 mb-1">Your Coupon Code</h3>
-                        <div className="text-sm font-bold text-indigo-700 font-mono tracking-widest bg-white border border-indigo-200 px-3 py-1.5 rounded inline-block shadow-sm">
-                          {booking.coupon_code}
+                      <div className="bg-indigo-50/50 border border-indigo-100/80 rounded-2xl p-5 group-hover:bg-indigo-50 transition-colors">
+                        <h3 className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-2">Your Coupon Code</h3>
+                        <div className="flex items-center gap-2">
+                          <div className="text-[15px] font-black text-indigo-700 font-mono tracking-wider bg-white border border-indigo-200 px-3 py-2 rounded-lg shadow-sm">
+                            {booking.coupon_code}
+                          </div>
                         </div>
-                        <p className="text-[11px] text-indigo-600 mt-1 font-medium">Use this code for your next AMC booking!</p>
-                      </div>
-                    )}
-
-                    {booking.ad_watched && booking.cashback_amount > 0 && (
-                      <div className="mt-4 pt-4 border-t border-gray-200">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-bold text-gray-500 uppercase flex items-center gap-1"><Wallet className="w-3.5 h-3.5" /> Cashback</span>
-                          <span className={`text-[13px] font-black ${booking.working_status === 'Complete' ? 'text-emerald-600' : 'text-amber-500'}`}>
-                            {booking.working_status === 'Complete' ? '+₹' + booking.cashback_amount : 'Pending ₹' + booking.cashback_amount}
-                          </span>
-                        </div>
+                        <p className="text-[11px] text-indigo-500/80 mt-2 font-semibold leading-snug">Keep this safe for your next booking!</p>
                       </div>
                     )}
                   </div>
                 </div>
                 
-                {/* Product Action Buttons (Service & Cashback) - Only for AMC and New Products */}
+                {/* Product Action Buttons (Service & Cashback) */}
                 {(booking.type === 'AMC' || booking.type === 'New Product') && (
-                  <div className="p-4 sm:p-5 border-t border-gray-100 bg-white">
+                  <div className="p-5 border-t border-gray-50 bg-gray-50/30">
                     <CashbackFeatures orderId={booking.order_id} />
                   </div>
                 )}
