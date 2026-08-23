@@ -62,7 +62,7 @@ export default function ProfileDropdown({ user, onLogout, isOpen, onClose }: Pro
         <DropdownItem href="/contact" icon={<Headset className="w-4 h-4" />} label="Contact Us" />
         
         {/* Refer & Earn Banner Item */}
-        <Link href="/refer-earn" className="mx-3 my-2 block">
+        <a href="https://www.omaacompany.in" target="_blank" rel="noopener noreferrer" className="mx-3 my-2 block">
           <div className="bg-gradient-to-r from-[#6069c9] to-[#8088db] rounded-xl p-4 text-white relative overflow-hidden group transition-transform hover:scale-[1.02]">
             <div className="absolute -right-4 -top-4 w-16 h-16 bg-white/20 rounded-full blur-xl group-hover:scale-150 transition-transform"></div>
             <div className="flex items-center gap-2 mb-1">
@@ -76,7 +76,7 @@ export default function ProfileDropdown({ user, onLogout, isOpen, onClose }: Pro
               Refer now
             </span>
           </div>
-        </Link>
+        </a>
       </div>
 
       {/* Logout */}

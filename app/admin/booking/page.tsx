@@ -3,7 +3,8 @@ import { Copy, FileSpreadsheet, FileIcon as FilePdf, Printer, MessageCircle, Cal
 import Link from "next/link";
 import ExportButtons from "../components/ExportButtons";
 import WorkingStatusSelect from "./components/WorkingStatusSelect";
-import { updateWorkingStatus, updateTotal, updateCashback } from "./actions";
+import PaymentStatusSelect from "./components/PaymentStatusSelect";
+import { updateWorkingStatus, updateTotal, updateCashback, updatePaymentStatus } from "./actions";
 
 export const dynamic = 'force-dynamic';
 
@@ -219,13 +220,7 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
 
                     <td className="px-4 py-4 whitespace-nowrap text-center">
                       <div className="text-[11px] font-semibold text-gray-500 mb-1">{row.payment_method}</div>
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                        row.payment_status === 'Completed' 
-                          ? 'bg-emerald-100 text-emerald-800' 
-                          : 'bg-amber-100 text-amber-800'
-                      }`}>
-                        {row.payment_status}
-                      </span>
+                      <PaymentStatusSelect id={row.id} defaultValue={row.payment_status} action={updatePaymentStatus} />
                     </td>
 
                     <td className="px-4 py-4 whitespace-nowrap text-right">

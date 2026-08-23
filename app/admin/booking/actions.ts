@@ -113,3 +113,16 @@ export async function updateCashback(formData: FormData) {
     revalidatePath("/admin/booking", 'layout');
   }
 }
+
+export async function updatePaymentStatus(formData: FormData) {
+  const id = formData.get("id");
+  const status = formData.get("payment_status");
+  if (id && status) {
+    try {
+      await pool.query("UPDATE bookings SET payment_status = ? WHERE id = ?", [status, id]);
+      revalidatePath("/admin/booking", 'layout');
+    } catch (error) {
+      console.error("Error updating payment status:", error);
+    }
+  }
+}
