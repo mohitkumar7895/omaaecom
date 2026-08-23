@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+:root {
+  --font-plus-jakarta: 'Plus Jakarta Sans', sans-serif;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -7,9 +11,31 @@ html {
 body {
   background-color: #f8f9fa;
   color: #111827;
+  font-family: var(--font-plus-jakarta);
+}
+
+::selection {
+  background-color: #000;
+  color: #fff;
 }
 
 /* Ensure hand pointer on all clickable elements globally */
 button, a, [role="button"], select, summary, .cursor-pointer {
   cursor: pointer !important;
+}
+
+/* Premium scrollbar for all overflow elements */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
 }

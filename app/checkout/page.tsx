@@ -133,201 +133,140 @@ function CheckoutContent() {
   // Success screen
   if (success) {
     if (requiresSchedule) {
-      // Detailed Service Booking Slip
       return (
-        <div className="min-h-screen bg-[#f4f5f8] pb-12 flex flex-col font-sans">
+        <div className="min-h-screen bg-white sm:bg-[#fafafa] pb-12 flex flex-col font-sans selection:bg-black selection:text-white">
           <Navbar />
-          <div className="flex-1 flex justify-center mt-10 px-4">
-            <div className="bg-white rounded-[24px] shadow-sm w-full max-w-[600px] border border-gray-200 overflow-hidden flex flex-col">
+          <div className="flex-1 flex items-center justify-center mt-10 px-4">
+            <div className="bg-white sm:shadow-[0_20px_60px_rgba(0,0,0,0.04)] sm:border border-gray-100 rounded-[32px] w-full max-w-[560px] relative overflow-hidden z-10 p-8 sm:p-12">
               
-              {/* Header / Status Section */}
-              <div className="bg-gradient-to-b from-[#ebfaee] to-white pt-10 pb-6 px-8 text-center border-b border-gray-100">
-                <div className="w-20 h-20 bg-[#328e3b] rounded-full flex items-center justify-center shadow-[0_4px_20px_rgba(50,142,59,0.25)] mx-auto mb-5">
-                  <CheckCircle2 className="w-10 h-10 text-white" />
+              {/* Subtle Success Glow */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-green-400/10 rounded-full blur-[60px] pointer-events-none -z-10"></div>
+
+              <div className="text-center mb-10">
+                <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_40px_rgba(34,197,94,0.3)] ring-8 ring-green-50">
+                  <CheckCircle2 className="w-10 h-10 text-white" strokeWidth={2.5} />
                 </div>
-                <h2 className="text-[28px] sm:text-[32px] font-black text-[#1a1a1a] tracking-tight mb-2">Booking Confirmed!</h2>
+                <h2 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight mb-3">Booking Confirmed</h2>
                 <p className="text-gray-500 text-[15px] font-medium max-w-sm mx-auto">
-                  Your appointment has been successfully scheduled. We have sent the details to your email and SMS.
+                  Your appointment has been successfully scheduled. We've sent the details to your email and mobile.
                 </p>
               </div>
 
-              {/* Receipt Body */}
-              <div className="px-6 sm:px-10 py-8">
-                
-                {/* Order Meta */}
-                <div className="flex justify-between items-center mb-6">
+              <div className="bg-[#fafafa] rounded-2xl p-6 mb-8 border border-gray-100/80">
+                <div className="flex justify-between items-center mb-5 pb-5 border-b border-gray-200/60">
                   <div>
-                    <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Order ID</p>
-                    <p className="text-gray-900 font-extrabold text-lg">{orderId}</p>
+                    <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1">Order ID</p>
+                    <p className="text-gray-900 font-extrabold text-base tracking-tight">{orderId}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Total Amount</p>
-                    <p className="text-[#328e3b] font-extrabold text-2xl">₹{totalAmount}</p>
+                    <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1">Total Amount</p>
+                    <p className="text-gray-900 font-black text-xl">₹{totalAmount}</p>
                   </div>
                 </div>
 
-                <div className="h-[1px] bg-gray-100 w-full mb-6"></div>
-
-                {/* Details Grid */}
-                <h3 className="text-[13px] font-bold text-gray-900 uppercase tracking-widest mb-4 flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-[#6b62d9]"/> Service Details
-                </h3>
-                <div className="bg-[#fafafa] border border-gray-100 rounded-xl p-5 mb-8">
-                  <div className="grid grid-cols-2 gap-y-5 gap-x-4">
-                    <div>
-                      <p className="text-gray-400 text-xs font-semibold mb-1">Date</p>
-                      <p className="text-gray-800 font-bold">{new Date(form.booking_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400 text-xs font-semibold mb-1">Time Slot</p>
-                      <p className="text-gray-800 font-bold">{form.time_slot}</p>
-                    </div>
-                    <div className="col-span-2">
-                      <p className="text-gray-400 text-xs font-semibold mb-1">Address</p>
-                      <p className="text-gray-800 font-semibold text-sm leading-relaxed">{form.address}</p>
-                    </div>
-                    <div className="col-span-2">
-                      <p className="text-gray-400 text-xs font-semibold mb-1">Payment Method</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#f0f9f2] text-[#2c7a34] text-xs font-bold rounded-lg border border-[#c3e6cb]">
-                          <IndianRupee className="w-3.5 h-3.5" /> Pay at Site (COD)
-                        </span>
-                      </div>
-                    </div>
+                <div className="grid grid-cols-2 gap-y-5 gap-x-4">
+                  <div>
+                    <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5"/> Date</p>
+                    <p className="text-gray-900 font-bold text-[14px]">{new Date(form.booking_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5"><Clock className="w-3.5 h-3.5"/> Time</p>
+                    <p className="text-gray-900 font-bold text-[14px]">{form.time_slot}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5"/> Address</p>
+                    <p className="text-gray-800 font-semibold text-[13px] leading-relaxed">{form.address}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5"><IndianRupee className="w-3.5 h-3.5"/> Payment Method</p>
+                    <span className="inline-block mt-0.5 px-3 py-1 bg-gray-100 text-gray-800 text-[12px] font-bold rounded-lg border border-gray-200/80">
+                      Pay at Site (Cash/UPI)
+                    </span>
                   </div>
                 </div>
+              </div>
 
-                {/* Next Steps (Timeline) */}
-                <h3 className="text-[13px] font-bold text-gray-900 uppercase tracking-widest mb-5 flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-[#6b62d9]"/> What Happens Next
-                </h3>
-                <div className="relative border-l-2 border-gray-100 ml-3 space-y-6 mb-8 pl-6">
-                  <div className="relative">
-                    <div className="absolute -left-[31px] bg-white border-2 border-[#6b62d9] w-4 h-4 rounded-full mt-1"></div>
-                    <p className="text-[14px] text-gray-700 font-medium">Our support team will <strong className="text-gray-900">call you</strong> to verify the appointment details.</p>
-                  </div>
-                  <div className="relative">
-                    <div className="absolute -left-[31px] bg-white border-2 border-[#6b62d9] w-4 h-4 rounded-full mt-1"></div>
-                    <p className="text-[14px] text-gray-700 font-medium">A professional technician will arrive on <strong className="text-gray-900">{new Date(form.booking_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</strong> within your selected time slot.</p>
-                  </div>
-                  <div className="relative">
-                    <div className="absolute -left-[31px] bg-white border-2 border-[#6b62d9] w-4 h-4 rounded-full mt-1"></div>
-                    <p className="text-[14px] text-gray-700 font-medium">After the service is completed, please pay <strong className="text-gray-900">₹{totalAmount} in cash</strong> to the technician.</p>
-                  </div>
-                  <div className="relative">
-                    <div className="absolute -left-[31px] bg-white border-2 border-[#6b62d9] w-4 h-4 rounded-full mt-1"></div>
-                    <p className="text-[14px] text-gray-700 font-medium">A digital receipt and warranty details will be sent via SMS / WhatsApp.</p>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row gap-3 mt-8 pt-6 border-t border-gray-100">
-                  <button 
-                    onClick={() => router.push('/my-bookings')}
-                    className="flex-1 bg-[#1a1a1a] hover:bg-black text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition"
-                  >
-                    <List className="w-4 h-4" /> View Bookings
-                  </button>
-                  <button 
-                    onClick={() => setSuccess(false)}
-                    className="flex-1 bg-white border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-800 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition"
-                  >
-                    <Edit className="w-4 h-4" /> Modify Booking
-                  </button>
-                </div>
-                
-                <div className="mt-4 text-center">
-                  <button 
-                    onClick={() => router.push('/')}
-                    className="text-[#6b62d9] hover:text-[#5a52b8] font-bold text-sm flex items-center justify-center gap-1.5 transition mx-auto"
-                  >
-                    <Home className="w-4 h-4" /> Return to Home
-                  </button>
-                </div>
-
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button 
+                  onClick={() => router.push('/my-bookings')}
+                  className="flex-1 bg-black hover:bg-gray-900 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-lg shadow-black/10 text-[15px]"
+                >
+                  <List className="w-4 h-4" /> View Bookings
+                </button>
+                <button 
+                  onClick={() => router.push('/')}
+                  className="flex-1 bg-white border-2 border-gray-200 hover:border-black hover:bg-gray-50 text-gray-900 font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 text-[15px]"
+                >
+                  <Home className="w-4 h-4" /> Go Home
+                </button>
               </div>
             </div>
           </div>
         </div>
       );
     } else {
-      // Simple Success Screen for RO AMC / New Products
       return (
-        <div className="min-h-screen bg-[#f4f5f8] pb-12 flex flex-col font-sans">
+        <div className="min-h-screen bg-white sm:bg-[#fafafa] pb-12 flex flex-col font-sans selection:bg-black selection:text-white">
           <Navbar />
-          <div className="flex-1 flex justify-center mt-10 px-4">
-            <div className="bg-white rounded-[24px] shadow-sm w-full max-w-[600px] border border-gray-200 overflow-hidden flex flex-col">
+          <div className="flex-1 flex items-center justify-center mt-10 px-4">
+            <div className="bg-white sm:shadow-[0_20px_60px_rgba(0,0,0,0.04)] sm:border border-gray-100 rounded-[32px] w-full max-w-[560px] relative overflow-hidden z-10 p-8 sm:p-12">
               
-              {/* Header / Status Section */}
-              <div className="bg-gradient-to-b from-[#ebfaee] to-white pt-10 pb-6 px-8 text-center border-b border-gray-100">
-                <div className="w-20 h-20 bg-[#328e3b] rounded-full flex items-center justify-center shadow-[0_4px_20px_rgba(50,142,59,0.25)] mx-auto mb-5">
-                  <CheckCircle2 className="w-10 h-10 text-white" />
+              {/* Subtle Success Glow */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-green-400/10 rounded-full blur-[60px] pointer-events-none -z-10"></div>
+
+              <div className="text-center mb-10">
+                <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_40px_rgba(34,197,94,0.3)] ring-8 ring-green-50">
+                  <CheckCircle2 className="w-10 h-10 text-white" strokeWidth={2.5} />
                 </div>
-                <h2 className="text-[28px] sm:text-[32px] font-black text-[#1a1a1a] tracking-tight mb-2">Order Confirmed!</h2>
+                <h2 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight mb-3">Order Confirmed</h2>
                 <p className="text-gray-500 text-[15px] font-medium max-w-sm mx-auto">
-                  Your order has been placed successfully. We have sent the receipt to your email and SMS.
+                  Your order has been placed successfully. We've sent the receipt to your email and mobile.
                 </p>
               </div>
 
-              {/* Receipt Body */}
-              <div className="px-6 sm:px-10 py-8">
-                
-                {/* Order Meta */}
-                <div className="flex justify-between items-center mb-6">
+              <div className="bg-[#fafafa] rounded-2xl p-6 mb-8 border border-gray-100/80">
+                <div className="flex justify-between items-center mb-5 pb-5 border-b border-gray-200/60">
                   <div>
-                    <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Order ID</p>
-                    <p className="text-gray-900 font-extrabold text-lg">{orderId}</p>
+                    <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1">Order ID</p>
+                    <p className="text-gray-900 font-extrabold text-base tracking-tight">{orderId}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Total Amount</p>
-                    <p className="text-[#328e3b] font-extrabold text-2xl">₹{totalAmount}</p>
+                    <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1">Total Amount</p>
+                    <p className="text-gray-900 font-black text-xl">₹{totalAmount}</p>
                   </div>
                 </div>
 
-                <div className="h-[1px] bg-gray-100 w-full mb-6"></div>
-
-                {/* Details Grid */}
-                <h3 className="text-[13px] font-bold text-gray-900 uppercase tracking-widest mb-4 flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-[#6b62d9]"/> Delivery Details
-                </h3>
-                <div className="bg-[#fafafa] border border-gray-100 rounded-xl p-5 mb-8">
-                  <div className="grid grid-cols-1 gap-y-5">
-                    <div>
-                      <p className="text-gray-400 text-xs font-semibold mb-1">Address</p>
-                      <p className="text-gray-800 font-semibold text-sm leading-relaxed">{form.address}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400 text-xs font-semibold mb-1">Payment Method</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#f0f9f2] text-[#2c7a34] text-xs font-bold rounded-lg border border-[#c3e6cb]">
-                          <IndianRupee className="w-3.5 h-3.5" /> Pay at Site (COD)
-                        </span>
-                      </div>
-                    </div>
+                <div className="space-y-5">
+                  <div>
+                    <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5"/> Delivery Address</p>
+                    <p className="text-gray-800 font-semibold text-[13px] leading-relaxed">{form.address}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5"><IndianRupee className="w-3.5 h-3.5"/> Payment Method</p>
+                    <span className="inline-block mt-0.5 px-3 py-1 bg-gray-100 text-gray-800 text-[12px] font-bold rounded-lg border border-gray-200/80">
+                      Pay at Delivery (Cash/UPI)
+                    </span>
                   </div>
                 </div>
+              </div>
 
-                {/* Features (Service & Cashback) */}
-                <div className="mb-8">
-                  <CashbackFeatures orderId={orderId} />
-                </div>
+              <div className="mb-8">
+                <CashbackFeatures orderId={orderId} />
+              </div>
 
-                {/* Action Buttons */}
-                <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-100">
-                  <button 
-                    onClick={() => router.push('/my-bookings')}
-                    className="flex-1 bg-[#1a1a1a] hover:bg-black text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition"
-                  >
-                    <List className="w-4 h-4" /> View Orders
-                  </button>
-                  <button 
-                    onClick={() => router.push('/')}
-                    className="flex-1 bg-white border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-800 font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition"
-                  >
-                    <Home className="w-4 h-4" /> Return to Home
-                  </button>
-                </div>
-
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button 
+                  onClick={() => router.push('/my-bookings')}
+                  className="flex-1 bg-black hover:bg-gray-900 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-lg shadow-black/10 text-[15px]"
+                >
+                  <List className="w-4 h-4" /> View Orders
+                </button>
+                <button 
+                  onClick={() => router.push('/')}
+                  className="flex-1 bg-white border-2 border-gray-200 hover:border-black hover:bg-gray-50 text-gray-900 font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 text-[15px]"
+                >
+                  <Home className="w-4 h-4" /> Go Home
+                </button>
               </div>
             </div>
           </div>
@@ -395,39 +334,20 @@ function CheckoutContent() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div className="space-y-1.5">
-                    <label className="text-[13px] font-bold text-gray-700">Email Address <span className="text-gray-400 font-normal">(Optional)</span></label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <Mail className="w-4 h-4 text-gray-400" />
-                      </div>
-                      <input 
-                        type="email"
-                        name="email"
-                        value={form.email}
-                        onChange={handleChange}
-                        placeholder="you@example.com" 
-                        className="w-full bg-white border border-gray-200 rounded-xl pl-11 pr-4 py-3.5 outline-none focus:border-black focus:ring-4 focus:ring-black/5 hover:border-gray-300 transition-all text-gray-900 font-medium placeholder:text-gray-400"
-                      />
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-bold text-gray-700">Email Address <span className="text-gray-400 font-normal">(Optional)</span></label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <Mail className="w-4 h-4 text-gray-400" />
                     </div>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-[13px] font-bold text-gray-700">Referral Code <span className="text-gray-400 font-normal">(Optional)</span></label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <Hash className="w-4 h-4 text-gray-400" />
-                      </div>
-                      <input 
-                        type="text"
-                        name="referred_by"
-                        value={form.referred_by}
-                        onChange={handleChange}
-                        placeholder="OC512856" 
-                        className="w-full bg-white border border-gray-200 rounded-xl pl-11 pr-4 py-3.5 outline-none focus:border-black focus:ring-4 focus:ring-black/5 hover:border-gray-300 transition-all text-gray-900 font-medium placeholder:text-gray-400 uppercase"
-                      />
-                    </div>
+                    <input 
+                      type="email"
+                      name="email"
+                      value={form.email}
+                      onChange={handleChange}
+                      placeholder="you@example.com" 
+                      className="w-full bg-white border border-gray-200 rounded-xl pl-11 pr-4 py-3.5 outline-none focus:border-black focus:ring-4 focus:ring-black/5 hover:border-gray-300 transition-all text-gray-900 font-medium placeholder:text-gray-400"
+                    />
                   </div>
                 </div>
 
