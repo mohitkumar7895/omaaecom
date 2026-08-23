@@ -34,10 +34,26 @@ export async function POST(req: Request) {
     }
 
     // Check if the order requires a schedule
-    const requiresSchedule = !cart_items.some((item: any) => {
+    const requiresSchedule = cart_items.some((item: any) => {
       const title = (item.title || "").toLowerCase();
-      const category = (item.category || "").toLowerCase();
-      return title.includes("new product") || title.includes("ro amc") || category.includes("new product") || category.includes("ro amc");
+      const catId = Number(item.category_id);
+      const category = (item.category || item.type || "").toLowerCase();
+      
+      // Category 6 is New Products, Category 7 is RO AMC
+      if (catId === 6 || catId === 7) return false;
+      
+      if (
+        title.includes("new product") || 
+        title.includes("amc") || 
+        title.includes("plan") ||
+        category.includes("new product") || 
+        category.includes("amc") ||
+        category.includes("product")
+      ) {
+        return false;
+      }
+      
+      return true;
     });
 
     if (requiresSchedule) {

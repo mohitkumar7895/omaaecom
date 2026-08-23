@@ -34,20 +34,29 @@ export default function CheckoutPage() {
 
   const totalAmount = cart.reduce((total, item) => total + (Number(item.selling_price) * item.quantity || 0), 0);
 
-  // Check if any cart item implies it's a product or AMC that doesn't need scheduling
-  const requiresSchedule = !cart.some(item => {
+  // Check if ANY cart item requires a schedule (i.e. is NOT an AMC or New Product)
+  const requiresSchedule = cart.some(item => {
     const title = (item.title || item.name || "").toLowerCase();
+    const catId = Number(item.category_id);
     const category = (item.category || item.type || "").toLowerCase();
-    return (
+    
+    // Category 6 is New Products, Category 7 is RO AMC in standard setup
+    if (catId === 6 || catId === 7) return false;
+    
+    // Fallback checks by name/type
+    if (
       title.includes("new product") || 
       title.includes("amc") || 
-      title.includes("plan") || 
-      title.includes("purifier") ||
+      title.includes("plan") ||
       category.includes("new product") || 
       category.includes("amc") ||
-      category.includes("product") ||
-      category.includes("purifier")
-    );
+      category.includes("product")
+    ) {
+      return false;
+    }
+    
+    // If it didn't match AMC/Product criteria, it's a regular service and needs scheduling
+    return true;
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
