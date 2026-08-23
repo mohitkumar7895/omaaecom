@@ -114,7 +114,6 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                 <th className="px-4 py-4">Service Details</th>
                 <th className="px-4 py-4 whitespace-nowrap">Schedule</th>
                 <th className="px-4 py-4 whitespace-nowrap">Pricing</th>
-                <th className="px-4 py-4 whitespace-nowrap text-center">Cashback</th>
                 <th className="px-4 py-4 whitespace-nowrap text-center">Contact</th>
                 <th className="px-4 py-4 whitespace-nowrap text-center">Payment</th>
                 <th className="px-4 py-4 whitespace-nowrap text-right">Status</th>
@@ -200,24 +199,7 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                       </form>
                     </td>
 
-                    <td className="px-4 py-4 whitespace-nowrap text-center">
-                      <form action={updateCashback} className="flex flex-col items-center gap-1.5">
-                        <input type="hidden" name="id" value={row.id} />
-                        <div className="relative">
-                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 font-medium text-[11px]">₹</span>
-                          <input 
-                            type="number" 
-                            name="cashback_amount" 
-                            defaultValue={row.cashback_amount || 0}
-                            className="w-20 pl-6 pr-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-[12px] font-bold text-gray-900 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 focus:bg-white transition-all shadow-inner text-center"
-                            placeholder="Amt"
-                          />
-                        </div>
-                        <button type="submit" className="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 hover:text-emerald-700 px-3 py-1 rounded-md text-[10px] font-bold transition-colors w-full">
-                          Set
-                        </button>
-                      </form>
-                    </td>
+
 
                     <td className="px-4 py-4 whitespace-nowrap text-center">
                       <a 

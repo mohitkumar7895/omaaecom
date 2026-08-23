@@ -184,10 +184,12 @@ export default function MyBookingsPage() {
                   </div>
                 </div>
                 
-                {/* Product Action Buttons (Service & Cashback) */}
-                <div className="p-4 sm:p-5 border-t border-gray-100 bg-white">
-                  <CashbackFeatures orderId={booking.order_id} />
-                </div>
+                {/* Product Action Buttons (Service & Cashback) - Only for AMC and New Products */}
+                {(booking.type === 'AMC' || booking.type === 'New Product') && (
+                  <div className="p-4 sm:p-5 border-t border-gray-100 bg-white">
+                    <CashbackFeatures orderId={booking.order_id} />
+                  </div>
+                )}
               </div>
             ))}
           </div>
