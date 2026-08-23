@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { User as UserIcon, Wallet, CalendarDays, History, Banknote, Clock, MapPin, Settings, Share2, Info, LogOut } from "lucide-react";
+import { User as UserIcon, Wallet, CalendarDays, History, Banknote, Clock, MapPin, Settings, Share2, Info, LogOut, Headset } from "lucide-react";
 
 interface ProfileDropdownProps {
   user: any;
@@ -35,6 +35,7 @@ export default function ProfileDropdown({ user, onLogout, isOpen }: ProfileDropd
         <DropdownItem href="/manage-address" icon={<MapPin className="w-4 h-4" />} label="Manage Address" />
         <DropdownItem href="/settings" icon={<Settings className="w-4 h-4" />} label="Settings" />
         <DropdownItem href="/about" icon={<Info className="w-4 h-4" />} label="About" />
+        <DropdownItem href="/contact" icon={<Headset className="w-4 h-4" />} label="Contact Us" />
         
         {/* Refer & Earn Banner Item */}
         <Link href="/refer-earn" className="mx-3 my-2 block">

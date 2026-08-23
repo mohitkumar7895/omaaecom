@@ -132,17 +132,19 @@ export default function Navbar() {
         </div>
 
         {/* Right section: Location & Icons */}
-        <div className="flex items-center space-x-2 lg:space-x-4 z-10 flex-1 justify-end">
+        <div className="flex items-center gap-2 lg:gap-4 z-10 flex-1 justify-end">
           {/* Desktop Search Bar */}
-          <div className="hidden lg:block w-[180px] xl:w-[280px]">
+          <div className="hidden lg:block w-[180px] xl:w-[280px] order-1">
             <LiveSearchBar />
           </div>
 
           {/* Location Button (Client Component Modal) */}
-          <LocationSelector />
+          <div className="order-2">
+            <LocationSelector />
+          </div>
 
           {/* User Button & Dropdown */}
-          <div className="relative" ref={profileRef}>
+          <div className="relative order-4 lg:order-3" ref={profileRef}>
             <button 
               onClick={() => {
                 if (user) {
@@ -167,10 +169,9 @@ export default function Navbar() {
               }} 
             />
           </div>
-          <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
           
           {/* Cart Button */}
-          <Link href="/cart">
+          <Link href="/cart" className="order-3 lg:order-4">
             <button className="relative bg-[#6069c9] p-1.5 lg:p-2.5 rounded-[8px] lg:rounded-[10px] text-white hover:bg-[#525ab5] transition shadow-sm flex items-center justify-center">
               <ShoppingCart className="w-4 h-4 lg:w-5 lg:h-5 stroke-[1.5]" />
               {cartItemCount > 0 && (
@@ -181,52 +182,9 @@ export default function Navbar() {
             </button>
           </Link>
 
-          {/* Mobile Menu Toggle Button */}
-          <button 
-            className="lg:hidden p-1.5 ml-1 text-gray-700 hover:text-[#5c67b8] transition"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
         </div>
       </div>
-
-      {/* Mobile Menu Dropdown */}
-      {isMobileMenuOpen && (
-        <div className="lg:hidden absolute top-full left-0 w-full bg-white shadow-2xl border-t border-gray-100 flex flex-col z-[90]">
-          <Link href="/" className="px-6 py-4 border-b border-gray-50 font-semibold text-gray-800" onClick={() => setIsMobileMenuOpen(false)}>
-            Home
-          </Link>
-          <Link href="/about" className="px-6 py-4 border-b border-gray-50 font-semibold text-gray-800" onClick={() => setIsMobileMenuOpen(false)}>
-            About Us
-          </Link>
-          <div className="flex flex-col border-b border-gray-50">
-            <div 
-              className="px-6 py-4 flex justify-between items-center font-semibold text-gray-800 cursor-pointer"
-              onClick={() => setIsMobileServicesOpen(!isMobileServicesOpen)}
-            >
-              <span>Services</span>
-              <ChevronDown className={`w-5 h-5 transition-transform ${isMobileServicesOpen ? 'rotate-180 text-[#5c67b8]' : 'text-gray-500'}`} />
-            </div>
-            {isMobileServicesOpen && (
-              <div className="bg-gray-50 flex flex-col">
-                {categories.length > 0 ? (
-                  categories.map((cat) => (
-                    <Link key={cat.id} href={`/services/${cat.id}`} className="px-10 py-3 text-[14px] text-gray-600 border-b border-gray-100 last:border-0 hover:text-[#5c67b8]" onClick={() => setIsMobileMenuOpen(false)}>
-                      {cat.title}
-                    </Link>
-                  ))
-                ) : (
-                  <div className="px-10 py-3 text-[14px] text-gray-500">No services</div>
-                )}
-              </div>
-            )}
-          </div>
-          <Link href="/contact" className="px-6 py-4 font-semibold text-gray-800" onClick={() => setIsMobileMenuOpen(false)}>
-            Contact Us
-          </Link>
-        </div>
-      )}
     </nav>
   );
 }
