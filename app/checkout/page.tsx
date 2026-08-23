@@ -245,9 +245,7 @@ function CheckoutContent() {
                 </div>
               </div>
 
-              <div className="mb-8">
-                <CashbackFeatures orderId={orderId} />
-              </div>
+
 
               <div className="flex flex-col sm:flex-row gap-3">
 

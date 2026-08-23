@@ -10,6 +10,7 @@ interface CashbackFeaturesProps {
 export default function CashbackFeatures({ orderId }: CashbackFeaturesProps) {
   const [showServiceModal, setShowServiceModal] = useState(false);
   const [showCashbackModal, setShowCashbackModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<'service' | 'cashback'>('service');
   
   const [loading, setLoading] = useState(false);
   const [cashbackData, setCashbackData] = useState<any>(null);
@@ -98,19 +99,36 @@ export default function CashbackFeatures({ orderId }: CashbackFeaturesProps) {
 
   return (
     <>
-      <div className="flex gap-3 w-full">
+      <div className="relative w-full bg-gray-100 rounded-[14px] p-1.5 flex shadow-inner">
+        {/* Animated Background Pill */}
+        <div 
+          className="absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition-transform duration-300 ease-in-out border border-gray-200/60"
+          style={{ transform: activeTab === 'cashback' ? 'translateX(100%)' : 'translateX(0)' }}
+        />
+        
         <button
-          onClick={() => setShowServiceModal(true)}
-          className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold py-3.5 rounded-xl shadow-md transition flex items-center justify-center gap-2"
+          onClick={() => {
+            setActiveTab('service');
+            setShowServiceModal(true);
+          }}
+          className={`flex-1 relative z-10 flex items-center justify-center gap-2 py-3 font-bold text-[14px] transition-colors duration-300 rounded-xl ${
+            activeTab === 'service' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'
+          }`}
         >
-          <Gift className="w-5 h-5" />
+          <Gift className="w-4 h-4" />
           Service
         </button>
+        
         <button
-          onClick={() => setShowCashbackModal(true)}
-          className="flex-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold py-3.5 rounded-xl shadow-md transition flex items-center justify-center gap-2"
+          onClick={() => {
+            setActiveTab('cashback');
+            setShowCashbackModal(true);
+          }}
+          className={`flex-1 relative z-10 flex items-center justify-center gap-2 py-3 font-bold text-[14px] transition-colors duration-300 rounded-xl ${
+            activeTab === 'cashback' ? 'text-amber-600' : 'text-gray-500 hover:text-gray-700'
+          }`}
         >
-          <Wallet className="w-5 h-5" />
+          <Wallet className="w-4 h-4" />
           Cashback
         </button>
       </div>
