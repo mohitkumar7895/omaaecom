@@ -11,6 +11,15 @@ function generateOrderId(): string {
   return random.toString();
 }
 
+function generateCouponCode(): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = 'OMAA-';
+  for (let i = 0; i < 6; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -76,10 +85,43 @@ export async function POST(req: Request) {
 
     const categoryName = cart_items[0]?.category_title || 'Service';
 
+    // Determine type (AMC vs New Product vs Normal Service)
+    let bookingType = 'Normal Service';
+    const isAMC = cart_items.some((item: any) => {
+      const catId = Number(item.category_id);
+      const categoryStr = (item.category || item.type || "").toLowerCase();
+      const titleStr = (item.title || "").toLowerCase();
+      return catId === 7 || categoryStr.includes("amc") || titleStr.includes("amc");
+    });
+    
+    const isNewProduct = cart_items.some((item: any) => {
+      const catId = Number(item.category_id);
+      const categoryStr = (item.category || item.type || "").toLowerCase();
+      const titleStr = (item.title || "").toLowerCase();
+      return catId === 6 || categoryStr.includes("new product") || titleStr.includes("new product");
+    });
+    
+    if (isAMC) {
+      bookingType = 'AMC';
+    } else if (isNewProduct) {
+      bookingType = 'New Product';
+    }
+
+    let couponCode = null;
+    
+    // Auto-generate coupon immediately for online AMC & New Product bookings
+    if ((isAMC || isNewProduct) && payment_method === 'online') {
+      couponCode = generateCouponCode();
+      await pool.query(
+        "INSERT INTO coupons (code, discount_type, discount_value, mobile) VALUES (?, 'percentage', 10.00, ?)",
+        [couponCode, mobile]
+      );
+    }
+
     await pool.query(
-      `INSERT INTO bookings (order_id, type, customer_name, mobile, address, category, services, booking_date, time_slot, total, payment_method, payment_status, working_status, created_at, user_email)
-       VALUES (?, 'Normal Service', ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', 'Pendi', NOW(), ?)`,
-      [orderId, name, mobile, address, categoryName, servicesJson, booking_date || '', time_slot || '', total_amount, payment_method === 'online' ? 'cashfree' : 'Cash on Book', user_email]
+      `INSERT INTO bookings (order_id, type, customer_name, mobile, address, category, services, booking_date, time_slot, total, payment_method, payment_status, working_status, created_at, user_email, coupon_code)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', 'Pendi', NOW(), ?, ?)`,
+      [orderId, bookingType, name, mobile, address, categoryName, servicesJson, booking_date || '', time_slot || '', total_amount, payment_method === 'online' ? 'cashfree' : 'Cash on Book', user_email, couponCode]
     );
 
     return NextResponse.json({ success: true, order_id: orderId });

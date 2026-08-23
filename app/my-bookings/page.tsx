@@ -161,6 +161,16 @@ export default function MyBookingsPage() {
                       </div>
                     </div>
 
+                    {booking.coupon_code && (
+                      <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-3 mt-4">
+                        <h3 className="text-[10px] font-black uppercase tracking-wider text-indigo-500 mb-1">Your Coupon Code</h3>
+                        <div className="text-sm font-bold text-indigo-700 font-mono tracking-widest bg-white border border-indigo-200 px-3 py-1.5 rounded inline-block shadow-sm">
+                          {booking.coupon_code}
+                        </div>
+                        <p className="text-[11px] text-indigo-600 mt-1 font-medium">Use this code for your next AMC booking!</p>
+                      </div>
+                    )}
+
                     {booking.ad_watched && booking.cashback_amount > 0 && (
                       <div className="mt-4 pt-4 border-t border-gray-200">
                         <div className="flex items-center justify-between">
