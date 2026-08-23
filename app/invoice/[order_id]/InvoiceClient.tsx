@@ -23,7 +23,8 @@ export default function InvoiceClient({ booking, services, gstSettings }: Invoic
   });
 
   const isGstEligibleService = booking.type === 'AMC' || booking.type === 'New Product';
-  const showGst = isGstEligibleService && gstSettings && gstSettings.show_gst_on_invoice && gstSettings.gst_number && gstSettings.gst_number !== '0' && gstSettings.gst_number !== 'null';
+  const applyGstRate = isGstEligibleService && gstSettings && gstSettings.online_gst_enabled;
+  const showGstNumber = gstSettings && gstSettings.show_gst_on_invoice && gstSettings.gst_number && gstSettings.gst_number !== '0' && gstSettings.gst_number !== 'null';
   
   // Calculate totals
   const subtotal = services.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -33,7 +34,7 @@ export default function InvoiceClient({ booking, services, gstSettings }: Invoic
   let baseAmount = total;
   let gstAmount = 0;
 
-  if (showGst && gstRate > 0) {
+  if (applyGstRate && gstRate > 0) {
     baseAmount = total / (1 + (gstRate / 100));
     gstAmount = total - baseAmount;
   }
@@ -76,7 +77,7 @@ export default function InvoiceClient({ booking, services, gstSettings }: Invoic
               <div className="text-sm text-gray-500 leading-relaxed">
                 <p className="font-black text-gray-900 text-lg mb-1 tracking-tight">OMAA Services</p>
                 <p className="font-medium">Support: support@omaa.com</p>
-                {showGst && (
+                {showGstNumber && (
                   <p className="font-bold text-gray-700 mt-2 bg-gray-50 inline-block px-2 py-1 rounded border border-gray-200">GSTIN: {gstSettings.gst_number}</p>
                 )}
               </div>
@@ -155,7 +156,7 @@ export default function InvoiceClient({ booking, services, gstSettings }: Invoic
                   <span className="text-sm font-black text-gray-400 uppercase tracking-widest">Total Paid</span>
                   <span className="text-4xl font-black text-[#6069c9] tracking-tight">₹{total}</span>
                 </div>
-                {showGst && gstRate > 0 && (
+                {applyGstRate && gstRate > 0 && (
                   <div className="flex justify-between text-[11px] text-gray-400 font-bold mt-2 pt-3 border-t border-gray-200/50">
                     <span className="uppercase tracking-wider">Includes GST @ {gstRate}%</span>
                     <span>₹{gstAmount.toFixed(2)}</span>
