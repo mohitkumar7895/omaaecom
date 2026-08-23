@@ -40,7 +40,7 @@ export default function CashbackPage() {
                   year: "numeric",
                 }),
                 details: h.details,
-                amount: `₹${Number(h.amount).toFixed(2)}`,
+                amount: `₹${Number(h.amount)}`,
                 status: h.status
               }));
               setHistory(formattedHistory);
@@ -90,7 +90,7 @@ export default function CashbackPage() {
             year: "numeric",
           }),
           details: "Daily Ad Claim",
-          amount: `₹${Number(data.amount).toFixed(2)}`,
+          amount: `₹${Number(data.amount)}`,
           status: "Success",
         },
         ...prev,
@@ -240,7 +240,7 @@ export default function CashbackPage() {
           <div className="space-y-6">
             <div className="bg-[#1a2b3c] rounded-2xl p-6 text-white shadow-sm">
               <p className="text-xs text-gray-300 mb-2 font-medium">Available cashback balance</p>
-              <div className="text-4xl font-bold mb-1">₹{balance.toFixed(2)}</div>
+              <div className="text-4xl font-bold mb-1">₹{Number(balance)}</div>
               <p className="text-[11px] text-gray-400 mb-6">Minimum withdrawal amount: ₹500</p>
               <button className="w-full bg-white text-[#1a2b3c] hover:bg-gray-50 font-bold py-3 px-4 rounded-xl transition-colors text-sm">
                 Complete KYC to withdraw

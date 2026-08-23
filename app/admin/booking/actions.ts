@@ -18,8 +18,8 @@ export async function updateWorkingStatus(formData: FormData) {
   
   if (id && status) {
     try {
-      // Check if status is Complete
-      if (status === 'Complete') {
+      // Check if status is Completed
+      if (status === 'Completed') {
         // Fetch booking details
         const [rows]: any = await pool.query("SELECT type, mobile, coupon_code, referred_by FROM bookings WHERE id = ?", [id]);
         if (rows && rows.length > 0) {

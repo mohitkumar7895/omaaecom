@@ -150,7 +150,7 @@ export default function WalletPage() {
                 </p>
                 <div className="flex items-baseline gap-1">
                   <span className="text-3xl sm:text-4xl font-semibold text-white/80">₹</span>
-                  <h2 className="text-5xl sm:text-7xl font-black text-white tracking-tight">{balance.toFixed(2)}</h2>
+                  <h2 className="text-5xl sm:text-7xl font-black text-white tracking-tight">{Number(balance)}</h2>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -168,11 +168,11 @@ export default function WalletPage() {
             <div className="mt-10 pt-6 border-t border-white/10 grid grid-cols-2 gap-4">
               <div>
                 <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Total Earned</p>
-                <p className="text-emerald-400 font-bold text-lg">₹{totalEarned.toFixed(2)}</p>
+                <p className="text-emerald-400 font-bold text-lg">₹{Number(totalEarned)}</p>
               </div>
               <div>
                 <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Spent</p>
-                <p className="text-white font-bold text-lg">₹0.00</p>
+                <p className="text-white font-bold text-lg">₹0</p>
               </div>
             </div>
           </div>
@@ -212,7 +212,7 @@ export default function WalletPage() {
                     </div>
                     <div className="text-right">
                       <p className={`font-black ${tx.type === 'Credit' ? 'text-emerald-600' : 'text-red-600'}`}>
-                        {tx.type === 'Credit' ? '+' : '-'}₹{Number(tx.amount).toFixed(2)}
+                        {tx.type === 'Credit' ? '+' : '-'}₹{Number(tx.amount)}
                       </p>
                       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">
                         {new Date(tx.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}

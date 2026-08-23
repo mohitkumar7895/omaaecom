@@ -77,7 +77,7 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
                 <Link href={`/services/${newProducts[0].id}`} className="flex flex-col group cursor-pointer bg-[#f4f5f8] rounded-2xl p-3 md:p-4 hover:bg-gray-100 transition-colors">
                   <div className="flex items-center space-x-1.5 text-[#2c8af8] mb-2">
                     <ShoppingCart className="w-6 h-5" fill="currentColor" />
-
+                    <span className="font-bold text-[14px] md:text-[15px] tracking-tight truncate leading-none pt-0.5">New Products</span>
                   </div>
                   <div className="flex justify-center items-center mt-1">
                     <div className="w-20 h-20 md:w-[84px] md:h-[84px] bg-white rounded-[14px] flex-shrink-0 flex items-center justify-center shadow-sm overflow-hidden p-2 group-hover:-translate-y-0.5 transition-transform">
@@ -94,8 +94,8 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
               {/* AMC Products Card */}
               {amcProducts.length > 0 && (
                 <Link href={`/services/${amcProducts[0].id}`} className="flex flex-col group cursor-pointer bg-[#f4f5f8] rounded-2xl p-3 md:p-4 hover:bg-gray-100 transition-colors relative">
-                  <div className="flex items-center text-[#21a868] mb-2">
-
+                  <div className="flex items-center space-x-1.5 text-[#21a868] mb-2">
+                    <span className="font-bold text-[14px] md:text-[15px] tracking-tight truncate leading-none pt-0.5">RO AMC</span>
                   </div>
                   <div className="flex justify-center items-center mt-1">
                     <div className="w-20 h-20 md:w-[84px] md:h-[84px] bg-white rounded-[14px] flex-shrink-0 flex items-center justify-center shadow-sm relative overflow-hidden p-2 group-hover:-translate-y-0.5 transition-transform">

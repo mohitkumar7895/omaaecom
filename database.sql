@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS bookings (
   total INT DEFAULT 0,
   payment_method VARCHAR(50) DEFAULT 'cashfree',
   payment_status ENUM('Completed', 'Pending') DEFAULT 'Pending',
-  working_status ENUM('Complete', 'Reject', 'Pendi') DEFAULT 'Pendi',
+  working_status ENUM('Completed', 'Reject', 'Pendi') DEFAULT 'Pendi',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
