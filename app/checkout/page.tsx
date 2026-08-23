@@ -289,7 +289,7 @@ function CheckoutContent() {
         <div className="flex flex-col xl:flex-row gap-8 xl:gap-12">
           
           {/* Left Column - Booking Details */}
-          <div className="flex-1 w-full order-2 xl:order-1">
+          <div className="flex-1 w-full">
             <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 p-6 sm:p-8 md:p-10 relative">
 
               <div className="flex items-center gap-4 mb-8">
@@ -310,7 +310,7 @@ function CheckoutContent() {
                       value={form.name}
                       onChange={handleChange}
                       placeholder="John Doe" 
-                      className={`w-full bg-white border rounded-xl px-4 py-3.5 outline-none transition-all text-gray-900 font-medium placeholder:text-gray-400 ${errors.name ? 'border-red-400 focus:ring-4 focus:ring-red-100' : 'border-gray-200 focus:border-black focus:ring-4 focus:ring-black/5 hover:border-gray-300'}`}
+                      className={`w-full bg-white border rounded-xl px-4 py-3.5 outline-none transition-all text-gray-900 font-medium placeholder:text-gray-300 ${errors.name ? 'border-red-400 focus:ring-4 focus:ring-red-100' : 'border-gray-200 focus:border-black focus:ring-4 focus:ring-black/5 hover:border-gray-300'}`}
                     />
                     {errors.name && <p className="text-red-500 text-xs mt-1.5 font-medium flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5"/>{errors.name}</p>}
                   </div>
@@ -327,7 +327,7 @@ function CheckoutContent() {
                         onChange={handleChange}
                         placeholder="9876543210"
                         maxLength={10}
-                        className={`w-full bg-white border rounded-xl pl-16 pr-4 py-3.5 outline-none transition-all text-gray-900 font-medium placeholder:text-gray-400 ${errors.mobile ? 'border-red-400 focus:ring-4 focus:ring-red-100' : 'border-gray-200 focus:border-black focus:ring-4 focus:ring-black/5 hover:border-gray-300'}`}
+                        className={`w-full bg-white border rounded-xl pl-16 pr-4 py-3.5 outline-none transition-all text-gray-900 font-medium placeholder:text-gray-300 ${errors.mobile ? 'border-red-400 focus:ring-4 focus:ring-red-100' : 'border-gray-200 focus:border-black focus:ring-4 focus:ring-black/5 hover:border-gray-300'}`}
                       />
                     </div>
                     {errors.mobile && <p className="text-red-500 text-xs mt-1.5 font-medium flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5"/>{errors.mobile}</p>}
@@ -346,7 +346,7 @@ function CheckoutContent() {
                       value={form.email}
                       onChange={handleChange}
                       placeholder="you@example.com" 
-                      className="w-full bg-white border border-gray-200 rounded-xl pl-11 pr-4 py-3.5 outline-none focus:border-black focus:ring-4 focus:ring-black/5 hover:border-gray-300 transition-all text-gray-900 font-medium placeholder:text-gray-400"
+                      className="w-full bg-white border border-gray-200 rounded-xl pl-11 pr-4 py-3.5 outline-none focus:border-black focus:ring-4 focus:ring-black/5 hover:border-gray-300 transition-all text-gray-900 font-medium placeholder:text-gray-300"
                     />
                   </div>
                 </div>
@@ -359,7 +359,7 @@ function CheckoutContent() {
                     value={form.address}
                     onChange={handleChange}
                     placeholder="House No, Street, Landmark, City, Pincode" 
-                    className={`w-full bg-white border rounded-xl px-4 py-3.5 outline-none transition-all resize-none text-gray-900 font-medium placeholder:text-gray-400 ${errors.address ? 'border-red-400 focus:ring-4 focus:ring-red-100' : 'border-gray-200 focus:border-black focus:ring-4 focus:ring-black/5 hover:border-gray-300'}`}
+                    className={`w-full bg-white border rounded-xl px-4 py-3.5 outline-none transition-all resize-none text-gray-900 font-medium placeholder:text-gray-300 ${errors.address ? 'border-red-400 focus:ring-4 focus:ring-red-100' : 'border-gray-200 focus:border-black focus:ring-4 focus:ring-black/5 hover:border-gray-300'}`}
                   ></textarea>
                   {errors.address && <p className="text-red-500 text-xs mt-1.5 font-medium flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5"/>{errors.address}</p>}
                 </div>
@@ -384,7 +384,7 @@ function CheckoutContent() {
           </div>
 
           {/* Right Column - Payment Summary */}
-          <div className="w-full xl:w-[480px] shrink-0 order-1 xl:order-2">
+          <div className="w-full xl:w-[480px] shrink-0">
             <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 p-6 sm:p-8 xl:sticky xl:top-28 transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
               <div className="flex items-center gap-4 mb-8">
                 <div className="w-12 h-12 rounded-2xl bg-gray-100 text-gray-900 flex items-center justify-center font-bold text-xl shadow-inner">2</div>

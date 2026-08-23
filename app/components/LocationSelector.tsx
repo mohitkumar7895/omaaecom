@@ -265,7 +265,7 @@ export default function LocationSelector() {
                   disabled={isLoading}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1 bg-transparent border-none focus:outline-none text-gray-800 placeholder-gray-400 text-sm sm:text-base min-w-0"
+                  className="flex-1 bg-transparent border-none focus:outline-none text-gray-800 placeholder-gray-300 text-sm sm:text-base min-w-0"
                 />
                 {isSearching && <Loader2 className="w-5 h-5 text-gray-400 animate-spin ml-2" />}
               </div>

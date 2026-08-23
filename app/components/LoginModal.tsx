@@ -173,7 +173,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="your.email@example.com"
-                      className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-[15px] font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#6b62d9]/20 focus:border-[#6b62d9] transition-all"
+                      className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-[15px] font-medium text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#6b62d9]/20 focus:border-[#6b62d9] transition-all"
                     />
                   </div>
 
@@ -206,7 +206,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ''))}
                     placeholder="Enter 6-digit OTP"
-                    className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-[15px] font-bold tracking-widest text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#6b62d9]/20 focus:border-[#6b62d9] transition-all text-center"
+                    className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl text-[15px] font-bold tracking-widest text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-[#6b62d9]/20 focus:border-[#6b62d9] transition-all text-center"
                   />
                 </div>
 

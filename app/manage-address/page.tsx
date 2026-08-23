@@ -66,7 +66,7 @@ export default function ManageAddressPage() {
   }
 
   // Premium input class
-  const inputClass = "w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-xl text-[15px] text-gray-900 focus:outline-none focus:bg-white focus:ring-4 focus:ring-[#f39c12]/15 focus:border-[#f39c12] transition-all placeholder:text-gray-400 font-medium";
+  const inputClass = "w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-100 rounded-xl text-[15px] text-gray-900 focus:outline-none focus:bg-white focus:ring-4 focus:ring-[#f39c12]/15 focus:border-[#f39c12] transition-all placeholder:text-gray-300 font-medium";
   const labelClass = "block text-gray-700 text-[13px] font-bold mb-2 uppercase tracking-wide";
 
   return (

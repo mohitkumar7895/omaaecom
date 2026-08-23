@@ -54,7 +54,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <input 
                 type="text" 
                 placeholder="Search bookings, users, or services..." 
-                className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all bg-gray-50 hover:bg-white focus:bg-white"
+                className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg text-sm placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all bg-gray-50 hover:bg-white focus:bg-white"
               />
             </div>
           </div>
