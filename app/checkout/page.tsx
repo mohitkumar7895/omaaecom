@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import { CheckCircle2, Lock, ShieldCheck, Hash, IndianRupee, Calendar, Clock, MapPin, CreditCard, Edit, Home, List, AlertCircle, Mail } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import BookingSchedulePicker from "../components/BookingSchedulePicker";
 import CashbackFeatures from "../components/CashbackFeatures";
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [cart, setCart] = useState<any[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<'online' | 'cash'>('online');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,6 +24,7 @@ export default function CheckoutPage() {
     address: '',
     booking_date: '',
     time_slot: '',
+    referred_by: searchParams.get('ref') || '',
   });
 
   useEffect(() => {
@@ -108,6 +110,7 @@ export default function CheckoutPage() {
           payment_method: paymentMethod,
           total_amount: totalAmount,
           cart_items: cart,
+          referred_by: form.referred_by,
         }),
       });
 
@@ -404,6 +407,23 @@ export default function CheckoutPage() {
                       onChange={handleChange}
                       placeholder="your.email@example.com" 
                       className="w-full bg-[#f8f9fa] border-2 border-transparent rounded-2xl pl-12 pr-5 py-4 outline-none focus:bg-white focus:border-[#6b62d9] focus:ring-4 focus:ring-[#6b62d9]/10 hover:bg-gray-100 transition-all text-gray-800 font-semibold placeholder:text-gray-400"
+                    />
+                  </div>
+                </div>
+
+                <div className="group">
+                  <label className="block text-[12px] font-black text-gray-400 uppercase tracking-widest mb-2.5 transition-colors group-focus-within:text-[#6b62d9]">Referral Code (Optional)</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                      <Hash className="w-5 h-5 text-gray-400 group-focus-within:text-[#6b62d9] transition-colors" />
+                    </div>
+                    <input 
+                      type="text"
+                      name="referred_by"
+                      value={form.referred_by}
+                      onChange={handleChange}
+                      placeholder="e.g. OC512856" 
+                      className="w-full bg-[#f8f9fa] border-2 border-transparent rounded-2xl pl-12 pr-5 py-4 outline-none focus:bg-white focus:border-[#6b62d9] focus:ring-4 focus:ring-[#6b62d9]/10 hover:bg-gray-100 transition-all text-gray-800 font-semibold placeholder:text-gray-400 uppercase"
                     />
                   </div>
                 </div>

@@ -21,7 +21,7 @@ export async function updateWorkingStatus(formData: FormData) {
       // Check if status is Complete
       if (status === 'Complete') {
         // Fetch booking details
-        const [rows]: any = await pool.query("SELECT type, mobile, coupon_code FROM bookings WHERE id = ?", [id]);
+        const [rows]: any = await pool.query("SELECT type, mobile, coupon_code, referred_by FROM bookings WHERE id = ?", [id]);
         if (rows && rows.length > 0) {
           const booking = rows[0];
           
@@ -41,8 +41,42 @@ export async function updateWorkingStatus(formData: FormData) {
               [status, couponCode, id]
             );
             revalidatePath("/admin/booking", 'layout');
-            return;
+          } else {
+            // Update booking status directly
+            await pool.query("UPDATE bookings SET working_status = ? WHERE id = ?", [status, id]);
+            revalidatePath("/admin/booking", 'layout');
           }
+
+          // Referral payout logic: If referred_by exists, add ₹100 to the referrer's wallet
+          if (booking.referred_by) {
+            const description = `Referral Bonus for Booking #${id}`;
+            
+            // Check if this bonus was already paid to prevent duplicate payouts
+            const [existingTxs]: any = await pool.query(
+              "SELECT id FROM wallet_transactions WHERE description = ?",
+              [description]
+            );
+            
+            if (existingTxs.length === 0) {
+              // Find the email of the referral member
+              const [referrerRows]: any = await pool.query(
+                "SELECT email FROM referral_registrations WHERE referral_member_id = ?",
+                [booking.referred_by]
+              );
+              
+              if (referrerRows && referrerRows.length > 0) {
+                const referrerEmail = referrerRows[0].email;
+                
+                // Add ₹100 to their wallet
+                await pool.query(
+                  "INSERT INTO wallet_transactions (user_email, amount, type, description) VALUES (?, ?, 'Credit', ?)",
+                  [referrerEmail, 100.00, description]
+                );
+              }
+            }
+          }
+
+          return;
         }
       }
       
