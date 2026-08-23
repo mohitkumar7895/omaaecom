@@ -115,7 +115,7 @@ export default function LiveSearchBar({
                   </div>
                   {item.selling_price && (
                     <div className="text-sm font-bold text-blue-600 shrink-0">
-                      ₹{item.selling_price}
+                      ₹{Number(item.selling_price)}
                     </div>
                   )}
                 </div>

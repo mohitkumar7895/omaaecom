@@ -24,7 +24,7 @@ export default function ServiceCard({ service, quantity = 0, onAdd, onRemove, on
         </div>
 
         <div className="flex items-center space-x-2 mb-3 sm:mb-4">
-          <span className="text-blue-600 font-bold text-lg sm:text-[22px]">₹{service.selling_price}</span>
+          <span className="text-blue-600 font-bold text-lg sm:text-[22px]">₹{Number(service.selling_price)}</span>
           <span className="text-gray-400 text-xs sm:text-sm flex items-center gap-1">
             <span className="text-gray-300">•</span> {service.duration || '45 mins'}
           </span>

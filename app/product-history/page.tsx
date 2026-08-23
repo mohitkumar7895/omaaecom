@@ -110,7 +110,7 @@ export default function ProductHistoryPage() {
                     {order.services?.map((item: any, i: number) => (
                       <div key={i} className="flex justify-between text-sm">
                         <span className="text-gray-600 font-medium">{item.name}</span>
-                        <span className="text-gray-900 font-bold">₹{item.price}</span>
+                        <span className="text-gray-900 font-bold">₹{Number(item.price)}</span>
                       </div>
                     ))}
                   </div>
@@ -122,7 +122,7 @@ export default function ProductHistoryPage() {
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-gray-400 font-semibold mb-0.5 uppercase tracking-widest">Total Paid</p>
-                      <p className="font-extrabold text-[#38bdf8] text-lg">₹{order.total_amount}</p>
+                      <p className="font-extrabold text-[#38bdf8] text-lg">₹{Number(order.total_amount)}</p>
                     </div>
                   </div>
                 </div>

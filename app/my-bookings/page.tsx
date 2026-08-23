@@ -127,7 +127,7 @@ export default function MyBookingsPage() {
                           {booking.services.map((s: any, idx: number) => (
                             <div key={idx} className="flex justify-between items-center text-sm">
                               <span className="font-semibold text-gray-800">{s.title} <span className="text-gray-400 text-xs ml-1">x{s.quantity || 1}</span></span>
-                              <span className="font-bold text-gray-900">₹{s.price}</span>
+                              <span className="font-bold text-gray-900">₹{Number(s.price)}</span>
                             </div>
                           ))}
                         </div>
@@ -139,7 +139,7 @@ export default function MyBookingsPage() {
                     <div className="pt-4 border-t border-gray-50">
                       <div className="flex justify-between items-center text-[15px]">
                         <span className="font-bold text-gray-500">Total Amount</span>
-                        <span className="font-black text-[#6069c9] text-lg">₹{booking.total}</span>
+                        <span className="font-black text-[#6069c9] text-lg">₹{Number(booking.total)}</span>
                       </div>
                     </div>
                   </div>

@@ -177,7 +177,7 @@ export default function ServiceDetailsModal({ service, onClose, onAdd, quantity 
         {/* Bottom Bar */}
         <div className="border-t border-gray-200 bg-white p-3 sm:p-4 flex items-center justify-between sticky bottom-0 rounded-b-3xl sm:rounded-b-2xl">
           <div>
-            <div className="text-xl sm:text-2xl font-bold text-blue-600">₹{service.selling_price}</div>
+            <div className="text-xl sm:text-2xl font-bold text-blue-600">₹{Number(service.selling_price)}</div>
             <div className="text-xs sm:text-sm text-gray-500">{service.duration || '45 mins'}</div>
           </div>
           {quantity > 0 ? (

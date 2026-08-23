@@ -160,7 +160,7 @@ function CheckoutContent() {
                   </div>
                   <div className="text-right">
                     <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1">Total Amount</p>
-                    <p className="text-gray-900 font-black text-xl">₹{totalAmount}</p>
+                    <p className="text-gray-900 font-black text-xl">₹{Number(totalAmount)}</p>
                   </div>
                 </div>
 
@@ -227,7 +227,7 @@ function CheckoutContent() {
                   </div>
                   <div className="text-right">
                     <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1">Total Amount</p>
-                    <p className="text-gray-900 font-black text-xl">₹{totalAmount}</p>
+                    <p className="text-gray-900 font-black text-xl">₹{Number(totalAmount)}</p>
                   </div>
                 </div>
 

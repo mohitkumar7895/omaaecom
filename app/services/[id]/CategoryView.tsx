@@ -240,7 +240,7 @@ export default function CategoryView({ category, subcategories, services }: Cate
                   <div key={item.id} className="flex justify-between items-start mb-4">
                     <div className="flex-1 pr-2">
                       <h3 className="text-[13px] font-semibold text-gray-800 line-clamp-2 leading-snug">{item.title}</h3>
-                      <div className="text-sm font-bold mt-1 text-gray-900">₹{item.selling_price}</div>
+                      <div className="text-sm font-bold mt-1 text-gray-900">₹{Number(item.selling_price)}</div>
                     </div>
                     
                     {/* Quantity Selector */}
@@ -337,7 +337,7 @@ export default function CategoryView({ category, subcategories, services }: Cate
                 <div key={item.id} className="flex justify-between items-center py-5 border-b border-gray-50/50 last:border-0">
                   <div className="flex-1 pr-4">
                     <h3 className="text-[15px] font-semibold text-gray-800 leading-snug mb-1.5">{item.title}</h3>
-                    <div className="text-[15px] font-extrabold text-[#6069c9]">₹{item.selling_price}</div>
+                    <div className="text-[15px] font-extrabold text-[#6069c9]">₹{Number(item.selling_price)}</div>
                   </div>
                   
                   {/* Quantity Selector */}

@@ -105,7 +105,7 @@ export default function MyAmcPage() {
                   <div className="pt-4 border-t border-gray-100 flex justify-between items-center">
                     <div>
                       <p className="text-xs text-gray-400 font-semibold">Amount Paid</p>
-                      <p className="font-bold text-gray-900">₹{plan.total_amount}</p>
+                      <p className="font-bold text-gray-900">₹{Number(plan.total_amount)}</p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-400 font-semibold">Date</p>
