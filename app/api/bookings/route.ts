@@ -84,7 +84,10 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, order_id: orderId });
   } catch (error: any) {
-    console.error("Booking error:", error);
+    console.error("====== DATABASE / BOOKING ERROR ======");
+    console.error("Error Message:", error.message);
+    console.error("Error Code:", error.code);
+    console.error("Full Error:", error);
     return NextResponse.json({ error: "Failed to create booking: " + error.message }, { status: 500 });
   }
 }

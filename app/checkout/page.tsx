@@ -351,34 +351,35 @@ function CheckoutContent() {
           
           {/* Left Column - Booking Details */}
           <div className="flex-1 w-full order-2 xl:order-1">
-            <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 p-6 sm:p-8 md:p-10 relative overflow-hidden transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
-              {/* Subtle top accent */}
-              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#6b62d9] via-[#8c84eb] to-[#9a91ec]"></div>
+            <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 p-6 sm:p-8 md:p-10 relative">
 
               <div className="flex items-center gap-4 mb-8">
-                <div className="w-12 h-12 rounded-2xl bg-[#f0effb] text-[#6b62d9] flex items-center justify-center font-bold text-xl shadow-inner">1</div>
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Your Information</h2>
+                <div className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center font-bold text-lg shadow-md">1</div>
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Your Information</h2>
+                  <p className="text-sm text-gray-500 font-medium mt-0.5">Where should we provide the service?</p>
+                </div>
               </div>
 
-              <div className="space-y-6 sm:space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="group">
-                    <label className="block text-[12px] font-black text-gray-400 uppercase tracking-widest mb-2.5 transition-colors group-focus-within:text-[#6b62d9]">Full Name *</label>
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="space-y-1.5">
+                    <label className="text-[13px] font-bold text-gray-700">Full Name</label>
                     <input 
                       type="text"
                       name="name"
                       value={form.name}
                       onChange={handleChange}
-                      placeholder="e.g. John Doe" 
-                      className={`w-full bg-[#f8f9fa] border-2 rounded-2xl px-5 py-4 outline-none focus:ring-4 transition-all text-gray-800 font-semibold placeholder:text-gray-400 ${errors.name ? 'border-red-300 focus:border-red-500 focus:ring-red-100 bg-red-50/30' : 'border-transparent focus:border-[#6b62d9] focus:ring-[#6b62d9]/10 focus:bg-white hover:bg-gray-100'}`}
+                      placeholder="John Doe" 
+                      className={`w-full bg-white border rounded-xl px-4 py-3.5 outline-none transition-all text-gray-900 font-medium placeholder:text-gray-400 ${errors.name ? 'border-red-400 focus:ring-4 focus:ring-red-100' : 'border-gray-200 focus:border-black focus:ring-4 focus:ring-black/5 hover:border-gray-300'}`}
                     />
-                    {errors.name && <p className="text-red-500 text-xs mt-2 font-medium flex items-center gap-1"><AlertCircle className="w-3 h-3"/>{errors.name}</p>}
+                    {errors.name && <p className="text-red-500 text-xs mt-1.5 font-medium flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5"/>{errors.name}</p>}
                   </div>
-                  <div className="group">
-                    <label className="block text-[12px] font-black text-gray-400 uppercase tracking-widest mb-2.5 transition-colors group-focus-within:text-[#6b62d9]">Mobile Number *</label>
+                  <div className="space-y-1.5">
+                    <label className="text-[13px] font-bold text-gray-700">Mobile Number</label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                        <span className="text-gray-500 font-semibold">+91</span>
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none border-r border-gray-200 pr-3 my-2">
+                        <span className="text-gray-500 font-semibold text-sm">+91</span>
                       </div>
                       <input 
                         type="tel"
@@ -387,63 +388,65 @@ function CheckoutContent() {
                         onChange={handleChange}
                         placeholder="9876543210"
                         maxLength={10}
-                        className={`w-full bg-[#f8f9fa] border-2 rounded-2xl pl-14 pr-5 py-4 outline-none focus:ring-4 transition-all text-gray-800 font-semibold placeholder:text-gray-400 ${errors.mobile ? 'border-red-300 focus:border-red-500 focus:ring-red-100 bg-red-50/30' : 'border-transparent focus:border-[#6b62d9] focus:ring-[#6b62d9]/10 focus:bg-white hover:bg-gray-100'}`}
+                        className={`w-full bg-white border rounded-xl pl-16 pr-4 py-3.5 outline-none transition-all text-gray-900 font-medium placeholder:text-gray-400 ${errors.mobile ? 'border-red-400 focus:ring-4 focus:ring-red-100' : 'border-gray-200 focus:border-black focus:ring-4 focus:ring-black/5 hover:border-gray-300'}`}
                       />
                     </div>
-                    {errors.mobile && <p className="text-red-500 text-xs mt-2 font-medium flex items-center gap-1"><AlertCircle className="w-3 h-3"/>{errors.mobile}</p>}
+                    {errors.mobile && <p className="text-red-500 text-xs mt-1.5 font-medium flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5"/>{errors.mobile}</p>}
                   </div>
                 </div>
 
-                <div className="group">
-                  <label className="block text-[12px] font-black text-gray-400 uppercase tracking-widest mb-2.5 transition-colors group-focus-within:text-[#6b62d9]">Email Address (Optional)</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                      <Mail className="w-5 h-5 text-gray-400 group-focus-within:text-[#6b62d9] transition-colors" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="space-y-1.5">
+                    <label className="text-[13px] font-bold text-gray-700">Email Address <span className="text-gray-400 font-normal">(Optional)</span></label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <Mail className="w-4 h-4 text-gray-400" />
+                      </div>
+                      <input 
+                        type="email"
+                        name="email"
+                        value={form.email}
+                        onChange={handleChange}
+                        placeholder="you@example.com" 
+                        className="w-full bg-white border border-gray-200 rounded-xl pl-11 pr-4 py-3.5 outline-none focus:border-black focus:ring-4 focus:ring-black/5 hover:border-gray-300 transition-all text-gray-900 font-medium placeholder:text-gray-400"
+                      />
                     </div>
-                    <input 
-                      type="email"
-                      name="email"
-                      value={form.email}
-                      onChange={handleChange}
-                      placeholder="your.email@example.com" 
-                      className="w-full bg-[#f8f9fa] border-2 border-transparent rounded-2xl pl-12 pr-5 py-4 outline-none focus:bg-white focus:border-[#6b62d9] focus:ring-4 focus:ring-[#6b62d9]/10 hover:bg-gray-100 transition-all text-gray-800 font-semibold placeholder:text-gray-400"
-                    />
                   </div>
-                </div>
 
-                <div className="group">
-                  <label className="block text-[12px] font-black text-gray-400 uppercase tracking-widest mb-2.5 transition-colors group-focus-within:text-[#6b62d9]">Referral Code (Optional)</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                      <Hash className="w-5 h-5 text-gray-400 group-focus-within:text-[#6b62d9] transition-colors" />
+                  <div className="space-y-1.5">
+                    <label className="text-[13px] font-bold text-gray-700">Referral Code <span className="text-gray-400 font-normal">(Optional)</span></label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <Hash className="w-4 h-4 text-gray-400" />
+                      </div>
+                      <input 
+                        type="text"
+                        name="referred_by"
+                        value={form.referred_by}
+                        onChange={handleChange}
+                        placeholder="OC512856" 
+                        className="w-full bg-white border border-gray-200 rounded-xl pl-11 pr-4 py-3.5 outline-none focus:border-black focus:ring-4 focus:ring-black/5 hover:border-gray-300 transition-all text-gray-900 font-medium placeholder:text-gray-400 uppercase"
+                      />
                     </div>
-                    <input 
-                      type="text"
-                      name="referred_by"
-                      value={form.referred_by}
-                      onChange={handleChange}
-                      placeholder="e.g. OC512856" 
-                      className="w-full bg-[#f8f9fa] border-2 border-transparent rounded-2xl pl-12 pr-5 py-4 outline-none focus:bg-white focus:border-[#6b62d9] focus:ring-4 focus:ring-[#6b62d9]/10 hover:bg-gray-100 transition-all text-gray-800 font-semibold placeholder:text-gray-400 uppercase"
-                    />
                   </div>
                 </div>
 
-                <div className="group">
-                  <label className="block text-[12px] font-black text-gray-400 uppercase tracking-widest mb-2.5 transition-colors group-focus-within:text-[#6b62d9]">Service Address *</label>
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-bold text-gray-700">Service Address</label>
                   <textarea 
                     rows={3}
                     name="address"
                     value={form.address}
                     onChange={handleChange}
                     placeholder="House No, Street, Landmark, City, Pincode" 
-                    className={`w-full bg-[#f8f9fa] border-2 rounded-2xl px-5 py-4 outline-none focus:ring-4 transition-all resize-none text-gray-800 font-semibold placeholder:text-gray-400 ${errors.address ? 'border-red-300 focus:border-red-500 focus:ring-red-100 bg-red-50/30' : 'border-transparent focus:border-[#6b62d9] focus:ring-[#6b62d9]/10 focus:bg-white hover:bg-gray-100'}`}
+                    className={`w-full bg-white border rounded-xl px-4 py-3.5 outline-none transition-all resize-none text-gray-900 font-medium placeholder:text-gray-400 ${errors.address ? 'border-red-400 focus:ring-4 focus:ring-red-100' : 'border-gray-200 focus:border-black focus:ring-4 focus:ring-black/5 hover:border-gray-300'}`}
                   ></textarea>
-                  {errors.address && <p className="text-red-500 text-xs mt-2 font-medium flex items-center gap-1"><AlertCircle className="w-3 h-3"/>{errors.address}</p>}
+                  {errors.address && <p className="text-red-500 text-xs mt-1.5 font-medium flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5"/>{errors.address}</p>}
                 </div>
 
                 {/* Booking Date & Time Slot */}
                 {requiresSchedule && (
-                  <div className="pt-6 border-t border-gray-100">
+                  <div className="pt-8 mt-8 border-t border-gray-100">
                     <BookingSchedulePicker 
                       selectedDate={form.booking_date}
                       selectedTime={form.time_slot}
