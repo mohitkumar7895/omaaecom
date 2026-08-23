@@ -4,7 +4,7 @@ import pool from "../../lib/db";
 import { revalidatePath } from "next/cache";
 
 export async function saveGstSettings(formData: FormData) {
-  const gstRate = 18;
+  const gstRate = formData.get("gst_rate") || 18;
   const onlineGstEnabled = true;
   const cashGstEnabled = true;
   const gstNumber = formData.get("gst_number") || "";

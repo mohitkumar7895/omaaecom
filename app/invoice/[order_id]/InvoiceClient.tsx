@@ -22,26 +22,34 @@ export default function InvoiceClient({ booking, services, gstSettings }: Invoic
     year: 'numeric'
   });
 
-  const showGst = gstSettings && gstSettings.show_gst_on_invoice && gstSettings.gst_number;
+  const isGstEligibleService = booking.type === 'AMC' || booking.type === 'New Product';
+  const showGst = isGstEligibleService && gstSettings && gstSettings.show_gst_on_invoice && gstSettings.gst_number && gstSettings.gst_number !== '0' && gstSettings.gst_number !== 'null';
   
   // Calculate totals
   const subtotal = services.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  // Optional: We can show GST breakdown if we had the rate, but the user removed rate from the UI.
-  // So we just show the total. The total_amount is already the final amount.
   const total = Number(booking.total);
 
+  const gstRate = Number(gstSettings?.gst_rate || 0);
+  let baseAmount = total;
+  let gstAmount = 0;
+
+  if (showGst && gstRate > 0) {
+    baseAmount = total / (1 + (gstRate / 100));
+    gstAmount = total - baseAmount;
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 font-sans print:bg-white print:p-0 print:m-0">
-      <div className="max-w-3xl mx-auto">
+    <div className="min-h-screen bg-gray-100 py-10 px-4 font-sans print:bg-white print:p-0 print:m-0">
+      <div className="max-w-4xl mx-auto relative">
         
         {/* Action Bar - Hidden when printing */}
-        <div className="flex justify-between items-center mb-6 print:hidden">
-          <Link href="/my-bookings" className="text-[#6069c9] hover:underline font-medium text-sm">
+        <div className="flex justify-between items-center mb-8 print:hidden bg-white px-6 py-4 rounded-2xl shadow-sm border border-gray-200">
+          <Link href="/my-bookings" className="text-gray-500 hover:text-gray-900 font-bold text-sm transition-colors flex items-center gap-2">
             &larr; Back to My Bookings
           </Link>
           <button 
             onClick={handlePrint}
-            className="flex items-center gap-2 bg-[#6069c9] hover:bg-[#525ab5] text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow-sm"
+            className="flex items-center gap-2 bg-[#6069c9] hover:bg-[#525ab5] text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
           >
             <Printer className="w-4 h-4" />
             Print / Download PDF
@@ -49,72 +57,80 @@ export default function InvoiceClient({ booking, services, gstSettings }: Invoic
         </div>
 
         {/* Invoice Paper */}
-        <div className="bg-white rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-gray-100 overflow-hidden print:shadow-none print:border-none print:rounded-none">
+        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden print:shadow-none print:rounded-none mx-auto border border-gray-200 relative">
           
+          {/* Top colored bar */}
+          <div className="h-3 w-full bg-gradient-to-r from-[#6069c9] to-indigo-400 print:bg-[#6069c9]" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}></div>
+
           {/* Header */}
-          <div className="p-8 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div className="p-8 sm:p-12 flex flex-col md:flex-row justify-between items-start gap-6 border-b border-gray-100">
             <div>
               <Image 
                 src="/logoomaa.webp" 
                 alt="OMAA Logo" 
-                width={150} 
-                height={50} 
-                className="h-10 w-auto object-contain mb-2"
+                width={160} 
+                height={60} 
+                className="h-14 w-auto object-contain mb-5"
                 priority
               />
-              <p className="text-sm text-gray-500 font-medium">OMAA Services</p>
-              {showGst && (
-                <p className="text-xs text-gray-400 font-medium mt-1">GSTIN: {gstSettings.gst_number}</p>
-              )}
+              <div className="text-sm text-gray-500 leading-relaxed">
+                <p className="font-black text-gray-900 text-lg mb-1 tracking-tight">OMAA Services</p>
+                <p className="font-medium">Support: support@omaa.com</p>
+                {showGst && (
+                  <p className="font-bold text-gray-700 mt-2 bg-gray-50 inline-block px-2 py-1 rounded border border-gray-200">GSTIN: {gstSettings.gst_number}</p>
+                )}
+              </div>
             </div>
             
             <div className="text-left md:text-right">
-              <h1 className="text-3xl font-black text-gray-900 tracking-tight uppercase">Invoice</h1>
-              <p className="text-gray-500 font-medium mt-1">#{booking.order_id}</p>
-              <p className="text-gray-500 text-sm mt-1">{formattedDate}</p>
+              <h1 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tighter uppercase mb-2">Invoice</h1>
+              <p className="text-gray-400 font-bold text-xl tracking-wide">#{booking.order_id}</p>
+              <p className="text-gray-500 text-sm font-semibold mt-2">{formattedDate}</p>
             </div>
           </div>
 
           {/* Customer Details */}
-          <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8 bg-gray-50/50 print:bg-white border-b border-gray-100">
+          <div className="p-8 sm:p-12 grid grid-cols-1 md:grid-cols-2 gap-10 bg-[#f8f9fa] print:bg-[#f8f9fa]" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
             <div>
-              <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">Billed To</h3>
-              <p className="text-gray-900 font-bold text-lg">{booking.customer_name}</p>
-              <p className="text-gray-600 text-sm mt-1 max-w-[250px] leading-relaxed">{booking.address}</p>
-              <p className="text-gray-600 text-sm mt-1 font-medium">+91 {booking.mobile}</p>
+              <h3 className="text-[11px] font-black uppercase tracking-widest text-indigo-400 mb-4">Billed To</h3>
+              <p className="text-gray-900 font-black text-2xl mb-2 tracking-tight">{booking.customer_name}</p>
+              <p className="text-gray-600 text-sm max-w-[250px] leading-relaxed mb-3 font-medium">{booking.address}</p>
+              <p className="text-gray-700 text-sm font-bold bg-white inline-block px-3 py-1.5 rounded-lg border border-gray-200 shadow-sm">+91 {booking.mobile}</p>
             </div>
             <div className="md:text-right">
-              <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">Service Details</h3>
-              <p className="text-gray-800 text-sm"><span className="text-gray-500">Category:</span> <span className="font-semibold">{booking.category}</span></p>
-              {booking.booking_date && (
-                <p className="text-gray-800 text-sm mt-1">
-                  <span className="text-gray-500">Schedule:</span> 
-                  <span className="font-semibold">
-                    {booking.booking_date.includes('T') ? new Date(booking.booking_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : booking.booking_date} • {booking.time_slot}
-                  </span>
-                </p>
-              )}
-              <p className="text-gray-800 text-sm mt-1"><span className="text-gray-500">Payment:</span> <span className="font-semibold capitalize">{booking.payment_method}</span></p>
+              <h3 className="text-[11px] font-black uppercase tracking-widest text-indigo-400 mb-4">Service Details</h3>
+              <div className="space-y-3">
+                <p className="text-gray-800 text-sm"><span className="text-gray-400 w-20 inline-block md:w-auto font-bold uppercase text-[10px] tracking-wider">Category:</span> <span className="font-bold bg-white px-2.5 py-1 rounded-md border border-gray-200 shadow-sm ml-1">{booking.category}</span></p>
+                {booking.booking_date && (
+                  <p className="text-gray-800 text-sm">
+                    <span className="text-gray-400 w-20 inline-block md:w-auto font-bold uppercase text-[10px] tracking-wider">Schedule:</span> 
+                    <span className="font-bold ml-1">
+                      {booking.booking_date.includes('T') ? new Date(booking.booking_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : booking.booking_date} • {booking.time_slot}
+                    </span>
+                  </p>
+                )}
+                <p className="text-gray-800 text-sm"><span className="text-gray-400 w-20 inline-block md:w-auto font-bold uppercase text-[10px] tracking-wider">Payment:</span> <span className="font-bold uppercase tracking-wide text-[11px] text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100 shadow-sm ml-1">{booking.payment_method}</span></p>
+              </div>
             </div>
           </div>
 
           {/* Items Table */}
-          <div className="p-8">
-            <div className="overflow-x-auto">
+          <div className="p-8 sm:p-12">
+            <div className="overflow-hidden rounded-xl border border-gray-200 shadow-sm">
               <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b-2 border-gray-100">
-                    <th className="py-3 px-2 text-[11px] font-black uppercase tracking-wider text-gray-400 w-[60%]">Service Description</th>
-                    <th className="py-3 px-2 text-[11px] font-black uppercase tracking-wider text-gray-400 text-center w-[15%]">Qty</th>
-                    <th className="py-3 px-2 text-[11px] font-black uppercase tracking-wider text-gray-400 text-right w-[25%]">Amount</th>
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="py-4 px-6 text-[11px] font-black uppercase tracking-wider text-gray-500 w-[60%]">Service Description</th>
+                    <th className="py-4 px-6 text-[11px] font-black uppercase tracking-wider text-gray-500 text-center w-[15%]">Qty</th>
+                    <th className="py-4 px-6 text-[11px] font-black uppercase tracking-wider text-gray-500 text-right w-[25%]">Amount</th>
                   </tr>
                 </thead>
-                <tbody className="text-sm">
+                <tbody className="text-sm divide-y divide-gray-100">
                   {services.map((item: any, idx: number) => (
-                    <tr key={idx} className="border-b border-gray-50 last:border-0">
-                      <td className="py-4 px-2 text-gray-800 font-medium">{item.title}</td>
-                      <td className="py-4 px-2 text-gray-600 text-center">{item.quantity}</td>
-                      <td className="py-4 px-2 text-gray-800 font-semibold text-right">₹{item.price * item.quantity}</td>
+                    <tr key={idx} className="bg-white hover:bg-gray-50/50 transition-colors">
+                      <td className="py-5 px-6 text-gray-900 font-bold">{item.title}</td>
+                      <td className="py-5 px-6 text-gray-500 text-center font-bold bg-gray-50/30">{item.quantity}</td>
+                      <td className="py-5 px-6 text-gray-900 font-black text-right">₹{item.price * item.quantity}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -122,31 +138,37 @@ export default function InvoiceClient({ booking, services, gstSettings }: Invoic
             </div>
 
             {/* Totals */}
-            <div className="mt-8 pt-4 border-t border-gray-100 flex flex-col items-end">
-              <div className="w-full max-w-[280px] space-y-3">
-                <div className="flex justify-between text-sm text-gray-600 font-medium">
+            <div className="mt-8 flex flex-col items-end">
+              <div className="w-full max-w-[340px] space-y-4 bg-gray-50 p-6 sm:p-8 rounded-2xl border border-gray-100">
+                <div className="flex justify-between text-sm text-gray-500 font-bold">
                   <span>Subtotal</span>
-                  <span>₹{subtotal}</span>
+                  <span className="text-gray-900 font-black">₹{subtotal}</span>
                 </div>
-                {/* Assuming total is subtotal, if total is different due to coupons, we could show discount */}
                 {total < subtotal && (
-                  <div className="flex justify-between text-sm text-green-600 font-medium">
+                  <div className="flex justify-between text-sm text-emerald-600 font-bold">
                     <span>Discount</span>
                     <span>-₹{subtotal - total}</span>
                   </div>
                 )}
-                <div className="flex justify-between items-end pt-3 border-t border-gray-200">
-                  <span className="text-base font-bold text-gray-900">Total Paid</span>
-                  <span className="text-2xl font-black text-[#6069c9]">₹{total}</span>
+                
+                <div className="flex justify-between items-end pt-5 border-t border-gray-200/80">
+                  <span className="text-sm font-black text-gray-400 uppercase tracking-widest">Total Paid</span>
+                  <span className="text-4xl font-black text-[#6069c9] tracking-tight">₹{total}</span>
                 </div>
+                {showGst && gstRate > 0 && (
+                  <div className="flex justify-between text-[11px] text-gray-400 font-bold mt-2 pt-3 border-t border-gray-200/50">
+                    <span className="uppercase tracking-wider">Includes GST @ {gstRate}%</span>
+                    <span>₹{gstAmount.toFixed(2)}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
           {/* Footer */}
-          <div className="bg-gray-50/50 p-6 text-center border-t border-gray-100 print:bg-white print:border-none">
-            <p className="text-gray-500 font-medium text-sm">Thank you for choosing OMAA Services!</p>
-            <p className="text-gray-400 text-xs mt-1">This is a computer-generated invoice and does not require a signature.</p>
+          <div className="bg-[#1a1a2e] p-8 sm:p-10 text-center print:bg-[#1a1a2e] print:!text-white" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
+            <p className="text-white font-black text-xl mb-2 tracking-tight">Thank you for choosing OMAA Services!</p>
+            <p className="text-gray-400 text-xs font-semibold">This is a computer-generated invoice and does not require a physical signature.</p>
           </div>
 
         </div>
@@ -155,7 +177,16 @@ export default function InvoiceClient({ booking, services, gstSettings }: Invoic
       <style dangerouslySetInnerHTML={{__html: `
         @media print {
           @page { margin: 0; size: auto; }
-          body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background-color: white; }
+          body { 
+            -webkit-print-color-adjust: exact !important; 
+            print-color-adjust: exact !important; 
+            background-color: white !important; 
+          }
+          /* Ensure backgrounds are forced in printing for elements that need it */
+          .print\\:bg-\\[\\#1a1a2e\\] { background-color: #1a1a2e !important; }
+          .print\\:bg-\\[\\#f8f9fa\\] { background-color: #f8f9fa !important; }
+          .print\\:bg-\\[\\#6069c9\\] { background-color: #6069c9 !important; }
+          .print\\:\\!text-white { color: white !important; }
         }
       `}} />
     </div>

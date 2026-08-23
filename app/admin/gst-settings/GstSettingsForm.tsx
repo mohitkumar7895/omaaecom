@@ -47,6 +47,17 @@ export default function GstSettingsForm({ settings }: { settings: any }) {
         {/* Top Section */}
         <div className="space-y-4 pt-2">
           <div className="space-y-1.5">
+            <label className="text-[13px] font-bold text-gray-800">GST Rate (%)</label>
+            <input 
+              type="number" 
+              name="gst_rate" 
+              defaultValue={settings.gst_rate}
+              placeholder="e.g. 18"
+              className="w-full border border-gray-200 rounded text-sm px-3 py-2 outline-none focus:border-blue-500"
+            />
+          </div>
+
+          <div className="space-y-1.5">
             <label className="text-[13px] font-bold text-gray-800">GST Number (Optional)</label>
             <input 
               type="text" 
