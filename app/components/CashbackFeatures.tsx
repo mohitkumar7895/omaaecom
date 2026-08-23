@@ -20,6 +20,8 @@ export default function CashbackFeatures({ orderId, isEligible = true }: Cashbac
   const [adCountdown, setAdCountdown] = useState(10);
   const [playingAd, setPlayingAd] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number>(0);
+  const [adPaused, setAdPaused] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragPercent, setDragPercent] = useState(25);
@@ -124,14 +126,31 @@ export default function CashbackFeatures({ orderId, isEligible = true }: Cashbac
   // Handle Ad Watch
   useEffect(() => {
     let interval: any;
-    if (playingAd && adCountdown > 0) {
-      interval = setInterval(() => setAdCountdown((prev) => prev - 1), 1000);
+    if (playingAd && !adPaused && adCountdown > 0) {
+      interval = setInterval(() => {
+        setAdCountdown((prev) => {
+          const next = prev - 1;
+          
+          // Slideshow logic
+          const config = cashbackData?.adConfig;
+          if (config?.ad_type === 'image' && config?.media_urls?.length > 1) {
+            const totalDuration = config.duration || 20;
+            const numImages = config.media_urls.length;
+            const secondsPerImage = totalDuration / numImages;
+            const timeElapsed = totalDuration - next;
+            const newIndex = Math.min(numImages - 1, Math.floor(timeElapsed / secondsPerImage));
+            setCurrentImageIndex(newIndex);
+          }
+          
+          return next;
+        });
+      }, 1000);
     } else if (playingAd && adCountdown === 0) {
       setPlayingAd(false);
       markAdAsWatched();
     }
     return () => clearInterval(interval);
-  }, [playingAd, adCountdown]);
+  }, [playingAd, adCountdown, adPaused, cashbackData]);
 
   // Handle 24h Timer
   useEffect(() => {
@@ -180,8 +199,11 @@ export default function CashbackFeatures({ orderId, isEligible = true }: Cashbac
   };
 
   const startAd = () => {
-    setAdCountdown(10);
+    const config = cashbackData?.adConfig;
+    setAdCountdown(config?.duration || 20);
     setPlayingAd(true);
+    setAdPaused(false);
+    setCurrentImageIndex(0);
   };
 
   // Format 24h timer (HH:MM:SS)
@@ -256,16 +278,61 @@ export default function CashbackFeatures({ orderId, isEligible = true }: Cashbac
                     /* Step 1: Watch Ad */
                     <div>
                       <h3 className="text-2xl font-extrabold text-gray-900 mb-2">Claim Your Cashback</h3>
-                      <p className="text-gray-500 font-medium text-base mb-6">Watch a short video to unlock your cashback timer.</p>
+                      <p className="text-gray-500 font-medium text-base mb-6">Watch to unlock your cashback timer.</p>
                       
-                      <div className="relative w-full aspect-video bg-gray-900 rounded-xl overflow-hidden mb-6 flex items-center justify-center shadow-inner">
+                      <div 
+                        className="relative w-full aspect-video bg-gray-900 rounded-xl overflow-hidden mb-6 flex items-center justify-center shadow-inner cursor-pointer"
+                        onPointerDown={() => playingAd && setAdPaused(true)}
+                        onPointerUp={() => playingAd && setAdPaused(false)}
+                        onPointerLeave={() => playingAd && setAdPaused(false)}
+                      >
                         {playingAd ? (
-                          <div className="text-white flex flex-col items-center">
-                            <PlayCircle className="w-12 h-12 mb-3 text-amber-500 animate-pulse" />
-                            <p className="font-bold text-lg">Playing Ad...</p>
-                            <div className="absolute top-3 right-3 bg-black/60 px-3 py-1 rounded-full text-sm font-bold text-white">
-                              {adCountdown}s
+                          <div className="w-full h-full relative">
+                            {cashbackData?.adConfig?.ad_type === 'image' ? (
+                              <img 
+                                src={cashbackData?.adConfig?.media_urls[currentImageIndex] || ''} 
+                                alt="Ad" 
+                                className="w-full h-full object-contain bg-black transition-opacity duration-500"
+                              />
+                            ) : (
+                              <video 
+                                src={cashbackData?.adConfig?.media_urls?.[0] || ''} 
+                                autoPlay 
+                                playsInline 
+                                muted 
+                                loop
+                                className="w-full h-full object-contain"
+                                ref={(el) => {
+                                  if (el) {
+                                    if (adPaused) el.pause();
+                                    else el.play().catch(()=>{});
+                                  }
+                                }}
+                              />
+                            )}
+                            
+                            {/* Overlay Controls */}
+                            <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-2 shadow-sm border border-white/10 z-10">
+                              <div className={`w-2 h-2 rounded-full ${adPaused ? 'bg-amber-500' : 'bg-green-500 animate-pulse'}`}></div>
+                              <span className="text-sm font-bold text-white font-mono">{adCountdown}s</span>
                             </div>
+                            
+                            {adPaused && (
+                              <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[2px] z-20">
+                                <div className="bg-white/90 text-gray-900 px-4 py-2 rounded-full font-bold shadow-lg flex items-center gap-2">
+                                  <div className="w-3 h-4 border-l-4 border-r-4 border-gray-900"></div>
+                                  Paused
+                                </div>
+                              </div>
+                            )}
+
+                            {!adPaused && (
+                              <div className="absolute bottom-3 left-0 right-0 text-center pointer-events-none z-10">
+                                <span className="bg-black/50 text-white text-[10px] px-3 py-1 rounded-full backdrop-blur-sm shadow-sm">
+                                  Hold to Pause
+                                </span>
+                              </div>
+                            )}
                           </div>
                         ) : (
                           <button onClick={startAd} className="bg-amber-500 hover:bg-amber-600 text-white font-bold px-8 py-3.5 rounded-full flex items-center gap-2 transition transform hover:scale-105 active:scale-95 shadow-[0_8px_20px_-8px_rgba(245,158,11,0.6)] text-lg">

@@ -26,7 +26,8 @@ import {
   MapPin,
   Settings,
   Menu,
-  ChevronRight
+  ChevronRight,
+  PlaySquare
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -75,6 +76,7 @@ export default function Sidebar() {
   const bottomItems = [
     { name: "Brands", icon: <Tag className="w-[18px] h-[18px]" />, href: "/admin/brands" },
     { name: "Banners", icon: <ImageIcon className="w-[18px] h-[18px]" />, href: "/admin/banners" },
+    { name: "Cashback Ads", icon: <PlaySquare className="w-[18px] h-[18px]" />, href: "/admin/cashback-ads" },
     { name: "Complaints", icon: <MessageSquare className="w-[18px] h-[18px]" />, href: "/admin/complaints" },
   ];
 

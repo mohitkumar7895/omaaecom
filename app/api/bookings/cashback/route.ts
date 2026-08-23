@@ -46,8 +46,26 @@ export async function GET(req: Request) {
     if (rows.length === 0) {
       return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     }
+    
+    // Fetch active Ad Config
+    let adConfig = null;
+    try {
+      const [adRows]: any = await pool.query('SELECT * FROM cashback_ads LIMIT 1');
+      if (adRows.length > 0) {
+        adConfig = {
+          ad_type: adRows[0].ad_type,
+          media_urls: typeof adRows[0].media_urls === 'string' ? JSON.parse(adRows[0].media_urls) : adRows[0].media_urls,
+          duration: adRows[0].duration
+        };
+      }
+    } catch (e) {
+      console.error("Failed to fetch ad config:", e);
+    }
 
-    return NextResponse.json(rows[0]);
+    return NextResponse.json({
+      ...rows[0],
+      adConfig
+    });
   } catch (error: any) {
     console.error("Cashback fetch error:", error);
     return NextResponse.json({ error: "Failed to fetch cashback status" }, { status: 500 });
