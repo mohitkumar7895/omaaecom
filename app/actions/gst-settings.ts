@@ -4,9 +4,9 @@ import pool from "../../lib/db";
 import { revalidatePath } from "next/cache";
 
 export async function saveGstSettings(formData: FormData) {
-  const gstRate = formData.get("gst_rate") || 18;
-  const onlineGstEnabled = formData.get("online_gst_enabled") === "on";
-  const cashGstEnabled = formData.get("cash_gst_enabled") === "on";
+  const gstRate = 18;
+  const onlineGstEnabled = true;
+  const cashGstEnabled = true;
   const gstNumber = formData.get("gst_number") || "";
   const showGstOnInvoice = formData.get("show_gst_on_invoice") === "on";
 

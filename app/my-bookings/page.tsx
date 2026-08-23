@@ -202,10 +202,23 @@ export default function MyBookingsPage() {
                   </div>
                 </div>
                 
-                {/* Product Action Buttons (Service & Cashback) */}
-                {(booking.type === 'AMC' || booking.type === 'New Product') && (
-                  <div className="p-5 border-t border-gray-50 bg-gray-50/30">
-                    <CashbackFeatures orderId={booking.order_id} />
+                {/* Product Action Buttons (Service, Cashback, Invoice) */}
+                {((booking.type === 'AMC' || booking.type === 'New Product') || booking.working_status === 'Complete') && (
+                  <div className="p-5 border-t border-gray-50 bg-gray-50/30 flex flex-wrap gap-4 items-center justify-between">
+                    <div>
+                      {(booking.type === 'AMC' || booking.type === 'New Product') && (
+                        <CashbackFeatures orderId={booking.order_id} />
+                      )}
+                    </div>
+                    
+                    {booking.working_status === 'Complete' && (
+                      <Link href={`/invoice/${booking.order_id}`}>
+                        <button className="flex items-center gap-2 bg-[#6069c9] hover:bg-[#525ab5] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition shadow-sm">
+                          <FileText className="w-4 h-4" />
+                          View Invoice
+                        </button>
+                      </Link>
+                    )}
                   </div>
                 )}
               </div>

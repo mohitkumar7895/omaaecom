@@ -8,19 +8,13 @@ export default function GstSettingsForm({ settings }: { settings: any }) {
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  // Toggle states
-  const [onlineEnabled, setOnlineEnabled] = useState(Boolean(settings.online_gst_enabled));
-  const [cashEnabled, setCashEnabled] = useState(Boolean(settings.cash_gst_enabled));
   const [showInvoice, setShowInvoice] = useState(Boolean(settings.show_gst_on_invoice));
 
   async function handleSubmit(formData: FormData) {
     setLoading(true);
     setSaved(false);
     
-    // We append the toggle states since normal checkboxes don't send values if unchecked, 
-    // and we are using custom toggle UI which might not map perfectly to native form data if we don't manage it.
-    if (onlineEnabled) formData.append("online_gst_enabled", "on");
-    if (cashEnabled) formData.append("cash_gst_enabled", "on");
+    // We append the toggle states since normal checkboxes don't send values if unchecked
     if (showInvoice) formData.append("show_gst_on_invoice", "on");
 
     await saveGstSettings(formData);
@@ -51,32 +45,6 @@ export default function GstSettingsForm({ settings }: { settings: any }) {
       <form action={handleSubmit} className="space-y-6">
         
         {/* Top Section */}
-        <div className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-[13px] font-bold text-gray-800">GST Rate (%)</label>
-            <input 
-              type="number" 
-              name="gst_rate" 
-              defaultValue={settings.gst_rate}
-              className="w-full border border-gray-200 rounded text-sm px-3 py-2 outline-none focus:border-blue-500"
-            />
-          </div>
-
-          <div className="flex items-center space-x-3 pt-2">
-            <Toggle checked={onlineEnabled} onChange={() => setOnlineEnabled(!onlineEnabled)} />
-            <span className="text-[13px] font-bold text-gray-800">Online payment booking me GST on</span>
-          </div>
-
-          <div className="flex items-center space-x-3 pt-1">
-            <Toggle checked={cashEnabled} onChange={() => setCashEnabled(!cashEnabled)} />
-            <span className="text-[13px] font-bold text-gray-800">Cash booking me GST on</span>
-          </div>
-        </div>
-
-        {/* Divider */}
-        <hr className="border-gray-100" />
-
-        {/* Bottom Section */}
         <div className="space-y-4 pt-2">
           <div className="space-y-1.5">
             <label className="text-[13px] font-bold text-gray-800">GST Number (Optional)</label>
