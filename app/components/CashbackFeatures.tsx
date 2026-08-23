@@ -10,7 +10,7 @@ interface CashbackFeaturesProps {
 export default function CashbackFeatures({ orderId }: CashbackFeaturesProps) {
   const [showServiceModal, setShowServiceModal] = useState(false);
   const [showCashbackModal, setShowCashbackModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'service' | 'cashback'>('service');
+  const [activeTab, setActiveTab] = useState<'service' | 'cashback' | 'center'>('center');
   
   const [loading, setLoading] = useState(false);
   const [cashbackData, setCashbackData] = useState<any>(null);
@@ -19,12 +19,14 @@ export default function CashbackFeatures({ orderId }: CashbackFeaturesProps) {
   const [timeLeft, setTimeLeft] = useState<number>(0);
 
   const [isDragging, setIsDragging] = useState(false);
-  const [dragPercent, setDragPercent] = useState(0);
+  const [dragPercent, setDragPercent] = useState(25);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isDragging) {
-      setDragPercent(activeTab === 'cashback' ? 50 : 0);
+      if (activeTab === 'center') setDragPercent(25);
+      else if (activeTab === 'service') setDragPercent(0);
+      else if (activeTab === 'cashback') setDragPercent(50);
     }
   }, [activeTab, isDragging]);
 
@@ -49,22 +51,24 @@ export default function CashbackFeatures({ orderId }: CashbackFeaturesProps) {
     setIsDragging(false);
     (e.target as HTMLDivElement).releasePointerCapture(e.pointerId);
     
-    if (dragPercent > 25) {
-      if (!isCashbackLocked) {
-        setActiveTab('cashback');
-        setShowCashbackModal(true);
-      } else {
-        setDragPercent(0);
-        setActiveTab('service');
-      }
-    } else {
+    if (dragPercent < 15) {
       if (!isServiceLocked) {
         setActiveTab('service');
         setShowServiceModal(true);
       } else {
-        setDragPercent(50);
-        setActiveTab('cashback');
+        setActiveTab('center');
+        setDragPercent(25);
       }
+    } else if (dragPercent > 35) {
+      if (!isCashbackLocked) {
+        setActiveTab('cashback');
+        setShowCashbackModal(true);
+      } else {
+        setActiveTab('center');
+        setDragPercent(25);
+      }
+    } else {
+      setDragPercent(activeTab === 'service' ? 0 : activeTab === 'cashback' ? 50 : 25);
     }
   };
 
@@ -245,14 +249,31 @@ export default function CashbackFeatures({ orderId }: CashbackFeaturesProps) {
         </div>
       </div>
 
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes modal-overlay {
+          0% { opacity: 0; backdrop-filter: blur(0px); }
+          100% { opacity: 1; backdrop-filter: blur(8px); }
+        }
+        @keyframes modal-content {
+          0% { opacity: 0; transform: scale(0.92) translateY(20px); }
+          100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+      `}} />
+
       {/* Service Modal */}
       {showServiceModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white rounded-[24px] max-w-sm w-full p-8 text-center relative shadow-2xl animate-in zoom-in-95 duration-200">
-            <button onClick={() => setShowServiceModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-800">
+        <div 
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60"
+          style={{ animation: 'modal-overlay 0.3s ease-out forwards' }}
+        >
+          <div 
+            className="bg-white rounded-[24px] max-w-sm w-full p-8 text-center relative shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] border border-gray-100"
+            style={{ animation: 'modal-content 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards' }}
+          >
+            <button onClick={() => setShowServiceModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-800 transition-transform hover:rotate-90">
               <X className="w-5 h-5" />
             </button>
-            <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-blue-100">
               <Gift className="w-10 h-10 text-blue-500" />
             </div>
             <h3 className="text-2xl font-extrabold text-gray-900 mb-2">365 Days Free Service</h3>
@@ -264,7 +285,7 @@ export default function CashbackFeatures({ orderId }: CashbackFeaturesProps) {
                 markServiceAsOpted();
               }
               setShowServiceModal(false);
-            }} className="w-full mt-8 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-md">
+            }} className="w-full mt-8 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-[0_8px_20px_-8px_rgba(37,99,235,0.6)] hover:shadow-[0_10px_25px_-8px_rgba(37,99,235,0.8)] active:scale-95">
               {cashbackData?.service_opted ? 'Close' : 'Claim Service'}
             </button>
           </div>
@@ -273,9 +294,15 @@ export default function CashbackFeatures({ orderId }: CashbackFeaturesProps) {
 
       {/* Cashback Modal */}
       {showCashbackModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white rounded-[24px] max-w-md w-full p-6 sm:p-8 text-center relative shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden">
-            <button onClick={() => { setShowCashbackModal(false); setPlayingAd(false); }} className="absolute top-4 right-4 text-gray-400 hover:text-gray-800 z-10">
+        <div 
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60"
+          style={{ animation: 'modal-overlay 0.3s ease-out forwards' }}
+        >
+          <div 
+            className="bg-white rounded-[24px] max-w-md w-full p-6 sm:p-8 text-center relative shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] border border-gray-100 overflow-hidden"
+            style={{ animation: 'modal-content 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards' }}
+          >
+            <button onClick={() => { setShowCashbackModal(false); setPlayingAd(false); }} className="absolute top-4 right-4 text-gray-400 hover:text-gray-800 z-10 transition-transform hover:rotate-90">
               <X className="w-5 h-5" />
             </button>
             
@@ -302,7 +329,7 @@ export default function CashbackFeatures({ orderId }: CashbackFeaturesProps) {
                           </div>
                         </div>
                       ) : (
-                        <button onClick={startAd} className="bg-amber-500 hover:bg-amber-600 text-white font-bold px-6 py-3 rounded-full flex items-center gap-2 transition transform hover:scale-105">
+                        <button onClick={startAd} className="bg-amber-500 hover:bg-amber-600 text-white font-bold px-6 py-3 rounded-full flex items-center gap-2 transition transform hover:scale-105 active:scale-95 shadow-[0_8px_20px_-8px_rgba(245,158,11,0.6)]">
                           <PlayCircle className="w-5 h-5" /> Watch Now
                         </button>
                       )}
@@ -311,7 +338,7 @@ export default function CashbackFeatures({ orderId }: CashbackFeaturesProps) {
                 ) : (
                   /* Step 2: Timer & Result */
                   <div className="pt-4">
-                    <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner border border-amber-100">
                       <Wallet className="w-8 h-8 text-amber-500" />
                     </div>
                     
@@ -321,7 +348,7 @@ export default function CashbackFeatures({ orderId }: CashbackFeaturesProps) {
                         <div className="text-4xl font-black text-amber-500 tracking-wider my-6 font-mono drop-shadow-sm">
                           {formatTime(timeLeft)}
                         </div>
-                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3 text-left">
+                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3 text-left shadow-sm">
                           <Clock className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                           <p className="text-[13px] text-amber-800 font-medium">Your cashback will be revealed after 24 hours. Check back later!</p>
                         </div>
@@ -333,7 +360,7 @@ export default function CashbackFeatures({ orderId }: CashbackFeaturesProps) {
                             <h3 className="text-2xl font-extrabold text-green-600 mb-2 text-center">100% Cashback Unlocked! 🎉</h3>
                             <p className="text-gray-500 font-medium mb-4 text-center text-sm">Here is how you will receive your cashback:</p>
                             
-                            <div className="bg-green-50 border border-green-200 rounded-2xl p-5 mb-4">
+                            <div className="bg-green-50 border border-green-200 rounded-2xl p-5 mb-4 shadow-sm">
                               <ul className="space-y-3 text-sm text-green-800 font-medium leading-relaxed">
                                 <li className="flex gap-2">
                                   <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
@@ -354,14 +381,14 @@ export default function CashbackFeatures({ orderId }: CashbackFeaturesProps) {
                               </ul>
                             </div>
                             
-                            <a href="/cashback" className="block w-full text-center bg-green-600 hover:bg-green-700 text-white font-bold py-3.5 rounded-xl transition transform hover:scale-105 shadow-md">
+                            <a href="/cashback" className="block w-full text-center bg-green-600 hover:bg-green-700 text-white font-bold py-3.5 rounded-xl transition transform hover:scale-[1.02] active:scale-95 shadow-[0_8px_20px_-8px_rgba(22,163,74,0.6)]">
                               Go to Cashback Page
                             </a>
                           </div>
                         ) : (
                           <div>
                             <h3 className="text-xl font-extrabold text-gray-900 mb-2">Almost There! ⏳</h3>
-                            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex gap-3 text-left my-6">
+                            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex gap-3 text-left my-6 shadow-sm">
                               <AlertCircle className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
                               <p className="text-[13px] text-blue-800 font-medium">The 24-hour timer is complete! We are just waiting for the technician to mark the job as <strong>Completed</strong> to release your cashback.</p>
                             </div>
