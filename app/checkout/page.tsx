@@ -187,12 +187,7 @@ function CheckoutContent() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3">
-                <button 
-                  onClick={() => router.push('/my-bookings')}
-                  className="flex-1 bg-black hover:bg-gray-900 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-lg shadow-black/10 text-[15px]"
-                >
-                  <List className="w-4 h-4" /> View Bookings
-                </button>
+
                 <button 
                   onClick={() => router.push('/')}
                   className="flex-1 bg-white border-2 border-gray-200 hover:border-black hover:bg-gray-50 text-gray-900 font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 text-[15px]"
@@ -255,12 +250,7 @@ function CheckoutContent() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3">
-                <button 
-                  onClick={() => router.push('/my-bookings')}
-                  className="flex-1 bg-black hover:bg-gray-900 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-lg shadow-black/10 text-[15px]"
-                >
-                  <List className="w-4 h-4" /> View Orders
-                </button>
+
                 <button 
                   onClick={() => router.push('/')}
                   className="flex-1 bg-white border-2 border-gray-200 hover:border-black hover:bg-gray-50 text-gray-900 font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 text-[15px]"
