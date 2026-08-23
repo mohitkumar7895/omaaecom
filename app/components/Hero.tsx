@@ -51,10 +51,10 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
                 <Scissors className="w-5 h-5 text-gray-800" />
                 <h3 className="font-bold text-[18px] md:text-[20px] text-gray-900 tracking-tight">Home Services</h3>
               </div>
-              <div className="grid grid-cols-3 gap-y-4 gap-x-2 text-center justify-items-center">
+              <div className="grid grid-cols-3 gap-y-3 gap-x-1 sm:gap-x-2 text-center justify-items-center">
                 {homeServices.map((service, index) => (
                   <Link href={`/services/${service.id}`} key={index} className="flex flex-col items-center group w-full cursor-pointer">
-                    <div className="w-[72px] h-[72px] md:w-[80px] md:h-[80px] bg-[#f4f5f8] rounded-[16px] flex items-center justify-center text-[32px] md:text-[38px] shadow-sm group-hover:shadow-md transition-all overflow-hidden p-2.5 mb-2 group-hover:-translate-y-1">
+                    <div className="w-[84px] h-[84px] md:w-[92px] md:h-[92px] bg-[#f4f5f8] rounded-[16px] flex items-center justify-center text-[32px] md:text-[38px] shadow-sm group-hover:shadow-md transition-all overflow-hidden p-1.5 mb-1.5 group-hover:-translate-y-1">
                       {service.image_url && service.image_url.length > 5 ? (
                         <img src={service.image_url} alt={service.title} className="w-full h-full object-contain" />
                       ) : (
@@ -71,7 +71,7 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
             <div className="w-full h-px bg-gray-100 my-2"></div>
 
             {/* Bottom Section: New Products & AMC */}
-            <div className="grid grid-cols-2 gap-4 w-full pb-2">
+            <div className="grid grid-cols-2 gap-3 w-full pb-2">
               {/* New Products Card */}
               {newProducts.length > 0 && (
                 <Link href={`/services/${newProducts[0].id}`} className="flex flex-col group cursor-pointer bg-[#f4f5f8] rounded-2xl p-3 md:p-4 hover:bg-gray-100 transition-colors">
@@ -80,7 +80,7 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
                     <span className="font-bold text-[14px] md:text-[15px] tracking-tight truncate leading-none pt-0.5">New Products</span>
                   </div>
                   <div className="flex justify-center items-center mt-1">
-                    <div className="w-20 h-20 md:w-[84px] md:h-[84px] bg-white rounded-[14px] flex-shrink-0 flex items-center justify-center shadow-sm overflow-hidden p-2 group-hover:-translate-y-0.5 transition-transform">
+                    <div className="w-24 h-24 md:w-[96px] md:h-[96px] bg-white rounded-[14px] flex-shrink-0 flex items-center justify-center shadow-sm overflow-hidden p-1 group-hover:-translate-y-0.5 transition-transform">
                       {newProducts[0].image_url && newProducts[0].image_url.length > 5 ? (
                         <img src={newProducts[0].image_url} alt={newProducts[0].title} className="w-full h-full object-contain" />
                       ) : (
@@ -98,7 +98,7 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
                     <span className="font-bold text-[14px] md:text-[15px] tracking-tight truncate leading-none pt-0.5">RO AMC</span>
                   </div>
                   <div className="flex justify-center items-center mt-1">
-                    <div className="w-20 h-20 md:w-[84px] md:h-[84px] bg-white rounded-[14px] flex-shrink-0 flex items-center justify-center shadow-sm relative overflow-hidden p-2 group-hover:-translate-y-0.5 transition-transform">
+                    <div className="w-24 h-24 md:w-[96px] md:h-[96px] bg-white rounded-[14px] flex-shrink-0 flex items-center justify-center shadow-sm relative overflow-hidden p-1 group-hover:-translate-y-0.5 transition-transform">
                       {amcProducts[0].image_url && amcProducts[0].image_url.length > 5 ? (
                         <img src={amcProducts[0].image_url} alt={amcProducts[0].title} className="w-full h-full object-contain" />
                       ) : (
