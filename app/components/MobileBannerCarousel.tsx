@@ -29,7 +29,7 @@ export default function MobileBannerCarousel({ banners = [] }: { banners?: strin
   return (
     <div className="relative w-full md:hidden rounded-2xl overflow-hidden shadow-lg mb-3 md:mb-6 group">
       <div 
-        className="flex transition-transform duration-500 ease-in-out h-[150px] sm:h-[220px]"
+        className="flex transition-transform duration-500 ease-in-out h-[120px] sm:h-[180px]"
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
       >
         {images.map((src, idx) => (
@@ -38,7 +38,7 @@ export default function MobileBannerCarousel({ banners = [] }: { banners?: strin
             <img 
               src={src}
               alt={`Banner ${idx + 1}`}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
           </div>
         ))}
