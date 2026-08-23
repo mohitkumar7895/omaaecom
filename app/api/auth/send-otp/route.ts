@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import pool from "../../../../lib/db";
 import { sendOTP } from "../../../../lib/mailer";
-import crypto from "crypto";
+import type { RowDataPacket } from "mysql2";
+
+type OtpRecord = RowDataPacket & {
+  attempts: number;
+  created_at: Date;
+};
 
 // Rate limiting settings
 const RATE_LIMIT_MINUTES = 5;
@@ -18,7 +23,7 @@ export async function POST(req: Request) {
     const connection = await pool.getConnection();
 
     // 1. Rate Limiting Check
-    const [existingRows]: any = await connection.query(
+    const [existingRows] = await connection.query<OtpRecord[]>(
       `SELECT attempts, created_at FROM otps WHERE email = ? ORDER BY created_at DESC LIMIT 1`,
       [email]
     );
@@ -57,14 +62,14 @@ export async function POST(req: Request) {
 
     // 4. Send Email
     // If SMTP is not configured, we'll log it for testing purposes (development mode)
-    if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+    if (process.env.SMTP_EMAIL && process.env.SMTP_PASSWORD) {
       await sendOTP(email, otp);
     } else {
       console.warn("⚠️ SMTP credentials not found in .env. OTP is: ", otp);
     }
 
     return NextResponse.json({ success: true, message: "OTP sent successfully" });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Send OTP Error:", error);
     return NextResponse.json({ error: "Failed to send OTP" }, { status: 500 });
   }

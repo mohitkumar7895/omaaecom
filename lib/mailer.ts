@@ -1,21 +1,20 @@
 import nodemailer from "nodemailer";
 
-
-// console.log({ SMTP_EMAIL: process.env.SMTP_EMAIL, SMTP_PASSWORD: process.env.SMTP_PASSWORD })
+const smtpUser = process.env.SMTP_EMAIL || process.env.SMTP_USER;
+const smtpPassword = process.env.SMTP_PASSWORD || process.env.SMTP_PASS;
+const smtpFrom = process.env.SMTP_FROM || smtpUser;
 
 export const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    // user: process.env.SMTP_EMAIL,
-    user: "prtmohit.provisioningtech.com@gmail.com",
-    pass: "vkrdsipfchlkgyxj"
+    user: smtpUser,
+    pass: smtpPassword,
   }
 });
 
 export const sendOTP = async (email: string, otp: string) => {
   const mailOptions = {
-    // from: `"OMAA Company" <${process.env.SMTP_USER}>`,
-    from: "prtmohit.provisioningtech.com@gmail.com",
+    from: smtpFrom,
     to: email,
     subject: "Your OTP for OMAA Login",
     html: `
