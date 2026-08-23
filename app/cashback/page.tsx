@@ -4,12 +4,58 @@ import Navbar from "../components/Navbar";
 import { Clock, RefreshCw, Banknote, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function CashbackPage() {
+  const router = useRouter();
   const [balance, setBalance] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(0); // Set to 0 to test claiming
+  const [timeLeft, setTimeLeft] = useState(0);
   const [history, setHistory] = useState<{ id: number; date: string; details: string; amount: string; status: string }[]>([]);
   const [isClaiming, setIsClaiming] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  useEffect(() => {
+    const fetchAuthAndData = async () => {
+      try {
+        const authRes = await fetch("/api/auth/me");
+        if (authRes.ok) {
+          const authData = await authRes.json();
+          setUser(authData.user);
+          
+          if (authData.user) {
+            const res = await fetch("/api/cashback");
+            if (res.ok) {
+              const data = await res.json();
+              setBalance(Number(data.balance) || 0);
+              setTimeLeft(data.timeLeft || 0);
+              
+              // Format history
+              const formattedHistory = (data.history || []).map((h: any) => ({
+                id: h.id,
+                date: new Date(h.date).toLocaleDateString("en-IN", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                }),
+                details: h.details,
+                amount: `₹${Number(h.amount).toFixed(2)}`,
+                status: h.status
+              }));
+              setHistory(formattedHistory);
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load data");
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchAuthAndData();
+  }, []);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -21,10 +67,19 @@ export default function CashbackPage() {
     return () => clearInterval(timer);
   }, [timeLeft]);
 
-  const handleClaim = () => {
+  const handleClaim = async () => {
+    setErrorMsg("");
     setIsClaiming(true);
-    setTimeout(() => {
-      setBalance((prev) => prev + 10.95);
+    try {
+      const res = await fetch("/api/cashback", { method: "POST" });
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to claim cashback");
+      }
+      
+      // Update UI on success
+      setBalance((prev) => prev + Number(data.amount));
       setTimeLeft(24 * 60 * 60); // 24 hours
       setHistory((prev) => [
         {
@@ -35,13 +90,16 @@ export default function CashbackPage() {
             year: "numeric",
           }),
           details: "Daily Ad Claim",
-          amount: "₹10.95",
+          amount: `₹${Number(data.amount).toFixed(2)}`,
           status: "Success",
         },
         ...prev,
       ]);
+    } catch (err: any) {
+      setErrorMsg(err.message);
+    } finally {
       setIsClaiming(false);
-    }, 1500);
+    }
   };
 
   const formatTime = (seconds: number) => {
@@ -50,6 +108,37 @@ export default function CashbackPage() {
     const s = seconds % 60;
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-[#f8f9fa] flex flex-col font-sans">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="w-8 h-8 border-4 border-[#0a805c] border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      </main>
+    );
+  }
+
+  if (!user) {
+    return (
+      <main className="min-h-screen bg-[#f8f9fa] flex flex-col font-sans">
+        <Navbar />
+        <div className="flex-1 max-w-3xl w-full mx-auto p-4 sm:p-6 lg:p-8 mt-4 sm:mt-8">
+          <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 p-8 sm:p-12 flex flex-col items-center justify-center text-center min-h-[50vh]">
+            <Banknote className="w-16 h-16 text-gray-300 mb-6" />
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight mb-3">Login to claim Cashback</h1>
+            <p className="text-gray-500 max-w-md mx-auto leading-relaxed">Securely manage your daily cashback claims.</p>
+            <Link href="/login">
+              <button className="mt-8 bg-[#0a805c] hover:bg-[#086a4c] text-white font-bold py-3.5 px-8 rounded-xl transition-all shadow-md">
+                Go to Login
+              </button>
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[#f8f9fa] flex flex-col font-sans">
@@ -69,6 +158,12 @@ export default function CashbackPage() {
             100%
           </div>
         </div>
+
+        {errorMsg && (
+          <div className="mb-6 p-4 bg-red-50 text-red-700 border border-red-200 rounded-xl text-sm font-semibold text-center">
+            {errorMsg}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Main Cashback Service */}

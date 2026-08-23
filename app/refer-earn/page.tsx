@@ -1,12 +1,91 @@
 "use client";
 
 import { Eye, EyeOff } from "lucide-react";
-import Link from "next/link";
 import { useState } from "react";
+import Link from "next/link"; // Keeping Link just in case, or remove if unused
 
 export default function ReferEarnPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const [form, setForm] = useState({
+    referral_member_id: "",
+    referral_user_name: "",
+    name: "",
+    email: "",
+    mobile: "",
+    coupon_code: "",
+    password: "",
+    confirm_password: ""
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+    setError(""); // Clear error on change
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    if (form.password !== form.confirm_password) {
+      setError("Passwords do not match!");
+      return;
+    }
+
+    if (form.mobile.length < 10) {
+      setError("Please enter a valid mobile number.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/refer-earn/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          referral_member_id: form.referral_member_id,
+          referral_user_name: form.referral_user_name,
+          name: form.name,
+          email: form.email,
+          mobile: form.mobile,
+          coupon_code: form.coupon_code,
+          password: form.password
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to register. Please try again.");
+      }
+
+      setSuccess("Registration successful! Thank you for joining.");
+      
+      // Clear form
+      setForm({
+        referral_member_id: "",
+        referral_user_name: "",
+        name: "",
+        email: "",
+        mobile: "",
+        coupon_code: "",
+        password: "",
+        confirm_password: ""
+      });
+
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Premium glass inputs
   const inputClass = "w-full bg-white/40 hover:bg-white/50 focus:bg-white/70 focus:outline-none focus:ring-[3px] focus:ring-white/80 transition-all duration-300 px-5 py-3.5 rounded-[12px] text-[#0f4d4d] font-bold text-[14px] placeholder:text-[#187576] placeholder:font-semibold shadow-[0_2px_10px_rgba(0,0,0,0.05)] border border-white/50 backdrop-blur-md";
@@ -29,7 +108,7 @@ export default function ReferEarnPage() {
       <div className="relative z-10 w-full max-w-[650px] bg-white/30 backdrop-blur-[30px] rounded-[32px] border-2 border-white/50 p-7 sm:p-12 shadow-[0_30px_60px_rgba(0,0,0,0.15),inset_0_0_0_1px_rgba(255,255,255,0.4)] my-8">
         
         {/* Logo Section */}
-        <div className="flex justify-center mb-10">
+        <div className="flex justify-center mb-8">
           <div className="bg-white rounded-[20px] py-4 px-10 shadow-[0_10px_25px_rgba(0,0,0,0.1)] flex flex-col items-center transform transition-transform hover:scale-105 duration-300">
             <div className="w-[50px] h-[40px] bg-[#35338a] rounded-xl flex items-center justify-center text-white font-black text-[20px] mb-1.5 shadow-inner">
               OC
@@ -38,22 +117,85 @@ export default function ReferEarnPage() {
           </div>
         </div>
 
+        {/* Notifications */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-100/80 backdrop-blur-md border border-red-300 text-red-800 rounded-xl text-center font-bold shadow-sm">
+            {error}
+          </div>
+        )}
+        {success && (
+          <div className="mb-6 p-4 bg-green-100/80 backdrop-blur-md border border-green-300 text-green-800 rounded-xl text-center font-bold shadow-sm">
+            {success}
+          </div>
+        )}
+
         {/* Form Section */}
-        <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+        <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <input type="text" placeholder="Referral Member Id *" className={inputClass} required />
-            <input type="text" placeholder="Referral User Name *" className={inputClass} required />
+            <input 
+              type="text" 
+              name="referral_member_id"
+              value={form.referral_member_id}
+              onChange={handleChange}
+              placeholder="Referral Member Id *" 
+              className={inputClass} 
+              required 
+            />
+            <input 
+              type="text" 
+              name="referral_user_name"
+              value={form.referral_user_name}
+              onChange={handleChange}
+              placeholder="Referral User Name *" 
+              className={inputClass} 
+              required 
+            />
             
-            <input type="text" placeholder="Name *" className={inputClass} required />
-            <input type="email" placeholder="Email *" className={inputClass} required />
+            <input 
+              type="text" 
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              placeholder="Name *" 
+              className={inputClass} 
+              required 
+            />
+            <input 
+              type="email" 
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="Email *" 
+              className={inputClass} 
+              required 
+            />
             
-            <input type="tel" placeholder="Mobile *" className={inputClass} required />
-            <input type="text" placeholder="Coupon Code" className={inputClass} />
+            <input 
+              type="tel" 
+              name="mobile"
+              value={form.mobile}
+              onChange={handleChange}
+              placeholder="Mobile *" 
+              className={inputClass} 
+              required 
+              maxLength={15}
+            />
+            <input 
+              type="text" 
+              name="coupon_code"
+              value={form.coupon_code}
+              onChange={handleChange}
+              placeholder="Coupon Code" 
+              className={inputClass} 
+            />
             
             {/* Password */}
             <div className="relative">
               <input 
                 type={showPassword ? "text" : "password"} 
+                name="password"
+                value={form.password}
+                onChange={handleChange}
                 placeholder="Password *" 
                 className={inputClass} 
                 required 
@@ -71,6 +213,9 @@ export default function ReferEarnPage() {
             <div className="relative">
               <input 
                 type={showConfirmPassword ? "text" : "password"} 
+                name="confirm_password"
+                value={form.confirm_password}
+                onChange={handleChange}
                 placeholder="Confirm Password *" 
                 className={inputClass} 
                 required 
@@ -88,16 +233,11 @@ export default function ReferEarnPage() {
           <div className="pt-4">
             <button 
               type="submit"
-              className="w-full bg-[#11c9cb] hover:bg-[#0eaeb0] text-white font-black text-[16px] tracking-[0.15em] uppercase py-4.5 rounded-[14px] shadow-[0_10px_25px_rgba(17,201,203,0.4)] transition-all duration-300 hover:shadow-[0_15px_35px_rgba(17,201,203,0.5)] active:scale-[0.98] border border-white/20"
+              disabled={loading}
+              className={`w-full bg-[#11c9cb] hover:bg-[#0eaeb0] text-white font-black text-[16px] tracking-[0.15em] uppercase py-4 rounded-[14px] shadow-[0_10px_25px_rgba(17,201,203,0.4)] transition-all duration-300 hover:shadow-[0_15px_35px_rgba(17,201,203,0.5)] active:scale-[0.98] border border-white/20 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
             >
-              SUBMIT
+              {loading ? "SUBMITTING..." : "SUBMIT"}
             </button>
-          </div>
-          
-          <div className="pt-2 text-center">
-            <Link href="/login" className="inline-block text-[#0b6b6c] font-black text-[14px] hover:text-white transition-colors duration-300">
-              Already have an account
-            </Link>
           </div>
         </form>
       </div>
