@@ -79,8 +79,7 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
                     <ShoppingCart className="w-6 h-5" fill="currentColor" />
 
                   </div>
-                  <div className="flex justify-between items-center mt-1">
-                    <span className="text-[13px] font-semibold text-gray-900 leading-tight pr-2 line-clamp-2">{newProducts[0].title}</span>
+                  <div className="flex justify-center items-center mt-1">
                     <div className="w-20 h-20 md:w-[84px] md:h-[84px] bg-white rounded-[14px] flex-shrink-0 flex items-center justify-center shadow-sm overflow-hidden p-2 group-hover:-translate-y-0.5 transition-transform">
                       {newProducts[0].image_url && newProducts[0].image_url.length > 5 ? (
                         <img src={newProducts[0].image_url} alt={newProducts[0].title} className="w-full h-full object-contain" />
@@ -98,8 +97,7 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
                   <div className="flex items-center text-[#21a868] mb-2">
 
                   </div>
-                  <div className="flex justify-between items-center mt-1">
-                    <span className="text-[13px] font-semibold text-gray-900 leading-tight pr-2 line-clamp-2">{amcProducts[0].title}</span>
+                  <div className="flex justify-center items-center mt-1">
                     <div className="w-20 h-20 md:w-[84px] md:h-[84px] bg-white rounded-[14px] flex-shrink-0 flex items-center justify-center shadow-sm relative overflow-hidden p-2 group-hover:-translate-y-0.5 transition-transform">
                       {amcProducts[0].image_url && amcProducts[0].image_url.length > 5 ? (
                         <img src={amcProducts[0].image_url} alt={amcProducts[0].title} className="w-full h-full object-contain" />
