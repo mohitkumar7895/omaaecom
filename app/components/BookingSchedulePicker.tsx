@@ -106,14 +106,46 @@ export default function BookingSchedulePicker({
           
           <div className="grid grid-cols-2 gap-3">
             {timeSlots.map((slot, idx) => {
+              const disabled = (() => {
+                if (!selectedDate) return false;
+                const today = new Date();
+                const selectedDateObj = new Date(selectedDate);
+                if (
+                  selectedDateObj.getFullYear() === today.getFullYear() &&
+                  selectedDateObj.getMonth() === today.getMonth() &&
+                  selectedDateObj.getDate() === today.getDate()
+                ) {
+                  const match = slot.match(/(\d+):(\d+)\s(AM|PM)/);
+                  if (match) {
+                    let hour = parseInt(match[1]);
+                    const min = parseInt(match[2]);
+                    const ampm = match[3];
+                    if (ampm === 'PM' && hour < 12) hour += 12;
+                    if (ampm === 'AM' && hour === 12) hour = 0;
+                    
+                    const currentTime = new Date();
+                    const slotTime = new Date();
+                    slotTime.setHours(hour, min, 0, 0);
+                    
+                    // Passed if current time is greater than slot start time
+                    if (currentTime > slotTime) return true;
+                  }
+                }
+                return false;
+              })();
+
               const isSelected = selectedTime === slot;
+              
               return (
                 <button
                   key={idx}
                   type="button"
+                  disabled={disabled}
                   onClick={() => onChange(selectedDate, slot)}
                   className={`py-3 px-2 rounded-xl text-[12px] sm:text-[13px] font-bold transition-all duration-300 border text-center ${
-                    isSelected
+                    disabled 
+                      ? 'bg-gray-100 border-gray-200 text-gray-400 opacity-60 cursor-not-allowed'
+                      : isSelected
                       ? 'bg-[#6b62d9] text-white border-[#6b62d9] shadow-[0_4px_12px_rgba(107,98,217,0.3)] scale-[1.02]'
                       : 'bg-white border-gray-200 text-gray-600 hover:border-[#6b62d9]/50 hover:bg-[#f8f7ff]'
                   }`}

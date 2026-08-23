@@ -183,55 +183,65 @@ export default function CashbackFeatures({ orderId }: CashbackFeaturesProps) {
 
   return (
     <>
-      <div 
-        ref={containerRef}
-        onClick={handleBgClick}
-        className="relative w-full h-14 bg-gradient-to-r from-gray-200/80 to-gray-100 rounded-full p-1.5 flex items-center shadow-inner overflow-hidden cursor-pointer border border-gray-300/50"
-      >
-        {/* Background Labels */}
-        <div className="absolute inset-0 flex items-center justify-between pointer-events-none px-8">
-          <div className="flex items-center gap-2 text-gray-500 font-bold text-sm">
-            <Gift className="w-4 h-4" />
-            <span>Service</span>
-          </div>
-          <div className="flex items-center gap-2 text-gray-500 font-bold text-sm">
-            <Wallet className="w-4 h-4" />
-            <span>Cashback</span>
-          </div>
-        </div>
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 w-full py-2">
+        <div className="flex items-center gap-5 sm:gap-8">
+          {/* Service Text */}
+          <button 
+            type="button"
+            onClick={() => {
+              if (isServiceLocked) return;
+              setActiveTab('service');
+              setShowServiceModal(true);
+            }}
+            className={`flex items-center gap-1.5 font-bold transition-all ${
+              activeTab === 'service' ? 'text-blue-600 scale-105' : 'text-gray-400 hover:text-gray-600'
+            } ${isServiceLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            <Gift className={`w-4 h-4 sm:w-5 sm:h-5 ${activeTab === 'service' ? 'animate-pulse' : ''}`} />
+            <span className="text-[14px] sm:text-[15px]">Service</span>
+          </button>
 
-        {/* Draggable Thumb */}
-        <div
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerCancel={handlePointerUp}
-          className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-white rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.15)] border border-gray-100 flex items-center justify-center cursor-grab active:cursor-grabbing z-10 touch-none ${!isDragging ? 'transition-all duration-300 ease-out' : ''}`}
-          style={{ left: `calc(${dragPercent}% + 3px)` }}
-        >
-          {dragPercent < 25 ? (
-            <div className="flex items-center gap-2 text-blue-600 font-bold text-sm">
-              <Gift className="w-4 h-4" />
-              <span>Service</span>
+          {/* Toggle Pill */}
+          <div 
+            ref={containerRef}
+            onClick={handleBgClick}
+            className={`relative w-20 sm:w-24 h-9 sm:h-10 rounded-full p-1 shadow-inner cursor-pointer border transition-colors duration-300 ${
+              activeTab === 'service' ? 'bg-[#e0e7ff] border-blue-200' : 'bg-[#fef3c7] border-amber-200'
+            }`}
+          >
+            <div className="relative w-full h-full overflow-visible">
+              {/* Draggable Thumb */}
+              <div
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerCancel={handlePointerUp}
+                className={`absolute top-0 bottom-0 w-1/2 bg-white rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] flex items-center justify-center cursor-grab active:cursor-grabbing z-10 touch-none ${!isDragging ? 'transition-all duration-300 ease-out' : ''}`}
+                style={{ left: `${dragPercent}%` }}
+              >
+                <div className="flex gap-[3px] opacity-30">
+                  <div className="w-[3px] h-[12px] sm:h-[14px] rounded-full bg-gray-400"></div>
+                  <div className="w-[3px] h-[12px] sm:h-[14px] rounded-full bg-gray-400"></div>
+                </div>
+              </div>
             </div>
-          ) : (
-            <div className="flex items-center gap-2 text-amber-600 font-bold text-sm">
-              <Wallet className="w-4 h-4" />
-              <span>Cashback</span>
-            </div>
-          )}
-          
-          {/* Subtle drag handle graphics */}
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col gap-[3px] opacity-20">
-            <div className="w-[3px] h-[3px] rounded-full bg-gray-500"></div>
-            <div className="w-[3px] h-[3px] rounded-full bg-gray-500"></div>
-            <div className="w-[3px] h-[3px] rounded-full bg-gray-500"></div>
           </div>
-          <div className="absolute left-3 top-1/2 -translate-y-1/2 flex flex-col gap-[3px] opacity-20">
-            <div className="w-[3px] h-[3px] rounded-full bg-gray-500"></div>
-            <div className="w-[3px] h-[3px] rounded-full bg-gray-500"></div>
-            <div className="w-[3px] h-[3px] rounded-full bg-gray-500"></div>
-          </div>
+
+          {/* Cashback Text */}
+          <button 
+            type="button"
+            onClick={() => {
+              if (isCashbackLocked) return;
+              setActiveTab('cashback');
+              setShowCashbackModal(true);
+            }}
+            className={`flex items-center gap-1.5 font-bold transition-all ${
+              activeTab === 'cashback' ? 'text-amber-600 scale-105' : 'text-gray-400 hover:text-gray-600'
+            } ${isCashbackLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            <span className="text-[14px] sm:text-[15px]">Cashback</span>
+            <Wallet className={`w-4 h-4 sm:w-5 sm:h-5 ${activeTab === 'cashback' ? 'animate-pulse' : ''}`} />
+          </button>
         </div>
       </div>
 
