@@ -35,8 +35,15 @@ export default function BookingSchedulePicker({
     for (let i = 0; i <= 30; i++) { 
       const d = new Date();
       d.setDate(d.getDate() + i);
+      
+      // Use local date string YYYY-MM-DD to avoid timezone bugs
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const fullDate = `${year}-${month}-${day}`;
+      
       nextDays.push({
-        fullDate: d.toISOString().split('T')[0], 
+        fullDate,
         dayStr: d.toLocaleDateString('en-US', { weekday: 'short' }).charAt(0),
         dateNum: d.getDate(), 
         monthStr: d.toLocaleDateString('en-US', { month: 'short' }), 
@@ -109,11 +116,14 @@ export default function BookingSchedulePicker({
               const disabled = (() => {
                 if (!selectedDate) return false;
                 const today = new Date();
-                const selectedDateObj = new Date(selectedDate);
+                
+                // Parse selectedDate safely in local time
+                const [sYear, sMonth, sDay] = selectedDate.split('-').map(Number);
+                
                 if (
-                  selectedDateObj.getFullYear() === today.getFullYear() &&
-                  selectedDateObj.getMonth() === today.getMonth() &&
-                  selectedDateObj.getDate() === today.getDate()
+                  sYear === today.getFullYear() &&
+                  (sMonth - 1) === today.getMonth() &&
+                  sDay === today.getDate()
                 ) {
                   const match = slot.match(/(\d+):(\d+)\s(AM|PM)/);
                   if (match) {

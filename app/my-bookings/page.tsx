@@ -209,7 +209,10 @@ export default function MyBookingsPage() {
                     {/* Toggle - Centered */}
                     {(booking.type === 'AMC' || booking.type === 'New Product') && (
                       <div className="w-full flex justify-center sm:absolute sm:left-1/2 sm:-translate-x-1/2">
-                        <CashbackFeatures orderId={booking.order_id} />
+                        <CashbackFeatures 
+                          orderId={booking.order_id} 
+                          isEligible={booking.working_status === 'Complete' && (booking.payment_status === 'Success' || booking.payment_status === 'SUCCESS' || booking.payment_status === 'Completed' || booking.payment_status?.toLowerCase() === 'paid')}
+                        />
                       </div>
                     )}
                     
