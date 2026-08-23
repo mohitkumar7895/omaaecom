@@ -24,7 +24,7 @@ export default function InvoiceClient({ booking, services, gstSettings }: Invoic
 
   const isGstEligibleService = booking.type === 'AMC' || booking.type === 'New Product';
   const applyGstRate = isGstEligibleService && gstSettings && gstSettings.online_gst_enabled;
-  const showGstNumber = gstSettings && gstSettings.show_gst_on_invoice && gstSettings.gst_number && gstSettings.gst_number !== '0' && gstSettings.gst_number !== 'null';
+  const showGstNumber = isGstEligibleService && gstSettings && gstSettings.show_gst_on_invoice && gstSettings.gst_number && gstSettings.gst_number !== '0' && gstSettings.gst_number !== 'null';
   
   // Calculate totals
   const subtotal = services.reduce((sum, item) => sum + (item.price * item.quantity), 0);
