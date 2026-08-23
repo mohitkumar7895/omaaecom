@@ -12,10 +12,11 @@ const poolOptions = {
   database: process.env.DB_NAME,
   port: parseInt(process.env.DB_PORT || '3306'),
   waitForConnections: true,
-  connectionLimit: 10,
+  connectionLimit: process.env.NODE_ENV === "production" ? 2 : 10,
   queueLimit: 0,
   enableKeepAlive: true,
   keepAliveInitialDelay: 10000,
+  connectTimeout: 20000,
 };
 
 let pool: mysql.Pool;
