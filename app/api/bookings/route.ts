@@ -79,7 +79,7 @@ export async function POST(req: Request) {
     await pool.query(
       `INSERT INTO bookings (order_id, type, customer_name, mobile, address, category, services, booking_date, time_slot, total, payment_method, payment_status, working_status, created_at, user_email)
        VALUES (?, 'Normal Service', ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', 'Pendi', NOW(), ?)`,
-      [orderId, name, mobile, address, categoryName, servicesJson, booking_date || null, time_slot || null, total_amount, payment_method === 'online' ? 'cashfree' : 'Cash on Book', user_email]
+      [orderId, name, mobile, address, categoryName, servicesJson, booking_date || '', time_slot || '', total_amount, payment_method === 'online' ? 'cashfree' : 'Cash on Book', user_email]
     );
 
     return NextResponse.json({ success: true, order_id: orderId });
