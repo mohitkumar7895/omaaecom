@@ -74,12 +74,7 @@ export default function GstSettingsForm({ settings }: { settings: any }) {
 
           <div className="flex items-center space-x-3 pt-4">
             <Toggle checked={onlineGst} onChange={() => setOnlineGst(!onlineGst)} />
-            <span className="text-[13px] font-bold text-gray-800">Online payment booking me GST on</span>
-          </div>
-
-          <div className="flex items-center space-x-3 pt-2">
-            <Toggle checked={cashGst} onChange={() => setCashGst(!cashGst)} />
-            <span className="text-[13px] font-bold text-gray-800">Cash booking me GST on</span>
+            <span className="text-[13px] font-bold text-gray-800">Apply GST Rate on Invoices</span>
           </div>
 
           <div className="flex items-center space-x-3 pt-2 pb-2">
