@@ -193,7 +193,7 @@ export default function MyBookingsPage() {
                         <h3 className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-2">Your Coupon Code</h3>
                         <div className="flex items-center gap-2">
                           <div className="text-[15px] font-black text-indigo-700 font-mono tracking-wider bg-white border border-indigo-200 px-3 py-2 rounded-lg shadow-sm">
-                            {booking.coupon_code}
+                            {booking.coupon_code.replace('OMAA-', '')}
                           </div>
                         </div>
                         <p className="text-[11px] text-indigo-500/80 mt-2 font-semibold leading-snug">Keep this safe for your next booking!</p>
