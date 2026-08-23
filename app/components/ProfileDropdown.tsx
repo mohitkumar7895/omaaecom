@@ -1,21 +1,45 @@
 "use client";
 
 import Link from "next/link";
-import { User as UserIcon, Wallet, CalendarDays, History, Banknote, Clock, MapPin, Settings, Share2, Info, LogOut, Headset } from "lucide-react";
+import { User as UserIcon, Wallet, CalendarDays, History, Banknote, Clock, MapPin, Settings, Share2, Info, LogOut, Headset, X } from "lucide-react";
 
 interface ProfileDropdownProps {
   user: any;
   onLogout: () => void;
   isOpen: boolean;
+  onClose: () => void;
 }
 
-export default function ProfileDropdown({ user, onLogout, isOpen }: ProfileDropdownProps) {
+export default function ProfileDropdown({ user, onLogout, isOpen, onClose }: ProfileDropdownProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="absolute top-full right-0 mt-3 w-72 bg-white rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-gray-100 overflow-hidden flex flex-col z-[150] origin-top-right animate-in fade-in zoom-in-95 duration-200">
-      {/* Header */}
-      <div className="p-5 border-b border-gray-50 bg-gray-50/50 flex items-center gap-3">
+    <>
+      {/* Mobile Backdrop */}
+      <div 
+        className="fixed inset-0 bg-black/50 z-[140] lg:hidden animate-in fade-in duration-200"
+        onClick={(e) => {
+          e.stopPropagation();
+          onClose();
+        }}
+      />
+      
+      {/* Container */}
+      <div className="fixed inset-y-0 right-0 h-full w-[280px] sm:w-[320px] lg:absolute lg:top-full lg:right-0 lg:bottom-auto lg:h-auto lg:mt-3 lg:w-72 bg-white lg:rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border-l lg:border border-gray-100 overflow-hidden flex flex-col z-[150] lg:origin-top-right animate-in slide-in-from-right lg:slide-in-from-right-0 lg:fade-in lg:zoom-in-95 duration-200">
+        
+        {/* Mobile Close Button */}
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
+          className="lg:hidden absolute top-4 right-4 p-2 bg-gray-100 rounded-full text-gray-500 z-10 hover:bg-gray-200 transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        {/* Header */}
+        <div className="p-5 pt-14 lg:pt-5 border-b border-gray-50 bg-gray-50/50 flex items-center gap-3">
         <div className="w-12 h-12 rounded-full bg-[#e2e5fc] flex items-center justify-center text-[#6069c9]">
           <UserIcon className="w-6 h-6" />
         </div>
@@ -56,16 +80,17 @@ export default function ProfileDropdown({ user, onLogout, isOpen }: ProfileDropd
       </div>
 
       {/* Logout */}
-      <div className="p-3 border-t border-gray-50 bg-gray-50/50">
+      <div className="p-4 lg:p-3 mt-auto lg:mt-0 border-t border-gray-50 bg-gray-50/50">
         <button 
           onClick={onLogout}
-          className="w-full flex items-center justify-center gap-2 py-2.5 text-red-600 hover:bg-red-50 rounded-xl transition-colors font-semibold text-sm"
+          className="w-full flex items-center justify-center gap-2 py-3 lg:py-2.5 text-red-600 hover:bg-red-50 rounded-xl transition-colors font-bold lg:font-semibold text-[15px] lg:text-sm shadow-sm lg:shadow-none bg-white lg:bg-transparent border border-red-100 lg:border-transparent"
         >
-          <LogOut className="w-4 h-4" />
+          <LogOut className="w-5 h-5 lg:w-4 lg:h-4" />
           Logout
         </button>
       </div>
     </div>
+    </>
   );
 }
 

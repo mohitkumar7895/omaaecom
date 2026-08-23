@@ -162,6 +162,7 @@ export default function Navbar() {
             <ProfileDropdown 
               user={user} 
               isOpen={isProfileDropdownOpen} 
+              onClose={() => setIsProfileDropdownOpen(false)}
               onLogout={async () => {
                 await fetch("/api/auth/logout", { method: "POST" });
                 window.dispatchEvent(new Event("auth_changed"));
