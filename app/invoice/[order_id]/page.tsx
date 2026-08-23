@@ -39,11 +39,8 @@ export default async function InvoicePage(props: { params: Promise<{ order_id: s
     parsedServices = typeof booking.services === 'string' ? JSON.parse(booking.services) : booking.services;
   } catch (e) {}
 
-  // Convert dates to string so they can be passed to client component
-  const safeBooking = {
-    ...booking,
-    created_at: booking.created_at ? new Date(booking.created_at).toISOString() : null
-  };
+  // Serialize entire booking to safely pass to client component (removes Date objects)
+  const safeBooking = JSON.parse(JSON.stringify(booking));
 
   return <InvoiceClient booking={safeBooking} services={parsedServices} gstSettings={gstSettings} />;
 }

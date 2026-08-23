@@ -87,7 +87,12 @@ export default function InvoiceClient({ booking, services, gstSettings }: Invoic
               <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">Service Details</h3>
               <p className="text-gray-800 text-sm"><span className="text-gray-500">Category:</span> <span className="font-semibold">{booking.category}</span></p>
               {booking.booking_date && (
-                <p className="text-gray-800 text-sm mt-1"><span className="text-gray-500">Schedule:</span> <span className="font-semibold">{booking.booking_date} • {booking.time_slot}</span></p>
+                <p className="text-gray-800 text-sm mt-1">
+                  <span className="text-gray-500">Schedule:</span> 
+                  <span className="font-semibold">
+                    {booking.booking_date.includes('T') ? new Date(booking.booking_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : booking.booking_date} • {booking.time_slot}
+                  </span>
+                </p>
               )}
               <p className="text-gray-800 text-sm mt-1"><span className="text-gray-500">Payment:</span> <span className="font-semibold capitalize">{booking.payment_method}</span></p>
             </div>
