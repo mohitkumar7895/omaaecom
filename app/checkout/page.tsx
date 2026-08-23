@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Navbar from "../components/Navbar";
 import { CheckCircle2, Lock, ShieldCheck, Hash, IndianRupee, Calendar, Clock, MapPin, CreditCard, Edit, Home, List, AlertCircle, Mail } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import BookingSchedulePicker from "../components/BookingSchedulePicker";
 import CashbackFeatures from "../components/CashbackFeatures";
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [cart, setCart] = useState<any[]>([]);
@@ -585,6 +585,14 @@ export default function CheckoutPage() {
         }
       `}</style>
     </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#f8f9fa] flex items-center justify-center"><div className="w-8 h-8 border-4 border-[#6b62d9] border-t-transparent rounded-full animate-spin"></div></div>}>
+      <CheckoutContent />
+    </Suspense>
   );
 }
 
