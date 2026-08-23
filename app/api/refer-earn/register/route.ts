@@ -34,6 +34,22 @@ export async function POST(req: Request) {
     const salt = await bcrypt.genSalt(10);
     const password_hash = await bcrypt.hash(password, salt);
 
+    // Validate and process coupon code if provided
+    if (coupon_code) {
+      const [couponRows]: any = await pool.query(
+        "SELECT status FROM coupons WHERE code = ? LIMIT 1",
+        [coupon_code]
+      );
+
+      if (!couponRows || couponRows.length === 0) {
+        return NextResponse.json({ error: "Invalid coupon code." }, { status: 400 });
+      }
+
+      if (couponRows[0].status !== 'active') {
+        return NextResponse.json({ error: "This coupon code has already been used or is expired." }, { status: 400 });
+      }
+    }
+
     // Insert into database
     await pool.query(
       `INSERT INTO referral_registrations 
@@ -41,6 +57,14 @@ export async function POST(req: Request) {
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [referral_member_id, referral_user_name, name, email, mobile, coupon_code || "", password_hash]
     );
+
+    // If a coupon code was used, mark it as 'used' so it cannot be used again
+    if (coupon_code) {
+      await pool.query(
+        "UPDATE coupons SET status = 'used' WHERE code = ?",
+        [coupon_code]
+      );
+    }
 
     return NextResponse.json({ success: true, message: "Registration successful!" });
   } catch (error: any) {
