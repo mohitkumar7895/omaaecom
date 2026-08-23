@@ -59,7 +59,42 @@ export default function CategoryView({ category, subcategories, services }: Cate
     }
   };
 
+  const isCashbackItem = (item: any) => {
+    const title = (item.title || "").toLowerCase();
+    const catId = Number(item.category_id || category?.id);
+    const catName = (item.category || item.type || category?.title || "").toLowerCase();
+    
+    if (catId === 6 || catId === 7) return true;
+    if (
+      title.includes("new product") || 
+      title.includes("amc") || 
+      title.includes("plan") ||
+      title.includes("cashback") ||
+      catName.includes("new product") || 
+      catName.includes("amc") ||
+      catName.includes("product") ||
+      catName.includes("cashback")
+    ) {
+      return true;
+    }
+    return false;
+  };
+
   const handleAddService = (service: any) => {
+    if (cart.length > 0) {
+      const isNewItemCashback = isCashbackItem(service);
+      const hasCashbackInCart = isCashbackItem(cart[0]);
+
+      if (isNewItemCashback && !hasCashbackInCart) {
+        alert("You cannot add Cashback/Products to a cart containing Regular Services. Please complete or clear your cart first.");
+        return;
+      }
+      if (!isNewItemCashback && hasCashbackInCart) {
+        alert("You cannot add Regular Services to a cart containing Cashback/Products. Please complete or clear your cart first.");
+        return;
+      }
+    }
+
     setCart((prev) => {
       let newCart;
       const existing = prev.find(item => item.id === service.id);

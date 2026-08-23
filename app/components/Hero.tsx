@@ -5,7 +5,7 @@ import MobileBannerCarousel from "./MobileBannerCarousel";
 import LiveSearchBar from "./LiveSearchBar";
 
 export default function Hero({ categories = [], banners = [] }: { categories?: any[], banners?: string[] }) {
-  
+
   const getIcon = (title: string) => {
     if (title.includes("Ac Repair")) return "❄️";
     if (title.includes("Refrigerator")) return "🧊";
@@ -24,16 +24,16 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
 
   return (
     <div className="relative bg-gradient-to-br from-[#6277db] via-[#a268b8] to-[#db5285] text-white w-full font-sans overflow-hidden py-3 md:py-12 px-4 md:px-12">
-      
+
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 md:gap-6 items-stretch">
-        
+
         {/* Left Side: Content & Cards */}
         <div className="w-full md:w-1/2 flex flex-col space-y-4 md:space-y-6 z-10 pt-2 md:pt-4">
-          
+
           {/* Mobile Carousel placed before title or replacing title on mobile */}
           <MobileBannerCarousel banners={banners} />
-          
-          <h1 
+
+          <h1
             className="hidden md:block text-[38px] lg:text-[48px] xl:text-[54px] font-bold tracking-tight leading-[1.15] mb-6 text-white drop-shadow-lg"
           >
             Home services at your <br /> doorsteps
@@ -44,7 +44,7 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
 
           {/* Unified Services Box */}
           <div className="bg-white rounded-[24px] p-5 md:p-6 shadow-2xl text-gray-800 flex flex-col flex-1 justify-between space-y-3">
-            
+
             {/* Top Section: Home Services */}
             <div>
               <div className="flex items-center space-x-2 mb-3">
@@ -76,8 +76,8 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
               {newProducts.length > 0 && (
                 <Link href={`/services/${newProducts[0].id}`} className="flex flex-col group cursor-pointer bg-[#f4f5f8] rounded-2xl p-3 md:p-4 hover:bg-gray-100 transition-colors">
                   <div className="flex items-center space-x-1.5 text-[#2c8af8] mb-2">
-                    <ShoppingCart className="w-4 h-4" fill="currentColor" />
-                    <h3 className="font-bold text-[12px] uppercase tracking-wide">New Products</h3>
+                    <ShoppingCart className="w-6 h-5" fill="currentColor" />
+
                   </div>
                   <div className="flex justify-between items-center mt-1">
                     <span className="text-[13px] font-semibold text-gray-900 leading-tight pr-2 line-clamp-2">{newProducts[0].title}</span>
@@ -96,7 +96,7 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
               {amcProducts.length > 0 && (
                 <Link href={`/services/${amcProducts[0].id}`} className="flex flex-col group cursor-pointer bg-[#f4f5f8] rounded-2xl p-3 md:p-4 hover:bg-gray-100 transition-colors relative">
                   <div className="flex items-center text-[#21a868] mb-2">
-                    <h3 className="font-bold text-[12px] uppercase tracking-wide">AMC Products</h3>
+
                   </div>
                   <div className="flex justify-between items-center mt-1">
                     <span className="text-[13px] font-semibold text-gray-900 leading-tight pr-2 line-clamp-2">{amcProducts[0].title}</span>
@@ -118,40 +118,40 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
 
         {/* Right Side: Masonry Image Grid */}
         <div className="w-full md:w-1/2 flex items-stretch justify-center pt-2 md:pt-4">
-           
-           <div className="hidden md:flex gap-3 p-3 border-4 border-white/20 rounded-[32px] bg-white/10 shadow-xl backdrop-blur-sm w-full max-w-[420px] h-full">
-             {/* Left Tall Image */}
-             <div className="w-1/2 h-full">
-                <Image 
-                  src="/Hero1.webp" 
-                  alt="Cleaning Service" 
-                  width={600}
-                  height={800}
-                  priority
-                  className="w-full h-full object-cover rounded-[20px] shadow-md"
-                />
-             </div>
-             
-             {/* Right Stacked Images */}
-             <div className="w-1/2 h-full flex flex-col gap-3">
-                <Image 
-                  src="/Hero 2.webp" 
-                  alt="RO Repair" 
-                  width={600}
-                  height={400}
-                  priority
-                  className="w-full h-[calc(50%-6px)] object-cover rounded-[20px] shadow-md"
-                />
-                <Image 
-                  src="/Hero3.webp" 
-                  alt="AC Repair" 
-                  width={600}
-                  height={400}
-                  priority
-                  className="w-full h-[calc(50%-6px)] object-cover rounded-[20px] shadow-md"
-                />
-             </div>
-           </div>
+
+          <div className="hidden md:flex gap-3 p-3 border-4 border-white/20 rounded-[32px] bg-white/10 shadow-xl backdrop-blur-sm w-full max-w-[420px] h-full">
+            {/* Left Tall Image */}
+            <div className="w-1/2 h-full">
+              <Image
+                src="/Hero1.webp"
+                alt="Cleaning Service"
+                width={600}
+                height={800}
+                priority
+                className="w-full h-full object-cover rounded-[20px] shadow-md"
+              />
+            </div>
+
+            {/* Right Stacked Images */}
+            <div className="w-1/2 h-full flex flex-col gap-3">
+              <Image
+                src="/Hero 2.webp"
+                alt="RO Repair"
+                width={600}
+                height={400}
+                priority
+                className="w-full h-[calc(50%-6px)] object-cover rounded-[20px] shadow-md"
+              />
+              <Image
+                src="/Hero3.webp"
+                alt="AC Repair"
+                width={600}
+                height={400}
+                priority
+                className="w-full h-[calc(50%-6px)] object-cover rounded-[20px] shadow-md"
+              />
+            </div>
+          </div>
         </div>
 
       </div>
