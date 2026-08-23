@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_for_development_only";
-const DAILY_CASHBACK_AMOUNT = 10.95;
+const DAILY_CASHBACK_AMOUNT = 4;
 const CLAIM_DESCRIPTION = 'Daily Cashback Claim';
 
 async function getUserEmail() {

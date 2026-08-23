@@ -114,13 +114,13 @@ export default function WalletPage() {
       <div className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 lg:p-8 mt-4 pb-20">
         
         {/* Header Section */}
-        <div className="flex items-center gap-4 mb-8">
-          <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
-            <Wallet className="w-6 h-6" />
+        <div className="flex items-center gap-4 mb-8 mt-2">
+          <div className="w-14 h-14 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center text-white shadow-[0_8px_30px_rgba(245,158,11,0.3)]">
+            <Wallet className="w-7 h-7" />
           </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">OMAA Wallet</h1>
-            <p className="text-gray-500 font-medium">Your earned cashback and rewards</p>
+            <h1 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">OMAA Wallet</h1>
+            <p className="text-gray-500 font-medium text-sm mt-1">Your premium rewards and balance</p>
           </div>
         </div>
 
@@ -136,43 +136,30 @@ export default function WalletPage() {
           </div>
         )}
 
-        {/* Balance Card (Glassmorphism + Gradients) */}
-        <div className="relative overflow-hidden bg-gray-900 rounded-[28px] p-8 sm:p-10 mb-8 shadow-2xl">
-          <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-br from-indigo-500/30 to-purple-500/30 blur-[80px] rounded-full pointer-events-none -translate-y-1/2 translate-x-1/3"></div>
-          <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-gradient-to-tr from-emerald-500/20 to-teal-400/20 blur-[60px] rounded-full pointer-events-none translate-y-1/3 -translate-x-1/4"></div>
+        {/* Premium Balance Card */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-[#1a1c29] to-black rounded-[32px] p-8 sm:p-12 mb-10 shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-white/10 group">
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-amber-500/20 to-orange-500/20 blur-[100px] rounded-full pointer-events-none -translate-y-1/2 translate-x-1/3 group-hover:scale-110 transition-transform duration-700"></div>
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-emerald-500/10 to-teal-400/10 blur-[80px] rounded-full pointer-events-none translate-y-1/3 -translate-x-1/4"></div>
           
-          <div className="relative z-10">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
-              <div>
-                <p className="text-gray-400 font-medium tracking-wide uppercase text-sm mb-2 flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                  Available Balance
-                </p>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl sm:text-4xl font-semibold text-white/80">₹</span>
-                  <h2 className="text-5xl sm:text-7xl font-black text-white tracking-tight">{Number(balance)}</h2>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <button 
-                  onClick={handleAddMoney}
-                  disabled={isAdding}
-                  className="bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-[0_4px_24px_rgba(0,0,0,0.2)] flex items-center gap-2 text-sm disabled:opacity-50"
-                >
-                  {isAdding ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Plus className="w-4 h-4" />} 
-                  {isAdding ? 'Adding...' : 'Add ₹500 (Demo)'}
-                </button>
-              </div>
+          <div className="relative z-10 flex flex-col items-center text-center">
+            <p className="text-amber-400/90 font-bold tracking-[0.2em] uppercase text-[11px] mb-4 flex items-center gap-2 bg-amber-400/10 px-4 py-1.5 rounded-full border border-amber-400/20">
+              <ShieldCheck className="w-4 h-4" />
+              Total Available Balance
+            </p>
+            <div className="flex items-start justify-center gap-1 mb-8">
+              <span className="text-4xl sm:text-5xl font-semibold text-white/50 mt-2">₹</span>
+              <h2 className="text-7xl sm:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-400 tracking-tighter drop-shadow-sm">{Number(balance)}</h2>
             </div>
             
-            <div className="mt-10 pt-6 border-t border-white/10 grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Total Earned</p>
-                <p className="text-emerald-400 font-bold text-lg">₹{Number(totalEarned)}</p>
+            <div className="w-full max-w-md bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-md flex justify-around">
+              <div className="text-center">
+                <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest mb-1.5">Total Earned</p>
+                <p className="text-emerald-400 font-bold text-xl tracking-wide">₹{Number(totalEarned)}</p>
               </div>
-              <div>
-                <p className="text-gray-400 text-xs uppercase tracking-wider mb-1">Spent</p>
-                <p className="text-white font-bold text-lg">₹0</p>
+              <div className="w-px bg-white/10"></div>
+              <div className="text-center">
+                <p className="text-gray-400 text-[10px] font-black uppercase tracking-widest mb-1.5">Spent</p>
+                <p className="text-gray-300 font-bold text-xl tracking-wide">₹0</p>
               </div>
             </div>
           </div>

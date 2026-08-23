@@ -32,7 +32,7 @@ export default function BookingSchedulePicker({
   useEffect(() => {
     const nextDays = [];
     // Generate dates for the next 30 days
-    for (let i = 1; i <= 30; i++) { 
+    for (let i = 0; i <= 30; i++) { 
       const d = new Date();
       d.setDate(d.getDate() + i);
       nextDays.push({

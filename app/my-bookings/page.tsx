@@ -73,13 +73,13 @@ export default function MyBookingsPage() {
     <main className="min-h-screen bg-[#f7f8fc] flex flex-col font-sans">
       <Navbar />
       <div className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 lg:p-8 mt-4 sm:mt-8 pb-20">
-        <div className="flex items-center gap-4 mb-8">
-          <div className="w-12 h-12 bg-[#e2e5fc] rounded-2xl flex items-center justify-center text-[#6069c9]">
-            <FileText className="w-6 h-6" />
+        <div className="flex items-center gap-5 mb-10 mt-2">
+          <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-[20px] flex items-center justify-center text-white shadow-[0_8px_30px_rgba(99,102,241,0.4)] transform hover:scale-105 transition-transform duration-300">
+            <FileText className="w-8 h-8" />
           </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">My Bookings</h1>
-            <p className="text-gray-500 font-medium">View and manage your service history</p>
+            <h1 className="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-600 tracking-tight mb-1">My Bookings</h1>
+            <p className="text-gray-500 font-medium text-sm">Track your premium service history</p>
           </div>
         </div>
 

@@ -83,10 +83,26 @@ export default function CashbackFeatures({ orderId }: CashbackFeaturesProps) {
     }
   };
 
+  const markServiceAsOpted = async () => {
+    try {
+      await fetch('/api/bookings/cashback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, action: 'opt_service' })
+      });
+      fetchCashbackData(); // Refresh data
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const startAd = () => {
     setAdCountdown(10);
     setPlayingAd(true);
   };
+
+  const isServiceLocked = cashbackData?.ad_watched;
+  const isCashbackLocked = cashbackData?.service_opted;
 
   // Format 24h timer (HH:MM:SS)
   const formatTime = (ms: number) => {
@@ -108,10 +124,14 @@ export default function CashbackFeatures({ orderId }: CashbackFeaturesProps) {
         
         <button
           onClick={() => {
+            if (isServiceLocked) return;
             setActiveTab('service');
             setShowServiceModal(true);
           }}
+          disabled={isServiceLocked}
           className={`flex-1 relative z-10 flex items-center justify-center gap-2 py-3 font-bold text-[14px] transition-colors duration-300 rounded-xl ${
+            isServiceLocked ? 'opacity-40 cursor-not-allowed' : ''
+          } ${
             activeTab === 'service' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'
           }`}
         >
@@ -121,10 +141,14 @@ export default function CashbackFeatures({ orderId }: CashbackFeaturesProps) {
         
         <button
           onClick={() => {
+            if (isCashbackLocked) return;
             setActiveTab('cashback');
             setShowCashbackModal(true);
           }}
+          disabled={isCashbackLocked}
           className={`flex-1 relative z-10 flex items-center justify-center gap-2 py-3 font-bold text-[14px] transition-colors duration-300 rounded-xl ${
+            isCashbackLocked ? 'opacity-40 cursor-not-allowed' : ''
+          } ${
             activeTab === 'cashback' ? 'text-amber-600' : 'text-gray-500 hover:text-gray-700'
           }`}
         >
@@ -147,8 +171,13 @@ export default function CashbackFeatures({ orderId }: CashbackFeaturesProps) {
             <p className="text-gray-500 font-medium leading-relaxed">
               Congratulations! This product includes a complimentary 1-year free service plan. We've got you covered!
             </p>
-            <button onClick={() => setShowServiceModal(false)} className="w-full mt-8 bg-blue-600 text-white font-bold py-3.5 rounded-xl">
-              Awesome!
+            <button onClick={() => {
+              if (!cashbackData?.service_opted) {
+                markServiceAsOpted();
+              }
+              setShowServiceModal(false);
+            }} className="w-full mt-8 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-md">
+              {cashbackData?.service_opted ? 'Close' : 'Claim Service'}
             </button>
           </div>
         </div>
@@ -212,13 +241,34 @@ export default function CashbackFeatures({ orderId }: CashbackFeaturesProps) {
                     ) : (
                       <div>
                         {cashbackData.working_status === 'Completed' ? (
-                          <div>
-                            <h3 className="text-2xl font-extrabold text-green-600 mb-2">Congratulations! 🎉</h3>
-                            <p className="text-gray-500 font-medium mb-6">Your cashback has been unlocked.</p>
-                            <div className="bg-green-50 border border-green-200 rounded-2xl p-6 mb-2 transform transition hover:scale-105">
-                              <p className="text-sm text-green-700 font-bold uppercase tracking-wider mb-1">You Won</p>
-                              <p className="text-5xl font-black text-green-600">₹{cashbackData.cashback_amount || 500}</p>
+                          <div className="text-left">
+                            <h3 className="text-2xl font-extrabold text-green-600 mb-2 text-center">100% Cashback Unlocked! 🎉</h3>
+                            <p className="text-gray-500 font-medium mb-4 text-center text-sm">Here is how you will receive your cashback:</p>
+                            
+                            <div className="bg-green-50 border border-green-200 rounded-2xl p-5 mb-4">
+                              <ul className="space-y-3 text-sm text-green-800 font-medium leading-relaxed">
+                                <li className="flex gap-2">
+                                  <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
+                                  <span>You will receive <b>₹4 daily</b> in your Omaa Wallet.</span>
+                                </li>
+                                <li className="flex gap-2">
+                                  <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
+                                  <span>A new 24-hour timer will run every day.</span>
+                                </li>
+                                <li className="flex gap-2">
+                                  <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
+                                  <span>Once the timer finishes, go to the Cashback page and click "Claim" to add it to your Wallet.</span>
+                                </li>
+                                <li className="flex gap-2">
+                                  <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
+                                  <span>Keep claiming daily until you receive the full 100% value of your product!</span>
+                                </li>
+                              </ul>
                             </div>
+                            
+                            <a href="/cashback" className="block w-full text-center bg-green-600 hover:bg-green-700 text-white font-bold py-3.5 rounded-xl transition transform hover:scale-105 shadow-md">
+                              Go to Cashback Page
+                            </a>
                           </div>
                         ) : (
                           <div>

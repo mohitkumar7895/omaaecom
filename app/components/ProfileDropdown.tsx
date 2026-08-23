@@ -29,10 +29,9 @@ export default function ProfileDropdown({ user, onLogout, isOpen }: ProfileDropd
 
       {/* Links List */}
       <div className="py-2 flex flex-col max-h-[60vh] overflow-y-auto hidden-scrollbar">
-        <DropdownItem href="/wallet" icon={<Wallet className="w-4 h-4" />} label="Wallet" />
-        <DropdownItem href="/my-amc" icon={<CalendarDays className="w-4 h-4" />} label="My AMC Plans" />
-        <DropdownItem href="/cashback" icon={<Banknote className="w-4 h-4" />} label="Cashback" />
         <DropdownItem href="/my-bookings" icon={<Clock className="w-4 h-4" />} label="My Bookings" />
+        <DropdownItem href="/my-amc" icon={<CalendarDays className="w-4 h-4" />} label="My AMC Plans" />
+        <DropdownItem href="/wallet" icon={<Wallet className="w-4 h-4" />} label="Wallet" />
         <DropdownItem href="/manage-address" icon={<MapPin className="w-4 h-4" />} label="Manage Address" />
         <DropdownItem href="/settings" icon={<Settings className="w-4 h-4" />} label="Settings" />
         <DropdownItem href="/about" icon={<Info className="w-4 h-4" />} label="About" />

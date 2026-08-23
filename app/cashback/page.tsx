@@ -231,7 +231,7 @@ export default function CashbackPage() {
               </div>
 
               <div className="bg-[#fffcf3] border border-[#f5e6b3] rounded-xl p-4 text-xs text-[#856404]">
-                <span className="font-semibold">Daily cashback value: ₹10.95.</span> The claim button opens again after each 24 hour timer completes.
+                <span className="font-semibold">Daily cashback value: ₹4.</span> The claim button opens again after each 24 hour timer completes.
               </div>
             </div>
           </div>

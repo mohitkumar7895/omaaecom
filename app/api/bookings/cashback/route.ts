@@ -3,10 +3,16 @@ import pool from "../../../../lib/db";
 
 export async function POST(req: Request) {
   try {
-    const { orderId } = await req.json();
+    const { orderId, action } = await req.json();
 
     if (!orderId) {
       return NextResponse.json({ error: "Order ID is required" }, { status: 400 });
+    }
+
+    if (action === 'opt_service') {
+      try { await pool.query("ALTER TABLE bookings ADD COLUMN service_opted BOOLEAN DEFAULT FALSE"); } catch(e) {}
+      await pool.query("UPDATE bookings SET service_opted = TRUE WHERE order_id = ?", [orderId]);
+      return NextResponse.json({ success: true });
     }
 
     await pool.query(
@@ -30,8 +36,10 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Order ID is required" }, { status: 400 });
     }
 
+    try { await pool.query("ALTER TABLE bookings ADD COLUMN service_opted BOOLEAN DEFAULT FALSE"); } catch(e) {}
+
     const [rows]: any = await pool.query(
-      `SELECT ad_watched, ad_watched_at, cashback_amount, working_status FROM bookings WHERE order_id = ?`,
+      `SELECT ad_watched, ad_watched_at, cashback_amount, working_status, service_opted FROM bookings WHERE order_id = ?`,
       [orderId]
     );
 
