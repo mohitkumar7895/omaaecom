@@ -109,9 +109,9 @@ export default function MyBookingsPage() {
                 }`} />
 
                 {/* Header */}
-                <div className="border-b border-gray-50/80 p-5 sm:px-7 sm:py-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-gray-50/50 to-white">
+                <div className="border-b border-gray-50/80 p-4 sm:px-7 sm:py-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-gradient-to-r from-gray-50/50 to-white">
                   <div className="flex items-center gap-3">
-                    <span className={`px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-widest shadow-sm ${
+                    <span className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[10px] sm:text-[11px] font-black uppercase tracking-widest shadow-sm ${
                       booking.working_status === 'Complete' ? 'bg-gradient-to-r from-emerald-50 to-emerald-100/50 text-emerald-700 border border-emerald-100' :
                       booking.working_status === 'Reject' ? 'bg-gradient-to-r from-red-50 to-red-100/50 text-red-700 border border-red-100' :
                       'bg-gradient-to-r from-amber-50 to-amber-100/50 text-amber-700 border border-amber-100'
@@ -119,25 +119,25 @@ export default function MyBookingsPage() {
                       {booking.working_status === 'Pendi' ? 'Pending' : booking.working_status}
                     </span>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-400 text-xs font-semibold">Order ID</span>
-                      <span className="text-gray-900 text-sm font-black font-mono tracking-tight bg-white px-2.5 py-1 rounded-md border border-gray-200 shadow-sm">
+                      <span className="text-gray-400 text-[11px] sm:text-xs font-semibold">Order ID</span>
+                      <span className="text-gray-900 text-xs sm:text-sm font-black font-mono tracking-tight bg-white px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md border border-gray-200 shadow-sm">
                         #{booking.order_id}
                       </span>
                     </div>
                   </div>
-                  <div className="text-left sm:text-right text-[12px] font-bold text-gray-400 flex items-center sm:justify-end gap-1.5">
+                  <div className="text-left sm:text-right text-[11px] sm:text-[12px] font-bold text-gray-400 flex items-center sm:justify-end gap-1.5">
                     <Calendar className="w-3.5 h-3.5" /> 
                     Placed on {new Date(booking.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                   </div>
                 </div>
 
                 {/* Body */}
-                <div className="p-5 sm:p-7 flex flex-col md:flex-row gap-6 md:gap-10">
-                  <div className="flex-1 space-y-5">
+                <div className="p-4 sm:p-7 flex flex-col md:flex-row gap-4 md:gap-10">
+                  <div className="flex-1 space-y-3 sm:space-y-5">
                     <div>
-                      <h3 className="text-[11px] font-black uppercase tracking-widest text-gray-400 mb-3 flex items-center gap-1.5"><List className="w-3.5 h-3.5"/> Services</h3>
+                      <h3 className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-gray-400 mb-2 sm:mb-3 flex items-center gap-1.5"><List className="w-3.5 h-3.5"/> Services</h3>
                       {Array.isArray(booking.services) ? (
-                        <div className="space-y-3 bg-[#f8f9fa] rounded-2xl p-4 border border-gray-100">
+                        <div className="space-y-2 sm:space-y-3 bg-[#f8f9fa] rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-gray-100">
                           {booking.services.map((s: any, idx: number) => (
                             <div key={idx} className="flex justify-between items-center text-sm">
                               <div className="flex items-center gap-2">
@@ -157,46 +157,46 @@ export default function MyBookingsPage() {
                       )}
                     </div>
 
-                    <div className="pt-2">
-                      <div className="flex justify-between items-end p-5 rounded-2xl bg-gradient-to-br from-gray-900 to-black text-white shadow-lg relative overflow-hidden">
-                        <div className="absolute -right-4 -top-4 w-20 h-20 bg-white/10 rounded-full blur-xl"></div>
+                    <div className="pt-1 sm:pt-2">
+                      <div className="flex justify-between items-end p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-gradient-to-br from-gray-900 to-black text-white shadow-lg relative overflow-hidden">
+                        <div className="absolute -right-4 -top-4 w-16 h-16 sm:w-20 sm:h-20 bg-white/10 rounded-full blur-xl"></div>
                         <div>
-                          <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest block mb-0.5">Total Amount</span>
-                          <span className="text-xs text-gray-400/80 font-medium">Incl. all taxes</span>
+                          <span className="text-[10px] sm:text-[11px] font-bold text-gray-400 uppercase tracking-widest block mb-0.5">Total Amount</span>
+                          <span className="text-[10px] sm:text-xs text-gray-400/80 font-medium">Incl. all taxes</span>
                         </div>
-                        <span className="font-black text-2xl tracking-tight relative z-10">₹{Number(booking.total)}</span>
+                        <span className="font-black text-xl sm:text-2xl tracking-tight relative z-10">₹{Number(booking.total)}</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Right Panel / Logistics */}
-                  <div className="md:w-[300px] shrink-0 space-y-4">
-                    <div className="bg-[#f8f9fa] rounded-2xl p-5 border border-gray-100/80 hover:border-gray-200 transition-colors">
-                      <div className="mb-5">
-                        <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 flex items-center gap-1.5"><Clock className="w-3.5 h-3.5"/> Schedule</h3>
-                        <div className="text-[14px] font-bold text-gray-900 flex items-center gap-2 bg-white px-3 py-2.5 rounded-xl border border-gray-100 shadow-sm">
-                          <div className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse"></div>
+                  <div className="md:w-[300px] shrink-0 space-y-3 sm:space-y-4">
+                    <div className="bg-[#f8f9fa] rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-gray-100/80 hover:border-gray-200 transition-colors">
+                      <div className="mb-3 sm:mb-5">
+                        <h3 className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5 sm:mb-2 flex items-center gap-1.5"><Clock className="w-3.5 h-3.5"/> Schedule</h3>
+                        <div className="text-xs sm:text-[14px] font-bold text-gray-900 flex items-center gap-2 bg-white px-2 py-2 sm:px-3 sm:py-2.5 rounded-lg sm:rounded-xl border border-gray-100 shadow-sm">
+                          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-indigo-400 animate-pulse"></div>
                           {booking.booking_date ? new Date(booking.booking_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : 'Not Scheduled'} • {booking.time_slot || 'N/A'}
                         </div>
                       </div>
                       
                       <div>
-                        <h3 className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 flex items-center gap-1.5"><Navigation className="w-3.5 h-3.5"/> Service Address</h3>
-                        <div className="text-[13px] font-semibold text-gray-600 leading-relaxed bg-white px-3 py-2.5 rounded-xl border border-gray-100 shadow-sm">
+                        <h3 className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5 sm:mb-2 flex items-center gap-1.5"><Navigation className="w-3.5 h-3.5"/> Service Address</h3>
+                        <div className="text-xs sm:text-[13px] font-semibold text-gray-600 leading-relaxed bg-white px-2 py-2 sm:px-3 sm:py-2.5 rounded-lg sm:rounded-xl border border-gray-100 shadow-sm">
                           {booking.address || 'Online / Remote'}
                         </div>
                       </div>
                     </div>
 
                     {booking.coupon_code && (
-                      <div className="bg-indigo-50/50 border border-indigo-100/80 rounded-2xl p-5 group-hover:bg-indigo-50 transition-colors">
-                        <h3 className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-2">Your Coupon Code</h3>
+                      <div className="bg-indigo-50/50 border border-indigo-100/80 rounded-xl sm:rounded-2xl p-4 sm:p-5 group-hover:bg-indigo-50 transition-colors">
+                        <h3 className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-1.5 sm:mb-2">Your Coupon Code</h3>
                         <div className="flex items-center gap-2">
-                          <div className="text-[15px] font-black text-indigo-700 font-mono tracking-wider bg-white border border-indigo-200 px-3 py-2 rounded-lg shadow-sm">
+                          <div className="text-[13px] sm:text-[15px] font-black text-indigo-700 font-mono tracking-wider bg-white border border-indigo-200 px-2 py-1.5 sm:px-3 sm:py-2 rounded-md sm:rounded-lg shadow-sm">
                             {booking.coupon_code.replace('OMAA-', '')}
                           </div>
                         </div>
-                        <p className="text-[11px] text-indigo-500/80 mt-2 font-semibold leading-snug">Keep this safe for your next booking!</p>
+                        <p className="text-[10px] sm:text-[11px] text-indigo-500/80 mt-1.5 sm:mt-2 font-semibold leading-snug">Keep this safe for your next booking!</p>
                       </div>
                     )}
                   </div>
@@ -204,7 +204,7 @@ export default function MyBookingsPage() {
                 
                 {/* Product Action Buttons (Service, Cashback, Invoice) */}
                 {((booking.type === 'AMC' || booking.type === 'New Product') || booking.working_status === 'Complete') && (
-                  <div className="p-5 border-t border-gray-50 bg-gray-50/30 flex flex-wrap gap-4 items-center justify-between">
+                  <div className="p-4 sm:p-5 border-t border-gray-50 bg-gray-50/30 flex flex-wrap gap-3 sm:gap-4 items-center justify-between">
                     <div>
                       {(booking.type === 'AMC' || booking.type === 'New Product') && (
                         <CashbackFeatures orderId={booking.order_id} />
