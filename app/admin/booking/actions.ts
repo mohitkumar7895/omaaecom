@@ -18,8 +18,15 @@ export async function updateWorkingStatus(formData: FormData) {
   
   if (id && status) {
     try {
-      // Check if status is Completed
-      if (status === 'Completed') {
+      // Check if status is Complete
+      if (status === 'Complete') {
+        try {
+          // Ensure the column exists to prevent 'Unknown column' errors if DB schema wasn't migrated
+          await pool.query("ALTER TABLE bookings ADD COLUMN coupon_code VARCHAR(50) DEFAULT NULL");
+        } catch(e) {
+          // Ignore error if column already exists or if syntax is unsupported (e.g. older MySQL)
+        }
+        
         // Fetch booking details
         const [rows]: any = await pool.query("SELECT type, mobile, coupon_code, referred_by FROM bookings WHERE id = ?", [id]);
         if (rows && rows.length > 0) {
