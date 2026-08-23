@@ -204,16 +204,16 @@ export default function MyBookingsPage() {
                 
                 {/* Product Action Buttons (Service, Cashback, Invoice) */}
                 {((booking.type === 'AMC' || booking.type === 'New Product') || booking.working_status === 'Complete') && (
-                  <div className="p-4 sm:p-5 border-t border-gray-50 bg-gray-50/30 flex flex-wrap gap-3 sm:gap-4 items-center justify-between">
-                    <div>
+                  <div className="p-4 sm:p-5 border-t border-gray-50 bg-gray-50/30 flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
+                    <div className="w-full sm:max-w-[320px]">
                       {(booking.type === 'AMC' || booking.type === 'New Product') && (
                         <CashbackFeatures orderId={booking.order_id} />
                       )}
                     </div>
                     
                     {booking.working_status === 'Complete' && (
-                      <Link href={`/invoice/${booking.order_id}`}>
-                        <button className="flex items-center gap-2 bg-[#6069c9] hover:bg-[#525ab5] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition shadow-sm">
+                      <Link href={`/invoice/${booking.order_id}`} className="w-full sm:w-auto mt-2 sm:mt-0">
+                        <button className="w-full sm:w-auto flex justify-center items-center gap-2 bg-[#6069c9] hover:bg-[#525ab5] text-white px-5 py-3 rounded-xl text-sm font-bold transition shadow-sm">
                           <FileText className="w-4 h-4" />
                           View Invoice
                         </button>

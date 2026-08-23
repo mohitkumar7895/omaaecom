@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Gift, Wallet, PlayCircle, Clock, CheckCircle2, AlertCircle, X } from "lucide-react";
 
 interface CashbackFeaturesProps {
@@ -17,6 +17,74 @@ export default function CashbackFeatures({ orderId }: CashbackFeaturesProps) {
   const [adCountdown, setAdCountdown] = useState(10);
   const [playingAd, setPlayingAd] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number>(0);
+
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragPercent, setDragPercent] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isDragging) {
+      setDragPercent(activeTab === 'cashback' ? 50 : 0);
+    }
+  }, [activeTab, isDragging]);
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    (e.target as HTMLDivElement).setPointerCapture(e.pointerId);
+    setIsDragging(true);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging || !containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const percent = (x / rect.width) * 100;
+    let left = percent - 25; 
+    if (left < 0) left = 0;
+    if (left > 50) left = 50;
+    setDragPercent(left);
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    (e.target as HTMLDivElement).releasePointerCapture(e.pointerId);
+    
+    if (dragPercent > 25) {
+      if (!isCashbackLocked) {
+        setActiveTab('cashback');
+        setShowCashbackModal(true);
+      } else {
+        setDragPercent(0);
+        setActiveTab('service');
+      }
+    } else {
+      if (!isServiceLocked) {
+        setActiveTab('service');
+        setShowServiceModal(true);
+      } else {
+        setDragPercent(50);
+        setActiveTab('cashback');
+      }
+    }
+  };
+
+  const handleBgClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isDragging) return;
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const x = e.clientX - rect.left;
+    if (x > rect.width / 2) {
+      if (!isCashbackLocked) {
+        setActiveTab('cashback');
+        setShowCashbackModal(true);
+      }
+    } else {
+      if (!isServiceLocked) {
+        setActiveTab('service');
+        setShowServiceModal(true);
+      }
+    }
+  };
 
   const fetchCashbackData = async () => {
     setLoading(true);
@@ -115,46 +183,56 @@ export default function CashbackFeatures({ orderId }: CashbackFeaturesProps) {
 
   return (
     <>
-      <div className="relative w-full bg-gray-100 rounded-[14px] p-1.5 flex shadow-inner">
-        {/* Animated Background Pill */}
-        <div 
-          className="absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] transition-transform duration-300 ease-in-out border border-gray-200/60"
-          style={{ transform: activeTab === 'cashback' ? 'translateX(100%)' : 'translateX(0)' }}
-        />
-        
-        <button
-          onClick={() => {
-            if (isServiceLocked) return;
-            setActiveTab('service');
-            setShowServiceModal(true);
-          }}
-          disabled={isServiceLocked}
-          className={`flex-1 relative z-10 flex items-center justify-center gap-2 py-3 font-bold text-[14px] transition-colors duration-300 rounded-xl ${
-            isServiceLocked ? 'opacity-40 cursor-not-allowed' : ''
-          } ${
-            activeTab === 'service' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'
-          }`}
+      <div 
+        ref={containerRef}
+        onClick={handleBgClick}
+        className="relative w-full h-14 bg-gradient-to-r from-gray-200/80 to-gray-100 rounded-full p-1.5 flex items-center shadow-inner overflow-hidden cursor-pointer border border-gray-300/50"
+      >
+        {/* Background Labels */}
+        <div className="absolute inset-0 flex items-center justify-between pointer-events-none px-8">
+          <div className="flex items-center gap-2 text-gray-500 font-bold text-sm">
+            <Gift className="w-4 h-4" />
+            <span>Service</span>
+          </div>
+          <div className="flex items-center gap-2 text-gray-500 font-bold text-sm">
+            <Wallet className="w-4 h-4" />
+            <span>Cashback</span>
+          </div>
+        </div>
+
+        {/* Draggable Thumb */}
+        <div
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+          className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-white rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.15)] border border-gray-100 flex items-center justify-center cursor-grab active:cursor-grabbing z-10 touch-none ${!isDragging ? 'transition-all duration-300 ease-out' : ''}`}
+          style={{ left: `calc(${dragPercent}% + 3px)` }}
         >
-          <Gift className="w-4 h-4" />
-          Service
-        </button>
-        
-        <button
-          onClick={() => {
-            if (isCashbackLocked) return;
-            setActiveTab('cashback');
-            setShowCashbackModal(true);
-          }}
-          disabled={isCashbackLocked}
-          className={`flex-1 relative z-10 flex items-center justify-center gap-2 py-3 font-bold text-[14px] transition-colors duration-300 rounded-xl ${
-            isCashbackLocked ? 'opacity-40 cursor-not-allowed' : ''
-          } ${
-            activeTab === 'cashback' ? 'text-amber-600' : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          <Wallet className="w-4 h-4" />
-          Cashback
-        </button>
+          {dragPercent < 25 ? (
+            <div className="flex items-center gap-2 text-blue-600 font-bold text-sm">
+              <Gift className="w-4 h-4" />
+              <span>Service</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-amber-600 font-bold text-sm">
+              <Wallet className="w-4 h-4" />
+              <span>Cashback</span>
+            </div>
+          )}
+          
+          {/* Subtle drag handle graphics */}
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col gap-[3px] opacity-20">
+            <div className="w-[3px] h-[3px] rounded-full bg-gray-500"></div>
+            <div className="w-[3px] h-[3px] rounded-full bg-gray-500"></div>
+            <div className="w-[3px] h-[3px] rounded-full bg-gray-500"></div>
+          </div>
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 flex flex-col gap-[3px] opacity-20">
+            <div className="w-[3px] h-[3px] rounded-full bg-gray-500"></div>
+            <div className="w-[3px] h-[3px] rounded-full bg-gray-500"></div>
+            <div className="w-[3px] h-[3px] rounded-full bg-gray-500"></div>
+          </div>
+        </div>
       </div>
 
       {/* Service Modal */}

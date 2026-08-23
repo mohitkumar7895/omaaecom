@@ -5,10 +5,10 @@ import { revalidatePath } from "next/cache";
 
 export async function saveGstSettings(formData: FormData) {
   const gstRate = formData.get("gst_rate") || 18;
-  const onlineGstEnabled = true;
-  const cashGstEnabled = true;
+  const onlineGstEnabled = formData.get("online_gst_enabled") === "on" ? 1 : 0;
+  const cashGstEnabled = formData.get("cash_gst_enabled") === "on" ? 1 : 0;
   const gstNumber = formData.get("gst_number") || "";
-  const showGstOnInvoice = formData.get("show_gst_on_invoice") === "on";
+  const showGstOnInvoice = formData.get("show_gst_on_invoice") === "on" ? 1 : 0;
 
   try {
     const query = `

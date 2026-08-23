@@ -9,6 +9,8 @@ export default function GstSettingsForm({ settings }: { settings: any }) {
   const [saved, setSaved] = useState(false);
 
   const [showInvoice, setShowInvoice] = useState(Boolean(settings.show_gst_on_invoice));
+  const [onlineGst, setOnlineGst] = useState(Boolean(settings.online_gst_enabled));
+  const [cashGst, setCashGst] = useState(Boolean(settings.cash_gst_enabled));
 
   async function handleSubmit(formData: FormData) {
     setLoading(true);
@@ -16,6 +18,8 @@ export default function GstSettingsForm({ settings }: { settings: any }) {
     
     // We append the toggle states since normal checkboxes don't send values if unchecked
     if (showInvoice) formData.append("show_gst_on_invoice", "on");
+    if (onlineGst) formData.append("online_gst_enabled", "on");
+    if (cashGst) formData.append("cash_gst_enabled", "on");
 
     await saveGstSettings(formData);
     setLoading(false);
@@ -66,6 +70,16 @@ export default function GstSettingsForm({ settings }: { settings: any }) {
               placeholder="e.g. 27ABCDE1234F1Z5"
               className="w-full border border-gray-200 rounded text-sm px-3 py-2 outline-none focus:border-blue-500"
             />
+          </div>
+
+          <div className="flex items-center space-x-3 pt-4">
+            <Toggle checked={onlineGst} onChange={() => setOnlineGst(!onlineGst)} />
+            <span className="text-[13px] font-bold text-gray-800">Online payment booking me GST on</span>
+          </div>
+
+          <div className="flex items-center space-x-3 pt-2">
+            <Toggle checked={cashGst} onChange={() => setCashGst(!cashGst)} />
+            <span className="text-[13px] font-bold text-gray-800">Cash booking me GST on</span>
           </div>
 
           <div className="flex items-center space-x-3 pt-2 pb-2">
