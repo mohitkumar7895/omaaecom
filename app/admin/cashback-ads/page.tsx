@@ -1,21 +1,22 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Save, Image as ImageIcon, Video, AlertCircle, Clock, Trash2, CheckCircle2 } from "lucide-react";
-import Image from "next/image";
+import { Save, Image as ImageIcon, Video, AlertCircle, Clock, Trash2, CheckCircle2, Upload } from "lucide-react";
 
 export default function CashbackAdsAdmin() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  
+  const [uploadProgress, setUploadProgress] = useState(0);
+
   const [adType, setAdType] = useState<'video' | 'image'>('video');
   const [duration, setDuration] = useState<number>(20);
-  
+
   const [existingUrls, setExistingUrls] = useState<string[]>([]);
-  
+
   const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string>('');
   const [imageFiles, setImageFiles] = useState<File[]>([]);
-  
+
   const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
 
   const videoRef = useRef<HTMLInputElement>(null);
@@ -32,12 +33,10 @@ export default function CashbackAdsAdmin() {
       if (data) {
         setAdType(data.ad_type || 'video');
         setDuration(data.duration || 20);
-        
         let urls = [];
         try {
           urls = typeof data.media_urls === 'string' ? JSON.parse(data.media_urls) : data.media_urls;
         } catch(e) {}
-        
         setExistingUrls(urls || []);
       }
     } catch (e) {
@@ -48,7 +47,15 @@ export default function CashbackAdsAdmin() {
 
   const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setVideoFile(e.target.files[0]);
+      const file = e.target.files[0];
+      // Check file size — warn if > 50MB
+      if (file.size > 50 * 1024 * 1024) {
+        setMessage({ type: 'error', text: `File bahut badi hai (${(file.size / 1024 / 1024).toFixed(1)}MB). 50MB se chhoti video upload karein.` });
+        return;
+      }
+      setVideoFile(file);
+      setVideoPreview(URL.createObjectURL(file));
+      setMessage(null);
     }
   };
 
@@ -56,13 +63,10 @@ export default function CashbackAdsAdmin() {
     if (e.target.files) {
       const files = Array.from(e.target.files);
       if (files.length > 6) {
-        setMessage({ type: 'error', text: 'You can only upload up to 6 images' });
+        setMessage({ type: 'error', text: 'Maximum 6 images allowed' });
         return;
       }
       setImageFiles(files);
-      
-      // Auto calculate duration based on rule: 3 images = 10s, 6 images = 20s
-      // Essentially: duration = (files.length / 3) * 10
       const autoDuration = Math.ceil(files.length / 3) * 10;
       setDuration(autoDuration);
     }
@@ -72,7 +76,6 @@ export default function CashbackAdsAdmin() {
     const newFiles = [...imageFiles];
     newFiles.splice(index, 1);
     setImageFiles(newFiles);
-    
     if (newFiles.length > 0) {
       setDuration(Math.ceil(newFiles.length / 3) * 10);
     }
@@ -80,15 +83,19 @@ export default function CashbackAdsAdmin() {
 
   const handleSave = async () => {
     setSaving(true);
+    setUploadProgress(0);
     setMessage(null);
     try {
       const formData = new FormData();
       formData.append('ad_type', adType);
       formData.append('duration', duration.toString());
-      
+
       if (adType === 'video') {
-        if (videoFile) formData.append('video', videoFile);
-        else formData.append('existing_media', JSON.stringify(existingUrls));
+        if (videoFile) {
+          formData.append('video', videoFile);
+        } else {
+          formData.append('existing_media', JSON.stringify(existingUrls));
+        }
       } else {
         if (imageFiles.length > 0) {
           imageFiles.forEach(file => formData.append('images', file));
@@ -97,33 +104,60 @@ export default function CashbackAdsAdmin() {
         }
       }
 
-      const res = await fetch('/api/admin/cashback-ads', {
-        method: 'POST',
-        body: formData,
+      // XHR for progress tracking
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/admin/cashback-ads');
+
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const pct = Math.round((e.loaded / e.total) * 100);
+            setUploadProgress(pct);
+          }
+        };
+
+        xhr.onload = () => {
+          if (xhr.status === 200) {
+            const data = JSON.parse(xhr.responseText);
+            if (data.success) {
+              setMessage({ type: 'success', text: '✅ Video save ho gayi! Cashback ad ready hai.' });
+              setVideoFile(null);
+              setVideoPreview('');
+              setImageFiles([]);
+              fetchConfig();
+              resolve();
+            } else {
+              setMessage({ type: 'error', text: data.error || 'Save karne mein error aaya' });
+              reject();
+            }
+          } else {
+            setMessage({ type: 'error', text: 'Server error — dobara try karein' });
+            reject();
+          }
+        };
+
+        xhr.onerror = () => {
+          setMessage({ type: 'error', text: 'Network error — internet check karein' });
+          reject();
+        };
+
+        xhr.send(formData);
       });
 
-      const data = await res.json();
-      if (data.success) {
-        setMessage({ type: 'success', text: 'Cashback Ads configuration saved successfully!' });
-        setVideoFile(null);
-        setImageFiles([]);
-        fetchConfig();
-      } else {
-        setMessage({ type: 'error', text: data.error || 'Failed to save' });
-      }
     } catch (e: any) {
-      setMessage({ type: 'error', text: e.message || 'Error saving' });
+      // already handled above
     }
     setSaving(false);
+    setUploadProgress(0);
   };
 
-  if (loading) return <div className="p-8 text-center">Loading...</div>;
+  if (loading) return <div className="p-8 text-center text-gray-500">Loading...</div>;
 
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Cashback Ads Management</h1>
-        <p className="text-gray-500">Configure the advertisement shown when users claim their cashback.</p>
+        <p className="text-gray-500">Video ya images upload karo jo user cashback lene pe dekhega.</p>
       </div>
 
       {message && (
@@ -134,47 +168,44 @@ export default function CashbackAdsAdmin() {
       )}
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-        
+
         {/* Type Selection */}
         <div className="p-6 border-b border-gray-100 bg-gray-50/50">
-          <label className="block text-sm font-bold text-gray-700 mb-4">Select Advertisement Type</label>
+          <label className="block text-sm font-bold text-gray-700 mb-4">Advertisement Type</label>
           <div className="flex gap-4">
             <label className={`flex-1 flex flex-col items-center justify-center p-6 rounded-xl border-2 cursor-pointer transition-all ${adType === 'video' ? 'border-[#6069c9] bg-indigo-50/50 text-[#6069c9]' : 'border-gray-200 hover:border-gray-300 text-gray-500'}`}>
               <input type="radio" name="ad_type" value="video" checked={adType === 'video'} onChange={() => setAdType('video')} className="sr-only" />
               <Video className={`w-8 h-8 mb-2 ${adType === 'video' ? 'animate-pulse' : ''}`} />
               <span className="font-bold">Video Ad</span>
-              <span className="text-xs mt-1 opacity-70">MP4 format recommended</span>
+              <span className="text-xs mt-1 opacity-70">MP4 · Max 50MB</span>
             </label>
-            
+
             <label className={`flex-1 flex flex-col items-center justify-center p-6 rounded-xl border-2 cursor-pointer transition-all ${adType === 'image' ? 'border-[#6069c9] bg-indigo-50/50 text-[#6069c9]' : 'border-gray-200 hover:border-gray-300 text-gray-500'}`}>
               <input type="radio" name="ad_type" value="image" checked={adType === 'image'} onChange={() => setAdType('image')} className="sr-only" />
               <ImageIcon className={`w-8 h-8 mb-2 ${adType === 'image' ? 'animate-pulse' : ''}`} />
               <span className="font-bold">Image Slideshow</span>
-              <span className="text-xs mt-1 opacity-70">Up to 6 images</span>
+              <span className="text-xs mt-1 opacity-70">Max 6 images</span>
             </label>
           </div>
         </div>
 
         <div className="p-6 space-y-8">
-          {/* Duration Configuration */}
+
+          {/* Duration */}
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
               <Clock className="w-4 h-4 text-gray-400" />
-              Advertisement Duration (Seconds)
+              Ad Duration (Seconds)
             </label>
             <div className="flex items-center gap-4">
-              <input 
-                type="number" 
+              <input
+                type="number"
                 min="5" max="120"
                 value={duration}
                 onChange={(e) => setDuration(parseInt(e.target.value) || 20)}
                 className="w-32 px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#6069c9] focus:border-transparent outline-none font-medium"
               />
-              {adType === 'image' && (
-                <p className="text-xs text-gray-500">
-                  <span className="font-bold text-[#6069c9]">Tip:</span> System auto-calculates 10s for 3 images, 20s for 6 images.
-                </p>
-              )}
+              <span className="text-xs text-gray-400">seconds (user ko itne seconds baad cashback milega)</span>
             </div>
           </div>
 
@@ -183,52 +214,93 @@ export default function CashbackAdsAdmin() {
           {/* Media Upload */}
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-4">
-              Upload {adType === 'video' ? 'Video File' : 'Images'}
+              {adType === 'video' ? '📹 Video Upload karo' : '🖼️ Images Upload karo'}
             </label>
 
             {adType === 'video' ? (
-              <div>
-                <input 
-                  type="file" 
-                  accept="video/mp4,video/webm" 
+              <div className="space-y-4">
+                <input
+                  type="file"
+                  accept="video/mp4,video/webm"
                   ref={videoRef}
                   onChange={handleVideoChange}
-                  className="hidden" 
+                  className="hidden"
                 />
-                <button 
+
+                {/* Drop Zone */}
+                <button
                   onClick={() => videoRef.current?.click()}
-                  className="w-full py-8 border-2 border-dashed border-gray-300 rounded-xl hover:bg-gray-50 transition flex flex-col items-center justify-center text-gray-500"
+                  className="w-full py-10 border-2 border-dashed border-gray-300 rounded-xl hover:border-[#6069c9] hover:bg-indigo-50/30 transition-all flex flex-col items-center justify-center gap-2 group"
                 >
-                  <Video className="w-8 h-8 mb-2 text-gray-400" />
-                  <span className="font-medium text-gray-700">{videoFile ? videoFile.name : 'Click to select a video'}</span>
-                  {!videoFile && existingUrls.length > 0 && existingUrls[0].endsWith('.mp4') && (
-                    <span className="text-xs text-blue-500 mt-2 font-medium">Currently playing saved video</span>
-                  )}
+                  <div className="w-14 h-14 bg-gray-100 group-hover:bg-indigo-100 rounded-full flex items-center justify-center transition-colors">
+                    <Upload className="w-6 h-6 text-gray-400 group-hover:text-[#6069c9] transition-colors" />
+                  </div>
+                  <span className="font-bold text-gray-700 group-hover:text-[#6069c9] transition-colors">
+                    {videoFile ? `✅ ${videoFile.name}` : 'Click karo ya drag karo — Video Select karo'}
+                  </span>
+                  <span className="text-xs text-gray-400">
+                    {videoFile
+                      ? `Size: ${(videoFile.size / 1024 / 1024).toFixed(2)} MB`
+                      : 'MP4 / WebM • Maximum 50MB'}
+                  </span>
                 </button>
-                {existingUrls.length > 0 && !videoFile && existingUrls[0].endsWith('.mp4') && (
-                  <div className="mt-4 rounded-xl overflow-hidden bg-black aspect-video relative max-w-sm">
-                    <video src={existingUrls[0]} controls className="w-full h-full object-contain" />
+
+                {/* Upload Progress Bar */}
+                {saving && adType === 'video' && videoFile && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs font-bold text-gray-600">
+                      <span>Upload ho raha hai...</span>
+                      <span>{uploadProgress}%</span>
+                    </div>
+                    <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-[#6069c9] to-indigo-400 rounded-full transition-all duration-300"
+                        style={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-gray-400 text-center">
+                      {uploadProgress < 100 ? 'File server pe ja rahi hai... wait karo 🙏' : '✅ Upload complete! Save ho raha hai...'}
+                    </p>
+                  </div>
+                )}
+
+                {/* Preview — new file */}
+                {videoPreview && (
+                  <div>
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Preview (Sirf pehle 20 sec dikhenge user ko):</p>
+                    <div className="rounded-xl overflow-hidden bg-black aspect-video max-w-sm">
+                      <video src={videoPreview} controls className="w-full h-full object-contain" />
+                    </div>
+                  </div>
+                )}
+
+                {/* Preview — existing saved video */}
+                {!videoFile && existingUrls.length > 0 && (
+                  <div>
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Currently Saved Video:</p>
+                    <div className="rounded-xl overflow-hidden bg-black aspect-video max-w-sm">
+                      <video src={existingUrls[0]} controls className="w-full h-full object-contain" />
+                    </div>
                   </div>
                 )}
               </div>
             ) : (
               <div>
-                <input 
-                  type="file" 
-                  accept="image/png,image/jpeg,image/webp" 
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
                   multiple
                   ref={imageRef}
                   onChange={handleImagesChange}
-                  className="hidden" 
+                  className="hidden"
                 />
-                
+
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-4">
-                  {/* New Image Previews */}
                   {imageFiles.length > 0 ? (
                     imageFiles.map((file, idx) => (
                       <div key={idx} className="relative aspect-[4/3] rounded-xl overflow-hidden border border-gray-200 group bg-gray-50">
                         <img src={URL.createObjectURL(file)} alt="Preview" className="w-full h-full object-cover" />
-                        <button 
+                        <button
                           onClick={() => removeImage(idx)}
                           className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition shadow-sm hover:bg-red-600"
                         >
@@ -237,7 +309,6 @@ export default function CashbackAdsAdmin() {
                       </div>
                     ))
                   ) : existingUrls.length > 0 && !existingUrls[0].endsWith('.mp4') ? (
-                    /* Existing Images */
                     existingUrls.map((url, idx) => (
                       <div key={idx} className="relative aspect-[4/3] rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
                         <img src={url} alt="Saved" className="w-full h-full object-cover" />
@@ -246,12 +317,12 @@ export default function CashbackAdsAdmin() {
                   ) : null}
 
                   {imageFiles.length < 6 && (
-                    <button 
+                    <button
                       onClick={() => imageRef.current?.click()}
-                      className="aspect-[4/3] border-2 border-dashed border-gray-300 rounded-xl hover:bg-gray-50 transition flex flex-col items-center justify-center text-gray-400 group"
+                      className="aspect-[4/3] border-2 border-dashed border-gray-300 rounded-xl hover:bg-gray-50 hover:border-[#6069c9] transition flex flex-col items-center justify-center text-gray-400 group"
                     >
-                      <ImageIcon className="w-6 h-6 mb-2 group-hover:scale-110 transition-transform" />
-                      <span className="text-sm font-medium">Add Image</span>
+                      <ImageIcon className="w-6 h-6 mb-2 group-hover:scale-110 transition-transform group-hover:text-[#6069c9]" />
+                      <span className="text-sm font-medium group-hover:text-[#6069c9]">Add Image</span>
                       <span className="text-[10px]">({imageFiles.length || (existingUrls[0]?.endsWith('.mp4') ? 0 : existingUrls.length)} / 6)</span>
                     </button>
                   )}
@@ -261,19 +332,22 @@ export default function CashbackAdsAdmin() {
           </div>
         </div>
 
-        {/* Footer Actions */}
-        <div className="p-6 border-t border-gray-100 bg-gray-50/50 flex justify-end">
-          <button 
+        {/* Footer */}
+        <div className="p-6 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between">
+          <p className="text-xs text-gray-400">
+            {adType === 'video' ? '⚡ Video badi hogi toh upload mein time lagega — wait karo' : ''}
+          </p>
+          <button
             onClick={handleSave}
             disabled={saving}
             className="flex items-center gap-2 bg-[#6069c9] hover:bg-[#525ab5] text-white font-bold py-3 px-8 rounded-xl transition shadow-md disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {saving ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
               <Save className="w-5 h-5" />
             )}
-            {saving ? 'Saving Config...' : 'Save Configuration'}
+            {saving ? `Uploading... ${uploadProgress}%` : 'Save Configuration'}
           </button>
         </div>
       </div>
