@@ -17,13 +17,26 @@ export async function GET() {
     const decoded = jwt.verify(token, JWT_SECRET) as any;
     const userEmail = decoded.email;
 
+    // Safely try to fetch user's mobile to also match guest bookings
+    let userMobile: string | null = null;
+    try {
+      const [userRows]: any = await pool.query(
+        `SELECT mobile FROM users WHERE email = ? LIMIT 1`,
+        [userEmail]
+      );
+      userMobile = userRows[0]?.mobile || null;
+    } catch (_) {
+      // mobile column might not exist, that's ok
+    }
+
     const [rows]: any = await pool.query(
       `SELECT b.*, c.status as coupon_status 
        FROM bookings b
        LEFT JOIN coupons c ON b.coupon_code = c.code
        WHERE b.user_email = ? 
+         OR (b.user_email IS NULL AND ? IS NOT NULL AND b.mobile = ?)
        ORDER BY b.created_at DESC`,
-      [userEmail]
+      [userEmail, userMobile, userMobile]
     );
 
     const bookings = rows.map((row: any) => {
