@@ -25,21 +25,43 @@ export async function GET() {
         [userEmail]
       );
       userMobile = userRows[0]?.mobile || null;
-    } catch (_) {
-      // mobile column might not exist, that's ok
+    } catch (err) {
+      console.warn("Warning: Could not fetch user mobile:", err instanceof Error ? err.message : err);
     }
 
-    const [rows]: any = await pool.query(
-      `SELECT b.*, c.status as coupon_status 
-       FROM bookings b
-       LEFT JOIN coupons c ON b.coupon_code = c.code
-       WHERE b.user_email = ? 
-         OR (b.user_email IS NULL AND ? IS NOT NULL AND b.mobile = ?)
-       ORDER BY b.created_at DESC`,
-      [userEmail, userMobile, userMobile]
-    );
+    // Try to fetch bookings with coupon join (new schema)
+    let bookings = [];
+    try {
+      const [rows]: any = await pool.query(
+        `SELECT b.*, c.status as coupon_status 
+         FROM bookings b
+         LEFT JOIN coupons c ON b.coupon_code = c.code
+         WHERE b.user_email = ? 
+           OR (b.user_email IS NULL AND ? IS NOT NULL AND b.mobile = ?)
+         ORDER BY b.created_at DESC`,
+        [userEmail, userMobile, userMobile]
+      );
+      bookings = rows || [];
+    } catch (joinErr: any) {
+      // If the join fails (missing columns/tables), try simpler query
+      console.warn("Complex query failed, trying fallback:", joinErr instanceof Error ? joinErr.message : joinErr);
+      
+      try {
+        // Fallback: query bookings by mobile only (legacy approach)
+        const [fallbackRows]: any = await pool.query(
+          `SELECT * FROM bookings WHERE mobile = ? ORDER BY created_at DESC LIMIT 50`,
+          [userMobile]
+        );
+        bookings = fallbackRows || [];
+      } catch (fallbackErr: any) {
+        console.error("All booking queries failed:", fallbackErr instanceof Error ? fallbackErr.message : fallbackErr);
+        // Return empty array if all queries fail
+        bookings = [];
+      }
+    }
 
-    const bookings = rows.map((row: any) => {
+    // Parse services JSON if needed
+    const parsedBookings = bookings.map((row: any) => {
       let parsedServices = row.services;
       try {
         if (typeof row.services === 'string') {
@@ -49,7 +71,7 @@ export async function GET() {
       return { ...row, services: parsedServices };
     });
 
-    return NextResponse.json({ success: true, bookings });
+    return NextResponse.json({ success: true, bookings: parsedBookings });
   } catch (error: any) {
     // Distinguish auth errors vs DB errors
     if (error?.name === 'JsonWebTokenError' || error?.name === 'TokenExpiredError') {
