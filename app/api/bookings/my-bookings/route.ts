@@ -50,7 +50,12 @@ export async function GET() {
     });
 
     return NextResponse.json({ success: true, bookings });
-  } catch (error) {
-    return NextResponse.json({ error: "Unauthorized or Database Error" }, { status: 401 });
+  } catch (error: any) {
+    // Distinguish auth errors vs DB errors
+    if (error?.name === 'JsonWebTokenError' || error?.name === 'TokenExpiredError') {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    console.error("my-bookings error:", error?.message || error);
+    return NextResponse.json({ error: "Database Error: " + (error?.message || "Unknown") }, { status: 500 });
   }
 }
