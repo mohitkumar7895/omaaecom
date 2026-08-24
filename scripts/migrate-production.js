@@ -11,8 +11,11 @@
  * - Set: DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT in .env
  */
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const mysql = require('mysql2/promise');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const path = require('path');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
 async function runMigration() {
@@ -48,7 +51,7 @@ async function runMigration() {
       console.log("📝 Migration 1: Adding user_email column to bookings...");
       await connection.query("ALTER TABLE bookings ADD COLUMN user_email VARCHAR(255) DEFAULT NULL");
       console.log("   ✅ user_email column added\n");
-    } catch (err: any) {
+    } catch (err) {
       if (err.code === 'ER_DUP_FIELDNAME') {
         console.log("   ℹ️  user_email column already exists\n");
       } else {
@@ -61,7 +64,7 @@ async function runMigration() {
       console.log("📝 Migration 2: Adding coupon_code column to bookings...");
       await connection.query("ALTER TABLE bookings ADD COLUMN coupon_code VARCHAR(100) DEFAULT NULL");
       console.log("   ✅ coupon_code column added\n");
-    } catch (err: any) {
+    } catch (err) {
       if (err.code === 'ER_DUP_FIELDNAME') {
         console.log("   ℹ️  coupon_code column already exists\n");
       } else {
@@ -90,7 +93,7 @@ async function runMigration() {
       `;
       await connection.query(createCouponsSQL);
       console.log("   ✅ coupons table created\n");
-    } catch (err: any) {
+    } catch (err) {
       if (err.code === 'ER_TABLE_EXISTS_ERROR') {
         console.log("   ℹ️  coupons table already exists\n");
       } else {
@@ -103,7 +106,7 @@ async function runMigration() {
       console.log("📝 Migration 4: Adding mobile column to users...");
       await connection.query("ALTER TABLE users ADD COLUMN mobile VARCHAR(20) DEFAULT NULL");
       console.log("   ✅ mobile column added to users\n");
-    } catch (err: any) {
+    } catch (err) {
       if (err.code === 'ER_DUP_FIELDNAME') {
         console.log("   ℹ️  mobile column already exists in users\n");
       } else {
@@ -113,18 +116,18 @@ async function runMigration() {
 
     // Verification: Check bookings table structure
     console.log("📊 Verifying bookings table structure...");
-    const [columns]: any = await connection.query(
+    const [columns] = await connection.query(
       `SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS 
        WHERE TABLE_NAME = 'bookings' AND TABLE_SCHEMA = ?`,
       [dbName]
     );
     
     const requiredColumns = ['user_email', 'coupon_code'];
-    const existingColumns = columns.map((col: any) => col.COLUMN_NAME);
+    const existingColumns = columns.map(col => col.COLUMN_NAME);
     
     console.log("   Current bookings columns:", existingColumns.join(", "));
     
-    const missingColumns = requiredColumns.filter((col: string) => !existingColumns.includes(col));
+    const missingColumns = requiredColumns.filter(col => !existingColumns.includes(col));
     if (missingColumns.length === 0) {
       console.log("   ✅ All required columns present\n");
     } else {
@@ -134,9 +137,9 @@ async function runMigration() {
     // Verification: Check coupons table
     console.log("📊 Verifying coupons table...");
     try {
-      const [coupons]: any = await connection.query("SELECT COUNT(*) as count FROM coupons LIMIT 1");
+      await connection.query("SELECT COUNT(*) as count FROM coupons LIMIT 1");
       console.log("   ✅ coupons table exists and is accessible\n");
-    } catch (err) {
+    } catch {
       console.log("   ⚠️  Could not access coupons table\n");
     }
 
@@ -145,7 +148,7 @@ async function runMigration() {
     console.log("✅ Your database is now ready for the API");
     console.log("✅ =========================================\n");
 
-  } catch (error: any) {
+  } catch (error) {
     console.error("❌ Migration failed:", error.message);
     console.error("\nTroubleshooting:");
     console.error("1. Check that DB_HOST, DB_USER, DB_PASSWORD, DB_NAME are correct in .env");

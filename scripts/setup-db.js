@@ -1,6 +1,10 @@
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const mysql = require('mysql2/promise');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const fs = require('fs');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const path = require('path');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
 async function setupDatabase() {

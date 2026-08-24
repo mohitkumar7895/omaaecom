@@ -52,7 +52,7 @@ export default function MyBookingsPage() {
       <main className="min-h-screen bg-[#f7f8fc] flex flex-col font-sans">
         <Navbar />
         <div className="flex-1 max-w-3xl w-full mx-auto p-4 sm:p-6 lg:p-8 mt-4 sm:mt-8">
-          <div className="bg-white rounded-[24px] shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-gray-100 p-8 sm:p-12 flex flex-col items-center justify-center text-center min-h-[50vh]">
+          <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-gray-100 p-8 sm:p-12 flex flex-col items-center justify-center text-center min-h-[50vh]">
             <div className="w-20 h-20 bg-[#fde5e5] rounded-full flex items-center justify-center text-red-500 mb-6">
               <XCircle className="w-10 h-10" />
             </div>
@@ -74,17 +74,17 @@ export default function MyBookingsPage() {
       <Navbar />
       <div className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 lg:p-8 mt-4 sm:mt-8 pb-20">
         <div className="flex items-center gap-5 mb-10 mt-2">
-          <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-[20px] flex items-center justify-center text-white shadow-[0_8px_30px_rgba(99,102,241,0.4)] transform hover:scale-105 transition-transform duration-300">
+          <div className="w-16 h-16 bg-linear-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-[20px] flex items-center justify-center text-white shadow-[0_8px_30px_rgba(99,102,241,0.4)] transform hover:scale-105 transition-transform duration-300">
             <FileText className="w-8 h-8" />
           </div>
           <div>
-            <h1 className="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-600 tracking-tight mb-1">My Bookings</h1>
+            <h1 className="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-linear-to-r from-gray-900 to-gray-600 tracking-tight mb-1">My Bookings</h1>
             <p className="text-gray-500 font-medium text-sm">Track your premium service history</p>
           </div>
         </div>
 
         {bookings.length === 0 ? (
-          <div className="bg-white rounded-[24px] shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-gray-100 p-8 sm:p-12 flex flex-col items-center justify-center text-center min-h-[40vh]">
+          <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-gray-100 p-8 sm:p-12 flex flex-col items-center justify-center text-center min-h-[40vh]">
             <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 mb-6 border border-gray-100">
               <Clock className="w-8 h-8" />
             </div>
@@ -99,7 +99,7 @@ export default function MyBookingsPage() {
         ) : (
           <div className="space-y-6 sm:space-y-8">
             {bookings.map((booking, index) => (
-              <div key={index} className="bg-white rounded-[24px] shadow-[0_8px_40px_rgba(0,0,0,0.03)] border border-gray-100/80 overflow-hidden hover:shadow-[0_12px_50px_rgba(0,0,0,0.06)] hover:border-gray-200 transition-all duration-300 relative group">
+              <div key={index} className="bg-white rounded-3xl shadow-[0_8px_40px_rgba(0,0,0,0.03)] border border-gray-100/80 overflow-hidden hover:shadow-[0_12px_50px_rgba(0,0,0,0.06)] hover:border-gray-200 transition-all duration-300 relative group">
                 
                 {/* Status indicator line on the left */}
                 <div className={`absolute left-0 top-0 bottom-0 w-1.5 transition-colors ${
@@ -109,12 +109,12 @@ export default function MyBookingsPage() {
                 }`} />
 
                 {/* Header */}
-                <div className="border-b border-gray-50/80 p-4 sm:px-7 sm:py-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-gradient-to-r from-gray-50/50 to-white">
+                <div className="border-b border-gray-50/80 p-4 sm:px-7 sm:py-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-linear-to-r from-gray-50/50 to-white">
                   <div className="flex items-center gap-3">
                     <span className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg text-[10px] sm:text-[11px] font-black uppercase tracking-widest shadow-sm ${
-                      booking.working_status === 'Complete' ? 'bg-gradient-to-r from-emerald-50 to-emerald-100/50 text-emerald-700 border border-emerald-100' :
-                      booking.working_status === 'Reject' ? 'bg-gradient-to-r from-red-50 to-red-100/50 text-red-700 border border-red-100' :
-                      'bg-gradient-to-r from-amber-50 to-amber-100/50 text-amber-700 border border-amber-100'
+                      booking.working_status === 'Complete' ? 'bg-linear-to-r from-emerald-50 to-emerald-100/50 text-emerald-700 border border-emerald-100' :
+                      booking.working_status === 'Reject' ? 'bg-linear-to-r from-red-50 to-red-100/50 text-red-700 border border-red-100' :
+                      'bg-linear-to-r from-amber-50 to-amber-100/50 text-amber-700 border border-amber-100'
                     }`}>
                       {booking.working_status === 'Pendi' ? 'Pending' : booking.working_status}
                     </span>
@@ -158,7 +158,7 @@ export default function MyBookingsPage() {
                     </div>
 
                     <div className="pt-1 sm:pt-2">
-                      <div className="flex justify-between items-end p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-gradient-to-br from-gray-900 to-black text-white shadow-lg relative overflow-hidden">
+                      <div className="flex justify-between items-end p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-linear-to-br from-gray-900 to-black text-white shadow-lg relative overflow-hidden">
                         <div className="absolute -right-4 -top-4 w-16 h-16 sm:w-20 sm:h-20 bg-white/10 rounded-full blur-xl"></div>
                         <div>
                           <span className="text-[10px] sm:text-[11px] font-bold text-gray-400 uppercase tracking-widest block mb-0.5">Total Amount</span>
@@ -170,7 +170,7 @@ export default function MyBookingsPage() {
                   </div>
 
                   {/* Right Panel / Logistics */}
-                  <div className="md:w-[300px] shrink-0 space-y-3 sm:space-y-4">
+                  <div className="md:w-75 shrink-0 space-y-3 sm:space-y-4">
                     <div className="bg-[#f8f9fa] rounded-xl sm:rounded-2xl p-4 sm:p-5 border border-gray-100/80 hover:border-gray-200 transition-colors">
                       <div className="mb-3 sm:mb-5">
                         <h3 className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5 sm:mb-2 flex items-center gap-1.5"><Clock className="w-3.5 h-3.5"/> Schedule</h3>
