@@ -5,10 +5,24 @@ import { ShieldCheck, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+interface AmcService {
+  title?: string;
+  name?: string;
+  category?: string;
+}
+
+interface AmcBooking {
+  id: number | string;
+  type?: string;
+  services?: AmcService[] | string;
+  total?: number | string;
+  created_at: string | Date;
+}
+
 export default function MyAmcPage() {
-  const [amcPlans, setAmcPlans] = useState<any[]>([]);
+  const [amcPlans, setAmcPlans] = useState<AmcBooking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ email?: string } | null>(null);
 
   useEffect(() => {
     const fetchAMCs = async () => {
@@ -20,18 +34,22 @@ export default function MyAmcPage() {
           
           if (user) {
             const bRes = await fetch("/api/bookings/my-bookings");
-            if (bRes.ok) {
-              const { bookings } = await bRes.json();
-              // Filter bookings to find AMC plans (assuming AMC is in the name or category)
-              const amcs = (bookings || []).filter((b: any) => 
-                b.services?.some((s: any) => s.name.toLowerCase().includes('amc') || s.category?.toLowerCase().includes('amc'))
+            if (!bRes.ok) throw new Error("Unable to load bookings");
+            const { bookings } = await bRes.json() as { bookings?: AmcBooking[] };
+            const amcs = (bookings || []).filter((booking) => {
+              if (booking.type?.toLowerCase() === "amc") return true;
+              if (!Array.isArray(booking.services)) return false;
+              return booking.services.some((service) =>
+                [service.title, service.name, service.category]
+                  .filter(Boolean)
+                  .some((value) => value?.toLowerCase().includes("amc"))
               );
-              setAmcPlans(amcs);
-            }
+            });
+            setAmcPlans(amcs);
           }
         }
-      } catch (err) {
-        console.error("Failed to load AMCs");
+      } catch (error) {
+        console.error("Failed to load AMCs", error);
       } finally {
         setLoading(false);
       }
@@ -77,10 +95,10 @@ export default function MyAmcPage() {
           <div className="flex-1 flex items-center justify-center min-h-[50vh] p-4">
             <div className="text-center flex flex-col items-center">
               <div className="mb-4">
-                <ShieldAlert className="w-[60px] h-[60px] text-[#e0e4e8]" strokeWidth={1.5} />
+                <ShieldAlert className="w-15 h-15 text-[#e0e4e8]" strokeWidth={1.5} />
               </div>
               <h2 className="text-[#333333] text-[18px] sm:text-[20px] font-semibold mb-1.5">No AMC Plans</h2>
-              <p className="text-[#777777] text-[13px] sm:text-[14px] mb-6">You haven't subscribed to any AMC plans yet.</p>
+                <p className="text-[#777777] text-[13px] sm:text-[14px] mb-6">You haven&apos;t subscribed to any AMC plans yet.</p>
               <Link href="/">
                 <button className="bg-[#18a876] hover:bg-[#148f63] text-white font-semibold py-2 px-6 rounded text-[13px] transition-colors">
                   Explore AMC Plans
@@ -99,13 +117,13 @@ export default function MyAmcPage() {
                     </div>
                     <span className="px-2.5 py-1 bg-green-50 text-green-700 text-xs font-bold rounded border border-green-100 uppercase">Active</span>
                   </div>
-                  <h3 className="font-bold text-gray-900 text-lg mb-1">{plan.services?.[0]?.name || "AMC Plan"}</h3>
+                  <h3 className="font-bold text-gray-900 text-lg mb-1">{plan.services?.[0]?.title || plan.services?.[0]?.name || "AMC Plan"}</h3>
                   <p className="text-gray-500 text-sm mb-4">Order ID: {plan.id}</p>
                   
                   <div className="pt-4 border-t border-gray-100 flex justify-between items-center">
                     <div>
                       <p className="text-xs text-gray-400 font-semibold">Amount Paid</p>
-                      <p className="font-bold text-gray-900">₹{Number(plan.total_amount)}</p>
+                      <p className="font-bold text-gray-900">₹{Number(plan.total)}</p>
                     </div>
                     <div>
                       <p className="text-xs text-gray-400 font-semibold">Date</p>
