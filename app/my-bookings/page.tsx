@@ -13,9 +13,9 @@ interface BookingService {
 }
 
 interface Booking {
-  order_id?: string | number;
+  order_id: string;
   working_status?: string;
-  created_at?: string | Date;
+  created_at: string | Date;
   services?: BookingService[] | string;
   category?: string;
   total?: number;
@@ -24,6 +24,7 @@ interface Booking {
   address?: string;
   coupon_code?: string;
   coupon_status?: string;
+  payment_status?: string;
   type?: string;
 }
 
