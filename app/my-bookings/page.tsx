@@ -1,15 +1,37 @@
 "use client";
 
 import Navbar from "../components/Navbar";
-import { Clock, CheckCircle2, XCircle, ChevronRight, Navigation, FileText, Wallet, Calendar, List } from "lucide-react";
+import { Clock, XCircle, Navigation, FileText, Calendar, List } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import CashbackFeatures from "../components/CashbackFeatures";
 
+interface BookingService {
+  title?: string;
+  quantity?: number;
+  price?: number;
+}
+
+interface Booking {
+  order_id?: string | number;
+  working_status?: string;
+  created_at?: string | Date;
+  services?: BookingService[] | string;
+  category?: string;
+  total?: number;
+  booking_date?: string | Date;
+  time_slot?: string;
+  address?: string;
+  coupon_code?: string;
+  coupon_status?: string;
+  type?: string;
+}
+
 export default function MyBookingsPage() {
-  const [bookings, setBookings] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ email?: string } | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -21,14 +43,16 @@ export default function MyBookingsPage() {
           
           if (user) {
             const bRes = await fetch("/api/bookings/my-bookings");
-            if (bRes.ok) {
-              const { bookings } = await bRes.json();
-              setBookings(bookings || []);
-            }
+            if (!bRes.ok) throw new Error("Unable to load your bookings");
+            const { bookings } = await bRes.json() as { bookings?: Booking[] };
+            setBookings(bookings || []);
           }
+        } else {
+          setLoadError("Unable to load your account");
         }
-      } catch (err) {
-        console.error("Failed to load bookings");
+      } catch (error) {
+        console.error("Failed to load bookings", error);
+        setLoadError("Unable to load your bookings. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -83,13 +107,21 @@ export default function MyBookingsPage() {
           </div>
         </div>
 
-        {bookings.length === 0 ? (
+        {loadError ? (
+          <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-red-100 p-8 sm:p-12 flex flex-col items-center justify-center text-center min-h-[40vh]">
+            <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center text-red-400 mb-6 border border-red-100">
+              <XCircle className="w-8 h-8" />
+            </div>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight mb-2">Could not load bookings</h2>
+            <p className="text-gray-500 max-w-md mx-auto">{loadError}</p>
+          </div>
+        ) : bookings.length === 0 ? (
           <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-gray-100 p-8 sm:p-12 flex flex-col items-center justify-center text-center min-h-[40vh]">
             <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 mb-6 border border-gray-100">
               <Clock className="w-8 h-8" />
             </div>
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight mb-2">No bookings yet</h2>
-            <p className="text-gray-500 max-w-md mx-auto mb-8">You haven't booked any services yet. Start exploring our catalog.</p>
+            <p className="text-gray-500 max-w-md mx-auto mb-8">You haven&apos;t booked any services yet. Start exploring our catalog.</p>
             <Link href="/">
               <button className="bg-gray-900 hover:bg-gray-800 text-white font-bold py-3.5 px-8 rounded-xl transition-all shadow-md hover:-translate-y-0.5">
                 Explore Services
@@ -138,7 +170,7 @@ export default function MyBookingsPage() {
                       <h3 className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-gray-400 mb-2 sm:mb-3 flex items-center gap-1.5"><List className="w-3.5 h-3.5"/> Services</h3>
                       {Array.isArray(booking.services) ? (
                         <div className="space-y-2 sm:space-y-3 bg-[#f8f9fa] rounded-xl sm:rounded-2xl p-3 sm:p-4 border border-gray-100">
-                          {booking.services.map((s: any, idx: number) => (
+                          {booking.services.map((s, idx) => (
                             <div key={idx} className="flex justify-between items-center text-sm">
                               <div className="flex items-center gap-2">
                                 <div className="w-1.5 h-1.5 rounded-full bg-[#6069c9]/40"></div>

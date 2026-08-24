@@ -39,34 +39,32 @@ export async function GET() {
       console.warn("Warning: Could not fetch user mobile:", err instanceof Error ? err.message : err);
     }
 
-    // Try to fetch bookings with coupon join (new schema)
+    // Fetch bookings independently of optional coupon schema.
     let bookings: BookingRow[] = [];
     try {
       const [rows] = await pool.query(
-        `SELECT b.*, c.status as coupon_status 
-         FROM bookings b
-         LEFT JOIN coupons c ON b.coupon_code = c.code
-         WHERE b.user_email = ? 
-           OR (b.user_email IS NULL AND ? IS NOT NULL AND b.mobile = ?)
-         ORDER BY b.created_at DESC`,
+        `SELECT * FROM bookings
+         WHERE user_email = ?
+            OR (? IS NOT NULL AND mobile = ?)
+         ORDER BY created_at DESC`,
         [userEmail, userMobile, userMobile]
       ) as unknown as [BookingRow[]];
       bookings = rows || [];
     } catch (joinErr) {
-      // If the join fails (missing columns/tables), try simpler query
-      console.warn("Complex query failed, trying fallback:", joinErr instanceof Error ? joinErr.message : joinErr);
+      // Older databases may not have user_email yet.
+      console.warn("User booking query failed, trying legacy fallback:", joinErr instanceof Error ? joinErr.message : joinErr);
       
-      try {
+      if (userMobile) {
+        try {
         // Fallback: query bookings by mobile only (legacy approach)
         const [fallbackRows] = await pool.query(
           `SELECT * FROM bookings WHERE mobile = ? ORDER BY created_at DESC LIMIT 50`,
           [userMobile]
         ) as unknown as [BookingRow[]];
         bookings = fallbackRows || [];
-      } catch (fallbackErr) {
-        console.error("All booking queries failed:", fallbackErr instanceof Error ? fallbackErr.message : fallbackErr);
-        // Return empty array if all queries fail
-        bookings = [];
+        } catch (fallbackErr) {
+          console.error("All booking queries failed:", fallbackErr instanceof Error ? fallbackErr.message : fallbackErr);
+        }
       }
     }
 
