@@ -188,15 +188,44 @@ export default function MyBookingsPage() {
                       </div>
                     </div>
 
-                    {booking.coupon_code && (
-                      <div className="bg-indigo-50/50 border border-indigo-100/80 rounded-xl sm:rounded-2xl p-4 sm:p-5 group-hover:bg-indigo-50 transition-colors">
-                        <h3 className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-1.5 sm:mb-2">Your Coupon Code</h3>
-                        <div className="flex items-center gap-2">
-                          <div className="text-[13px] sm:text-[15px] font-black text-indigo-700 font-mono tracking-wider bg-white border border-indigo-200 px-2 py-1.5 sm:px-3 sm:py-2 rounded-md sm:rounded-lg shadow-sm">
-                            {booking.coupon_code.replace('OMAA-', '')}
+                    {booking.coupon_code && (booking.type === 'AMC' || booking.type === 'New Product') && (
+                      <div className={`border rounded-xl sm:rounded-2xl p-4 sm:p-5 transition-colors ${
+                        booking.coupon_status === 'used'
+                          ? 'bg-red-50/50 border-red-100/80 group-hover:bg-red-50'
+                          : 'bg-indigo-50/50 border-indigo-100/80 group-hover:bg-indigo-50'
+                      }`}>
+                        <h3 className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest mb-1.5 sm:mb-2 ${
+                          booking.coupon_status === 'used' ? 'text-red-400' : 'text-indigo-400'
+                        }`}>Your Coupon Code</h3>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <div className={`text-[13px] sm:text-[15px] font-black font-mono tracking-wider px-2 py-1.5 sm:px-3 sm:py-2 rounded-md sm:rounded-lg shadow-sm border ${
+                            booking.coupon_status === 'used'
+                              ? 'text-red-400 bg-white border-red-200 line-through opacity-60'
+                              : 'text-indigo-700 bg-white border-indigo-200'
+                          }`}>
+                            {booking.coupon_code}
                           </div>
+                          {booking.coupon_status === 'used' ? (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest bg-red-100 text-red-600 px-2 py-1 rounded-full border border-red-200">
+                              <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block"></span>
+                              Expired
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest bg-green-100 text-green-600 px-2 py-1 rounded-full border border-green-200">
+                              <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block animate-pulse"></span>
+                              Active
+                            </span>
+                          )}
                         </div>
-                        <p className="text-[10px] sm:text-[11px] text-indigo-500/80 mt-1.5 sm:mt-2 font-semibold leading-snug">Keep this safe for your next booking!</p>
+                        <p className={`text-[10px] sm:text-[11px] mt-1.5 sm:mt-2 font-semibold leading-snug ${
+                          booking.coupon_status === 'used'
+                            ? 'text-red-400/80'
+                            : 'text-indigo-500/80'
+                        }`}>
+                          {booking.coupon_status === 'used'
+                            ? '✓ Coupon used on partner website. Cashback unlocked!'
+                            : 'Keep this safe for your next booking!'}
+                        </p>
                       </div>
                     )}
                   </div>

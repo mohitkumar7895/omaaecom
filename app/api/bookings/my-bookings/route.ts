@@ -18,7 +18,11 @@ export async function GET() {
     const userEmail = decoded.email;
 
     const [rows]: any = await pool.query(
-      `SELECT * FROM bookings WHERE user_email = ? ORDER BY created_at DESC`,
+      `SELECT b.*, c.status as coupon_status 
+       FROM bookings b
+       LEFT JOIN coupons c ON b.coupon_code = c.code
+       WHERE b.user_email = ? 
+       ORDER BY b.created_at DESC`,
       [userEmail]
     );
 
