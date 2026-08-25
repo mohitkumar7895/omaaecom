@@ -39,12 +39,13 @@ export default function Hero({ categories = [], banners = [] }: HeroProps) {
             isCategoryAvailableAtLocation(
               category.zones_location,
               location.city || "",
-              location.address || ""
+              location.address || "",
+              location.fullAddress || ""
             )
           )
         );
       } catch {
-        setVisibleCategories([]);
+        setVisibleCategories(categories);
       }
     };
 

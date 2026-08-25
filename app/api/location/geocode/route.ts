@@ -38,20 +38,27 @@ export async function POST(req: NextRequest) {
 
     const { address } = data;
     
-    // Parse the address components
-    const city = address.city || address.town || address.village || address.suburb || address.county || "";
+    // Parse detailed address components
+    const neighbourhood = address.neighbourhood || address.suburb || address.residential || address.road || "";
+    const locality = address.locality || address.city_district || "";
+    const city = address.city || address.town || address.village || address.municipality || address.county || "";
     const state = address.state || "";
     const country = address.country || "";
     const postalCode = address.postcode || "";
-    const formattedAddress = data.display_name;
+    
+    // Construct clean short display address for current location
+    const shortAddressParts = [neighbourhood, locality, city].filter(Boolean);
+    const shortAddress = shortAddressParts.length > 0 ? shortAddressParts.join(", ") : (data.display_name?.split(",").slice(0, 3).join(",") || city);
+    const formattedAddress = data.display_name || shortAddress;
 
     return NextResponse.json({
       success: true,
       data: {
         latitude,
         longitude,
-        address: formattedAddress,
-        city,
+        address: shortAddress || formattedAddress,
+        fullAddress: formattedAddress,
+        city: city || locality || neighbourhood || "Local Area",
         state,
         country,
         postalCode,

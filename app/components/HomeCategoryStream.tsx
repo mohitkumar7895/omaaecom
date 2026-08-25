@@ -60,15 +60,18 @@ export default function HomeCategoryStream({
 
   // Filter categories by user zone
   const visibleCategories = useMemo(() => {
-    if (!userLocation) return [];
+    if (!userLocation) return initialCategories;
 
-    return initialCategories.filter((category) =>
+    const filtered = initialCategories.filter((category) =>
       isCategoryAvailableAtLocation(
         category.zones_location,
         userLocation.city,
-        userLocation.address
+        userLocation.address,
+        (userLocation as any).fullAddress
       )
     );
+
+    return filtered.length > 0 ? filtered : initialCategories;
   }, [initialCategories, userLocation]);
 
   // Helper to match category rank according to exact required sequence:

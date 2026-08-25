@@ -155,19 +155,38 @@ export function getAvailableCategoryIdsForLocation(
 
 /**
  * Determines whether a category is available in the selected location.
- * Category zones are stored as comma-separated city or area names.
+ * Category zones are stored as comma-separated city, locality, or area names (e.g. "Noida, Greater Noida, Delhi, Bharthana").
  */
 export function isCategoryAvailableAtLocation(
   zonesLocation: string | null | undefined,
-  cityName: string,
-  address?: string
+  cityName?: string | null,
+  address?: string | null,
+  fullAddress?: string | null
 ): boolean {
-  if (!zonesLocation?.trim()) return false;
+  // If no specific zone restrictions set on category, allow by default
+  if (!zonesLocation || !zonesLocation.trim()) return true;
 
-  const locationText = `${cityName} ${address || ""}`.toLowerCase();
-  return zonesLocation
+  const rawZones = zonesLocation
     .split(",")
     .map((zone) => zone.trim().toLowerCase())
-    .filter((zone) => zone.length > 1)
-    .some((zone) => locationText.includes(zone));
+    .filter((zone) => zone.length > 0);
+
+  // If "all" or "all areas" or "india" is present
+  if (rawZones.some((z) => z === "all" || z === "all areas" || z === "all cities" || z === "pan india")) {
+    return true;
+  }
+
+  // Combined search text of user's current location
+  const combinedText = `${cityName || ""} ${address || ""} ${fullAddress || ""}`.toLowerCase();
+
+  if (!combinedText.trim()) return true;
+
+  // Check if any defined zone is inside user's location string OR user location is inside zone
+  return rawZones.some((zone) => {
+    return (
+      combinedText.includes(zone) ||
+      (cityName && zone.includes(cityName.toLowerCase().trim())) ||
+      (address && zone.includes(address.toLowerCase().trim()))
+    );
+  });
 }
