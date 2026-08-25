@@ -4,6 +4,7 @@ import Link from "next/link";
 import ExportButtons from "../components/ExportButtons";
 import WorkingStatusSelect from "./components/WorkingStatusSelect";
 import PaymentStatusSelect from "./components/PaymentStatusSelect";
+import EditableTotal from "./components/EditableTotal";
 import { updateWorkingStatus, updateTotal, updateCashback, updatePaymentStatus } from "./actions";
 
 export const dynamic = 'force-dynamic';
@@ -187,21 +188,7 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                     </td>
 
                     <td className="px-4 py-4 whitespace-nowrap">
-                      <form action={updateTotal} className="flex items-center space-x-2">
-                        <input type="hidden" name="id" value={row.id} />
-                        <div className="relative">
-                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 font-medium">₹</span>
-                          <input 
-                            type="number" 
-                            name="total" 
-                            defaultValue={row.total}
-                            className="w-24 pl-6 pr-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-[13px] font-bold text-gray-900 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white transition-all shadow-inner"
-                          />
-                        </div>
-                        <button type="submit" className="text-indigo-600 bg-indigo-50 hover:bg-indigo-100 hover:text-indigo-700 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-colors">
-                          Save
-                        </button>
-                      </form>
+                      <EditableTotal id={row.id} defaultValue={row.total} action={updateTotal} />
                     </td>
 
 

@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 
 export default function PaymentStatusSelect({ id, defaultValue, action }: { id: string | number, defaultValue: string, action: any }) {
   const [value, setValue] = useState(defaultValue || 'Pending');
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   const colorClass = 
     value.toLowerCase() === 'completed' || value.toLowerCase() === 'success' || value.toLowerCase() === 'paid' 
@@ -19,11 +21,12 @@ export default function PaymentStatusSelect({ id, defaultValue, action }: { id: 
         onChange={(e) => {
           const newValue = e.target.value;
           setValue(newValue);
-          startTransition(() => {
+          startTransition(async () => {
             const formData = new FormData();
             formData.append("id", String(id));
             formData.append("payment_status", newValue);
-            action(formData);
+            await action(formData);
+            router.refresh();
           });
         }}
         className={`border rounded px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider outline-none cursor-pointer transition ${colorClass} ${isPending ? 'opacity-50' : ''}`}
