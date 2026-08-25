@@ -104,7 +104,7 @@ export default function CategoryGrid({ title, services }: CategoryGridProps) {
                   
                   {service.selling_price && (
                     <span className="text-xs sm:text-sm font-black text-[#6b62d9]">
-                      ₹{service.selling_price}
+                      ₹{Math.round(Number(service.selling_price)).toLocaleString('en-IN')}
                     </span>
                   )}
                 </div>
