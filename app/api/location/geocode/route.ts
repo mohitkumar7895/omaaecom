@@ -13,12 +13,12 @@ export async function POST(req: NextRequest) {
     }
 
     // Use OpenStreetMap Nominatim API with zoom=18 and addressdetails=1 for highest precision micro-level reverse geocoding
-    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`;
+    const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1&extratags=1&namedetails=1`;
     
     const response = await fetch(url, {
       headers: {
-        "User-Agent": "OmaaEcomApp/2.0 (support@omaacompany.com)", 
-        "Accept-Language": "hi,en-IN,en;q=0.9", // Indian Hindi/English responses for accurate local names
+        "User-Agent": "OmaaEcomHyperLocal/3.0 (support@omaacompany.com)", 
+        "Accept-Language": "en-IN,hi,en;q=0.9",
       },
     });
 
@@ -28,74 +28,60 @@ export async function POST(req: NextRequest) {
 
     const data = await response.json();
 
-    if (data.error) {
+    if (data.error || !data.display_name) {
       return NextResponse.json(
         { error: "Unable to resolve location" },
         { status: 404 }
       );
     }
 
-    const { address } = data;
+    const { address, namedetails } = data;
     
-    // Extract exact hyper-local components (Mohalla, Landmark, Colony, Road, Gali, Village, Ward)
-    const landmark = address.amenity || address.shop || address.historic || address.tourism || address.building || address.office || "";
-    const houseNumber = address.house_number || address.house_name || "";
-    const road = address.road || address.pedestrian || address.street || address.path || address.footway || "";
-    
-    // Mohalla / Colony / Ward / Suburb / Sector / Gram
-    const mohalla = 
+    // Exact Map Location Name
+    const rawDisplayName = data.display_name;
+
+    // Hyper-local parts: Mohalla, Gali, Road, Landmark, Village, Ward
+    const mohallaOrGali = 
       address.neighbourhood || 
       address.residential || 
       address.suburb || 
       address.quarter || 
       address.village || 
       address.hamlet || 
-      address.city_district || 
-      address.subdistrict || 
-      address.ward || 
+      address.road || 
+      address.amenity || 
+      address.building || 
       "";
 
-    const locality = address.locality || address.town || address.city || address.municipality || address.county || "";
-    const district = address.state_district || address.county || "";
+    const cityOrTown = 
+      address.town || 
+      address.city || 
+      address.village || 
+      address.municipality || 
+      address.subdistrict || 
+      address.county || 
+      "";
+
     const state = address.state || "";
-    const country = address.country || "India";
     const postalCode = address.postcode || "";
 
-    // Build Exact Local Mohalla / Landmark Area Address
-    const exactLocalParts = [
-      landmark,
-      houseNumber ? `House ${houseNumber}` : "",
-      road,
-      mohalla,
-      locality,
-      district !== locality ? district : "",
-      state,
-      postalCode
-    ].filter(Boolean);
-
-    // Remove consecutive duplicates
-    const uniqueParts = exactLocalParts.filter((item, index, self) => 
-      self.findIndex(t => t.toLowerCase() === item.toLowerCase()) === index
-    );
-
-    const fullExactAddress = uniqueParts.length > 0 ? uniqueParts.join(", ") : (data.display_name || "Current Location");
-
-    // Short display for Navbar / Header: (e.g. "Mohalla / Road, Bharthana" or "Gaur City 2, Greater Noida")
-    const shortAreaParts = [landmark || road || mohalla, locality || district].filter(Boolean);
-    const shortAddress = shortAreaParts.length > 0 ? shortAreaParts.join(", ") : (mohalla || locality || fullExactAddress);
+    // Short representation: e.g. "Mohalla / Road Name, Bharthana"
+    const shortLabel = mohallaOrGali && cityOrTown && mohallaOrGali.toLowerCase() !== cityOrTown.toLowerCase()
+      ? `${mohallaOrGali}, ${cityOrTown}`
+      : rawDisplayName.split(",").slice(0, 3).join(",");
 
     return NextResponse.json({
       success: true,
       data: {
         latitude,
         longitude,
-        address: fullExactAddress,
-        shortAddress: shortAddress,
-        fullAddress: fullExactAddress,
-        mohalla: mohalla || landmark,
-        city: locality || district || "Local Area",
+        address: rawDisplayName, // Pura exact Map ka address (Mohalla, Landmark, Road, Town, Pincode)
+        shortAddress: shortLabel,
+        fullAddress: rawDisplayName,
+        mohalla: mohallaOrGali,
+        city: cityOrTown || "Local Area",
         state,
-        country,
+        country: address.country || "India",
         postalCode,
       },
     });
