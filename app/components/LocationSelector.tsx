@@ -126,6 +126,7 @@ export default function LocationSelector() {
   const handleSelectLocation = (locationData: LocationData) => {
     setLocation(locationData);
     localStorage.setItem("user_location", JSON.stringify(locationData));
+    window.dispatchEvent(new Event("location_changed"));
     
     if (locationData.city) {
       router.push(`/${locationData.city.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`);
@@ -167,6 +168,7 @@ export default function LocationSelector() {
           // Save to state and local storage
           setLocation(locationData);
           localStorage.setItem("user_location", JSON.stringify(locationData));
+          window.dispatchEvent(new Event("location_changed"));
           
           if (locationData.city) {
             router.push(`/${locationData.city.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`);
@@ -265,7 +267,7 @@ export default function LocationSelector() {
                   disabled={isLoading}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1 bg-transparent border-none focus:outline-none text-gray-800 placeholder-gray-300 text-sm sm:text-base min-w-0"
+                  className="flex-1 bg-transparent border-none focus:outline-none text-gray-800 placeholder-gray-500 font-medium text-sm sm:text-base min-w-0"
                 />
                 {isSearching && <Loader2 className="w-5 h-5 text-gray-400 animate-spin ml-2" />}
               </div>

@@ -40,8 +40,6 @@ export default async function CategoryPage({ params }: { params: Promise<{ id: s
             services={services} 
           />
         </div>
-
-        <Footer />
       </main>
     );
   } catch (error) {

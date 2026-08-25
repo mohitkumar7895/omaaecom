@@ -71,6 +71,8 @@ export default function Sidebar() {
     { name: "GST Settings", icon: <FileText className="w-[18px] h-[18px]" />, href: "/admin/gst-settings" },
     { name: "KYC", icon: <Users className="w-[18px] h-[18px]" />, href: "/admin/kyc" },
     { name: "Registrations", icon: <ClipboardList className="w-[18px] h-[18px]" />, href: "/admin/registration-records" },
+    { name: "Privacy Policy", icon: <Shield className="w-[18px] h-[18px]" />, href: "/admin/privacy-policy" },
+    { name: "Terms & Conditions", icon: <FileText className="w-[18px] h-[18px]" />, href: "/admin/terms-and-conditions" },
   ];
 
   const bottomItems = [
@@ -133,6 +135,9 @@ export default function Sidebar() {
               <div className="space-y-0.5 relative before:absolute before:left-7 before:top-2 before:bottom-2 before:w-px before:bg-slate-800">
                 <Link href="/admin/categories" className={getLinkClass("/admin/categories", true)}>
                   <span>Category</span>
+                </Link>
+                <Link href="/admin/zones" className={getLinkClass("/admin/zones", true)}>
+                  <span>Zones (Map Areas)</span>
                 </Link>
                 <Link href="/admin/subcategories" className={getLinkClass("/admin/subcategories", true)}>
                   <span>Subcategories</span>

@@ -1,11 +1,9 @@
 import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
-import PromoBanner from "../components/PromoBanner";
-import NewProductsSection from "../components/NewProductsSection";
-import CategoryGrid from "../components/CategoryGrid";
-import ImageBanner from "../components/ImageBanner";
+import HomeCategoryStream from "../components/HomeCategoryStream";
 import Footer from "../components/Footer";
 import pool from "../../lib/db";
+import { getAllZones } from "../actions/zones";
 
 // Cache the page for 60 seconds (Incremental Static Regeneration) for fast loading
 export const revalidate = 60;
@@ -13,6 +11,7 @@ export const revalidate = 60;
 export default async function Home() {
   let categories: any[] = [];
   let banners: any[] = [];
+  let zones: any[] = [];
 
   try {
     // Fetch categories and their associated services
@@ -29,57 +28,34 @@ export default async function Home() {
       })
     );
 
-    // Fetch banners (the new schema groups them in 3s)
+    // Fetch banners
     const [bannerRows]: any = await pool.query("SELECT * FROM banners ORDER BY created_at DESC");
     
-    // Flatten the banners into a single array for rendering between categories
     bannerRows.forEach((row: any) => {
       if (row.banner1_url) banners.push(row.banner1_url);
       if (row.banner2_url) banners.push(row.banner2_url);
       if (row.banner3_url) banners.push(row.banner3_url);
     });
+
+    // Fetch Zones for dynamic location filtering
+    zones = await getAllZones();
   } catch (error) {
-    console.error("Database connection failed or tables missing:", error);
-    // Silent fail so page renders empty sections rather than crashing
+    console.error("Database connection error on Home page:", error);
   }
 
   return (
     <main className="min-h-screen bg-gray-50 flex flex-col font-sans">
       <Navbar />
       <Hero categories={categories} banners={banners} />
-      <NewProductsSection />
       
-      {/* Dynamic Content Stream from Admin DB */}
-      <div className="mt-4 mb-8">
-        {categories.map((category: any, index: number) => (
-          <div key={`cat-${index}`}>
-            <CategoryGrid 
-              title={category.title} 
-              services={category.services} 
-            />
-            {/* Inject a banner image after every category if available */}
-            {banners[index] && (
-              <div className="block max-w-7xl mx-auto px-0 md:px-4 lg:px-8 py-4 lg:py-6 my-2 lg:my-6">
-                <div className="w-full relative rounded-none md:rounded-xl lg:rounded-3xl overflow-hidden shadow-md bg-gray-50 flex items-center justify-center">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={banners[index]} alt="Promo Banner" className="w-full h-auto object-contain max-h-[250px] md:max-h-[300px] lg:max-h-[500px]" />
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
-        
-        {/* Render any remaining banners at the bottom */}
-        {banners.slice(categories.length).map((bannerUrl: string, index: number) => (
-          <div key={`extra-banner-${index}`} className="block max-w-7xl mx-auto px-0 md:px-4 lg:px-8 py-4 lg:py-6 my-2 lg:my-6">
-            <div className="w-full relative rounded-none md:rounded-xl lg:rounded-3xl overflow-hidden shadow-md bg-gray-50 flex items-center justify-center">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={bannerUrl} alt="Promo Banner" className="w-full h-auto object-contain max-h-[250px] md:max-h-[300px] lg:max-h-[500px]" />
-            </div>
-          </div>
-        ))}
-      </div>
+      {/* Exact Order: RO AMC -> Banner 1 -> AC Repair -> Refrigerator -> Banner 2 -> Washing Machine -> Microwave -> Banner 3 -> Water Purifier with Zone Filtering */}
+      <HomeCategoryStream 
+        initialCategories={categories} 
+        banners={banners} 
+        zones={zones} 
+      />
       
+      {/* Footer is rendered strictly on the Home Page */}
       <Footer />
     </main>
   );

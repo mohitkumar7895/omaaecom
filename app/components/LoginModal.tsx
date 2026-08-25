@@ -143,7 +143,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
 
           <div className="w-full">
             <h2 className="text-[20px] sm:text-[24px] font-bold text-gray-900 tracking-tight text-center mb-1.5">
-              Welcome to OMAA
+              Welcome to OMAA Company
             </h2>
             <p className="text-gray-500 text-[13px] text-center mb-6 font-medium">
               Log in or sign up to continue

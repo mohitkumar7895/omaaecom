@@ -32,6 +32,20 @@ function CheckoutContent() {
     if (savedCart) {
       setCart(JSON.parse(savedCart));
     }
+
+    // Auto-fill booking address from detected/saved user location
+    const savedLoc = localStorage.getItem("user_location");
+    if (savedLoc) {
+      try {
+        const parsedLoc = JSON.parse(savedLoc);
+        if (parsedLoc.address) {
+          setForm(prev => ({
+            ...prev,
+            address: prev.address || parsedLoc.address,
+          }));
+        }
+      } catch (e) {}
+    }
   }, []);
 
   const totalAmount = cart.reduce((total, item) => total + (Number(item.selling_price) * item.quantity || 0), 0);
@@ -187,7 +201,6 @@ function CheckoutContent() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3">
-
                 <button 
                   onClick={() => router.push('/')}
                   className="flex-1 bg-white border-2 border-gray-200 hover:border-black hover:bg-gray-50 text-gray-900 font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 text-[15px]"
@@ -245,10 +258,7 @@ function CheckoutContent() {
                 </div>
               </div>
 
-
-
               <div className="flex flex-col sm:flex-row gap-3">
-
                 <button 
                   onClick={() => router.push('/')}
                   className="flex-1 bg-white border-2 border-gray-200 hover:border-black hover:bg-gray-50 text-gray-900 font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 text-[15px]"
@@ -419,13 +429,22 @@ function CheckoutContent() {
                 </div>
               </div>
 
-              <div className="flex justify-between items-center mb-10 bg-gradient-to-br from-gray-900 to-black text-white p-6 rounded-[20px] shadow-lg relative overflow-hidden">
-                {/* Decorative circles */}
-                <div className="absolute -right-6 -top-6 w-24 h-24 bg-white/5 rounded-full blur-2xl"></div>
-                <div className="absolute -left-6 -bottom-6 w-24 h-24 bg-[#6b62d9]/20 rounded-full blur-2xl"></div>
-                
-                <span className="font-semibold text-gray-300 text-lg relative z-10">Total to pay</span>
-                <span className="font-black text-3xl relative z-10 tracking-tight">₹{totalAmount.toLocaleString()}</span>
+              {/* Redesigned Total to Pay Card */}
+              <div className="mb-8 p-6 rounded-2xl bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ebe7ff] border-2 border-[#6b62d9]/25 shadow-sm flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-black uppercase tracking-wider text-gray-500 block mb-1">
+                    Total Amount to Pay
+                  </span>
+                  <div className="flex items-center gap-1.5 text-xs text-[#328e3b] font-bold">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Best Price Guaranteed</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="font-black text-3xl sm:text-4xl text-[#584ec6] tracking-tight">
+                    ₹{totalAmount.toLocaleString()}
+                  </span>
+                </div>
               </div>
 
               <div className="mb-8">

@@ -3,35 +3,43 @@
 import { useEffect, useState } from "react";
 
 export default function GlobalLoader() {
-  const [show, setShow] = useState(true);
+  const [show, setShow] = useState(false);
   const [animateOut, setAnimateOut] = useState(false);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    // Check if loader was already shown in this session
-    if (typeof window !== "undefined" && sessionStorage.getItem("omaa_loader_shown")) {
-      setShow(false);
+    // Only run on client
+    if (typeof window === "undefined") return;
+
+    // Check if loader was already shown during this browser session
+    const hasLoaded = sessionStorage.getItem("omaa_company_app_loaded");
+    if (hasLoaded) {
       return;
     }
 
-    // Simulate a fast loading progress
+    // Initial startup: show loader
+    setShow(true);
+
+    // Smooth simulated progress
     const interval = setInterval(() => {
-      setProgress(p => {
-        if (p >= 100) {
+      setProgress((prev) => {
+        if (prev >= 100) {
           clearInterval(interval);
           return 100;
         }
-        return p + 15;
+        return prev + 12;
       });
-    }, 50);
+    }, 45);
 
     const timer = setTimeout(() => {
       setAnimateOut(true);
       setTimeout(() => {
         setShow(false);
-        sessionStorage.setItem("omaa_loader_shown", "true");
-      }, 800); 
-    }, 1200);
+        try {
+          sessionStorage.setItem("omaa_company_app_loaded", "true");
+        } catch (e) {}
+      }, 600);
+    }, 900);
 
     return () => {
       clearTimeout(timer);
@@ -42,43 +50,56 @@ export default function GlobalLoader() {
   if (!show) return null;
 
   return (
-    <div 
-      className={`fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-white transition-all duration-700 ease-[cubic-bezier(0.76,0,0.24,1)] ${
-        animateOut ? "opacity-0 scale-110 pointer-events-none" : "opacity-100 scale-100"
+    <div
+      className={`fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-white/95 backdrop-blur-xl transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+        animateOut ? "opacity-0 scale-105 pointer-events-none" : "opacity-100 scale-100"
       }`}
     >
-      <div className="relative flex flex-col items-center max-w-sm w-full px-8">
+      {/* Soft Ambient Radial Glow */}
+      <div className="absolute w-72 h-72 rounded-full bg-gradient-to-tr from-[#6b62d9]/15 via-[#a268b8]/10 to-transparent blur-3xl pointer-events-none animate-pulse"></div>
+
+      <div className="relative flex flex-col items-center max-w-xs w-full px-6 z-10">
         
-        {/* Cinematic Logo Reveal */}
-        <div className={`relative w-28 h-28 md:w-36 md:h-36 mb-10 transition-all duration-1000 ease-out ${animateOut ? 'scale-90 blur-sm opacity-0' : 'scale-100 blur-0 opacity-100'}`}>
-          {/* Subtle Glow Behind Logo */}
-          <div className="absolute inset-0 bg-indigo-500/10 rounded-full blur-[30px] animate-pulse"></div>
-          
-          <div className="relative w-full h-full bg-white border border-gray-100 shadow-[0_8px_32px_rgba(0,0,0,0.06)] rounded-3xl p-4 flex items-center justify-center overflow-hidden">
-            <img 
-              src="/logoomaa.webp" 
-              alt="OMAA Logo" 
-              className="w-full h-full object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.08)] animate-[float_4s_ease-in-out_infinite]"
-            />
-          </div>
+        {/* Seamless Logo - No borders, no boxes, no frames */}
+        <div className="relative mb-6 flex items-center justify-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logoomaa.webp"
+            alt="OMAA Company"
+            className="h-14 sm:h-16 w-auto object-contain drop-shadow-sm animate-[softPulse_3s_ease-in-out_infinite]"
+          />
         </div>
 
-        {/* Sleek Progress Bar */}
-        <div className={`w-full flex flex-col gap-3 transition-all duration-700 delay-100 ${animateOut ? 'translate-y-4 opacity-0' : 'translate-y-0 opacity-100'}`}>
-          <div className="h-1 w-full bg-gray-100 rounded-full overflow-hidden mt-4">
-            <div 
-              className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-400 rounded-full transition-all duration-300 ease-out shadow-[0_0_10px_rgba(99,102,241,0.3)]"
-              style={{ width: `${Math.min(progress, 100)}%` }}
-            ></div>
-          </div>
+        {/* Brand Text */}
+        <div className="text-center mb-6">
+          <h2 className="text-lg font-black tracking-tight text-gray-900">
+            OMAA <span className="text-[#6b62d9]">Company</span>
+          </h2>
+          <p className="text-xs font-semibold text-gray-400 tracking-wider uppercase mt-0.5">
+            Doorstep Appliance Care
+          </p>
+        </div>
+
+        {/* Minimalist Progress Indicator */}
+        <div className="w-44 h-1 bg-gray-100 rounded-full overflow-hidden relative shadow-inner">
+          <div
+            className="h-full bg-gradient-to-r from-[#6b62d9] via-[#8554c4] to-[#db5285] rounded-full transition-all duration-200 ease-out"
+            style={{ width: `${Math.min(progress, 100)}%` }}
+          ></div>
         </div>
 
       </div>
 
       <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-8px); }
+        @keyframes softPulse {
+          0%, 100% {
+            transform: scale(1);
+            opacity: 0.95;
+          }
+          50% {
+            transform: scale(1.04);
+            opacity: 1;
+          }
         }
       `}</style>
     </div>

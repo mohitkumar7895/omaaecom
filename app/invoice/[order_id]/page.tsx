@@ -4,7 +4,7 @@ import InvoiceClient from "./InvoiceClient";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Invoice | OMAA",
+  title: "Invoice | OMAA Company",
 };
 
 export default async function InvoicePage(props: { params: Promise<{ order_id: string }> }) {

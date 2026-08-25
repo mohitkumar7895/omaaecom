@@ -138,7 +138,7 @@ export default function LoginPage() {
           ) : (
             <>
               <h2 className="text-[20px] sm:text-[22px] font-bold text-gray-900 tracking-tight text-center mb-2">
-                Welcome to OMAA
+                Welcome to OMAA Company
               </h2>
               <p className="text-gray-500 text-[14px] text-center mb-8 font-medium">
                 Log in or sign up to continue

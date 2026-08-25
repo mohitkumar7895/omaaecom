@@ -12,8 +12,8 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "OMAA",
-  description: "OMAA E-Commerce Platform",
+  title: "OMAA Company",
+  description: "OMAA Company - Trusted Home Appliance Repair & Maintenance Services",
   icons: {
     icon: '/logoomaa.webp',
   },

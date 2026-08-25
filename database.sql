@@ -135,6 +135,7 @@ CREATE TABLE IF NOT EXISTS registration_records (
   work_company VARCHAR(255) NOT NULL,
   location VARCHAR(255) NOT NULL,
   experience VARCHAR(50) NOT NULL,
+  status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Pending',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -160,4 +161,24 @@ CREATE TABLE IF NOT EXISTS otps (
   attempts INT NOT NULL DEFAULT 1,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_otps_email_created_at (email, created_at)
+);
+
+CREATE TABLE IF NOT EXISTS site_policies (
+  id VARCHAR(50) PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  subtitle VARCHAR(255),
+  last_updated VARCHAR(100),
+  contact_email VARCHAR(255),
+  sections JSON NOT NULL,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS service_zones (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  city_names VARCHAR(255) DEFAULT '',
+  coordinates JSON NOT NULL,
+  category_ids JSON NOT NULL,
+  status ENUM('Active', 'Inactive') DEFAULT 'Active',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

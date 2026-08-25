@@ -117,7 +117,7 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
         {/* Right Side: Masonry Image Grid */}
         <div className="w-full md:w-1/2 flex items-stretch justify-center pt-2 md:pt-4">
 
-          <div className="hidden md:flex gap-3 p-3 border-4 border-white/20 rounded-[32px] bg-white/10 shadow-xl backdrop-blur-sm w-full max-w-[420px] h-full">
+          <div className="hidden md:flex gap-3.5 p-3.5 border-4 border-white/25 rounded-[32px] bg-white/10 shadow-2xl backdrop-blur-md w-full max-w-[500px] lg:max-w-[540px] xl:max-w-[580px] h-full">
             {/* Left Tall Image */}
             <div className="w-1/2 h-full">
               <Image
@@ -126,19 +126,19 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
                 width={600}
                 height={800}
                 priority
-                className="w-full h-full object-cover rounded-[20px] shadow-md"
+                className="w-full h-full object-cover rounded-[22px] shadow-md hover:scale-[1.02] transition-transform duration-300"
               />
             </div>
 
             {/* Right Stacked Images */}
-            <div className="w-1/2 h-full flex flex-col gap-3">
+            <div className="w-1/2 h-full flex flex-col gap-3.5">
               <Image
                 src="/Hero 2.webp"
                 alt="RO Repair"
                 width={600}
                 height={400}
                 priority
-                className="w-full h-[calc(50%-6px)] object-cover rounded-[20px] shadow-md"
+                className="w-full h-[calc(50%-7px)] object-cover rounded-[22px] shadow-md hover:scale-[1.02] transition-transform duration-300"
               />
               <Image
                 src="/Hero3.webp"
@@ -146,7 +146,7 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
                 width={600}
                 height={400}
                 priority
-                className="w-full h-[calc(50%-6px)] object-cover rounded-[20px] shadow-md"
+                className="w-full h-[calc(50%-7px)] object-cover rounded-[22px] shadow-md hover:scale-[1.02] transition-transform duration-300"
               />
             </div>
           </div>

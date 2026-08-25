@@ -75,8 +75,8 @@ export default function InvoiceClient({ booking, services, gstSettings }: Invoic
                 priority
               />
               <div className="text-xs sm:text-sm text-gray-500 leading-relaxed">
-                <p className="font-black text-gray-900 text-base sm:text-lg mb-1 tracking-tight">OMAA Services</p>
-                <p className="font-medium">Support: support@omaa.com</p>
+                <p className="font-black text-gray-900 text-base sm:text-lg mb-1 tracking-tight">OMAA Company</p>
+                <p className="font-medium">Support: support@omaacompany.com</p>
                 {showGstNumber && (
                   <p className="font-bold text-gray-700 mt-1 sm:mt-2 bg-gray-50 inline-block px-2 py-1 rounded border border-gray-200 text-[10px] sm:text-xs">GSTIN: {gstSettings.gst_number}</p>
                 )}
@@ -168,7 +168,7 @@ export default function InvoiceClient({ booking, services, gstSettings }: Invoic
 
           {/* Footer */}
           <div className="bg-[#1a1a2e] p-6 sm:p-10 text-center print:bg-[#1a1a2e] print:!text-white" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
-            <p className="text-white font-black text-lg sm:text-xl mb-1 sm:mb-2 tracking-tight">Thank you for choosing OMAA Services!</p>
+            <p className="text-white font-black text-lg sm:text-xl mb-1 sm:mb-2 tracking-tight">Thank you for choosing OMAA Company!</p>
             <p className="text-gray-400 text-[10px] sm:text-xs font-semibold">This is a computer-generated invoice and does not require a physical signature.</p>
           </div>
 

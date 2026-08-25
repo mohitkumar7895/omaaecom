@@ -143,8 +143,6 @@ export default function ContactPage() {
           ></iframe>
         </div>
       </div>
-      
-      <Footer />
     </main>
   );
 }

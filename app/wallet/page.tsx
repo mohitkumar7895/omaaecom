@@ -119,7 +119,7 @@ export default function WalletPage() {
             <Wallet className="w-7 h-7" />
           </div>
           <div>
-            <h1 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">OMAA Wallet</h1>
+            <h1 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">OMAA Company Wallet</h1>
             <p className="text-gray-500 font-medium text-sm mt-1">Your premium rewards and balance</p>
           </div>
         </div>

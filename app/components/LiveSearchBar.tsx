@@ -122,7 +122,7 @@ export default function LiveSearchBar({
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => { if (results.length > 0) setIsOpen(true); }}
-        className="block w-full pl-10 pr-4 py-2.5 rounded-lg leading-5 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-1 focus:ring-purple-600 focus:bg-white focus:border-purple-600 sm:text-sm transition-colors relative z-0"
+        className="block w-full pl-10 pr-4 py-2.5 rounded-lg leading-5 bg-gray-50 border border-gray-200 text-gray-900 placeholder-gray-500 font-medium focus:outline-none focus:ring-1 focus:ring-purple-600 focus:bg-white focus:border-purple-600 sm:text-sm transition-colors relative z-0"
         placeholder={`Search for "${placeholderText}"`}
       />
 
