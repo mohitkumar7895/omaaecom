@@ -4,7 +4,6 @@ import NewProductsSection from "../components/NewProductsSection";
 import HomeCategoryStream from "../components/HomeCategoryStream";
 import Footer from "../components/Footer";
 import pool from "../../lib/db";
-import { getAllZones } from "../actions/zones";
 
 // Cache the page for 60 seconds (Incremental Static Regeneration) for fast loading
 export const revalidate = 60;
@@ -12,7 +11,6 @@ export const revalidate = 60;
 export default async function Home() {
   let categories: any[] = [];
   let banners: any[] = [];
-  let zones: any[] = [];
 
   try {
     // Fetch categories and their associated services
@@ -38,8 +36,6 @@ export default async function Home() {
       if (row.banner3_url) banners.push(row.banner3_url);
     });
 
-    // Fetch Zones for dynamic location filtering
-    zones = await getAllZones();
   } catch (error) {
     console.error("Database connection error on Home page:", error);
   }
@@ -56,7 +52,6 @@ export default async function Home() {
       <HomeCategoryStream 
         initialCategories={categories} 
         banners={banners} 
-        zones={zones} 
       />
       
       {/* Footer is rendered strictly on the Home Page */}

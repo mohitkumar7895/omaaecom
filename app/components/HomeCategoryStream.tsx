@@ -2,32 +2,31 @@
 
 import { useEffect, useState, useMemo } from "react";
 import CategoryGrid from "./CategoryGrid";
-import { ZoneData } from "../actions/zones";
-import { getAvailableCategoryIdsForLocation } from "../../lib/zone-matcher";
+import { isCategoryAvailableAtLocation } from "../../lib/zone-matcher";
 
 interface CategoryWithServices {
   id: number;
   title: string;
   image_url?: string;
   type?: string;
+  zones_location?: string;
   services: any[];
 }
 
 interface HomeCategoryStreamProps {
   initialCategories: CategoryWithServices[];
   banners: string[];
-  zones: ZoneData[];
 }
 
 export default function HomeCategoryStream({
   initialCategories,
   banners,
-  zones,
 }: HomeCategoryStreamProps) {
   const [userLocation, setUserLocation] = useState<{
     latitude: number;
     longitude: number;
     city: string;
+    address?: string;
   } | null>(null);
 
   // Sync user location from localStorage and events
@@ -42,6 +41,7 @@ export default function HomeCategoryStream({
               latitude: parsed.latitude,
               longitude: parsed.longitude,
               city: parsed.city || "",
+              address: parsed.address || "",
             });
           }
         }
@@ -60,20 +60,16 @@ export default function HomeCategoryStream({
 
   // Filter categories by user zone
   const visibleCategories = useMemo(() => {
-    if (!zones || zones.length === 0 || !userLocation) {
-      return initialCategories;
-    }
+    if (!userLocation) return [];
 
-    const { allowedCategoryIds } = getAvailableCategoryIdsForLocation(
-      userLocation.latitude,
-      userLocation.longitude,
-      userLocation.city,
-      zones,
-      initialCategories
+    return initialCategories.filter((category) =>
+      isCategoryAvailableAtLocation(
+        category.zones_location,
+        userLocation.city,
+        userLocation.address
+      )
     );
-
-    return initialCategories.filter((c) => allowedCategoryIds.includes(c.id));
-  }, [initialCategories, zones, userLocation]);
+  }, [initialCategories, userLocation]);
 
   // Helper to match category rank according to exact required sequence:
   // 1. RO AMC

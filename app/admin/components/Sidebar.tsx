@@ -136,9 +136,6 @@ export default function Sidebar() {
                 <Link href="/admin/categories" className={getLinkClass("/admin/categories", true)}>
                   <span>Category</span>
                 </Link>
-                <Link href="/admin/zones" className={getLinkClass("/admin/zones", true)}>
-                  <span>Zones (Map Areas)</span>
-                </Link>
                 <Link href="/admin/subcategories" className={getLinkClass("/admin/subcategories", true)}>
                   <span>Subcategories</span>
                 </Link>

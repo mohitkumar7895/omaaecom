@@ -13,7 +13,7 @@ export default function EditCategoryForm({ category }: { category: any }) {
 
   return (
     <div className="p-8 font-sans bg-[#f8f9fa] min-h-screen">
-      <div className="bg-white rounded shadow-sm border border-gray-100 overflow-hidden w-full max-w-[1200px] mx-auto">
+      <div className="bg-white rounded shadow-sm border border-gray-100 overflow-hidden w-full max-w-300 mx-auto">
         
         {/* Form Header */}
         <div className="bg-[#2c3e50] px-6 py-3 text-white text-center">
@@ -101,7 +101,7 @@ export default function EditCategoryForm({ category }: { category: any }) {
             </div>
 
             {/* Google Map Placeholder */}
-            <div className="w-full h-[450px] border border-gray-200 rounded overflow-hidden mt-2 md:col-span-2">
+            <div className="w-full h-112.5 border border-gray-200 rounded overflow-hidden mt-2 md:col-span-2">
               <iframe 
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d112030.702434524!2d77.10657999806461!3d28.660142839958172!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390cfd5b347eb62d%3A0x52c2b7494e204dce!2sNew%20Delhi%2C%20Delhi!5e0!3m2!1sen!2sin!4v1708890000000!5m2!1sen!2sin" 
                 width="100%" 

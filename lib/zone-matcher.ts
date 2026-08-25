@@ -152,3 +152,22 @@ export function getAvailableCategoryIdsForLocation(
     isLocationRestricted: true,
   };
 }
+
+/**
+ * Determines whether a category is available in the selected location.
+ * Category zones are stored as comma-separated city or area names.
+ */
+export function isCategoryAvailableAtLocation(
+  zonesLocation: string | null | undefined,
+  cityName: string,
+  address?: string
+): boolean {
+  if (!zonesLocation?.trim()) return false;
+
+  const locationText = `${cityName} ${address || ""}`.toLowerCase();
+  return zonesLocation
+    .split(",")
+    .map((zone) => zone.trim().toLowerCase())
+    .filter((zone) => zone.length > 1)
+    .some((zone) => locationText.includes(zone));
+}

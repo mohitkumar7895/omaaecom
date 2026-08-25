@@ -48,7 +48,7 @@ export async function saveCategory(formData: FormData) {
       VALUES (?, ?, ?, ?, ?, ?)
     `;
     
-    await pool.query(query, [title, type, parseInt(labourCharges), parseInt(zones), zonesLocation || 'Noida, Delhi', imageUrl]);
+    await pool.query(query, [title, type, parseInt(labourCharges), parseInt(zones), zonesLocation || '', imageUrl]);
   } catch (error) {
     console.error("Error saving category:", error);
     return { error: "Failed to save category" };
@@ -80,7 +80,7 @@ export async function updateCategory(formData: FormData) {
       UPDATE categories 
       SET title = ?, type = ?, labour_charges = ?, zones = ?, zones_location = ?
     `;
-    let params: any[] = [title, type, parseInt(labourCharges) || 0, parseInt(zones) || 1, zonesLocation || 'Noida, Delhi'];
+    let params: any[] = [title, type, parseInt(labourCharges) || 0, parseInt(zones) || 1, zonesLocation || ''];
 
     if (image && image.size > 0) {
       const uploadDir = path.join(process.cwd(), "public/uploads/categories");

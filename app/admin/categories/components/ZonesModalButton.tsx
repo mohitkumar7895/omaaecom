@@ -45,15 +45,17 @@ export default function ZonesModalButton({
                 <div>
                   <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Service Locations</h4>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {(zonesLocation || 'Noida, Delhi').split(',').map((loc, idx) => (
+                    {zonesLocation ? zonesLocation.split(',').map((loc, idx) => (
                       <span key={idx} className="bg-blue-50 text-blue-700 border border-blue-100 text-xs px-3 py-1.5 rounded-full font-medium shadow-sm">
                         {loc.trim()}
                       </span>
-                    ))}
+                    )) : (
+                      <span className="text-gray-500 text-xs">No zones configured</span>
+                    )}
                   </div>
                 </div>
 
-                <div className="w-full h-[200px] border border-gray-200 rounded overflow-hidden mt-4">
+                <div className="w-full h-50 border border-gray-200 rounded overflow-hidden mt-4">
                   <iframe 
                     src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d112030.702434524!2d77.10657999806461!3d28.660142839958172!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390cfd5b347eb62d%3A0x52c2b7494e204dce!2sNew%20Delhi%2C%20Delhi!5e0!3m2!1sen!2sin!4v1708890000000!5m2!1sen!2sin" 
                     width="100%" 

@@ -49,7 +49,7 @@ All admin pages except login and registration require a valid `admin_token` cook
 - `/admin` - Dashboard
 - `/admin/login` - Admin login
 - `/admin/register` - Admin registration
-- `/admin/categories` - Categories and zones
+- `/admin/categories` - Categories and their service zones
 - `/admin/subcategories` - Subcategory management
 - `/admin/services` - Service catalog and pricing
 - `/admin/brands` - Brand management
