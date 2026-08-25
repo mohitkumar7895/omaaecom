@@ -12,10 +12,12 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "OMAA Company",
-  description: "OMAA Company - Trusted Home Appliance Repair & Maintenance Services",
+  title: "OMAA Company - Get Home appliances Expert services……..",
+  description: "OMAA Company - Get Home appliances Expert services at your doorstep",
   icons: {
-    icon: '/logoomaa.webp',
+    icon: '/favicon.jpg',
+    shortcut: '/favicon.jpg',
+    apple: '/favicon.jpg',
   },
 };
 
