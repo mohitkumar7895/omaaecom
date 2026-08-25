@@ -11,7 +11,6 @@ import {
   User, 
   Phone, 
   CheckCircle2, 
-  CalendarRange, 
   FileText, 
   ReceiptText 
 } from "lucide-react";
@@ -349,18 +348,7 @@ export default function MyBookingsPage() {
                   {isExpanded && (
                     <div className="p-5 sm:p-7 bg-[#fafbfc] border-t border-gray-100 space-y-5 animate-in fade-in duration-200">
                       
-                      {/* Action Button: Reschedule */}
-                      {!isComplete && !isReject && (
-                        <div className="flex items-center gap-3">
-                          <button 
-                            onClick={() => alert(`Reschedule request for Order #${booking.order_id} has been submitted. Our team will contact you shortly.`)}
-                            className="inline-flex items-center gap-2 px-4 py-2 border border-blue-200 bg-white text-blue-600 rounded-xl text-xs font-bold hover:bg-blue-50 transition shadow-xs"
-                          >
-                            <CalendarRange className="w-4 h-4" />
-                            Reschedule
-                          </button>
-                        </div>
-                      )}
+
 
                       {/* Payment Summary Box */}
                       <div className="bg-white rounded-xl p-4 sm:p-5 border border-gray-100 shadow-xs">

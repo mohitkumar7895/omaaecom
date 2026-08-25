@@ -3,24 +3,13 @@
 import { useEffect, useState } from "react";
 
 export default function GlobalLoader() {
-  const [show, setShow] = useState(false);
+  const [show, setShow] = useState(true);
   const [animateOut, setAnimateOut] = useState(false);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    // Only run on client
-    if (typeof window === "undefined") return;
-
-    // Check if loader was already shown during this session
-    const hasLoaded = sessionStorage.getItem("omaa_company_app_loaded");
-    if (hasLoaded) {
-      return;
-    }
-
-    setShow(true);
-
     // Smooth simulated progress across 5 seconds (5000ms)
-    // Runs every 50ms (100 steps total to reach 100%)
+    // 50ms interval * 100 increments = 5000ms
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
@@ -36,9 +25,6 @@ export default function GlobalLoader() {
       setAnimateOut(true);
       setTimeout(() => {
         setShow(false);
-        try {
-          sessionStorage.setItem("omaa_company_app_loaded", "true");
-        } catch (e) {}
       }, 600);
     }, 5000);
 
@@ -63,11 +49,11 @@ export default function GlobalLoader() {
         <img
           src="/loader.jpg"
           alt="OMAA Company"
-          className="h-20 sm:h-24 w-auto object-contain animate-smooth-pulse select-none"
+          className="h-24 sm:h-28 w-auto object-contain animate-smooth-pulse select-none"
         />
 
         {/* Smooth 5-Second Linear Progress Bar underneath */}
-        <div className="w-48 sm:w-56 h-1.5 bg-gray-100 rounded-full overflow-hidden mt-6 shadow-inner relative">
+        <div className="w-52 sm:w-60 h-1.5 bg-gray-100 rounded-full overflow-hidden mt-6 shadow-inner relative">
           <div
             className="h-full bg-gradient-to-r from-[#ff8000] via-[#6366f1] to-[#10b981] rounded-full transition-all duration-100 ease-linear"
             style={{ width: `${progress}%` }}
