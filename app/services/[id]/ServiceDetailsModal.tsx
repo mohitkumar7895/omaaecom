@@ -1,7 +1,8 @@
 "use client";
 
 import { X, Star, CheckCircle2, Check, FileText, ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getRateCardsByCategoryId } from "../../actions/rateCards";
 
 type ServiceDetailsModalProps = {
   service: any;
@@ -14,7 +15,22 @@ type ServiceDetailsModalProps = {
 
 export default function ServiceDetailsModal({ service, onClose, onAdd, quantity = 0, onRemove, rateCards = [] }: ServiceDetailsModalProps) {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [openRateCard, setOpenRateCard] = useState<boolean>(true);
+  const [showRateCardModal, setShowRateCardModal] = useState<boolean>(false);
+  const [liveRateCards, setLiveRateCards] = useState<any[]>(rateCards);
+
+  useEffect(() => {
+    if (service?.category_id) {
+      getRateCardsByCategoryId(service.category_id).then((data) => {
+        if (data && data.length > 0) {
+          setLiveRateCards(data);
+        } else if (rateCards && rateCards.length > 0) {
+          setLiveRateCards(rateCards);
+        }
+      });
+    } else if (rateCards && rateCards.length > 0) {
+      setLiveRateCards(rateCards);
+    }
+  }, [service, rateCards]);
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
@@ -61,68 +77,105 @@ export default function ServiceDetailsModal({ service, onClose, onAdd, quantity 
               </div>
             </div>
 
-            {/* Rate Card Section - Clickable / Collapsible Accordion Box */}
-            <div className="mb-8 border border-gray-200 rounded-2xl overflow-hidden shadow-xs bg-white">
+            {/* Clean 'Rate Cards' Button that opens dedicated popup modal */}
+            <div className="mb-6">
               <button 
                 type="button"
-                onClick={() => setOpenRateCard(!openRateCard)}
-                className="w-full flex items-center justify-between bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 px-4 sm:px-5 transition text-left cursor-pointer"
+                onClick={() => setShowRateCardModal(true)}
+                className="w-full flex items-center justify-between bg-[#1e293b] hover:bg-[#0f172a] text-white font-bold py-3.5 px-5 rounded-2xl transition shadow-sm group active:scale-[0.99]"
               >
-                <div className="flex items-center gap-2.5">
-                  <FileText className="w-4 h-4 text-amber-400" />
-                  <span className="text-sm tracking-wide uppercase font-extrabold">Official Rate Card & Spare Parts</span>
-                  <span className="bg-amber-400/20 text-amber-300 text-[11px] px-2 py-0.5 rounded-full font-semibold border border-amber-400/30">
-                    {rateCards?.length || 0} Parts
-                  </span>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-amber-400/20 text-amber-400 flex items-center justify-center">
+                    <FileText className="w-4 h-4" />
+                  </div>
+                  <span className="text-[15px] font-extrabold tracking-wide">Rate Cards</span>
                 </div>
-                <ChevronDown className={`w-5 h-5 text-gray-300 transition-transform duration-200 ${openRateCard ? 'rotate-180 text-white' : ''}`} />
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-300 font-medium group-hover:text-white">View Pricing</span>
+                  <span className="text-gray-400 group-hover:translate-x-0.5 transition-transform text-base">→</span>
+                </div>
               </button>
-
-              {openRateCard && (
-                <div className="p-0 animate-in fade-in duration-200">
-                  {rateCards && rateCards.length > 0 ? (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left border-collapse text-xs sm:text-sm min-w-[500px]">
-                        <thead>
-                          <tr className="bg-slate-100/90 border-b border-gray-200 text-gray-800 font-extrabold text-[12px] uppercase tracking-wider">
-                            <th className="py-3 px-4">Part / Service Description</th>
-                            <th className="py-3 px-4 text-center">Part Price</th>
-                            <th className="py-3 px-4 text-right">Labour Charges</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                          {rateCards.map((rc: any, idx: number) => (
-                            <tr key={idx} className="hover:bg-indigo-50/40 transition-colors">
-                              <td className="py-3.5 px-4 font-semibold text-gray-900">
-                                <div>{rc.part_name}</div>
-                                {rc.heading_title && (
-                                  <span className="inline-block bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded mt-1">
-                                    {rc.heading_title}
-                                  </span>
-                                )}
-                              </td>
-                              <td className="py-3.5 px-4 text-center font-bold text-gray-900 text-sm">
-                                ₹{Number(rc.price).toLocaleString()}
-                              </td>
-                              <td className="py-3.5 px-4 text-right">
-                                <span className="font-bold text-indigo-600 text-sm">₹{Number(rc.labour_charges).toLocaleString()}</span>
-                                {rc.labour_note && (
-                                  <div className="text-[10px] text-gray-400 font-medium mt-0.5">{rc.labour_note}</div>
-                                )}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : (
-                    <div className="p-6 bg-gray-50 text-center text-gray-500 text-xs font-medium">
-                      Standard visiting charges included. Detailed spare parts pricing will be provided on-site by technician.
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
+
+            {/* Dedicated Rate Cards Modal Popup */}
+            {showRateCardModal && (
+              <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-150">
+                <div className="bg-white rounded-3xl max-w-xl w-full max-h-[85vh] flex flex-col overflow-hidden shadow-2xl border border-gray-100 animate-in zoom-in-95 duration-200">
+                  
+                  {/* Modal Header */}
+                  <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-slate-900 text-white">
+                    <div className="flex items-center gap-2.5">
+                      <FileText className="w-5 h-5 text-amber-400" />
+                      <div>
+                        <h3 className="font-bold text-base">Rate Cards & Spare Parts</h3>
+                        <p className="text-gray-400 text-xs">{service.title || "Service Parts Pricing"}</p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => setShowRateCardModal(false)}
+                      className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-slate-800 transition"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  {/* Modal Content Table */}
+                  <div className="p-4 sm:p-6 overflow-y-auto flex-1">
+                    {liveRateCards && liveRateCards.length > 0 ? (
+                      <div className="border border-gray-200 rounded-2xl overflow-hidden shadow-xs">
+                        <table className="w-full text-left border-collapse text-xs sm:text-sm">
+                          <thead>
+                            <tr className="bg-slate-100 text-gray-800 font-bold uppercase tracking-wider text-[11px] border-b border-gray-200">
+                              <th className="py-3 px-4">Part / Description</th>
+                              <th className="py-3 px-4 text-center">Part Price</th>
+                              <th className="py-3 px-4 text-right">Labour Charges</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-100 bg-white">
+                            {liveRateCards.map((rc: any, idx: number) => (
+                              <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                                <td className="py-3.5 px-4 font-semibold text-gray-900">
+                                  <div>{rc.part_name}</div>
+                                  {rc.heading_title && (
+                                    <span className="inline-block bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded mt-1">
+                                      {rc.heading_title}
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="py-3.5 px-4 text-center font-bold text-gray-900 text-sm">
+                                  ₹{Number(rc.price).toLocaleString()}
+                                </td>
+                                <td className="py-3.5 px-4 text-right">
+                                  <span className="font-bold text-indigo-600 text-sm">₹{Number(rc.labour_charges).toLocaleString()}</span>
+                                  {rc.labour_note && (
+                                    <div className="text-[10px] text-gray-400 font-medium mt-0.5">{rc.labour_note}</div>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="p-8 bg-gray-50 rounded-2xl border border-dashed border-gray-200 text-center text-gray-500 text-sm font-medium">
+                        Standard visiting charges included. Detailed spare parts pricing will be provided on-site by technician.
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Modal Footer */}
+                  <div className="p-4 border-t border-gray-100 bg-gray-50 text-right">
+                    <button 
+                      onClick={() => setShowRateCardModal(false)}
+                      className="bg-slate-900 hover:bg-black text-white font-bold px-6 py-2.5 rounded-xl text-xs transition"
+                    >
+                      Close
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+            )}
 
             {/* About the service */}
             <div className="mb-8">

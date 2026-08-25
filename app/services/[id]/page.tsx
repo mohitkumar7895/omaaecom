@@ -4,7 +4,7 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import CategoryView from "./CategoryView";
 
-export const revalidate = 60; // Cache for 60 seconds
+export const dynamic = 'force-dynamic';
 
 export default async function CategoryPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;

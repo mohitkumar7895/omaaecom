@@ -58,3 +58,20 @@ export async function deleteRateCard(formData: FormData) {
 
   revalidatePath("/admin/rate-cards");
 }
+
+export async function getRateCardsByCategoryId(categoryId: number | string) {
+  if (!categoryId) return [];
+  try {
+    const [rows]: any = await pool.query(`
+      SELECT rc.*, h.title as heading_title 
+      FROM rate_cards rc
+      LEFT JOIN rate_headings h ON rc.heading_id = h.id
+      WHERE rc.category_id = ?
+      ORDER BY rc.id ASC
+    `, [categoryId]);
+    return JSON.parse(JSON.stringify(rows));
+  } catch (error) {
+    console.error("Error fetching rate cards by category:", error);
+    return [];
+  }
+}
