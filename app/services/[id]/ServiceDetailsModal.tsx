@@ -119,36 +119,43 @@ export default function ServiceDetailsModal({ service, onClose, onAdd, quantity 
                     </button>
                   </div>
 
-                  {/* Modal Content Table */}
+                  {/* Modal Content Table - Exact Replica of Admin Rate Card Table */}
                   <div className="p-4 sm:p-6 overflow-y-auto flex-1">
                     {liveRateCards && liveRateCards.length > 0 ? (
-                      <div className="border border-gray-200 rounded-2xl overflow-hidden shadow-xs">
-                        <table className="w-full text-left border-collapse text-xs sm:text-sm">
+                      <div className="border border-gray-200 rounded-2xl overflow-hidden shadow-xs overflow-x-auto">
+                        <table className="w-full text-left border-collapse text-xs sm:text-sm min-w-[550px]">
                           <thead>
-                            <tr className="bg-slate-100 text-gray-800 font-bold uppercase tracking-wider text-[11px] border-b border-gray-200">
-                              <th className="py-3 px-4">Part / Description</th>
-                              <th className="py-3 px-4 text-center">Part Price</th>
-                              <th className="py-3 px-4 text-right">Labour Charges</th>
+                            <tr className="bg-[#2c3e50] text-white text-[12px] font-bold uppercase tracking-wider">
+                              <th className="py-3 px-3 text-center border-r border-gray-600 w-12">SR No.</th>
+                              <th className="py-3 px-4 border-r border-gray-600">Heading</th>
+                              <th className="py-3 px-4 border-r border-gray-600">Part Name</th>
+                              <th className="py-3 px-4 text-center border-r border-gray-600">Amount (₹)</th>
+                              <th className="py-3 px-4 text-right">Labour Charges (₹)</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-100 bg-white">
                             {liveRateCards.map((rc: any, idx: number) => (
-                              <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                                <td className="py-3.5 px-4 font-semibold text-gray-900">
-                                  <div>{rc.part_name}</div>
-                                  {rc.heading_title && (
-                                    <span className="inline-block bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded mt-1">
-                                      {rc.heading_title}
-                                    </span>
-                                  )}
+                              <tr key={idx} className="hover:bg-slate-50/80 transition-colors">
+                                <td className="py-3 px-3 text-center font-bold text-gray-400 border-r border-gray-100">
+                                  {idx + 1}
                                 </td>
-                                <td className="py-3.5 px-4 text-center font-bold text-gray-900 text-sm">
+                                <td className="py-3 px-4 font-semibold text-gray-700 border-r border-gray-100">
+                                  <span className="inline-block bg-slate-100 text-slate-800 text-[11px] font-bold px-2 py-0.5 rounded">
+                                    {rc.heading_title || "General"}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-4 font-bold text-gray-900 border-r border-gray-100">
+                                  {rc.part_name}
+                                </td>
+                                <td className="py-3 px-4 text-center font-black text-gray-900 text-sm border-r border-gray-100">
                                   ₹{Number(rc.price).toLocaleString()}
                                 </td>
-                                <td className="py-3.5 px-4 text-right">
-                                  <span className="font-bold text-indigo-600 text-sm">₹{Number(rc.labour_charges).toLocaleString()}</span>
+                                <td className="py-3 px-4 text-right">
+                                  <span className="font-black text-indigo-600 text-sm">
+                                    ₹{Number(rc.labour_charges).toLocaleString()}
+                                  </span>
                                   {rc.labour_note && (
-                                    <div className="text-[10px] text-gray-400 font-medium mt-0.5">{rc.labour_note}</div>
+                                    <div className="text-[10px] text-gray-400 font-normal mt-0.5">{rc.labour_note}</div>
                                   )}
                                 </td>
                               </tr>
