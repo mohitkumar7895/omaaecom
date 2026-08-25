@@ -8,25 +8,25 @@ export default function GlobalLoader() {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    // Smooth simulated progress across 5 seconds (5000ms)
-    // 50ms interval * 100 increments = 5000ms
+    // Ultra smooth simulated progress across 4.5 seconds (4500ms)
+    // 30ms interval * 150 increments = 4500ms
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(interval);
           return 100;
         }
-        return prev + 1;
+        return prev + 0.67;
       });
-    }, 50);
+    }, 30);
 
-    // Total 5 seconds display, then fade out
+    // Total 4.5 to 5 seconds display, then smooth fade out
     const timer = setTimeout(() => {
       setAnimateOut(true);
       setTimeout(() => {
         setShow(false);
-      }, 600);
-    }, 5000);
+      }, 700);
+    }, 4500);
 
     return () => {
       clearTimeout(timer);
@@ -38,25 +38,25 @@ export default function GlobalLoader() {
 
   return (
     <div
-      className={`fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-white transition-opacity duration-600 ease-out ${
+      className={`fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-white transition-opacity duration-700 ease-out ${
         animateOut ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
     >
-      <div className="flex flex-col items-center justify-center max-w-xs w-full px-6">
+      <div className="flex flex-col items-center justify-center max-w-sm w-full px-6">
         
-        {/* Simple loader.jpg Image with subtle gentle breathing animation */}
+        {/* Large Prominent loader.jpg Image with smooth gentle pulse */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/loader.jpg"
           alt="OMAA Company"
-          className="h-24 sm:h-28 w-auto object-contain animate-smooth-pulse select-none"
+          className="h-36 sm:h-44 md:h-48 w-auto object-contain animate-smooth-pulse select-none"
         />
 
-        {/* Smooth 5-Second Linear Progress Bar underneath */}
-        <div className="w-52 sm:w-60 h-1.5 bg-gray-100 rounded-full overflow-hidden mt-6 shadow-inner relative">
+        {/* Big Smooth Royal Blue Running Progress Line (4 to 5 seconds) */}
+        <div className="w-64 sm:w-80 h-2 bg-blue-50/80 rounded-full overflow-hidden mt-8 border border-blue-100/60 shadow-inner relative">
           <div
-            className="h-full bg-gradient-to-r from-[#ff8000] via-[#6366f1] to-[#10b981] rounded-full transition-all duration-100 ease-linear"
-            style={{ width: `${progress}%` }}
+            className="h-full bg-gradient-to-r from-[#2563eb] via-[#1d4ed8] to-[#3b82f6] rounded-full transition-all duration-75 ease-linear shadow-[0_0_10px_rgba(37,99,235,0.4)]"
+            style={{ width: `${Math.min(progress, 100)}%` }}
           ></div>
         </div>
 
@@ -66,15 +66,15 @@ export default function GlobalLoader() {
         @keyframes smoothPulse {
           0%, 100% {
             transform: scale(1);
-            opacity: 0.95;
+            opacity: 0.96;
           }
           50% {
-            transform: scale(1.03);
+            transform: scale(1.04);
             opacity: 1;
           }
         }
         .animate-smooth-pulse {
-          animation: smoothPulse 2s ease-in-out infinite;
+          animation: smoothPulse 2.2s ease-in-out infinite;
         }
       `}</style>
     </div>
