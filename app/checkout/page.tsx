@@ -6,6 +6,7 @@ import { CheckCircle2, Lock, ShieldCheck, Hash, IndianRupee, Calendar, Clock, Ma
 import { useRouter, useSearchParams } from "next/navigation";
 import BookingSchedulePicker from "../components/BookingSchedulePicker";
 import CashbackFeatures from "../components/CashbackFeatures";
+import { getGstSettings } from "../actions/gst-settings";
 
 function CheckoutContent() {
   const router = useRouter();
@@ -16,6 +17,7 @@ function CheckoutContent() {
   const [success, setSuccess] = useState(false);
   const [orderId, setOrderId] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [gstSettings, setGstSettings] = useState<any>(null);
 
   const [form, setForm] = useState({
     name: '',
@@ -46,9 +48,44 @@ function CheckoutContent() {
         }
       } catch (e) {}
     }
+
+    getGstSettings().then((settings) => {
+      if (settings) {
+        setGstSettings(settings);
+      }
+    });
   }, []);
 
-  const totalAmount = cart.reduce((total, item) => total + (Number(item.selling_price) * item.quantity || 0), 0);
+  const isGstItem = (item: any) => {
+    const title = (item.title || item.name || "").toLowerCase();
+    const catId = Number(item.category_id);
+    const category = (item.category || item.type || "").toLowerCase();
+    
+    if (catId === 6 || catId === 7) return true;
+    if (
+      title.includes("new product") || 
+      title.includes("amc") || 
+      title.includes("plan") ||
+      category.includes("new product") || 
+      category.includes("amc") ||
+      category.includes("product")
+    ) {
+      return true;
+    }
+    return false;
+  };
+
+  const itemTotals = cart.reduce((total, item) => total + (Number(item.selling_price) * item.quantity || 0), 0);
+
+  // Apply GST on checkout based on payment method selection
+  const gstRate = Number(gstSettings?.gst_rate || 0);
+  const isOnline = paymentMethod === 'online';
+  const gstEnabledForPayment = gstSettings ? (isOnline ? gstSettings.online_gst_enabled : gstSettings.cash_gst_enabled) : false;
+  const applyGst = cart.some(isGstItem) && gstEnabledForPayment;
+  const gstItemsTotal = cart.filter(isGstItem).reduce((sum, item) => sum + (Number(item.selling_price) * item.quantity || 0), 0);
+  const gstAmount = applyGst ? (gstItemsTotal * (gstRate / 100)) : 0;
+
+  const totalAmount = itemTotals + gstAmount;
 
   // Check if ANY cart item requires a schedule (i.e. is NOT an AMC or New Product)
   const requiresSchedule = cart.some(item => {
@@ -119,8 +156,8 @@ function CheckoutContent() {
           mobile: form.mobile,
           email: form.email,
           address: form.address,
-          booking_date: form.booking_date,
-          time_slot: form.time_slot,
+          booking_date: requiresSchedule ? form.booking_date : new Date().toISOString().slice(0, 10),
+          time_slot: requiresSchedule ? form.time_slot : 'Instant',
           payment_method: paymentMethod,
           total_amount: totalAmount,
           cart_items: cart,
@@ -421,8 +458,14 @@ function CheckoutContent() {
               <div className="border-t-[3px] border-dotted border-gray-200 pt-6 space-y-4 mb-6">
                 <div className="flex justify-between items-center text-[15px]">
                   <span className="text-gray-500 font-semibold">Subtotal</span>
-                  <span className="font-bold text-gray-800">₹{totalAmount.toLocaleString()}</span>
+                  <span className="font-bold text-gray-800">₹{itemTotals.toLocaleString()}</span>
                 </div>
+                {gstAmount > 0 && (
+                  <div className="flex justify-between items-center text-[15px]">
+                    <span className="text-gray-500 font-semibold">GST ({gstRate}%)</span>
+                    <span className="font-bold text-gray-800">₹{Math.round(gstAmount).toLocaleString()}</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center text-[15px]">
                   <span className="text-gray-500 font-semibold">Taxes & Fees</span>
                   <span className="font-bold text-[#328e3b] bg-green-50 px-3 py-1 rounded-full text-xs uppercase tracking-wider">Free</span>
@@ -442,7 +485,7 @@ function CheckoutContent() {
                 </div>
                 <div className="text-right">
                   <span className="font-black text-3xl sm:text-4xl text-[#584ec6] tracking-tight">
-                    ₹{totalAmount.toLocaleString()}
+                    ₹{Math.round(totalAmount).toLocaleString()}
                   </span>
                 </div>
               </div>
@@ -482,7 +525,7 @@ function CheckoutContent() {
                 ) : (
                   <>
                     {paymentMethod === 'online' ? 'Proceed to Secure Pay' : 'Confirm Cash Booking'}
-                    <span className="font-normal opacity-80 text-base">| ₹{totalAmount.toLocaleString()}</span>
+                    <span className="font-normal opacity-80 text-base">| ₹{Math.round(totalAmount).toLocaleString()}</span>
                     <Lock className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
                   </>
                 )}

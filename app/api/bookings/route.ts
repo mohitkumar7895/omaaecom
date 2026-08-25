@@ -125,10 +125,13 @@ export async function POST(req: Request) {
       await pool.query("ALTER TABLE bookings ADD COLUMN referred_by VARCHAR(50) DEFAULT NULL");
     } catch (e) {}
 
+    const finalBookingDate = requiresSchedule ? booking_date : (booking_date || new Date().toISOString().slice(0, 10));
+    const finalTimeSlot = requiresSchedule ? time_slot : (time_slot || 'Instant');
+
     await pool.query(
       `INSERT INTO bookings (order_id, type, customer_name, mobile, address, category, services, booking_date, time_slot, total, payment_method, payment_status, working_status, created_at, user_email, coupon_code, referred_by)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', 'Pendi', NOW(), ?, ?, ?)`,
-      [orderId, bookingType, name, mobile, address, categoryName, servicesJson, booking_date || '', time_slot || '', total_amount, payment_method === 'online' ? 'cashfree' : 'Cash on Book', user_email, couponCode, referred_by || null]
+      [orderId, bookingType, name, mobile, address, categoryName, servicesJson, finalBookingDate, finalTimeSlot, total_amount, payment_method === 'online' ? 'cashfree' : 'Cash on Book', user_email, couponCode, referred_by || null]
     );
 
     return NextResponse.json({ success: true, order_id: orderId });

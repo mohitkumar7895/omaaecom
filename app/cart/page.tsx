@@ -5,11 +5,13 @@ import Navbar from "../components/Navbar";
 import { ShoppingBasket, Minus, Plus, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { getGstSettings } from "../actions/gst-settings";
 
 export default function CartPage() {
   const router = useRouter();
   const [cart, setCart] = useState<any[]>([]);
   const [mounted, setMounted] = useState(false);
+  const [gstSettings, setGstSettings] = useState<any>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -21,6 +23,12 @@ export default function CartPage() {
         console.error("Failed to parse cart");
       }
     }
+
+    getGstSettings().then((settings) => {
+      if (settings) {
+        setGstSettings(settings);
+      }
+    });
   }, []);
 
   const updateCart = (newCart: any[]) => {
@@ -48,9 +56,35 @@ export default function CartPage() {
 
   if (!mounted) return null;
 
+  const isGstItem = (item: any) => {
+    const title = (item.title || item.name || "").toLowerCase();
+    const catId = Number(item.category_id);
+    const category = (item.category || item.type || "").toLowerCase();
+    
+    if (catId === 6 || catId === 7) return true;
+    if (
+      title.includes("new product") || 
+      title.includes("amc") || 
+      title.includes("plan") ||
+      category.includes("new product") || 
+      category.includes("amc") ||
+      category.includes("product")
+    ) {
+      return true;
+    }
+    return false;
+  };
+
   const itemTotals = cart.reduce((sum, item) => sum + (Number(item.selling_price) * (item.quantity || 1)), 0);
+  
+  // Calculate GST amount for eligible items (RO AMC & New Products)
+  const gstRate = Number(gstSettings?.gst_rate || 0);
+  const gstEnabled = gstSettings ? (gstSettings.online_gst_enabled || gstSettings.cash_gst_enabled) : false;
+  const gstItemsTotal = cart.filter(isGstItem).reduce((sum, item) => sum + (Number(item.selling_price) * (item.quantity || 1)), 0);
+  const gstAmount = gstEnabled ? (gstItemsTotal * (gstRate / 100)) : 0;
+
   const convenienceFee = cart.length > 0 ? 49 : 0;
-  const totalAmount = itemTotals + convenienceFee;
+  const totalAmount = itemTotals + gstAmount + convenienceFee;
 
   return (
     <main className="min-h-screen bg-[#fafafa] flex flex-col font-sans pb-20">
@@ -154,6 +188,13 @@ export default function CartPage() {
                   <span className="font-bold text-gray-800 text-[15px]">₹{itemTotals.toLocaleString()}</span>
                 </div>
                 
+                {gstAmount > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-[14px]">GST ({gstRate}%)</span>
+                    <span className="font-bold text-gray-800 text-[15px]">₹{Math.round(gstAmount).toLocaleString()}</span>
+                  </div>
+                )}
+                
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600 text-[14px]">Convenience fee</span>
                   <span className="text-gray-800 text-[15px]">₹{convenienceFee.toLocaleString()}</span>
@@ -163,13 +204,13 @@ export default function CartPage() {
               <div className="border-t border-gray-100 pt-4 mb-4">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-800 font-bold text-[14px]">Total amount</span>
-                  <span className="font-bold text-gray-900 text-[15px]">₹{totalAmount.toLocaleString()}</span>
+                  <span className="font-bold text-gray-900 text-[15px]">₹{Math.round(totalAmount).toLocaleString()}</span>
                 </div>
               </div>
 
               <div className="flex justify-between items-center mb-8 mt-6">
                 <span className="text-gray-900 font-bold text-[15px]">Amount to pay</span>
-                <span className="font-bold text-gray-900 text-[18px]">₹{totalAmount.toLocaleString()}</span>
+                <span className="font-bold text-gray-900 text-[18px]">₹{Math.round(totalAmount).toLocaleString()}</span>
               </div>
 
               <button 

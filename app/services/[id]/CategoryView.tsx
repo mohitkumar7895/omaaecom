@@ -101,7 +101,7 @@ export default function CategoryView({ category, subcategories, services }: Cate
       if (existing) {
         newCart = prev.map(item => item.id === service.id ? { ...item, quantity: item.quantity + 1 } : item);
       } else {
-        newCart = [...prev, { ...service, quantity: 1 }];
+        newCart = [...prev, { ...service, category: category?.title, type: category?.type, quantity: 1 }];
       }
       setTimeout(() => {
         localStorage.setItem('omaa_cart', JSON.stringify(newCart));

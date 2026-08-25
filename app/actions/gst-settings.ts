@@ -37,3 +37,27 @@ export async function saveGstSettings(formData: FormData) {
 
   revalidatePath("/admin/gst-settings");
 }
+
+export async function getGstSettings() {
+  try {
+    const [rows]: any = await pool.query("SELECT * FROM gst_settings WHERE id = 1");
+    if (rows && rows.length > 0) {
+      return {
+        gst_rate: Number(rows[0].gst_rate || 0),
+        online_gst_enabled: Number(rows[0].online_gst_enabled || 0),
+        cash_gst_enabled: Number(rows[0].cash_gst_enabled || 0),
+        gst_number: rows[0].gst_number || "",
+        show_gst_on_invoice: Number(rows[0].show_gst_on_invoice || 0)
+      };
+    }
+  } catch (error) {
+    console.error("Failed to fetch GST settings:", error);
+  }
+  return {
+    gst_rate: 18,
+    online_gst_enabled: 0,
+    cash_gst_enabled: 0,
+    gst_number: "",
+    show_gst_on_invoice: 0
+  };
+}
