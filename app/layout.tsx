@@ -15,9 +15,9 @@ export const metadata: Metadata = {
   title: "OMAA Company - Get Home appliances Expert services……..",
   description: "OMAA Company - Get Home appliances Expert services at your doorstep",
   icons: {
-    icon: '/favicon.jpeg',
-    shortcut: '/favicon.jpeg',
-    apple: '/favicon.jpeg',
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
   },
 };
 
