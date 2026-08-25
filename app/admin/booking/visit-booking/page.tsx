@@ -1,134 +1,175 @@
-import ExportButtons from "../../../admin/components/ExportButtons";
-import { MessageCircle, FileText, Phone } from "lucide-react";
+import pool from "../../../../lib/db";
+import { CalendarCheck, MessageCircle } from "lucide-react";
+import ExportButtons from "../../components/ExportButtons";
+import PaymentStatusSelect from "../components/PaymentStatusSelect";
+import { updatePaymentStatus } from "../actions";
 
 export const dynamic = 'force-dynamic';
 
 export const metadata = {
-  title: "Visit Booking - OMAA Admin",
+  title: "Visit Bookings - OMAA Admin",
 };
 
 export default async function VisitBookingPage() {
-  
   let bookings: any[] = [];
 
-  return (
-    <div className="flex-1 bg-white min-h-screen">
-      <div className="p-8">
-        
-        {/* Header Section */}
-        <div className="mb-6">
-          <h1 className="text-[22px] font-bold text-gray-800 tracking-tight">Manage Booking</h1>
-        </div>
+  try {
+    const query = `
+      SELECT * FROM bookings 
+      WHERE working_status = 'Complete' OR working_status = 'Completed'
+      ORDER BY booking_date DESC, created_at DESC
+    `;
+    const [rows]: any = await pool.query(query);
+    bookings = rows.map((row: any) => {
+      let parsedServices = row.services;
+      try {
+        if (typeof row.services === 'string') {
+          parsedServices = JSON.parse(row.services);
+        }
+      } catch {}
+      return { ...row, services: parsedServices };
+    });
+  } catch (e) {
+    console.error("Failed to fetch visit bookings:", e);
+  }
 
-        {/* Action Bar */}
-        <div className="flex justify-between items-end mb-4">
-          <ExportButtons tableId="visit-booking-table" />
-          
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-600 font-medium">Search:</span>
-            <input 
-              type="text" 
-              className="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500 shadow-sm w-64"
-            />
+  return (
+    <div className="font-sans text-[13px] pb-12">
+      
+      {/* Header */}
+      <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
+            <CalendarCheck className="w-6 h-6 text-indigo-500" />
+            Visit Booking History
+          </h1>
+          <p className="text-gray-500 text-sm mt-1 font-medium">All completed technician doorstep visit records and summaries.</p>
+        </div>
+      </div>
+
+      {/* Main Table Card */}
+      <div className="bg-white border border-gray-200/80 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] overflow-hidden">
+        
+        {/* Top Action Bar */}
+        <div className="p-4 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <ExportButtons tableId="visitBookingTable" filename="omaa-visit-bookings" />
+          <div className="text-xs font-semibold text-gray-500">
+            Total Visits Completed: <span className="font-bold text-emerald-600">{bookings.length}</span>
           </div>
         </div>
 
-        {/* Table Container */}
-        <div className="border border-gray-200 overflow-x-auto">
-          <table id="visit-booking-table" className="w-full text-left border-collapse min-w-[1600px]">
+        {/* Responsive Table Container */}
+        <div className="overflow-x-auto">
+          <table id="visitBookingTable" className="w-full text-left border-collapse min-w-[1100px]">
             <thead>
-              <tr className="bg-[#2c3e50] text-white text-[12px] whitespace-nowrap">
-                <th className="px-3 py-3 border-r border-gray-600 font-medium">ID <span className="text-[9px] ml-0.5 text-gray-400">▲▼</span></th>
-                <th className="px-3 py-3 border-r border-gray-600 font-medium">Order ID <span className="text-[9px] ml-0.5 text-gray-400">▲▼</span></th>
-                <th className="px-3 py-3 border-r border-gray-600 font-medium">Address <span className="text-[9px] ml-0.5 text-gray-400">▲▼</span></th>
-                <th className="px-3 py-3 border-r border-gray-600 font-medium">Cus. Name <span className="text-[9px] ml-0.5 text-gray-400">▲▼</span></th>
-                <th className="px-3 py-3 border-r border-gray-600 font-medium">Mobile <span className="text-[9px] ml-0.5 text-gray-400">▲▼</span></th>
-                <th className="px-3 py-3 border-r border-gray-600 font-medium max-w-[120px]">Category <span className="text-[9px] ml-0.5 text-gray-400">▲▼</span></th>
-                <th className="px-3 py-3 border-r border-gray-600 font-medium max-w-[150px]">Services <span className="text-[9px] ml-0.5 text-gray-400">▲▼</span></th>
-                <th className="px-3 py-3 border-r border-gray-600 font-medium">Date <span className="text-[9px] ml-0.5 text-gray-400">▲▼</span></th>
-                <th className="px-3 py-3 border-r border-gray-600 font-medium">Slot <span className="text-[9px] ml-0.5 text-gray-400">▲▼</span></th>
-                <th className="px-3 py-3 border-r border-gray-600 font-medium">Total <span className="text-[9px] ml-0.5 text-gray-400">▲▼</span></th>
-                <th className="px-3 py-3 border-r border-gray-600 font-medium">Share <span className="text-[9px] ml-0.5 text-gray-400">▲▼</span></th>
-                <th className="px-3 py-3 border-r border-gray-600 font-medium">Payment <span className="text-[9px] ml-0.5 text-gray-400">▲▼</span></th>
-                <th className="px-3 py-3 border-r border-gray-600 font-medium">Payment<br/>Status <span className="text-[9px] ml-0.5 text-gray-400">▲▼</span></th>
-                <th className="px-3 py-3 font-medium">Feedback <span className="text-[9px] ml-0.5 text-gray-400">▲▼</span></th>
+              <tr className="bg-slate-900 text-white text-[12px] font-semibold uppercase tracking-wider">
+                <th className="px-4 py-3.5">Sr. No</th>
+                <th className="px-4 py-3.5">Order ID</th>
+                <th className="px-4 py-3.5">Customer</th>
+                <th className="px-4 py-3.5">Category & Services</th>
+                <th className="px-4 py-3.5">Visit Date</th>
+                <th className="px-4 py-3.5">Total Amount</th>
+                <th className="px-4 py-3.5">Payment</th>
+                <th className="px-4 py-3.5 text-center">Working Status</th>
+                <th className="px-4 py-3.5 text-center">Share</th>
               </tr>
             </thead>
-            <tbody className="bg-white">
+            <tbody className="divide-y divide-gray-100 bg-white">
               {bookings.length > 0 ? (
-                bookings.map((row) => (
-                  <tr key={row.id} className="border-b border-gray-200 hover:bg-gray-50 transition align-middle text-[12px] text-gray-700">
-                    <td className="px-3 py-4 border-r border-gray-200">{row.id}</td>
-                    <td className="px-3 py-4 border-r border-gray-200 font-medium">{row.order_id}</td>
-                    <td className="px-3 py-4 border-r border-gray-200 text-center">
-                      <button className="bg-[#00bcd4] hover:bg-[#00acc1] text-white px-3 py-1 rounded shadow-sm text-[11px] transition">
-                        View
-                      </button>
-                    </td>
-                    <td className="px-3 py-4 border-r border-gray-200 leading-tight">
-                      {row.customer_name}
-                    </td>
-                    <td className="px-3 py-4 border-r border-gray-200 font-medium text-blue-600 underline cursor-pointer">
-                      {row.mobile}
-                    </td>
-                    <td className="px-3 py-4 border-r border-gray-200 leading-tight max-w-[120px]">
-                      {row.category}
-                    </td>
-                    <td className="px-3 py-4 border-r border-gray-200 leading-tight max-w-[150px]">
-                      {row.services}
-                    </td>
-                    <td className="px-3 py-4 border-r border-gray-200 leading-tight whitespace-nowrap text-[11px]">
-                      {new Date(row.booking_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-')}
-                    </td>
-                    <td className="px-3 py-4 border-r border-gray-200 leading-tight whitespace-nowrap text-[11px]">
-                      {row.time_slot}
-                    </td>
-                    <td className="px-3 py-4 border-r border-gray-200">
-                      ₹ {row.total}
-                    </td>
-                    <td className="px-3 py-4 border-r border-gray-200 text-center">
-                      <button className="bg-[#1b6b50] hover:bg-[#15533e] text-white px-3 py-1.5 rounded shadow-sm text-[11px] transition flex items-center space-x-1 mx-auto">
-                        <span>Share</span>
-                      </button>
-                    </td>
-                    <td className="px-3 py-4 border-r border-gray-200 text-[11px]">
-                      {row.payment_method === 'cashfree' ? 'cod' : row.payment_method}
-                    </td>
-                    <td className="px-3 py-4 border-r border-gray-200 text-center">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full text-white whitespace-nowrap ${
-                        row.payment_status === 'Completed' ? 'bg-[#1b6b50]' : 'bg-[#ffc107] text-gray-900'
-                      }`}>
-                        {row.payment_status}
+                bookings.map((row, index) => (
+                  <tr key={row.id} className="hover:bg-slate-50/80 transition-colors text-[13px]">
+                    <td className="px-4 py-4 font-medium text-gray-400">{index + 1}</td>
+                    
+                    <td className="px-4 py-4">
+                      <span className="font-mono font-bold text-gray-800 bg-gray-100 px-2 py-0.5 rounded text-xs">
+                        #{row.order_id}
                       </span>
                     </td>
-                    <td className="px-3 py-4 text-center">
-                       <button className="bg-[#2962ff] hover:bg-blue-700 text-white px-3 py-1 rounded shadow-sm text-[11px] transition">
-                         Feedback
-                       </button>
+
+                    <td className="px-4 py-4">
+                      <div className="font-bold text-gray-900">{row.customer_name}</div>
+                      <a href={`tel:${row.mobile}`} className="text-indigo-600 hover:text-indigo-800 text-xs font-semibold">
+                        {row.mobile}
+                      </a>
+                      <div className="text-gray-400 text-[11px] truncate max-w-xs mt-0.5" title={row.address}>
+                        {row.address}
+                      </div>
                     </td>
+
+                    <td className="px-4 py-4">
+                      <div className="inline-block bg-indigo-50 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full mb-1 border border-indigo-100">
+                        {row.category || "Service"}
+                      </div>
+                      <div className="text-gray-700 text-xs font-medium">
+                        {Array.isArray(row.services) ? (
+                          row.services.map((s: any, i: number) => (
+                            <span key={i} className="inline-block mr-2">
+                              • {s.title} {s.quantity > 1 ? `(x${s.quantity})` : ''}
+                            </span>
+                          ))
+                        ) : (
+                          <span>{row.services}</span>
+                        )}
+                      </div>
+                    </td>
+
+                    <td className="px-4 py-4">
+                      <div className="font-semibold text-gray-900 text-xs">
+                        {row.booking_date ? new Date(row.booking_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : new Date(row.created_at).toLocaleDateString('en-GB')}
+                      </div>
+                      <div className="text-gray-400 text-[11px] mt-0.5">{row.time_slot || 'Completed'}</div>
+                    </td>
+
+                    <td className="px-4 py-4">
+                      <div className="font-bold text-gray-900 text-sm">₹{Number(row.total).toLocaleString()}</div>
+                    </td>
+
+                    <td className="px-4 py-4">
+                      <div className="space-y-1">
+                        <span className="text-[11px] font-bold text-gray-500 uppercase block">
+                          {row.payment_method === 'cashfree' ? 'Online' : 'Cash'}
+                        </span>
+                        <PaymentStatusSelect
+                          id={row.id}
+                          defaultValue={row.payment_status || "Completed"}
+                          action={updatePaymentStatus}
+                        />
+                      </div>
+                    </td>
+
+                    <td className="px-4 py-4 text-center">
+                      <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold px-2.5 py-1 rounded-full">
+                        ✓ Visited & Complete
+                      </span>
+                    </td>
+
+                    <td className="px-4 py-4 text-center">
+                      <a 
+                        href={`https://wa.me/91${row.mobile}?text=Hello%20${encodeURIComponent(row.customer_name)},%20thank%20you%20for%20choosing%20OMAA%20Company.%20Your%20visit%20for%20order%20%23${row.order_id}%20has%20been%20completed.`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center justify-center p-2 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition shadow-xs"
+                        title="Share on WhatsApp"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                      </a>
+                    </td>
+
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={14} className="px-4 py-8 text-center text-gray-500 text-sm">
-                    No data available in table
+                  <td colSpan={9} className="px-6 py-12 text-center text-gray-400">
+                    <p className="text-sm font-medium">No completed visit bookings found</p>
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
-        
-        {/* Pagination Footer */}
-        <div className="bg-white border-t border-gray-200 px-4 py-3 flex items-center justify-between text-sm text-gray-600 mt-2">
-          <div>Showing {bookings.length > 0 ? 1 : 0} to {bookings.length} of {bookings.length} entries</div>
-          <div className="flex space-x-1">
-            <button className="px-3 py-1 border border-gray-300 rounded text-gray-500 hover:bg-gray-50 disabled:opacity-50 text-[13px]">Previous</button>
-            <button className="px-3 py-1 border border-gray-300 rounded text-gray-500 hover:bg-gray-50 disabled:opacity-50 text-[13px]">Next</button>
-          </div>
-        </div>
-        
+
       </div>
+
     </div>
   );
 }
