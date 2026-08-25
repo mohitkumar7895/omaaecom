@@ -9,9 +9,10 @@ type ServiceDetailsModalProps = {
   onAdd: (service: any) => void;
   quantity?: number;
   onRemove?: () => void;
+  rateCards?: any[];
 };
 
-export default function ServiceDetailsModal({ service, onClose, onAdd, quantity = 0, onRemove }: ServiceDetailsModalProps) {
+export default function ServiceDetailsModal({ service, onClose, onAdd, quantity = 0, onRemove, rateCards = [] }: ServiceDetailsModalProps) {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const toggleFaq = (index: number) => {
@@ -59,14 +60,53 @@ export default function ServiceDetailsModal({ service, onClose, onAdd, quantity 
               </div>
             </div>
 
-            {/* Standard / Rate Card Box */}
-            <div className="border border-gray-200 rounded-xl p-2 sm:p-3 flex gap-2 sm:gap-3 mb-6 sm:mb-8 bg-gray-50/50">
-              <button className="flex-1 bg-white border border-blue-200 text-blue-600 font-semibold py-1.5 sm:py-2 rounded-lg flex items-center justify-center gap-1.5 sm:gap-2 shadow-sm text-sm sm:text-base">
-                <CheckCircle2 className="w-4 h-4" /> Standard
-              </button>
-              <button className="flex-1 bg-gray-900 text-white font-semibold py-1.5 sm:py-2 rounded-lg flex items-center justify-center gap-1.5 sm:gap-2 shadow-sm text-sm sm:text-base">
-                <FileText className="w-4 h-4" /> Rate Card
-              </button>
+            {/* Rate Card Section - Showing live Rate Cards added by Admin */}
+            <div className="mb-8">
+              <div className="flex items-center gap-2 mb-4 bg-gray-900 text-white font-bold py-2.5 px-4 rounded-xl shadow-xs">
+                <FileText className="w-4 h-4 text-amber-400" />
+                <span className="text-sm tracking-wide uppercase">Official Rate Card & Spare Parts</span>
+              </div>
+
+              {rateCards && rateCards.length > 0 ? (
+                <div className="border border-gray-200 rounded-2xl overflow-hidden shadow-xs bg-white">
+                  <table className="w-full text-left border-collapse text-xs sm:text-sm">
+                    <thead>
+                      <tr className="bg-slate-50 border-b border-gray-200 text-gray-700 font-bold">
+                        <th className="py-3 px-4">Part / Service Description</th>
+                        <th className="py-3 px-4 text-center">Part Price</th>
+                        <th className="py-3 px-4 text-right">Labour Charges</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {rateCards.map((rc: any, idx: number) => (
+                        <tr key={idx} className="hover:bg-gray-50/80 transition-colors">
+                          <td className="py-3.5 px-4 font-medium text-gray-900">
+                            <div>{rc.part_name}</div>
+                            {rc.heading_title && (
+                              <span className="text-[10px] font-semibold text-gray-400 block mt-0.5">
+                                {rc.heading_title}
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3.5 px-4 text-center font-bold text-gray-800">
+                            ₹{Number(rc.price).toLocaleString()}
+                          </td>
+                          <td className="py-3.5 px-4 text-right">
+                            <span className="font-bold text-indigo-600">₹{Number(rc.labour_charges).toLocaleString()}</span>
+                            {rc.labour_note && (
+                              <div className="text-[10px] text-gray-400 font-normal">{rc.labour_note}</div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="p-4 bg-gray-50 rounded-xl border border-dashed border-gray-200 text-center text-gray-500 text-xs font-medium">
+                  Standard visiting charges included. Detailed spare parts pricing will be provided on-site by technician.
+                </div>
+              )}
             </div>
 
             {/* About the service */}

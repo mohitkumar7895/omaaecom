@@ -28,6 +28,15 @@ export default async function CategoryPage({ params }: { params: Promise<{ id: s
     // Fetch Services
     const [services]: any = await pool.query("SELECT * FROM services WHERE category_id = ?", [categoryId]);
 
+    // Fetch Rate Cards added by Admin for this Category
+    const [rateCards]: any = await pool.query(`
+      SELECT rc.*, h.title as heading_title 
+      FROM rate_cards rc
+      LEFT JOIN rate_headings h ON rc.heading_id = h.id
+      WHERE rc.category_id = ?
+      ORDER BY rc.id ASC
+    `, [categoryId]);
+
     return (
       <main className="min-h-screen bg-white flex flex-col font-sans">
         <Navbar />
@@ -38,6 +47,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ id: s
             category={category} 
             subcategories={subcats} 
             services={services} 
+            rateCards={rateCards}
           />
         </div>
       </main>

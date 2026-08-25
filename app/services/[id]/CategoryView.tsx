@@ -9,9 +9,10 @@ type CategoryViewProps = {
   category: any;
   subcategories: any[];
   services: any[];
+  rateCards?: any[];
 };
 
-export default function CategoryView({ category, subcategories, services }: CategoryViewProps) {
+export default function CategoryView({ category, subcategories, services, rateCards = [] }: CategoryViewProps) {
   const router = useRouter();
   const [activeSubcat, setActiveSubcat] = useState<number>(subcategories[0]?.id || 0);
   const [cart, setCart] = useState<any[]>([]);
@@ -381,6 +382,7 @@ export default function CategoryView({ category, subcategories, services }: Cate
           onClose={() => setSelectedService(null)}
           onAdd={handleAddService}
           onRemove={() => handleRemoveService(selectedService.id)}
+          rateCards={rateCards}
         />
       )}
     </div>

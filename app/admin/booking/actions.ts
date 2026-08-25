@@ -28,11 +28,31 @@ export async function updateWorkingStatus(formData: FormData) {
         } catch(e) {}
         
         // Fetch booking details
-        const [rows]: any = await pool.query("SELECT type, mobile, coupon_code, referred_by FROM bookings WHERE id = ?", [id]);
+        const [rows]: any = await pool.query("SELECT * FROM bookings WHERE id = ?", [id]);
         if (rows && rows.length > 0) {
           const booking = rows[0];
           
-          // Generate coupon only if type matches and coupon hasn't been generated yet
+          // 1. Auto-create warranty record if it doesn't already exist
+          try {
+            const [existingW]: any = await pool.query("SELECT id FROM warranties WHERE order_id = ?", [booking.order_id]);
+            if (existingW.length === 0) {
+              const days = (booking.type === 'AMC' || booking.type === 'New Product') ? 365 : 180;
+              const issuedDate = new Date().toISOString().slice(0, 10);
+              const expiryDateObj = new Date();
+              expiryDateObj.setDate(expiryDateObj.getDate() + days);
+              const expiryDate = expiryDateObj.toISOString().slice(0, 10);
+              
+              await pool.query(
+                `INSERT INTO warranties (order_id, customer_name, mobile, category, warranty_days, issued_date, expiry_date, status) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE')`,
+                [booking.order_id, booking.customer_name, booking.mobile, booking.category || booking.type || 'Service', days, issuedDate, expiryDate]
+              );
+            }
+          } catch (wErr) {
+            console.error("Failed to auto-insert warranty:", wErr);
+          }
+
+          // 2. Generate coupon only if type matches and coupon hasn't been generated yet
           if ((booking.type === 'AMC' || booking.type === 'New Product') && !booking.coupon_code) {
             const couponCode = generateCouponCode();
             
@@ -48,10 +68,12 @@ export async function updateWorkingStatus(formData: FormData) {
               [status, couponCode, id]
             );
             revalidatePath("/admin/booking", 'layout');
+            revalidatePath("/admin/warranties", 'layout');
           } else {
             // Update booking status directly
             await pool.query("UPDATE bookings SET working_status = ? WHERE id = ?", [status, id]);
             revalidatePath("/admin/booking", 'layout');
+            revalidatePath("/admin/warranties", 'layout');
           }
 
           // Referral payout logic: If referred_by exists, add ₹100 to the referrer's wallet
