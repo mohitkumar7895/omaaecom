@@ -209,8 +209,8 @@ export default function LocationSelector() {
 
   // Determine what to show on the trigger button
   const getButtonText = () => {
-    if (location && location.address) {
-      return location.address;
+    if (location && (location.address || (location as any).fullAddress)) {
+      return location.address || (location as any).fullAddress;
     }
     if (location && location.city) {
       return location.city;
@@ -223,14 +223,14 @@ export default function LocationSelector() {
       {/* Trigger Button */}
       <div 
         onClick={() => setIsOpen(true)}
-        className="flex items-center justify-between bg-white border border-gray-200 px-4 py-2.5 rounded-xl cursor-pointer hover:bg-gray-50 transition mr-2 min-w-[140px] max-w-[200px] shadow-sm"
+        className="flex items-center justify-between bg-white border border-gray-200 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl cursor-pointer hover:bg-gray-50 transition mr-2 min-w-[150px] max-w-[240px] sm:max-w-[320px] shadow-sm"
         title={getButtonText()}
       >
         <div className="flex items-center space-x-2 overflow-hidden">
-          <MapPin className="text-gray-500 w-4 h-4 shrink-0" />
-          <span className="text-[14px] text-gray-700 line-clamp-2 break-words">{getButtonText()}</span>
+          <MapPin className="text-rose-500 w-4 h-4 shrink-0" />
+          <span className="text-[13px] sm:text-[14px] text-gray-800 font-medium line-clamp-1 break-words">{getButtonText()}</span>
         </div>
-        <ChevronDown className="text-gray-400 w-4 h-4 shrink-0 ml-2" />
+        <ChevronDown className="text-gray-400 w-4 h-4 shrink-0 ml-1.5" />
       </div>
 
       {/* Modal Overlay */}
