@@ -42,8 +42,12 @@ export async function POST(req: Request) {
     let mediaUrls: string[] = [];
 
     if (adType === 'video') {
+      const videoUrl = formData.get('video_url') as string;
       const videoFile = formData.get('video') as File;
-      if (videoFile && videoFile.size > 0) {
+      
+      if (videoUrl && videoUrl.trim()) {
+        mediaUrls.push(videoUrl.trim());
+      } else if (videoFile && videoFile.size > 0) {
         const bytes = await videoFile.arrayBuffer();
         const buffer = Buffer.from(bytes);
         const fileName = `ad_${Date.now()}_${videoFile.name.replace(/\s+/g, '_')}`;

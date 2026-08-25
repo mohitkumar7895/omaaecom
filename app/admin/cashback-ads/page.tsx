@@ -22,6 +22,9 @@ export default function CashbackAdsAdmin() {
   const videoRef = useRef<HTMLInputElement>(null);
   const imageRef = useRef<HTMLInputElement>(null);
 
+  const [videoUrlInput, setVideoUrlInput] = useState<string>('');
+  const [videoSourceType, setVideoSourceType] = useState<'upload' | 'url'>('url');
+
   useEffect(() => {
     fetchConfig();
   }, []);
@@ -38,6 +41,10 @@ export default function CashbackAdsAdmin() {
           urls = typeof data.media_urls === 'string' ? JSON.parse(data.media_urls) : data.media_urls;
         } catch(e) {}
         setExistingUrls(urls || []);
+        if (urls && urls.length > 0 && typeof urls[0] === 'string' && urls[0].startsWith('http')) {
+          setVideoUrlInput(urls[0]);
+          setVideoSourceType('url');
+        }
       }
     } catch (e) {
       console.error(e);
@@ -48,9 +55,12 @@ export default function CashbackAdsAdmin() {
   const handleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      // Check file size — warn if > 50MB
-      if (file.size > 50 * 1024 * 1024) {
-        setMessage({ type: 'error', text: `File bahut badi hai (${(file.size / 1024 / 1024).toFixed(1)}MB). 50MB se chhoti video upload karein.` });
+      // Vercel serverless request body limit is 4.5MB
+      if (file.size > 4.5 * 1024 * 1024) {
+        setMessage({ 
+          type: 'error', 
+          text: `⚠️ File size (${(file.size / 1024 / 1024).toFixed(1)}MB) Vercel 4.5MB limit se badi hai! Badi video ke liye neeche 'Direct Video Link (URL)' option use karein ya chhoti video upload karein.` 
+        });
         return;
       }
       setVideoFile(file);
@@ -64,6 +74,12 @@ export default function CashbackAdsAdmin() {
       const files = Array.from(e.target.files);
       if (files.length > 6) {
         setMessage({ type: 'error', text: 'Maximum 6 images allowed' });
+        return;
+      }
+      // Check total size under 4MB
+      const totalSize = files.reduce((acc, f) => acc + f.size, 0);
+      if (totalSize > 4 * 1024 * 1024) {
+        setMessage({ type: 'error', text: 'Images ka total size 4MB se kam hona chahiye.' });
         return;
       }
       setImageFiles(files);
@@ -91,10 +107,19 @@ export default function CashbackAdsAdmin() {
       formData.append('duration', duration.toString());
 
       if (adType === 'video') {
-        if (videoFile) {
-          formData.append('video', videoFile);
+        if (videoSourceType === 'url') {
+          if (!videoUrlInput.trim()) {
+            setMessage({ type: 'error', text: 'Kripya direct Video URL dalein (e.g. YouTube, Cloudinary, S3, MP4 link).' });
+            setSaving(false);
+            return;
+          }
+          formData.append('video_url', videoUrlInput.trim());
         } else {
-          formData.append('existing_media', JSON.stringify(existingUrls));
+          if (videoFile) {
+            formData.append('video', videoFile);
+          } else {
+            formData.append('existing_media', JSON.stringify(existingUrls));
+          }
         }
       } else {
         if (imageFiles.length > 0) {
@@ -218,32 +243,73 @@ export default function CashbackAdsAdmin() {
             </label>
 
             {adType === 'video' ? (
-              <div className="space-y-4">
-                <input
-                  type="file"
-                  accept="video/mp4,video/webm"
-                  ref={videoRef}
-                  onChange={handleVideoChange}
-                  className="hidden"
-                />
+              <div className="space-y-5">
+                
+                {/* Video Source Tabs */}
+                <div className="flex gap-2 p-1 bg-gray-100 rounded-xl max-w-sm">
+                  <button
+                    type="button"
+                    onClick={() => setVideoSourceType('url')}
+                    className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition ${videoSourceType === 'url' ? 'bg-white text-gray-900 shadow-xs' : 'text-gray-500 hover:text-gray-900'}`}
+                  >
+                    🔗 Direct Video URL (Recommended)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setVideoSourceType('upload')}
+                    className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition ${videoSourceType === 'upload' ? 'bg-white text-gray-900 shadow-xs' : 'text-gray-500 hover:text-gray-900'}`}
+                  >
+                    📁 Upload File (&lt;4MB)
+                  </button>
+                </div>
 
-                {/* Drop Zone */}
-                <button
-                  onClick={() => videoRef.current?.click()}
-                  className="w-full py-10 border-2 border-dashed border-gray-300 rounded-xl hover:border-[#6069c9] hover:bg-indigo-50/30 transition-all flex flex-col items-center justify-center gap-2 group"
-                >
-                  <div className="w-14 h-14 bg-gray-100 group-hover:bg-indigo-100 rounded-full flex items-center justify-center transition-colors">
-                    <Upload className="w-6 h-6 text-gray-400 group-hover:text-[#6069c9] transition-colors" />
+                {videoSourceType === 'url' ? (
+                  <div className="space-y-2">
+                    <label className="block text-xs font-bold text-gray-600">Video Link / URL (MP4, YouTube, S3, Cloudinary)</label>
+                    <input 
+                      type="url"
+                      placeholder="https://example.com/ad-video.mp4 ya https://youtube.com/watch?v=..."
+                      value={videoUrlInput}
+                      onChange={(e) => {
+                        setVideoUrlInput(e.target.value);
+                        setVideoPreview(e.target.value);
+                      }}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#6069c9] focus:border-transparent outline-none text-sm font-medium"
+                    />
+                    <p className="text-[11px] text-emerald-600 font-medium">
+                      💡 Vercel par file upload ki 4.5MB limit hoti hai, isliye video ka direct link daalna 100% fast aur bina error ke chalta hai.
+                    </p>
                   </div>
-                  <span className="font-bold text-gray-700 group-hover:text-[#6069c9] transition-colors">
-                    {videoFile ? `✅ ${videoFile.name}` : 'Click karo ya drag karo — Video Select karo'}
-                  </span>
-                  <span className="text-xs text-gray-400">
-                    {videoFile
-                      ? `Size: ${(videoFile.size / 1024 / 1024).toFixed(2)} MB`
-                      : 'MP4 / WebM • Maximum 50MB'}
-                  </span>
-                </button>
+                ) : (
+                  <>
+                    <input
+                      type="file"
+                      accept="video/mp4,video/webm"
+                      ref={videoRef}
+                      onChange={handleVideoChange}
+                      className="hidden"
+                    />
+
+                    {/* Drop Zone */}
+                    <button
+                      type="button"
+                      onClick={() => videoRef.current?.click()}
+                      className="w-full py-8 border-2 border-dashed border-gray-300 rounded-xl hover:border-[#6069c9] hover:bg-indigo-50/30 transition-all flex flex-col items-center justify-center gap-2 group"
+                    >
+                      <div className="w-12 h-12 bg-gray-100 group-hover:bg-indigo-100 rounded-full flex items-center justify-center transition-colors">
+                        <Upload className="w-5 h-5 text-gray-400 group-hover:text-[#6069c9] transition-colors" />
+                      </div>
+                      <span className="font-bold text-sm text-gray-700 group-hover:text-[#6069c9] transition-colors">
+                        {videoFile ? `✅ ${videoFile.name}` : 'Click karo — Video File Select karo'}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        {videoFile
+                          ? `Size: ${(videoFile.size / 1024 / 1024).toFixed(2)} MB`
+                          : 'MP4 / WebM • Max 4.5MB for Vercel'}
+                      </span>
+                    </button>
+                  </>
+                )}
 
                 {/* Upload Progress Bar */}
                 {saving && adType === 'video' && videoFile && (

@@ -5,25 +5,26 @@ import { usePathname } from "next/navigation";
 
 export default function GlobalLoader() {
   const pathname = usePathname();
-  const [show, setShow] = useState(false);
+  // Start with true by default so it covers the screen from the very first frame!
+  const [show, setShow] = useState<boolean>(true);
   const [animateOut, setAnimateOut] = useState(false);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    // 1. Don't show loader anywhere on admin routes
+    // 1. Don't show loader on admin routes
     if (pathname && pathname.startsWith("/admin")) {
       setShow(false);
       return;
     }
 
     // 2. Only show once per session when starting the main customer website
-    const hasLoaded = sessionStorage.getItem("omaa_app_initial_loaded");
-    if (hasLoaded) {
-      setShow(false);
-      return;
-    }
-
-    setShow(true);
+    try {
+      const hasLoaded = sessionStorage.getItem("omaa_app_initial_loaded");
+      if (hasLoaded) {
+        setShow(false);
+        return;
+      }
+    } catch (e) {}
 
     // Smooth simulated progress across 3 seconds (3000ms)
     // 30ms interval * 100 increments = 3000ms
