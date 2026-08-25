@@ -295,22 +295,36 @@ export default function CashbackFeatures({ orderId, isEligible = true }: Cashbac
                                 alt="Ad" 
                                 className="w-full h-full object-contain bg-black transition-opacity duration-500"
                               />
-                            ) : (
-                              <video 
-                                src={cashbackData?.adConfig?.media_urls?.[0] || ''} 
-                                autoPlay 
-                                playsInline 
-                                muted 
-                                loop
-                                className="w-full h-full object-contain"
-                                ref={(el) => {
-                                  if (el) {
-                                    if (adPaused) el.pause();
-                                    else el.play().catch(()=>{});
-                                  }
-                                }}
-                              />
-                            )}
+                            ) : (() => {
+                              const videoSrc = cashbackData?.adConfig?.media_urls?.[0] || '';
+                              // Check if YouTube URL
+                              const ytMatch = videoSrc.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+                              if (ytMatch && ytMatch[1]) {
+                                return (
+                                  <iframe
+                                    src={`https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1&mute=1&controls=0&loop=1&playlist=${ytMatch[1]}`}
+                                    className="w-full h-full border-0 pointer-events-none"
+                                    allow="autoplay; encrypted-media"
+                                  />
+                                );
+                              }
+                              return (
+                                <video 
+                                  src={videoSrc} 
+                                  autoPlay 
+                                  playsInline 
+                                  muted 
+                                  loop
+                                  className="w-full h-full object-contain bg-black"
+                                  ref={(el) => {
+                                    if (el) {
+                                      if (adPaused) el.pause();
+                                      else el.play().catch(()=>{});
+                                    }
+                                  }}
+                                />
+                              );
+                            })()}
                             
                             {/* Overlay Controls */}
                             <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-2 shadow-sm border border-white/10 z-10">
