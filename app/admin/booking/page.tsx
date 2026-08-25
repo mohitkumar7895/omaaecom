@@ -144,10 +144,14 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                       </span>
                     </td>
                     
-                    <td className="px-4 py-4">
+                    <td className="px-4 py-4 min-w-[200px]">
                       <div className="font-bold text-gray-900 mb-0.5">{row.customer_name}</div>
-                      <div className="text-indigo-600 font-medium mb-1">{row.mobile}</div>
-                      <div className="text-[11px] text-gray-500 max-w-[200px] leading-snug truncate group-hover:whitespace-normal group-hover:text-clip">{row.address || '—'}</div>
+                      <a href={`tel:${row.mobile}`} className="text-indigo-600 font-semibold mb-1 block hover:underline">
+                        {row.mobile}
+                      </a>
+                      <div className="text-[12px] text-gray-700 bg-gray-50/80 p-2 rounded-lg border border-gray-100/80 leading-relaxed break-words">
+                        📍 {row.address || 'Address not provided'}
+                      </div>
                     </td>
                     
                     <td className="px-4 py-4 max-w-[250px]">

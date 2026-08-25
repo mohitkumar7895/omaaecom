@@ -387,7 +387,47 @@ function CheckoutContent() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[13px] font-bold text-gray-700">Service Address</label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-[13px] font-bold text-gray-700">Service Address</label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!("geolocation" in navigator)) {
+                          alert("Geolocation is not supported by your browser.");
+                          return;
+                        }
+                        navigator.geolocation.getCurrentPosition(
+                          async (position) => {
+                            try {
+                              const { latitude, longitude } = position.coords;
+                              const res = await fetch("/api/location/geocode", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ latitude, longitude }),
+                              });
+                              const data = await res.json();
+                              if (res.ok && data.success && data.data.address) {
+                                setForm(prev => ({ ...prev, address: data.data.address }));
+                                setErrors(prev => ({ ...prev, address: '' }));
+                                localStorage.setItem("user_location", JSON.stringify(data.data));
+                                window.dispatchEvent(new Event("location_changed"));
+                              }
+                            } catch (e) {
+                              alert("Failed to fetch live address.");
+                            }
+                          },
+                          (err) => {
+                            alert("Location access denied. Please type address manually or allow GPS access.");
+                          },
+                          { enableHighAccuracy: true, timeout: 10000 }
+                        );
+                      }}
+                      className="text-xs font-bold text-[#6b62d9] hover:text-[#5249be] flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition"
+                    >
+                      <MapPin className="w-3.5 h-3.5" />
+                      <span>Use current location (GPS)</span>
+                    </button>
+                  </div>
                   <textarea 
                     rows={3}
                     name="address"

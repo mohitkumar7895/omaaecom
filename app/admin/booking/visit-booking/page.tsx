@@ -86,13 +86,13 @@ export default async function VisitBookingPage() {
                       </span>
                     </td>
 
-                    <td className="px-4 py-4">
-                      <div className="font-bold text-gray-900">{row.customer_name}</div>
-                      <a href={`tel:${row.mobile}`} className="text-indigo-600 hover:text-indigo-800 text-xs font-semibold">
+                    <td className="px-4 py-4 min-w-[200px]">
+                      <div className="font-bold text-gray-900 mb-0.5">{row.customer_name}</div>
+                      <a href={`tel:${row.mobile}`} className="text-indigo-600 hover:text-indigo-800 text-xs font-semibold mb-1 block">
                         {row.mobile}
                       </a>
-                      <div className="text-gray-400 text-[11px] truncate max-w-xs mt-0.5" title={row.address}>
-                        {row.address}
+                      <div className="text-[12px] text-gray-700 bg-gray-50/80 p-2 rounded-lg border border-gray-100/80 leading-relaxed break-words">
+                        📍 {row.address || 'Address not provided'}
                       </div>
                     </td>
 
