@@ -59,16 +59,21 @@ export default function CartPage() {
   const isGstItem = (item: any) => {
     const title = (item.title || item.name || "").toLowerCase();
     const catId = Number(item.category_id);
-    const category = (item.category || item.type || "").toLowerCase();
+    const category = (item.category || item.type || item.category_title || "").toLowerCase();
     
+    // Category 6 is New Products, Category 7 is RO AMC
     if (catId === 6 || catId === 7) return true;
+    
+    // Exact strict matching: ONLY RO AMC and New Products
     if (
-      title.includes("new product") || 
-      title.includes("amc") || 
-      title.includes("plan") ||
-      category.includes("new product") || 
-      category.includes("amc") ||
-      category.includes("product")
+      title.includes("ro amc") || 
+      title.includes("amc plan") || 
+      title.includes("amc package") ||
+      title.includes("new product") ||
+      category.includes("ro amc") ||
+      category.includes("new product") ||
+      category === "amc" ||
+      category === "new products"
     ) {
       return true;
     }

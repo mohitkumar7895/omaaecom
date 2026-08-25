@@ -62,18 +62,18 @@ export default function GlobalLoader() {
         animateOut ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
     >
-      <div className="flex flex-col items-center justify-center max-w-sm w-full px-6">
+      <div className="flex flex-col items-center justify-center max-w-md w-full px-6">
         
-        {/* Slightly larger, bold loader.jpg Image */}
+        {/* Prominent Loader Image - Sized up nicely and positioned right above the running line */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/loader.jpg"
           alt="OMAA Company"
-          className="h-44 sm:h-52 md:h-56 w-auto object-contain animate-smooth-pulse select-none"
+          className="h-52 sm:h-60 md:h-64 w-auto object-contain animate-smooth-pulse select-none"
         />
 
-        {/* Smooth 3-Second Royal Blue Progress Bar underneath */}
-        <div className="w-64 sm:w-80 h-2 bg-blue-50/80 rounded-full overflow-hidden mt-8 border border-blue-100/60 shadow-inner relative">
+        {/* Running Blue Line directly close underneath the image */}
+        <div className="w-72 sm:w-88 md:w-96 h-2 bg-blue-50/80 rounded-full overflow-hidden mt-3 border border-blue-100/60 shadow-inner relative">
           <div
             className="h-full bg-gradient-to-r from-[#2563eb] via-[#1d4ed8] to-[#3b82f6] rounded-full transition-all duration-75 ease-linear shadow-[0_0_10px_rgba(37,99,235,0.4)]"
             style={{ width: `${Math.min(progress, 100)}%` }}

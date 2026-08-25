@@ -59,16 +59,21 @@ function CheckoutContent() {
   const isGstItem = (item: any) => {
     const title = (item.title || item.name || "").toLowerCase();
     const catId = Number(item.category_id);
-    const category = (item.category || item.type || "").toLowerCase();
+    const category = (item.category || item.type || item.category_title || "").toLowerCase();
     
+    // Category 6 is New Products, Category 7 is RO AMC
     if (catId === 6 || catId === 7) return true;
+    
+    // Exact strict matching: ONLY RO AMC and New Products
     if (
-      title.includes("new product") || 
-      title.includes("amc") || 
-      title.includes("plan") ||
-      category.includes("new product") || 
-      category.includes("amc") ||
-      category.includes("product")
+      title.includes("ro amc") || 
+      title.includes("amc plan") || 
+      title.includes("amc package") ||
+      title.includes("new product") ||
+      category.includes("ro amc") ||
+      category.includes("new product") ||
+      category === "amc" ||
+      category === "new products"
     ) {
       return true;
     }
@@ -85,7 +90,8 @@ function CheckoutContent() {
   const gstItemsTotal = cart.filter(isGstItem).reduce((sum, item) => sum + (Number(item.selling_price) * item.quantity || 0), 0);
   const gstAmount = applyGst ? (gstItemsTotal * (gstRate / 100)) : 0;
 
-  const totalAmount = itemTotals + gstAmount;
+  const convenienceFee = cart.length > 0 ? 49 : 0;
+  const totalAmount = itemTotals + gstAmount + convenienceFee;
 
   // Check if ANY cart item requires a schedule (i.e. is NOT an AMC or New Product)
   const requiresSchedule = cart.some(item => {
@@ -507,7 +513,11 @@ function CheckoutContent() {
                   </div>
                 )}
                 <div className="flex justify-between items-center text-[15px]">
-                  <span className="text-gray-500 font-semibold">Taxes & Fees</span>
+                  <span className="text-gray-500 font-semibold">Convenience Fee</span>
+                  <span className="font-bold text-gray-800">₹{convenienceFee}</span>
+                </div>
+                <div className="flex justify-between items-center text-[15px]">
+                  <span className="text-gray-500 font-semibold">Taxes & Visiting Charges</span>
                   <span className="font-bold text-[#328e3b] bg-green-50 px-3 py-1 rounded-full text-xs uppercase tracking-wider">Free</span>
                 </div>
               </div>

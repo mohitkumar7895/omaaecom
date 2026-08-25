@@ -72,9 +72,16 @@ export default function GstSettingsForm({ settings }: { settings: any }) {
             />
           </div>
 
-          <div className="flex items-center space-x-3 pt-4">
+          <div className="bg-indigo-50/70 border border-indigo-100 rounded-xl p-3.5 space-y-1">
+            <p className="text-xs font-bold text-indigo-900">GST Rule Notice:</p>
+            <p className="text-[11px] text-indigo-700 leading-relaxed">
+              GST is strictly applied <b>ONLY to RO AMC & New Products</b>. Regular repair/maintenance services are 100% GST-free. GST will only charge when enabled below.
+            </p>
+          </div>
+
+          <div className="flex items-center space-x-3 pt-3">
             <Toggle checked={onlineGst} onChange={() => setOnlineGst(!onlineGst)} />
-            <span className="text-[13px] font-bold text-gray-800">Apply GST Rate on Invoices</span>
+            <span className="text-[13px] font-bold text-gray-800">Enable GST for RO AMC & New Products</span>
           </div>
 
           <div className="flex items-center space-x-3 pt-2 pb-2">

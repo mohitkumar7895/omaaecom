@@ -369,6 +369,12 @@ export default function MyBookingsPage() {
                                 </div>
                               </div>
                             ))}
+
+                            {/* Convenience Fee Row */}
+                            <div className="flex justify-between items-center text-xs py-1 border-t border-gray-50 pt-2">
+                              <span className="font-medium text-gray-500">Convenience Fee</span>
+                              <span className="font-semibold text-gray-800">₹49</span>
+                            </div>
                           </div>
                         ) : (
                           <div className="flex justify-between items-center text-sm py-1 mb-4">
