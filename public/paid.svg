@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="100%" height="100%">
+  <g transform="rotate(-15 80 80)">
+    <!-- High-Definition 16-point Scalloped Rosette Seal Outer Edge -->
+    <path 
+      d="
+        M 80 8 
+        Q 86 8, 90 13  Q 95 18, 100 19  Q 106 20, 110 26  Q 114 31, 118 34
+        Q 124 37, 126 44  Q 129 50, 134 55  Q 138 61, 137 68  Q 137 74, 140 80
+        Q 137 86, 137 92  Q 138 99, 134 105 Q 129 110, 126 116 Q 124 123, 118 126
+        Q 114 129, 110 134 Q 106 140, 100 141 Q 95 142, 90 147 Q 86 152, 80 152
+        Q 74 152, 70 147 Q 65 142, 60 141 Q 54 140, 50 134 Q 46 129, 42 126
+        Q 36 123, 34 116 Q 31 110, 26 105 Q 22 99, 23 92 Q 23 86, 20 80
+        Q 23 74, 23 68 Q 22 61, 26 55 Q 31 50, 34 44 Q 36 37, 42 34
+        Q 46 31, 50 26 Q 54 20, 60 19 Q 65 18, 70 13 Q 74 8, 80 8 Z
+      " 
+      fill="#008a28" 
+    />
+    
+    <!-- White Circle Center Fill -->
+    <circle cx="80" cy="80" r="50" fill="#ffffff" />
+    
+    <!-- Outer Green Solid Circular Ring -->
+    <circle cx="80" cy="80" r="45" fill="none" stroke="#008a28" stroke-width="2.5" />
+
+    <!-- Full 360-Degree Continuous Dotted Circle Ring -->
+    <circle 
+      cx="80" 
+      cy="80" 
+      r="39" 
+      fill="none" 
+      stroke="#008a28" 
+      stroke-width="1.8" 
+      stroke-dasharray="2,3" 
+      stroke-linecap="round"
+    />
+
+    <!-- Left Decorative Side Wing/Line for PAID -->
+    <line x1="44" y1="80" x2="51" y2="80" stroke="#008a28" stroke-width="2" stroke-linecap="round" />
+    
+    <!-- Right Decorative Side Wing/Line for PAID -->
+    <line x1="109" y1="80" x2="116" y2="80" stroke="#008a28" stroke-width="2" stroke-linecap="round" />
+
+    <!-- Bold Green PAID Text -->
+    <text 
+      x="80" 
+      y="84" 
+      text-anchor="middle" 
+      fill="#008a28" 
+      font-family="'Impact', 'Arial Black', sans-serif" 
+      font-size="24" 
+      font-weight="900" 
+      letter-spacing="1.5"
+    >
+      PAID
+    </text>
+
+    <!-- Left & Right Small Star/Dot Accents beside THANK YOU -->
+    <circle cx="56" cy="99" r="1.5" fill="#008a28" />
+    <circle cx="104" cy="99" r="1.5" fill="#008a28" />
+
+    <!-- Smaller, Sleek & Elegant THANK YOU Text -->
+    <text 
+      x="80" 
+      y="101" 
+      text-anchor="middle" 
+      fill="#008a28" 
+      font-family="'Arial', sans-serif" 
+      font-size="6.8" 
+      font-weight="800" 
+      letter-spacing="2"
+    >
+      THANK YOU
+    </text>
+  </g>
+</svg>

@@ -440,12 +440,12 @@ export default function MyBookingsPage() {
                           </div>
                         </div>
 
-                        {/* Paid Stamp Graphic Image at Bottom Right (Matching screenshot) */}
+                        {/* Paid Stamp Graphic at Bottom Right (Matching screenshot) */}
                         {isComplete && (booking.payment_status === "Completed" || booking.payment_status === "Success" || booking.payment_status === "Paid" || Number(booking.total) > 0) && (
                           <div className="flex justify-end mt-2 -mb-2">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img 
-                              src="/paid.png" 
+                              src="/paid.svg" 
                               alt="PAID THANK YOU" 
                               className="w-20 h-20 sm:w-24 sm:h-24 object-contain select-none hover:scale-105 transition-transform" 
                             />

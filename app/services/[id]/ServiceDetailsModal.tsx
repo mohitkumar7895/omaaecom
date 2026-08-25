@@ -14,6 +14,7 @@ type ServiceDetailsModalProps = {
 
 export default function ServiceDetailsModal({ service, onClose, onAdd, quantity = 0, onRemove, rateCards = [] }: ServiceDetailsModalProps) {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [openRateCard, setOpenRateCard] = useState<boolean>(true);
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
@@ -60,51 +61,65 @@ export default function ServiceDetailsModal({ service, onClose, onAdd, quantity 
               </div>
             </div>
 
-            {/* Rate Card Section - Showing live Rate Cards added by Admin */}
-            <div className="mb-8">
-              <div className="flex items-center gap-2 mb-4 bg-gray-900 text-white font-bold py-2.5 px-4 rounded-xl shadow-xs">
-                <FileText className="w-4 h-4 text-amber-400" />
-                <span className="text-sm tracking-wide uppercase">Official Rate Card & Spare Parts</span>
-              </div>
-
-              {rateCards && rateCards.length > 0 ? (
-                <div className="border border-gray-200 rounded-2xl overflow-hidden shadow-xs bg-white">
-                  <table className="w-full text-left border-collapse text-xs sm:text-sm">
-                    <thead>
-                      <tr className="bg-slate-50 border-b border-gray-200 text-gray-700 font-bold">
-                        <th className="py-3 px-4">Part / Service Description</th>
-                        <th className="py-3 px-4 text-center">Part Price</th>
-                        <th className="py-3 px-4 text-right">Labour Charges</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {rateCards.map((rc: any, idx: number) => (
-                        <tr key={idx} className="hover:bg-gray-50/80 transition-colors">
-                          <td className="py-3.5 px-4 font-medium text-gray-900">
-                            <div>{rc.part_name}</div>
-                            {rc.heading_title && (
-                              <span className="text-[10px] font-semibold text-gray-400 block mt-0.5">
-                                {rc.heading_title}
-                              </span>
-                            )}
-                          </td>
-                          <td className="py-3.5 px-4 text-center font-bold text-gray-800">
-                            ₹{Number(rc.price).toLocaleString()}
-                          </td>
-                          <td className="py-3.5 px-4 text-right">
-                            <span className="font-bold text-indigo-600">₹{Number(rc.labour_charges).toLocaleString()}</span>
-                            {rc.labour_note && (
-                              <div className="text-[10px] text-gray-400 font-normal">{rc.labour_note}</div>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+            {/* Rate Card Section - Clickable / Collapsible Accordion Box */}
+            <div className="mb-8 border border-gray-200 rounded-2xl overflow-hidden shadow-xs bg-white">
+              <button 
+                type="button"
+                onClick={() => setOpenRateCard(!openRateCard)}
+                className="w-full flex items-center justify-between bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 px-4 sm:px-5 transition text-left cursor-pointer"
+              >
+                <div className="flex items-center gap-2.5">
+                  <FileText className="w-4 h-4 text-amber-400" />
+                  <span className="text-sm tracking-wide uppercase font-extrabold">Official Rate Card & Spare Parts</span>
+                  <span className="bg-amber-400/20 text-amber-300 text-[11px] px-2 py-0.5 rounded-full font-semibold border border-amber-400/30">
+                    {rateCards?.length || 0} Parts
+                  </span>
                 </div>
-              ) : (
-                <div className="p-4 bg-gray-50 rounded-xl border border-dashed border-gray-200 text-center text-gray-500 text-xs font-medium">
-                  Standard visiting charges included. Detailed spare parts pricing will be provided on-site by technician.
+                <ChevronDown className={`w-5 h-5 text-gray-300 transition-transform duration-200 ${openRateCard ? 'rotate-180 text-white' : ''}`} />
+              </button>
+
+              {openRateCard && (
+                <div className="p-0 animate-in fade-in duration-200">
+                  {rateCards && rateCards.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse text-xs sm:text-sm min-w-[500px]">
+                        <thead>
+                          <tr className="bg-slate-100/90 border-b border-gray-200 text-gray-800 font-extrabold text-[12px] uppercase tracking-wider">
+                            <th className="py-3 px-4">Part / Service Description</th>
+                            <th className="py-3 px-4 text-center">Part Price</th>
+                            <th className="py-3 px-4 text-right">Labour Charges</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {rateCards.map((rc: any, idx: number) => (
+                            <tr key={idx} className="hover:bg-indigo-50/40 transition-colors">
+                              <td className="py-3.5 px-4 font-semibold text-gray-900">
+                                <div>{rc.part_name}</div>
+                                {rc.heading_title && (
+                                  <span className="inline-block bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded mt-1">
+                                    {rc.heading_title}
+                                  </span>
+                                )}
+                              </td>
+                              <td className="py-3.5 px-4 text-center font-bold text-gray-900 text-sm">
+                                ₹{Number(rc.price).toLocaleString()}
+                              </td>
+                              <td className="py-3.5 px-4 text-right">
+                                <span className="font-bold text-indigo-600 text-sm">₹{Number(rc.labour_charges).toLocaleString()}</span>
+                                {rc.labour_note && (
+                                  <div className="text-[10px] text-gray-400 font-medium mt-0.5">{rc.labour_note}</div>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="p-6 bg-gray-50 text-center text-gray-500 text-xs font-medium">
+                      Standard visiting charges included. Detailed spare parts pricing will be provided on-site by technician.
+                    </div>
+                  )}
                 </div>
               )}
             </div>
