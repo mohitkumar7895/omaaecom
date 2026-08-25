@@ -23,136 +23,133 @@ export default function Hero({ categories = [], banners = [] }: { categories?: a
   const amcProducts = categories.filter(c => c.type && c.type.toLowerCase().includes("amc")).slice(0, 1);
 
   return (
-    <div className="relative bg-gradient-to-br from-[#6277db] via-[#a268b8] to-[#db5285] text-white w-full font-sans overflow-hidden py-3 md:py-10 px-4 md:px-12">
+    <div className="relative bg-gradient-to-br from-[#6277db] via-[#a268b8] to-[#db5285] text-white w-full font-sans overflow-hidden py-4 md:py-10 px-4 md:px-10 lg:px-12">
 
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 md:gap-6 items-stretch justify-between">
 
-        {/* Mobile Carousel (Mobile Only) */}
-        <div className="md:hidden mb-3">
-          <MobileBannerCarousel banners={banners} />
-          <LiveSearchBar className="mt-3" />
+        {/* Left Side: Title & Services Card */}
+        <div className="w-full md:w-1/2 flex flex-col space-y-4 md:space-y-5 z-10">
+
+          {/* Mobile Carousel (Mobile Only) */}
+          <div className="md:hidden">
+            <MobileBannerCarousel banners={banners} />
+          </div>
+
+          <h1 className="hidden md:block text-[34px] lg:text-[44px] xl:text-[50px] font-extrabold tracking-tight leading-[1.15] text-white drop-shadow-md">
+            Home services at your <br /> doorsteps
+          </h1>
+
+          {/* Mobile Search Bar */}
+          <LiveSearchBar className="md:hidden" />
+
+          {/* Services Box */}
+          <div className="bg-white rounded-[24px] p-4 sm:p-5 md:p-6 shadow-2xl text-gray-800 flex flex-col flex-1 justify-between space-y-3">
+
+            {/* Top Section: Home Services */}
+            <div>
+              <div className="flex items-center space-x-2 mb-2.5">
+                <Scissors className="w-4 h-4 text-gray-800" />
+                <h3 className="font-bold text-[17px] md:text-[19px] text-gray-900 tracking-tight">Home Services</h3>
+              </div>
+              <div className="grid grid-cols-3 gap-y-3 gap-x-2 text-center justify-items-center">
+                {homeServices.map((service, index) => (
+                  <Link href={`/services/${service.id}`} key={index} className="flex flex-col items-center group w-full cursor-pointer">
+                    <div className="w-[80px] h-[80px] sm:w-[86px] sm:h-[86px] md:w-[90px] md:h-[90px] bg-[#f4f5f8] rounded-[16px] flex items-center justify-center text-[30px] md:text-[36px] shadow-sm group-hover:shadow-md transition-all overflow-hidden p-1 mb-1 group-hover:-translate-y-0.5">
+                      {service.image_url && service.image_url.length > 5 ? (
+                        <img src={service.image_url} alt={service.title} className="w-full h-full object-contain" />
+                      ) : (
+                        <span>{getIcon(service.title)}</span>
+                      )}
+                    </div>
+                    <span className="text-[11.5px] md:text-[12.5px] font-medium text-gray-800 leading-tight group-hover:text-black transition-colors px-0.5">{service.title}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div className="w-full h-px bg-gray-100 my-1"></div>
+
+            {/* Bottom Section: New Products & AMC */}
+            <div className="grid grid-cols-2 gap-3 w-full">
+              {/* New Products Card */}
+              {newProducts.length > 0 && (
+                <Link href={`/services/${newProducts[0].id}`} className="flex flex-col group cursor-pointer bg-[#f4f5f8] rounded-2xl p-3 hover:bg-gray-100 transition-colors">
+                  <div className="flex items-center space-x-1.5 text-[#2c8af8] mb-1">
+                    <ShoppingCart className="w-4 h-4" fill="currentColor" />
+                    <span className="font-bold text-[13px] tracking-tight truncate leading-none pt-0.5">New Products</span>
+                  </div>
+                  <div className="flex justify-center items-center mt-0.5">
+                    <div className="w-20 h-20 md:w-[88px] md:h-[88px] bg-white rounded-[14px] flex-shrink-0 flex items-center justify-center shadow-sm overflow-hidden p-1 group-hover:-translate-y-0.5 transition-transform">
+                      {newProducts[0].image_url && newProducts[0].image_url.length > 5 ? (
+                        <img src={newProducts[0].image_url} alt={newProducts[0].title} className="w-full h-full object-contain" />
+                      ) : (
+                        <span>📦</span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              )}
+
+              {/* AMC Products Card */}
+              {amcProducts.length > 0 && (
+                <Link href={`/services/${amcProducts[0].id}`} className="flex flex-col group cursor-pointer bg-[#f4f5f8] rounded-2xl p-3 hover:bg-gray-100 transition-colors relative">
+                  <div className="flex items-center space-x-1.5 text-[#21a868] mb-1">
+                    <span className="font-bold text-[13px] tracking-tight truncate leading-none pt-0.5">RO AMC</span>
+                  </div>
+                  <div className="flex justify-center items-center mt-0.5">
+                    <div className="w-20 h-20 md:w-[88px] md:h-[88px] bg-white rounded-[14px] flex-shrink-0 flex items-center justify-center shadow-sm relative overflow-hidden p-1 group-hover:-translate-y-0.5 transition-transform">
+                      {amcProducts[0].image_url && amcProducts[0].image_url.length > 5 ? (
+                        <img src={amcProducts[0].image_url} alt={amcProducts[0].title} className="w-full h-full object-contain" />
+                      ) : (
+                        <span>🛡️</span>
+                      )}
+                    </div>
+                  </div>
+                  <span className="absolute top-2.5 right-2.5 bg-[#21a868] text-white text-[9px] px-1.5 py-0.5 rounded-md font-bold shadow-sm">PRO</span>
+                </Link>
+              )}
+            </div>
+
+          </div>
+
         </div>
 
-        {/* Top Heading */}
-        <h1 className="hidden md:block text-[36px] lg:text-[44px] xl:text-[50px] font-extrabold tracking-tight leading-[1.15] mb-6 text-white drop-shadow-md">
-          Home services at your <br className="hidden lg:inline" /> doorsteps
-        </h1>
+        {/* Right Side: Masonry Images Grid */}
+        <div className="w-full md:w-1/2 hidden md:flex items-stretch justify-center">
+          <div className="flex gap-3 p-3 border-4 border-white/20 rounded-[28px] bg-white/10 shadow-xl backdrop-blur-sm w-full max-w-[480px] lg:max-w-[520px] h-full">
+            {/* Left Tall Image */}
+            <div className="w-1/2 h-full">
+              <Image
+                src="/Hero1.webp"
+                alt="Cleaning Service"
+                width={600}
+                height={800}
+                priority
+                className="w-full h-full object-cover rounded-[18px] shadow-md hover:scale-[1.02] transition-transform duration-300"
+              />
+            </div>
 
-        {/* Equal Height Side-by-Side Boxes */}
-        <div className="flex flex-col md:flex-row gap-5 lg:gap-6 items-stretch">
-
-          {/* Left Side: Unified Services Box */}
-          <div className="w-full md:w-1/2 flex flex-col">
-            <div className="bg-white rounded-[24px] p-5 md:p-6 shadow-2xl text-gray-800 flex flex-col flex-1 justify-between space-y-3 h-full">
-
-              {/* Top Section: Home Services */}
-              <div>
-                <div className="flex items-center space-x-2 mb-3">
-                  <Scissors className="w-5 h-5 text-gray-800" />
-                  <h3 className="font-bold text-[18px] md:text-[20px] text-gray-900 tracking-tight">Home Services</h3>
-                </div>
-                <div className="grid grid-cols-3 gap-y-4 gap-x-2 text-center justify-items-center pb-2">
-                  {homeServices.map((service, index) => (
-                    <Link href={`/services/${service.id}`} key={index} className="flex flex-col items-center group w-full cursor-pointer">
-                      <div className="w-[84px] h-[84px] md:w-[92px] md:h-[92px] bg-[#f4f5f8] rounded-[16px] flex items-center justify-center text-[32px] md:text-[38px] shadow-sm group-hover:shadow-md transition-all overflow-hidden p-1.5 mb-1.5 group-hover:-translate-y-1">
-                        {service.image_url && service.image_url.length > 5 ? (
-                          <img src={service.image_url} alt={service.title} className="w-full h-full object-contain" />
-                        ) : (
-                          <span>{getIcon(service.title)}</span>
-                        )}
-                      </div>
-                      <span className="text-[12px] md:text-[13px] font-medium text-gray-800 leading-tight group-hover:text-black transition-colors px-1">{service.title}</span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-
-              {/* Divider */}
-              <div className="w-full h-px bg-gray-100 my-1"></div>
-
-              {/* Bottom Section: New Products & AMC */}
-              <div className="grid grid-cols-2 gap-3 w-full pb-1">
-                {/* New Products Card */}
-                {newProducts.length > 0 && (
-                  <Link href={`/services/${newProducts[0].id}`} className="flex flex-col group cursor-pointer bg-[#f4f5f8] rounded-2xl p-3 md:p-3.5 hover:bg-gray-100 transition-colors">
-                    <div className="flex items-center space-x-1.5 text-[#2c8af8] mb-1.5">
-                      <ShoppingCart className="w-5 h-5" fill="currentColor" />
-                      <span className="font-bold text-[13px] md:text-[14px] tracking-tight truncate leading-none pt-0.5">New Products</span>
-                    </div>
-                    <div className="flex justify-center items-center mt-1">
-                      <div className="w-20 h-20 md:w-[84px] md:h-[84px] bg-white rounded-[14px] flex-shrink-0 flex items-center justify-center shadow-sm overflow-hidden p-1 group-hover:-translate-y-0.5 transition-transform">
-                        {newProducts[0].image_url && newProducts[0].image_url.length > 5 ? (
-                          <img src={newProducts[0].image_url} alt={newProducts[0].title} className="w-full h-full object-contain" />
-                        ) : (
-                          <span>📦</span>
-                        )}
-                      </div>
-                    </div>
-                  </Link>
-                )}
-
-                {/* AMC Products Card */}
-                {amcProducts.length > 0 && (
-                  <Link href={`/services/${amcProducts[0].id}`} className="flex flex-col group cursor-pointer bg-[#f4f5f8] rounded-2xl p-3 md:p-3.5 hover:bg-gray-100 transition-colors relative">
-                    <div className="flex items-center space-x-1.5 text-[#21a868] mb-1.5">
-                      <span className="font-bold text-[13px] md:text-[14px] tracking-tight truncate leading-none pt-0.5">RO AMC</span>
-                    </div>
-                    <div className="flex justify-center items-center mt-1">
-                      <div className="w-20 h-20 md:w-[84px] md:h-[84px] bg-white rounded-[14px] flex-shrink-0 flex items-center justify-center shadow-sm relative overflow-hidden p-1 group-hover:-translate-y-0.5 transition-transform">
-                        {amcProducts[0].image_url && amcProducts[0].image_url.length > 5 ? (
-                          <img src={amcProducts[0].image_url} alt={amcProducts[0].title} className="w-full h-full object-contain" />
-                        ) : (
-                          <span>🛡️</span>
-                        )}
-                      </div>
-                    </div>
-                    <span className="absolute top-3 right-3 bg-[#21a868] text-white text-[9px] px-1.5 py-0.5 rounded-md font-bold shadow-sm">PRO</span>
-                  </Link>
-                )}
-              </div>
-
+            {/* Right Stacked Images */}
+            <div className="w-1/2 h-full flex flex-col gap-3">
+              <Image
+                src="/Hero 2.webp"
+                alt="RO Repair"
+                width={600}
+                height={400}
+                priority
+                className="w-full h-[calc(50%-6px)] object-cover rounded-[18px] shadow-md hover:scale-[1.02] transition-transform duration-300"
+              />
+              <Image
+                src="/Hero3.webp"
+                alt="AC Repair"
+                width={600}
+                height={400}
+                priority
+                className="w-full h-[calc(50%-6px)] object-cover rounded-[18px] shadow-md hover:scale-[1.02] transition-transform duration-300"
+              />
             </div>
           </div>
-
-          {/* Right Side: Equal Height Masonry Image Box */}
-          <div className="w-full md:w-1/2 hidden md:flex flex-col">
-            <div className="flex gap-3.5 p-3.5 border-4 border-white/25 rounded-[24px] bg-white/10 shadow-2xl backdrop-blur-md w-full h-full min-h-[420px]">
-              
-              {/* Left Tall Image */}
-              <div className="w-1/2 h-full">
-                <Image
-                  src="/Hero1.webp"
-                  alt="Cleaning Service"
-                  width={600}
-                  height={800}
-                  priority
-                  className="w-full h-full object-cover rounded-[18px] shadow-md hover:scale-[1.02] transition-transform duration-300"
-                />
-              </div>
-
-              {/* Right Stacked Images */}
-              <div className="w-1/2 h-full flex flex-col gap-3.5">
-                <Image
-                  src="/Hero 2.webp"
-                  alt="RO Repair"
-                  width={600}
-                  height={400}
-                  priority
-                  className="w-full h-[calc(50%-7px)] object-cover rounded-[18px] shadow-md hover:scale-[1.02] transition-transform duration-300"
-                />
-                <Image
-                  src="/Hero3.webp"
-                  alt="AC Repair"
-                  width={600}
-                  height={400}
-                  priority
-                  className="w-full h-[calc(50%-7px)] object-cover rounded-[18px] shadow-md hover:scale-[1.02] transition-transform duration-300"
-                />
-              </div>
-
-            </div>
-          </div>
-
         </div>
 
       </div>
