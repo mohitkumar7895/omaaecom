@@ -13,7 +13,12 @@ export default async function WarrantiesPage({ searchParams }: { searchParams: P
   let stats = { total: 0, active: 0, expired: 0 };
 
   try {
-    const [allWarranties]: any = await pool.query("SELECT * FROM warranties ORDER BY issued_date DESC");
+    const [allWarranties]: any = await pool.query(`
+      SELECT w.*, b.category as booking_category, b.type as booking_type
+      FROM warranties w
+      LEFT JOIN bookings b ON w.order_id = b.order_id
+      ORDER BY w.issued_date DESC
+    `);
     
     stats.total = allWarranties.length;
     stats.active = allWarranties.filter((w: any) => w.status === 'ACTIVE').length;
@@ -157,17 +162,24 @@ export default async function WarrantiesPage({ searchParams }: { searchParams: P
                       <div className="font-bold text-gray-800">{row.customer_name}</div>
                       <div className="text-gray-400 text-xs mt-0.5">{row.customer_phone}</div>
                     </td>
-                    <td className="px-6 py-4 text-gray-400 text-center">-</td>
                     <td className="px-6 py-4">
-                      <span className="bg-gray-500 text-white text-[10px] font-bold px-2 py-1 rounded">
-                        {row.order_id}
+                      <span className="font-semibold text-gray-800 text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md border border-indigo-100">
+                        {row.booking_category || row.booking_type || "Appliance Service"}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-gray-600 font-medium">
+                    <td className="px-6 py-4">
+                      <span className="bg-gray-800 text-white text-[10px] font-bold px-2.5 py-1 rounded font-mono">
+                        #{row.order_id}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-gray-700 font-medium">
                       {new Date(row.issued_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </td>
-                    <td className="px-6 py-4 text-gray-400 font-bold text-center">
-                      {row.expiry_date ? new Date(row.expiry_date).toLocaleDateString('en-GB') : '-'}
+                    <td className="px-6 py-4 text-gray-700 font-medium text-center">
+                      {row.expiry_date 
+                        ? new Date(row.expiry_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                        : new Date(new Date(row.issued_date).getTime() + (Number(row.days_valid) || 90) * 86400000).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                      }
                     </td>
                     <td className="px-6 py-4">
                       <span className="border border-gray-200 text-gray-800 text-[10px] font-bold px-2 py-1 rounded bg-gray-50/50 whitespace-nowrap">
