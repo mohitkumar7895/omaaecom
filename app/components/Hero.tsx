@@ -95,7 +95,7 @@ export default function Hero({ categories = [], banners = [] }: HeroProps) {
           <LiveSearchBar className="md:hidden" />
 
           {/* Services Box */}
-          <div className="bg-white rounded-3xl p-4 sm:p-5 md:p-6 shadow-2xl text-gray-800 flex flex-col flex-1 justify-between space-y-3">
+          <div className="bg-white rounded-3xl p-4 sm:p-5 md:p-6 shadow-2xl text-gray-800 flex flex-col space-y-4">
 
             {/* Top Section: Home Services */}
             <div>
@@ -171,7 +171,7 @@ export default function Hero({ categories = [], banners = [] }: HeroProps) {
         </div>
 
         {/* Right Side: Masonry Images Grid */}
-        <div className="w-full md:w-1/2 hidden md:flex items-stretch justify-center">
+        <div className="w-full md:w-1/2 hidden md:flex items-stretch justify-center md:h-[550px]">
           <div className="flex gap-3 p-3 border-4 border-white/20 rounded-[28px] bg-white/10 shadow-xl backdrop-blur-sm w-full max-w-120 lg:max-w-130 h-full">
             {/* Left Tall Image */}
             <div className="w-1/2 h-full">
