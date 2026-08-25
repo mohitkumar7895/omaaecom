@@ -34,6 +34,9 @@ export default function Footer() {
             <Link href="/contact" className="text-blue-100 hover:text-white hover:underline transition">
               Contact
             </Link>
+            <Link href="/rate-card" className="text-blue-100 hover:text-white hover:underline transition">
+              Rate Card
+            </Link>
             <Link href="/privacy-policy" className="text-blue-100 hover:text-white hover:underline transition">
               Privacy Policy
             </Link>

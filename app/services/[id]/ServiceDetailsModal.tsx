@@ -123,105 +123,71 @@ export default function ServiceDetailsModal({ service, onClose, onAdd, quantity 
                     </button>
                   </div>
 
-                  {/* Info Notice Banner */}
-                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50/60 px-5 py-3 border-b border-blue-100/60 flex items-center justify-between text-xs text-blue-900 font-medium">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
-                      <span>100% Genuine Spare Parts • Transparent Pricing • Standard Labour Charges</span>
-                    </div>
-                    <span className="bg-white/80 font-bold px-2.5 py-0.5 rounded-full border border-blue-200/60 text-[11px] text-blue-700 shadow-2xs">
-                      {liveRateCards?.length || 0} Items
-                    </span>
+                  {/* Blue Info Notice Banner Matching Screenshot */}
+                  <div className="bg-[#eef4ff] border-l-4 border-[#3b82f6] p-4 m-4 sm:m-6 mb-2 rounded-xl shadow-2xs">
+                    <p className="text-xs sm:text-sm font-semibold text-[#1e40af] mb-1 leading-snug">
+                      Labour Charges are extra and is capped at ₹199 per appliance.
+                    </p>
+                    <p className="text-[11px] sm:text-xs text-[#3b82f6] font-normal leading-relaxed">
+                      All prices below are inclusive of spare part price, cost of sourcing and partner conveyance. Please do not pay any extra amount for conveyance.
+                    </p>
                   </div>
 
-                  {/* Modal Content - 100% Responsive without Horizontal Scroll on Mobile */}
-                  <div className="p-3 sm:p-6 overflow-y-auto flex-1 bg-[#fafafc]">
+                  {/* Modal Content - Grouped by Headings matching screenshot */}
+                  <div className="p-4 sm:p-6 pt-2 overflow-y-auto flex-1 bg-[#fafafc] space-y-5">
                     {liveRateCards && liveRateCards.length > 0 ? (
-                      <div>
-                        {/* Mobile View: Fluid Vertical Card Rows (Zero Horizontal Scroll!) */}
-                        <div className="md:hidden space-y-3">
-                          {liveRateCards.map((rc: any, idx: number) => (
-                            <div 
-                              key={idx} 
-                              className="bg-white rounded-2xl p-3.5 border border-slate-200/80 shadow-2xs space-y-2.5"
-                            >
-                              {/* Top row: Heading Tag and Index */}
-                              <div className="flex items-center justify-between">
-                                <span className="inline-block bg-slate-100 text-slate-700 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-slate-200/60 uppercase tracking-wider">
-                                  {rc.heading_title || "General"}
-                                </span>
-                                <span className="text-[11px] font-bold text-slate-400">#{idx + 1}</span>
-                              </div>
+                      (() => {
+                        // Group by Heading
+                        const grouped = liveRateCards.reduce((acc: any, item: any) => {
+                          const h = item.heading_title || "General Spare Parts";
+                          if (!acc[h]) acc[h] = [];
+                          acc[h].push(item);
+                          return acc;
+                        }, {});
 
-                              {/* Part Name */}
-                              <div className="font-extrabold text-slate-900 text-[13px] leading-snug">
-                                {rc.part_name}
-                              </div>
-
-                              {/* Bottom row: Prices Grid */}
-                              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 text-xs">
-                                <div className="bg-emerald-50/70 p-2 rounded-xl border border-emerald-100">
-                                  <span className="text-[10px] font-bold text-emerald-700 block uppercase">Part Price</span>
-                                  <span className="text-sm font-black text-emerald-900">₹{Number(rc.price).toLocaleString()}</span>
-                                </div>
-                                
-                                <div className="bg-indigo-50/70 p-2 rounded-xl border border-indigo-100 text-right">
-                                  <span className="text-[10px] font-bold text-indigo-700 block uppercase">Labour Charges</span>
-                                  <span className="text-sm font-black text-indigo-900">₹{Number(rc.labour_charges).toLocaleString()}</span>
-                                  {rc.labour_note && (
-                                    <div className="text-[9px] text-slate-400 font-medium truncate mt-0.5">{rc.labour_note}</div>
-                                  )}
-                                </div>
-                              </div>
+                        return Object.entries(grouped).map(([heading, items]: [string, any]) => (
+                          <div 
+                            key={heading}
+                            className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-xs"
+                          >
+                            {/* Black Heading Bar */}
+                            <div className="bg-[#1c1c1e] px-4 py-3 text-white flex items-center justify-between">
+                              <h4 className="font-bold text-xs sm:text-sm text-white">
+                                {heading}
+                              </h4>
+                              <span className="text-[11px] text-gray-400 font-mono">T</span>
                             </div>
-                          ))}
-                        </div>
 
-                        {/* Desktop View: Full Width Clean Table */}
-                        <div className="hidden md:block border border-slate-200/80 rounded-2xl overflow-hidden shadow-xs bg-white">
-                          <table className="w-full text-left border-collapse text-xs sm:text-sm">
-                            <thead>
-                              <tr className="bg-slate-900 text-white text-[11px] font-extrabold uppercase tracking-wider">
-                                <th className="py-3.5 px-3 text-center border-r border-slate-800 w-12 text-slate-400">#</th>
-                                <th className="py-3.5 px-4 border-r border-slate-800">Heading</th>
-                                <th className="py-3.5 px-4 border-r border-slate-800">Part / Service Description</th>
-                                <th className="py-3.5 px-4 text-center border-r border-slate-800">Part Price</th>
-                                <th className="py-3.5 px-4 text-right">Labour Charges</th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100">
-                              {liveRateCards.map((rc: any, idx: number) => (
-                                <tr key={idx} className="hover:bg-indigo-50/30 transition-colors group">
-                                  <td className="py-3.5 px-3 text-center font-bold text-slate-400 border-r border-slate-100 text-xs">
-                                    {idx + 1}
-                                  </td>
-                                  <td className="py-3.5 px-4 border-r border-slate-100">
-                                    <span className="inline-block bg-slate-100 group-hover:bg-white text-slate-700 text-[10px] font-bold px-2.5 py-1 rounded-lg border border-slate-200/60 shadow-2xs">
-                                      {rc.heading_title || "General"}
-                                    </span>
-                                  </td>
-                                  <td className="py-3.5 px-4 font-bold text-slate-900 border-r border-slate-100">
-                                    <span className="group-hover:text-indigo-600 transition-colors">{rc.part_name}</span>
-                                  </td>
-                                  <td className="py-3.5 px-4 text-center border-r border-slate-100">
-                                    <span className="inline-block bg-emerald-50 text-emerald-800 font-extrabold text-sm px-2.5 py-1 rounded-lg border border-emerald-200/60 shadow-2xs">
-                                      ₹{Number(rc.price).toLocaleString()}
-                                    </span>
-                                  </td>
-                                  <td className="py-3.5 px-4 text-right">
-                                    <div className="font-extrabold text-indigo-600 text-sm">
-                                      ₹{Number(rc.labour_charges).toLocaleString()}
-                                    </div>
-                                    {rc.labour_note && (
-                                      <div className="text-[10px] text-slate-400 font-medium mt-0.5">{rc.labour_note}</div>
-                                    )}
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
+                            {/* Table with Description and Service Charge */}
+                            <div className="overflow-x-auto">
+                              <table className="w-full text-left border-collapse text-xs sm:text-sm">
+                                <thead>
+                                  <tr className="border-b border-gray-200 bg-gray-50">
+                                    <th className="py-2.5 px-4 font-bold text-gray-800 w-[65%] border-r border-gray-100">
+                                      Description
+                                    </th>
+                                    <th className="py-2.5 px-4 font-bold text-gray-800">
+                                      Service Charge
+                                    </th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                  {items.map((rc: any, idx: number) => (
+                                    <tr key={idx} className="hover:bg-gray-50/60 transition-colors">
+                                      <td className="py-3 px-4 font-medium text-gray-800 border-r border-gray-100">
+                                        {rc.part_name}
+                                      </td>
+                                      <td className="py-3 px-4 font-semibold text-gray-900">
+                                        ₹{Number(rc.price || 0).toLocaleString("en-IN")}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        ));
+                      })()
                     ) : (
                       <div className="p-12 bg-white rounded-2xl border border-dashed border-slate-200 text-center flex flex-col items-center justify-center shadow-xs">
                         <FileText className="w-10 h-10 text-slate-300 mb-3" />

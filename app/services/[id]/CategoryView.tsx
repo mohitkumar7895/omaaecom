@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { FileText } from "lucide-react";
 import ServiceCard from "./ServiceCard";
 import ServiceDetailsModal from "./ServiceDetailsModal";
 
@@ -137,9 +139,18 @@ export default function CategoryView({ category, subcategories, services, rateCa
   return (
     <div className="max-w-7xl mx-auto w-full bg-white min-h-screen pb-24">
       {/* Header Area */}
-      <div className="pt-10 pb-6 px-6 lg:px-12 border-b border-gray-100">
-        <h1 className="text-3xl font-bold text-[#111827] mb-2">{category.title}</h1>
-        <p className="text-gray-500 text-sm">Select a service ....</p>
+      <div className="pt-8 pb-5 px-6 lg:px-12 border-b border-gray-100 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#111827] mb-1">{category.title}</h1>
+          <p className="text-gray-500 text-xs sm:text-sm">Select a service ....</p>
+        </div>
+
+        <Link href="/rate-card">
+          <button className="flex items-center gap-2 bg-[#1c1c1e] hover:bg-black text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-xs transition active:scale-98">
+            <FileText className="w-4 h-4 text-amber-400" />
+            <span>Rate Card</span>
+          </button>
+        </Link>
       </div>
 
       {/* Main Layout */}
