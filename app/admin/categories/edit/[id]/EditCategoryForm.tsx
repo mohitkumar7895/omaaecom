@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { updateCategory } from "../../../../../app/actions/categories";
+import CategoryZonePicker from "../../../components/CategoryZonePicker";
 
 export default function EditCategoryForm({ category }: { category: any }) {
   const [loading, setLoading] = useState(false);
@@ -83,34 +84,9 @@ export default function EditCategoryForm({ category }: { category: any }) {
               />
             </div>
 
-            <div className="space-y-2 md:col-span-2 mt-2">
-              <label className="text-[13px] font-bold text-gray-800">Zones (Draw Areas on Map)</label>
-              <input 
-                type="text" 
-                name="zones_location"
-                placeholder="Type location (Example: Noida, Delhi)"
-                className="w-full border border-gray-200 rounded text-sm px-4 py-2.5 outline-none focus:border-blue-500"
-              />
-              <input type="hidden" name="zones" value={category.zones || 1} />
-            </div>
-            
-            <div className="md:col-span-2">
-              <button type="button" className="bg-[#212529] hover:bg-black text-white text-xs px-4 py-2 rounded shadow-sm transition">
-                Search Location
-              </button>
-            </div>
-
-            {/* Google Map Placeholder */}
-            <div className="w-full h-112.5 border border-gray-200 rounded overflow-hidden mt-2 md:col-span-2">
-              <iframe 
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d112030.702434524!2d77.10657999806461!3d28.660142839958172!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390cfd5b347eb62d%3A0x52c2b7494e204dce!2sNew%20Delhi%2C%20Delhi!5e0!3m2!1sen!2sin!4v1708890000000!5m2!1sen!2sin" 
-                width="100%" 
-                height="100%" 
-                style={{ border: 0 }} 
-                allowFullScreen={false} 
-                loading="lazy" 
-                referrerPolicy="no-referrer-when-downgrade"
-              ></iframe>
+            {/* Interactive Multiple Zones & Google Map */}
+            <div className="md:col-span-2 mt-2 pt-2 border-t border-gray-100">
+              <CategoryZonePicker initialZonesLocation={category.zones_location || "Noida, Delhi"} />
             </div>
 
           </div>

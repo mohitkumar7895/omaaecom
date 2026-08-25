@@ -142,6 +142,9 @@ export default function Sidebar() {
                 <Link href="/admin/services" className={getLinkClass("/admin/services", true)}>
                   <span>Services</span>
                 </Link>
+                <Link href="/admin/zones" className={getLinkClass("/admin/zones", true)}>
+                  <span>Zone Map</span>
+                </Link>
               </div>
             </div>
           </div>

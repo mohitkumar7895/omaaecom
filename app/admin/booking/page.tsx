@@ -15,11 +15,11 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
   let bookings: any[] = [];
 
   try {
-    let query = `SELECT * FROM bookings WHERE working_status = 'Pendi' ORDER BY created_at DESC`;
+    let query = `SELECT * FROM bookings ORDER BY created_at DESC`;
     if (filter === "Completed") {
       query = `SELECT * FROM bookings WHERE working_status = 'Complete' ORDER BY created_at DESC`;
     } else if (filter !== "All") {
-      query = `SELECT * FROM bookings WHERE type = '${filter}' AND working_status = 'Pendi' ORDER BY created_at DESC`;
+      query = `SELECT * FROM bookings WHERE type = '${filter}' ORDER BY created_at DESC`;
     }
     const [rows]: any = await pool.query(query);
     bookings = rows.map((row: any) => {
