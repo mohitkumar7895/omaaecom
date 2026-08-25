@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { MapPin, Plus, X, Search } from "lucide-react";
+import { useState, useEffect } from "react";
+import { MapPin, Plus, X, Search, History, Trash2, CheckCircle2 } from "lucide-react";
 
 interface CategoryZonePickerProps {
   initialZonesLocation?: string;
@@ -42,6 +42,44 @@ export default function CategoryZonePicker({
   const [selectedMapLocation, setSelectedMapLocation] = useState(
     initialTags[0] || "Noida"
   );
+  
+  // History state persisted in localStorage
+  const [zoneHistory, setZoneHistory] = useState<string[]>([]);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("omaa_admin_zone_history");
+      if (saved) {
+        setZoneHistory(JSON.parse(saved));
+      } else {
+        const defaults = ["Noida", "Delhi", "Greater Noida", "Ghaziabad", "Bharthana", "Agra"];
+        setZoneHistory(defaults);
+        localStorage.setItem("omaa_admin_zone_history", JSON.stringify(defaults));
+      }
+    } catch (e) {
+      console.warn("Could not load zone history", e);
+    }
+  }, []);
+
+  const saveHistory = (locationName: string) => {
+    const trimmed = locationName.trim();
+    if (!trimmed) return;
+    try {
+      setZoneHistory((prev) => {
+        const filtered = prev.filter((item) => item.toLowerCase() !== trimmed.toLowerCase());
+        const updated = [trimmed, ...filtered].slice(0, 20); // Keep last 20
+        localStorage.setItem("omaa_admin_zone_history", JSON.stringify(updated));
+        return updated;
+      });
+    } catch (e) {}
+  };
+
+  const clearHistory = () => {
+    setZoneHistory([]);
+    try {
+      localStorage.removeItem("omaa_admin_zone_history");
+    } catch (e) {}
+  };
 
   const updateParent = (newZones: string[]) => {
     setZones(newZones);
@@ -55,9 +93,13 @@ export default function CategoryZonePicker({
     const trimmed = zoneName.trim();
     if (!trimmed) return;
     
-    // Check if already exists (case-insensitive)
+    // Save to history
+    saveHistory(trimmed);
+
+    // Check if already exists in active list (case-insensitive)
     if (zones.some((z) => z.toLowerCase() === trimmed.toLowerCase())) {
       setInputValue("");
+      setSelectedMapLocation(trimmed);
       return;
     }
 
@@ -92,7 +134,7 @@ export default function CategoryZonePicker({
 
   return (
     <div className="space-y-4 w-full">
-      {/* Hidden input for standard Form submission */}
+      {/* Hidden inputs for standard Form submission */}
       <input type="hidden" name="zones_location" value={zones.join(", ")} />
       <input type="hidden" name="zones" value={zones.length || 1} />
 
@@ -143,7 +185,7 @@ export default function CategoryZonePicker({
       {/* Active Selected Zones Tags */}
       <div>
         <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider block mb-2">
-          Active Marked Zones:
+          Active Marked Zones for this Category:
         </span>
         
         {zones.length > 0 ? (
@@ -241,6 +283,73 @@ export default function CategoryZonePicker({
           ></iframe>
         </div>
       </div>
+
+      {/* Map ke Neeche Zone History Section */}
+      <div className="bg-gray-50/80 rounded-xl p-4 border border-gray-200 space-y-3 mt-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <History className="w-4 h-4 text-indigo-600" />
+            <h4 className="text-xs font-bold text-gray-800 uppercase tracking-wider">
+              Recently Added Zones History ({zoneHistory.length})
+            </h4>
+          </div>
+
+          {zoneHistory.length > 0 && (
+            <button
+              type="button"
+              onClick={clearHistory}
+              className="text-[11px] text-red-500 hover:text-red-700 font-semibold flex items-center gap-1 transition"
+            >
+              <Trash2 className="w-3 h-3" />
+              Clear History
+            </button>
+          )}
+        </div>
+
+        <p className="text-[11px] text-gray-500">
+          Aapne pehle jo bhi zones add kiye the wo yahan list hain. 1-Click mein dobara map par add ya view karein:
+        </p>
+
+        {zoneHistory.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+            {zoneHistory.map((item, idx) => {
+              const isAlreadyAdded = zones.some((z) => z.toLowerCase() === item.toLowerCase());
+              return (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between p-2 rounded-lg bg-white border border-gray-200 shadow-xs hover:border-indigo-300 transition"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setSelectedMapLocation(item)}
+                    className="flex items-center gap-1.5 text-xs font-semibold text-gray-800 hover:text-indigo-600 truncate flex-1 text-left"
+                    title="View on Map"
+                  >
+                    <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                    <span className="truncate">{item}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleAddZone(item)}
+                    className={`text-[10px] px-2 py-0.5 rounded font-bold transition ml-1 shrink-0 ${
+                      isAlreadyAdded
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                        : "bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
+                    }`}
+                    title={isAlreadyAdded ? "Already Active" : "Add to this Category"}
+                  >
+                    {isAlreadyAdded ? "✓ Added" : "+ Add"}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-xs text-gray-400 italic">No zone history yet. As you add zones, they will appear here.</p>
+        )}
+      </div>
+
     </div>
   );
 }
