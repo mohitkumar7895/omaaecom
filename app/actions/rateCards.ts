@@ -59,16 +59,34 @@ export async function deleteRateCard(formData: FormData) {
   revalidatePath("/admin/rate-cards");
 }
 
-export async function getRateCardsByCategoryId(categoryId: number | string) {
-  if (!categoryId) return [];
+export async function getRateCardsByCategoryId(categoryId: number | string, categoryTitle?: string) {
   try {
-    const [rows]: any = await pool.query(`
-      SELECT rc.*, h.title as heading_title 
-      FROM rate_cards rc
-      LEFT JOIN rate_headings h ON rc.heading_id = h.id
-      WHERE rc.category_id = ?
-      ORDER BY rc.id ASC
-    `, [categoryId]);
+    let rows: any[] = [];
+    
+    if (categoryId) {
+      const [res]: any = await pool.query(`
+        SELECT rc.*, h.title as heading_title, c.title as category_title
+        FROM rate_cards rc
+        LEFT JOIN rate_headings h ON rc.heading_id = h.id
+        LEFT JOIN categories c ON rc.category_id = c.id
+        WHERE rc.category_id = ?
+        ORDER BY rc.id ASC
+      `, [categoryId]);
+      rows = res;
+    }
+
+    // If specific category has no rate cards, fetch all active rate cards so user always sees the official rate card!
+    if (rows.length === 0) {
+      const [fallback]: any = await pool.query(`
+        SELECT rc.*, h.title as heading_title, c.title as category_title
+        FROM rate_cards rc
+        LEFT JOIN rate_headings h ON rc.heading_id = h.id
+        LEFT JOIN categories c ON rc.category_id = c.id
+        ORDER BY rc.id ASC
+      `);
+      rows = fallback;
+    }
+
     return JSON.parse(JSON.stringify(rows));
   } catch (error) {
     console.error("Error fetching rate cards by category:", error);

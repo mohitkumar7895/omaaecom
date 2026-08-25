@@ -19,18 +19,12 @@ export default function ServiceDetailsModal({ service, onClose, onAdd, quantity 
   const [liveRateCards, setLiveRateCards] = useState<any[]>(rateCards);
 
   useEffect(() => {
-    if (service?.category_id) {
-      getRateCardsByCategoryId(service.category_id).then((data) => {
-        if (data && data.length > 0) {
-          setLiveRateCards(data);
-        } else if (rateCards && rateCards.length > 0) {
-          setLiveRateCards(rateCards);
-        }
-      });
-    } else if (rateCards && rateCards.length > 0) {
-      setLiveRateCards(rateCards);
-    }
-  }, [service, rateCards]);
+    getRateCardsByCategoryId(service?.category_id || 1, service?.title).then((data) => {
+      if (data && data.length > 0) {
+        setLiveRateCards(data);
+      }
+    });
+  }, [service]);
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
