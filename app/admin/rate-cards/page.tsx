@@ -91,12 +91,12 @@ export default async function RateCardsPage() {
                       {row.part_name}
                     </td>
 
-                    <td className="px-4 py-4 border-r border-gray-200">
-                      {row.price}
+                    <td className="px-4 py-4 border-r border-gray-200 font-semibold text-gray-900">
+                      ₹{Math.round(Number(row.price || 0)).toLocaleString('en-IN')}
                     </td>
                     
-                    <td className="px-4 py-4 border-r border-gray-200">
-                      {row.labour_charges}
+                    <td className="px-4 py-4 border-r border-gray-200 font-semibold text-indigo-600">
+                      ₹{Math.round(Number(row.labour_charges || 0)).toLocaleString('en-IN')}
                     </td>
                     
                     <td className="px-4 py-4">
