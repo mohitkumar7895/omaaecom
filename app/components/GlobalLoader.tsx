@@ -1,58 +1,78 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
 export default function GlobalLoader() {
-  const [show, setShow] = useState(true);
+  const pathname = usePathname();
+  const [show, setShow] = useState(false);
   const [animateOut, setAnimateOut] = useState(false);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    // Ultra smooth simulated progress across 4.5 seconds (4500ms)
-    // 30ms interval * 150 increments = 4500ms
+    // 1. Don't show loader anywhere on admin routes
+    if (pathname && pathname.startsWith("/admin")) {
+      setShow(false);
+      return;
+    }
+
+    // 2. Only show once per session when starting the main customer website
+    const hasLoaded = sessionStorage.getItem("omaa_app_initial_loaded");
+    if (hasLoaded) {
+      setShow(false);
+      return;
+    }
+
+    setShow(true);
+
+    // Smooth simulated progress across 3 seconds (3000ms)
+    // 30ms interval * 100 increments = 3000ms
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(interval);
           return 100;
         }
-        return prev + 0.67;
+        return prev + 1;
       });
     }, 30);
 
-    // Total 4.5 to 5 seconds display, then smooth fade out
+    // Total 3 seconds display, then smooth fade out
     const timer = setTimeout(() => {
       setAnimateOut(true);
       setTimeout(() => {
         setShow(false);
-      }, 700);
-    }, 4500);
+        try {
+          sessionStorage.setItem("omaa_app_initial_loaded", "true");
+        } catch (e) {}
+      }, 500);
+    }, 3000);
 
     return () => {
       clearTimeout(timer);
       clearInterval(interval);
     };
-  }, []);
+  }, [pathname]);
 
   if (!show) return null;
 
   return (
     <div
-      className={`fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-white transition-opacity duration-700 ease-out ${
+      className={`fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-white transition-opacity duration-500 ease-out ${
         animateOut ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
     >
       <div className="flex flex-col items-center justify-center max-w-sm w-full px-6">
         
-        {/* Large Prominent loader.jpg Image with smooth gentle pulse */}
+        {/* Slightly larger, bold loader.jpg Image */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/loader.jpg"
           alt="OMAA Company"
-          className="h-36 sm:h-44 md:h-48 w-auto object-contain animate-smooth-pulse select-none"
+          className="h-44 sm:h-52 md:h-56 w-auto object-contain animate-smooth-pulse select-none"
         />
 
-        {/* Big Smooth Royal Blue Running Progress Line (4 to 5 seconds) */}
+        {/* Smooth 3-Second Royal Blue Progress Bar underneath */}
         <div className="w-64 sm:w-80 h-2 bg-blue-50/80 rounded-full overflow-hidden mt-8 border border-blue-100/60 shadow-inner relative">
           <div
             className="h-full bg-gradient-to-r from-[#2563eb] via-[#1d4ed8] to-[#3b82f6] rounded-full transition-all duration-75 ease-linear shadow-[0_0_10px_rgba(37,99,235,0.4)]"
@@ -74,7 +94,7 @@ export default function GlobalLoader() {
           }
         }
         .animate-smooth-pulse {
-          animation: smoothPulse 2.2s ease-in-out infinite;
+          animation: smoothPulse 2s ease-in-out infinite;
         }
       `}</style>
     </div>
