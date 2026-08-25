@@ -1,5 +1,6 @@
 import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
+import NewProductsSection from "../components/NewProductsSection";
 import HomeCategoryStream from "../components/HomeCategoryStream";
 import Footer from "../components/Footer";
 import pool from "../../lib/db";
@@ -47,6 +48,9 @@ export default async function Home() {
     <main className="min-h-screen bg-gray-50 flex flex-col font-sans">
       <Navbar />
       <Hero categories={categories} banners={banners} />
+      
+      {/* New Products Section above RO AMC */}
+      <NewProductsSection />
       
       {/* Exact Order: RO AMC -> Banner 1 -> AC Repair -> Refrigerator -> Banner 2 -> Washing Machine -> Microwave -> Banner 3 -> Water Purifier with Zone Filtering */}
       <HomeCategoryStream 
