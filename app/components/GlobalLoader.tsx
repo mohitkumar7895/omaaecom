@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 export default function GlobalLoader() {
   const [show, setShow] = useState(false);
   const [animateOut, setAnimateOut] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     // Only run on client
@@ -18,6 +19,19 @@ export default function GlobalLoader() {
 
     setShow(true);
 
+    // Smooth simulated progress across 5 seconds (5000ms)
+    // Runs every 50ms (100 steps total to reach 100%)
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          return 100;
+        }
+        return prev + 1;
+      });
+    }, 50);
+
+    // Total 5 seconds display, then fade out
     const timer = setTimeout(() => {
       setAnimateOut(true);
       setTimeout(() => {
@@ -25,31 +39,41 @@ export default function GlobalLoader() {
         try {
           sessionStorage.setItem("omaa_company_app_loaded", "true");
         } catch (e) {}
-      }, 500);
-    }, 1200);
+      }, 600);
+    }, 5000);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
   }, []);
 
   if (!show) return null;
 
   return (
     <div
-      className={`fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-white transition-opacity duration-500 ease-out ${
+      className={`fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-white transition-opacity duration-600 ease-out ${
         animateOut ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
     >
-      <div className="flex flex-col items-center justify-center">
-        {/* Simple, clean loader image with smooth gentle pulse */}
+      <div className="flex flex-col items-center justify-center max-w-xs w-full px-6">
+        
+        {/* Simple loader.jpg Image with subtle gentle breathing animation */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/loader.jpg"
-          alt="Loading..."
-          className="w-24 h-24 sm:w-28 sm:h-28 object-contain animate-smooth-pulse select-none"
+          alt="OMAA Company"
+          className="h-20 sm:h-24 w-auto object-contain animate-smooth-pulse select-none"
         />
 
-        {/* Minimalist smooth spinning ring */}
-        <div className="mt-4 w-6 h-6 border-2 border-gray-200 border-t-gray-700 rounded-full animate-spin"></div>
+        {/* Smooth 5-Second Linear Progress Bar underneath */}
+        <div className="w-48 sm:w-56 h-1.5 bg-gray-100 rounded-full overflow-hidden mt-6 shadow-inner relative">
+          <div
+            className="h-full bg-gradient-to-r from-[#ff8000] via-[#6366f1] to-[#10b981] rounded-full transition-all duration-100 ease-linear"
+            style={{ width: `${progress}%` }}
+          ></div>
+        </div>
+
       </div>
 
       <style jsx>{`
@@ -64,7 +88,7 @@ export default function GlobalLoader() {
           }
         }
         .animate-smooth-pulse {
-          animation: smoothPulse 1.8s ease-in-out infinite;
+          animation: smoothPulse 2s ease-in-out infinite;
         }
       `}</style>
     </div>

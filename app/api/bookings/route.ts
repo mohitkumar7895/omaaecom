@@ -107,17 +107,12 @@ export async function POST(req: Request) {
       bookingType = 'New Product';
     }
 
-    let couponCode = null;
-    
-    // Auto-generate coupon immediately for online AMC & New Product bookings
-    if ((isAMC || isNewProduct) && payment_method === 'online') {
-      couponCode = generateCouponCode();
-      await pool.query(
-        "INSERT INTO coupons (code, discount_type, discount_value, mobile) VALUES (?, 'percentage', 10.00, ?)",
-        [couponCode, mobile]
-      );
-    }
+    let couponCode: string | null = null;
 
+    // Ensure essential columns exist dynamically on production without crashing
+    try {
+      await pool.query("ALTER TABLE bookings ADD COLUMN user_email VARCHAR(255) DEFAULT NULL");
+    } catch (e) {}
     try {
       await pool.query("ALTER TABLE bookings ADD COLUMN coupon_code VARCHAR(50) DEFAULT NULL");
     } catch (e) {}
@@ -125,14 +120,37 @@ export async function POST(req: Request) {
       await pool.query("ALTER TABLE bookings ADD COLUMN referred_by VARCHAR(50) DEFAULT NULL");
     } catch (e) {}
 
+    // Auto-generate coupon immediately for online AMC & New Product bookings
+    if ((isAMC || isNewProduct) && payment_method === 'online') {
+      try {
+        couponCode = generateCouponCode();
+        await pool.query(
+          "INSERT INTO coupons (code, discount_type, discount_value, mobile) VALUES (?, 'percentage', 10.00, ?)",
+          [couponCode, mobile]
+        );
+      } catch (couponErr) {
+        console.warn("Notice: coupon insert skipped:", couponErr);
+      }
+    }
+
     const finalBookingDate = requiresSchedule ? booking_date : (booking_date || new Date().toISOString().slice(0, 10));
     const finalTimeSlot = requiresSchedule ? time_slot : (time_slot || 'Instant');
 
-    await pool.query(
-      `INSERT INTO bookings (order_id, type, customer_name, mobile, address, category, services, booking_date, time_slot, total, payment_method, payment_status, working_status, created_at, user_email, coupon_code, referred_by)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', 'Pendi', NOW(), ?, ?, ?)`,
-      [orderId, bookingType, name, mobile, address, categoryName, servicesJson, finalBookingDate, finalTimeSlot, total_amount, payment_method === 'online' ? 'cashfree' : 'Cash on Book', user_email, couponCode, referred_by || null]
-    );
+    try {
+      await pool.query(
+        `INSERT INTO bookings (order_id, type, customer_name, mobile, address, category, services, booking_date, time_slot, total, payment_method, payment_status, working_status, created_at, user_email, coupon_code, referred_by)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', 'Pendi', NOW(), ?, ?, ?)`,
+        [orderId, bookingType, name, mobile, address, categoryName, servicesJson, finalBookingDate, finalTimeSlot, total_amount, payment_method === 'online' ? 'cashfree' : 'Cash on Book', user_email, couponCode, referred_by || null]
+      );
+    } catch (insertErr: any) {
+      console.warn("Standard insert failed, trying compatible fallback insert:", insertErr?.message);
+      // Fallback in case production DB has different columns
+      await pool.query(
+        `INSERT INTO bookings (order_id, type, customer_name, mobile, address, category, services, booking_date, time_slot, total, payment_method, payment_status, working_status, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', 'Pendi', NOW())`,
+        [orderId, bookingType, name, mobile, address, categoryName, servicesJson, finalBookingDate, finalTimeSlot, total_amount, payment_method === 'online' ? 'cashfree' : 'Cash on Book']
+      );
+    }
 
     return NextResponse.json({ success: true, order_id: orderId });
   } catch (error: any) {
