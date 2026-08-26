@@ -306,7 +306,11 @@ export default function MyBookingsPage() {
                       <div>
                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide block">CATEGORY</span>
                         <div className="font-bold text-gray-900 text-xs sm:text-sm truncate">
-                          {booking.category || booking.type || "Home Service"}
+                          {booking.category && booking.category.toLowerCase() !== "service" 
+                            ? booking.category 
+                            : Array.isArray(booking.services) && booking.services.length > 0 && booking.services[0]?.title
+                            ? booking.services[0].title
+                            : booking.type || "Home Service"}
                         </div>
                       </div>
 
@@ -469,7 +473,7 @@ export default function MyBookingsPage() {
                           <div className="flex justify-end mt-1">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img 
-                              src="/paid.svg" 
+                              src="/paid.png" 
                               alt="PAID THANK YOU" 
                               className="w-14 h-14 sm:w-16 sm:h-16 object-contain select-none hover:scale-105 transition-transform" 
                             />
