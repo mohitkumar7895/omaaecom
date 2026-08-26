@@ -5,8 +5,8 @@ import { usePathname } from "next/navigation";
 
 export default function GlobalLoader() {
   const pathname = usePathname();
-  // Start with true by default so it covers the screen from the very first frame!
-  const [show, setShow] = useState<boolean>(true);
+  // Start with false by default to prevent flashing on page transitions
+  const [show, setShow] = useState<boolean>(false);
   const [animateOut, setAnimateOut] = useState(false);
   const [progress, setProgress] = useState(0);
 
@@ -23,6 +23,8 @@ export default function GlobalLoader() {
       if (hasLoaded) {
         setShow(false);
         return;
+      } else {
+        setShow(true);
       }
     } catch (e) {}
 
