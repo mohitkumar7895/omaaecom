@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import pool from "../../lib/db";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -34,7 +35,9 @@ export default async function RateCardPage() {
     <main className="min-h-screen bg-[#f8f9fb] flex flex-col font-sans">
       <Navbar />
       <div className="flex-1 w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
-        <RateCardClient categories={categories} initialRateCards={rateCards} />
+        <Suspense fallback={<div className="text-center py-12 text-gray-500 font-medium">Loading Rate Card...</div>}>
+          <RateCardClient categories={categories} initialRateCards={rateCards} />
+        </Suspense>
       </div>
       <Footer />
     </main>

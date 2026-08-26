@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { 
   ArrowLeft, 
   Search, 
@@ -36,8 +36,13 @@ export default function RateCardClient({
   initialRateCards: RateCardItem[];
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const catRefId = searchParams.get("cat_ref_id");
+
   const [selectedCatId, setSelectedCatId] = useState<number | "all">(
-    categories.length > 0 ? categories[0].id : "all"
+    catRefId 
+      ? (catRefId === "all" ? "all" : Number(catRefId))
+      : (categories.length > 0 ? categories[0].id : "all")
   );
   const [searchQuery, setSearchQuery] = useState("");
 

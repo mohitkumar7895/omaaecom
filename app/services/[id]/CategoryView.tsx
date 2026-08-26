@@ -148,7 +148,7 @@ export default function CategoryView({ category, subcategories, services, rateCa
           <p className="text-gray-500 text-xs sm:text-sm">Select a service ....</p>
         </div>
 
-        <Link href="/rate-card">
+        <Link href={`/rate-card?cat_ref_id=${category.id}`}>
           <button className="flex items-center gap-2 bg-[#1c1c1e] hover:bg-black text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-xs transition active:scale-98">
             <FileText className="w-4 h-4 text-amber-400" />
             <span>Rate Card</span>
