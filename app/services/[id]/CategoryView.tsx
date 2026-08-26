@@ -6,6 +6,8 @@ import Link from "next/link";
 import { FileText } from "lucide-react";
 import ServiceCard from "./ServiceCard";
 import ServiceDetailsModal from "./ServiceDetailsModal";
+import { useCurrentLocation } from "../../hooks/useCurrentLocation";
+
 
 type CategoryViewProps = {
   category: any;
@@ -19,6 +21,7 @@ export default function CategoryView({ category, subcategories, services, rateCa
   const [activeSubcat, setActiveSubcat] = useState<number>(subcategories[0]?.id || 0);
   const [cart, setCart] = useState<any[]>([]);
   const [selectedService, setSelectedService] = useState<any | null>(null);
+  const { location, loading, error } = useCurrentLocation();
 
   useEffect(() => {
     const savedCart = localStorage.getItem("omaa_cart");
