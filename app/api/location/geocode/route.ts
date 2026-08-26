@@ -33,6 +33,8 @@ export async function POST(req: NextRequest) {
               return comp ? comp.long_name : "";
             };
 
+            const houseNumber = getComponent(["street_number"]);
+            const street = getComponent(["route"]);
             const mohalla = getComponent(["sublocality_level_1", "sublocality", "neighborhood", "colony"]);
             const city = getComponent(["locality", "administrative_area_level_3"]);
             const state = getComponent(["administrative_area_level_1"]);
@@ -46,6 +48,8 @@ export async function POST(req: NextRequest) {
               address: fullAddress,
               shortAddress: shortAddress,
               fullAddress: fullAddress,
+              houseNumber: houseNumber || "",
+              street: street || "",
               mohalla: mohalla || "Local Area",
               city: city || "Local Area",
               state,
@@ -93,6 +97,8 @@ export async function POST(req: NextRequest) {
               address: fullAddress,
               shortAddress: shortAddress,
               fullAddress: fullAddress,
+              houseNumber: "",
+              street: "",
               mohalla: mohalla,
               city: cityOrDistrict || "Local Area",
               state,
@@ -145,6 +151,8 @@ export async function POST(req: NextRequest) {
               address: fullAddress,
               shortAddress: shortAddress,
               fullAddress: fullAddress,
+              houseNumber: address.house_number || address.building || "",
+              street: address.road || "",
               mohalla: mohalla || landmark || road,
               city: locality || "Local Area",
               state,

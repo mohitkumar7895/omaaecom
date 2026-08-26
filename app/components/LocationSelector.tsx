@@ -160,7 +160,15 @@ export default function LocationSelector() {
           const data = await response.json();
 
           if (!response.ok || !data.success) {
-            throw new Error(data.error || "Failed to resolve location");
+            let errorMsg = data.error || "Failed to resolve location";
+            if (errorMsg.includes("API Key is not configured")) {
+              errorMsg = "Location service configuration error (API Key is missing). Please verify .env settings.";
+            } else if (errorMsg.includes("REQUEST_DENIED")) {
+              errorMsg = "Google Geocoding API request denied. Please ensure Billing is enabled on your Google Cloud Project.";
+            } else if (errorMsg.includes("Unable to resolve location")) {
+              errorMsg = "Address not found. Please type your location manually.";
+            }
+            throw new Error(errorMsg);
           }
 
           const locationData = data.data;
