@@ -88,20 +88,20 @@ export default function AddressViewButton({ booking }: AddressModalProps) {
       const s = booking.services[0];
       const qty = Number(s.quantity) || 1;
       const price = Number(s.price) || 0;
-      servicesSection = `🛠️ *Service:* ${s.title}${qty > 1 ? ` (Qty: ${qty})` : ""} - Rs.${price * qty}`;
+      servicesSection = `*Service:* *${s.title}*${qty > 1 ? ` (Qty: ${qty})` : ""} - *Rs.${price * qty}*`;
     } else {
       servicesSection =
-        `🛠️ *Services:*\n` +
+        `*Services:*\n` +
         booking.services
           .map((s: any) => {
             const qty = Number(s.quantity) || 1;
             const price = Number(s.price) || 0;
-            return `  • ${s.title}${qty > 1 ? ` (Qty: ${qty})` : ""} - Rs.${price * qty}`;
+            return `• *${s.title}*${qty > 1 ? ` (Qty: ${qty})` : ""} - *Rs.${price * qty}*`;
           })
           .join("\n");
     }
   } else {
-    servicesSection = `🛠️ *Service:* ${categoryName}`;
+    servicesSection = `*Service:* *${categoryName}*`;
   }
 
   // Map link for WhatsApp
@@ -109,23 +109,18 @@ export default function AddressViewButton({ booking }: AddressModalProps) {
     ? `https://www.google.com/maps/dir/?api=1&destination=${coords.lat},${coords.lon}`
     : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 
-  const whatsappText = `━━━━━━━━━━━━━━━━━━━━━
-✨ *OMAA COMPANY - NEW BOOKING* ✨
-━━━━━━━━━━━━━━━━━━━━━
-🏷️ *Category:* ${categoryName}
-
-👤 *Customer:* ${booking.customer_name}
-📞 *Mobile:* +91 ${booking.mobile}
+  const whatsappText = `*OMAA COMPANY - NEW BOOKING*
+----------------------------------------
+*Category:* *${categoryName}*
+*Customer:* *${booking.customer_name}*
+*Mobile:* *+91 ${booking.mobile}*
 ${servicesSection}
-💳 *Total Amount:* Rs.${booking.total}
-
-🕒 *Slot Time:* ${booking.time_slot || "—"}
-📅 *Booking Date:* ${formattedDate}
-📌 *Service Address:* ${address}
-
-🗺️ *Google Maps Navigation:*
-${mapLink}
-━━━━━━━━━━━━━━━━━━━━━`;
+*Total Amount:* *Rs.${booking.total}*
+*Slot Time:* *${booking.time_slot || "—"}*
+*Date:* *${formattedDate}*
+*Address:* ${address}
+*Map:* ${mapLink}
+----------------------------------------`;
 
   // WhatsApp URL without hardcoded number - opens contact picker in WhatsApp
   const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappText)}`;
@@ -201,16 +196,18 @@ ${mapLink}
                   <p className="text-[14px] font-black text-slate-900 tracking-tight truncate">{booking.customer_name}</p>
                 </div>
                 
-                <div className="bg-gradient-to-br from-slate-50 to-gray-50/70 rounded-2xl p-3.5 border border-slate-100 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1 text-slate-400">
+                <div className="bg-gradient-to-br from-slate-50 to-gray-50/70 rounded-2xl p-3.5 border border-slate-100 shadow-sm flex flex-col justify-between">
+                  <div className="flex items-center gap-1.5 mb-1.5 text-slate-400">
                     <Phone className="w-3.5 h-3.5 text-emerald-500" />
-                    <span className="text-[10px] font-black uppercase tracking-wider">Mobile Number</span>
+                    <span className="text-[10px] font-black uppercase tracking-wider">Direct Call</span>
                   </div>
                   <a
                     href={`tel:${booking.mobile}`}
-                    className="text-[14px] font-black text-emerald-600 hover:text-emerald-700 hover:underline inline-flex items-center gap-1"
+                    className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-[12px] font-black tracking-wide shadow-sm hover:shadow transition-all active:scale-95"
+                    title={`Click to Call ${booking.customer_name}`}
                   >
-                    +91 {booking.mobile}
+                    <Phone className="w-3.5 h-3.5" />
+                    <span>Call Customer</span>
                   </a>
                 </div>
               </div>

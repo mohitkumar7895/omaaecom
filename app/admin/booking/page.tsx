@@ -1,5 +1,5 @@
 import pool from "../../../lib/db";
-import { Copy, FileSpreadsheet, FileIcon as FilePdf, Printer, MessageCircle, CalendarCheck, Search, Filter } from "lucide-react";
+import { Copy, FileSpreadsheet, FileIcon as FilePdf, Printer, MessageCircle, CalendarCheck, Search, Filter, Phone } from "lucide-react";
 import Link from "next/link";
 import ExportButtons from "../components/ExportButtons";
 import WorkingStatusSelect from "./components/WorkingStatusSelect";
@@ -177,10 +177,17 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                     </td>
                     
                     <td className="px-4 py-4 min-w-[200px]">
-                      <div className="font-bold text-gray-900 mb-0.5">{row.customer_name}</div>
-                      <a href={`tel:${row.mobile}`} className="text-indigo-600 font-semibold mb-1 block hover:underline">
-                        {row.mobile}
-                      </a>
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <div className="font-bold text-gray-900 truncate">{row.customer_name}</div>
+                        <a 
+                          href={`tel:${row.mobile}`} 
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white border border-emerald-200 text-[11px] font-extrabold transition-all shadow-sm shrink-0"
+                          title={`Click to Call ${row.customer_name}`}
+                        >
+                          <Phone className="w-3 h-3" />
+                          <span>Call</span>
+                        </a>
+                      </div>
                       <div className="text-[12px] text-gray-700 bg-gray-50/80 p-2 rounded-lg border border-gray-100/80 leading-relaxed break-words line-clamp-2">
                         📍 {row.address || 'Address not provided'}
                       </div>
@@ -203,15 +210,12 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                     
                     <td className="px-4 py-4 max-w-[250px]">
                       <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">{row.category || '—'}</div>
-                      {Array.isArray(row.services) ? (
-                        <div className="space-y-1.5">
-                          {row.services.map((s: any, i: number) => (
-                            <div key={i} className="flex items-start justify-between text-[12px] bg-gray-50/50 p-1.5 rounded-lg border border-gray-100">
-                              <span className="font-medium text-gray-800 line-clamp-1 flex-1 pr-2">{s.title}</span>
-                              <div className="shrink-0 text-right">
-                                {s.quantity > 1 && <span className="text-gray-400 mr-2 text-[10px] font-bold">x{s.quantity}</span>}
-                                <span className="text-gray-900 font-bold">₹{s.price}</span>
-                              </div>
+                      {Array.isArray(row.services) && row.services.length > 0 ? (
+                        <div className="space-y-1">
+                          {row.services.map((item: any, idx: number) => (
+                            <div key={idx} className="flex justify-between items-center text-xs bg-gray-50 px-2 py-1 rounded border border-gray-100">
+                              <span className="font-semibold text-gray-800 line-clamp-1">{item.title}</span>
+                              <span className="text-gray-500 font-bold ml-2 shrink-0">x{item.quantity || 1}</span>
                             </div>
                           ))}
                         </div>
@@ -237,22 +241,29 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                       <EditableTotal id={row.id} defaultValue={row.total} action={updateTotal} />
                     </td>
 
-
-
                     <td className="px-4 py-4 whitespace-nowrap text-center">
-                      <a 
-                        href={`https://wa.me/91${row.mobile}?text=${encodeURIComponent(
-                          row.coupon_code 
-                            ? `Hello ${row.customer_name},\n\nYour ${row.type} service is Complete!\nAs a thank you, here is a special coupon code for 10% OFF your next booking: *${row.coupon_code}*.\n\nThank you for choosing OMAA Company.`
-                            : `Hello ${row.customer_name},\n\nYour ${row.type || 'Service'} booking is being processed.\n\nThank you for choosing OMAA Company.`
-                        )}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white hover:shadow-md hover:shadow-emerald-500/20 transition-all"
-                        title="Send WhatsApp Message"
-                      >
-                        <MessageCircle className="w-4 h-4" />
-                      </a>
+                      <div className="flex items-center justify-center gap-1.5">
+                        <a 
+                          href={`tel:${row.mobile}`}
+                          className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white hover:shadow-md hover:shadow-emerald-500/20 transition-all"
+                          title={`Click to Call ${row.customer_name}`}
+                        >
+                          <Phone className="w-3.5 h-3.5" />
+                        </a>
+                        <a 
+                          href={`https://wa.me/91${row.mobile}?text=${encodeURIComponent(
+                            row.coupon_code 
+                              ? `Hello ${row.customer_name},\n\nYour ${row.type} service is Complete!\nAs a thank you, here is a special coupon code for 10% OFF your next booking: *${row.coupon_code}*.\n\nThank you for choosing OMAA Company.`
+                              : `Hello ${row.customer_name},\n\nYour ${row.type || 'Service'} booking is being processed.\n\nThank you for choosing OMAA Company.`
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white hover:shadow-md hover:shadow-emerald-500/20 transition-all"
+                          title="Send WhatsApp Message"
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                        </a>
+                      </div>
                     </td>
 
                     <td className="px-4 py-4 whitespace-nowrap text-center">
