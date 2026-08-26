@@ -5,6 +5,7 @@ import ExportButtons from "../components/ExportButtons";
 import WorkingStatusSelect from "./components/WorkingStatusSelect";
 import PaymentStatusSelect from "./components/PaymentStatusSelect";
 import EditableTotal from "./components/EditableTotal";
+import AddressViewButton from "./components/AddressViewButton";
 import { updateWorkingStatus, updateTotal, updateCashback, updatePaymentStatus } from "./actions";
 
 export const dynamic = 'force-dynamic';
@@ -150,9 +151,24 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                       <a href={`tel:${row.mobile}`} className="text-indigo-600 font-semibold mb-1 block hover:underline">
                         {row.mobile}
                       </a>
-                      <div className="text-[12px] text-gray-700 bg-gray-50/80 p-2 rounded-lg border border-gray-100/80 leading-relaxed break-words">
+                      <div className="text-[12px] text-gray-700 bg-gray-50/80 p-2 rounded-lg border border-gray-100/80 leading-relaxed break-words line-clamp-2">
                         📍 {row.address || 'Address not provided'}
                       </div>
+                      <AddressViewButton booking={{
+                        id: row.id,
+                        order_id: row.order_id,
+                        customer_name: row.customer_name,
+                        mobile: row.mobile,
+                        address: row.address,
+                        category: row.category,
+                        type: row.type,
+                        total: row.total,
+                        booking_date: row.booking_date,
+                        time_slot: row.time_slot,
+                        services: row.services,
+                        payment_method: row.payment_method,
+                        working_status: row.working_status,
+                      }} />
                     </td>
                     
                     <td className="px-4 py-4 max-w-[250px]">
