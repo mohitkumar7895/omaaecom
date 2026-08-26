@@ -41,6 +41,7 @@ interface Booking {
   coupon_code?: string;
   coupon_status?: string;
   payment_status?: string;
+  invoice_status?: string;
   type?: string;
   warranty_start?: string;
   warranty_end?: string;
