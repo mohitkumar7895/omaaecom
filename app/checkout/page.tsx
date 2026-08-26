@@ -29,6 +29,30 @@ function CheckoutContent() {
     referred_by: searchParams.get('ref') || '',
   });
 
+  // Address search
+  const [addrQuery, setAddrQuery] = useState('');
+  const [addrResults, setAddrResults] = useState<{label:string}[]>([]);
+
+  useEffect(() => {
+    if (!addrQuery.trim()) { setAddrResults([]); return; }
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/location/search?q=${encodeURIComponent(addrQuery)}`);
+        const data = await res.json();
+        const list = (data.results || data.data || []) as any[];
+        setAddrResults(list.map((r:any) => ({ label: r.display_name || r.address || '' })).filter((r:any) => r.label));
+      } catch {}
+    }, 500);
+    return () => clearTimeout(t);
+  }, [addrQuery]);
+
+  const selectAddr = (label: string) => {
+    setForm(prev => ({ ...prev, address: label }));
+    setErrors(prev => ({ ...prev, address: '' }));
+    setAddrQuery('');
+    setAddrResults([]);
+  };
+
   useEffect(() => {
     const savedCart = localStorage.getItem("omaa_cart");
     if (savedCart) {
@@ -416,9 +440,34 @@ function CheckoutContent() {
                       className="text-xs font-bold text-[#6b62d9] hover:text-[#5249be] flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition"
                     >
                       <MapPin className="w-3.5 h-3.5" />
-                      <span>Use current location (GPS)</span>
+                      <span>Use GPS</span>
                     </button>
                   </div>
+
+                  {/* Address Search */}
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={addrQuery}
+                      onChange={e => setAddrQuery(e.target.value)}
+                      placeholder="Search your area, society, landmark..."
+                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-[#6b62d9] focus:ring-4 focus:ring-[#6b62d9]/10 hover:border-gray-300 transition-all text-gray-900 text-sm font-medium placeholder:text-gray-300"
+                    />
+                    {addrResults.length > 0 && (
+                      <ul className="absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl max-h-56 overflow-y-auto divide-y divide-gray-50">
+                        {addrResults.map((r, i) => (
+                          <li
+                            key={i}
+                            onClick={() => selectAddr(r.label)}
+                            className="px-4 py-2.5 text-sm text-gray-800 cursor-pointer hover:bg-indigo-50 hover:text-indigo-700 font-medium transition-colors"
+                          >
+                            {r.label}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+
                   <textarea 
                     rows={3}
                     name="address"
