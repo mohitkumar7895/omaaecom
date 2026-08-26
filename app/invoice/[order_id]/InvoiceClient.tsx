@@ -33,11 +33,23 @@ export default function InvoiceClient({ booking, services, gstSettings }: Invoic
   const gstRate = Number(gstSettings?.gst_rate || 0);
   let baseAmount = total;
   let gstAmount = 0;
+  let cgstAmount = 0;
+  let sgstAmount = 0;
 
   if (applyGstRate && gstRate > 0) {
     baseAmount = total / (1 + (gstRate / 100));
     gstAmount = total - baseAmount;
+    cgstAmount = gstAmount / 2;
+    sgstAmount = gstAmount / 2;
   }
+
+  // Detect convenience fee: if total > subtotal + gst, the difference is likely convenience fee
+  const convenienceFee = !isGstEligibleService && total > subtotal ? (total - subtotal) : 0;
+  // More accurately: use stored value if subtotal + convenience = total (without GST)
+  const detectedConvenienceFee = !isGstEligibleService ? Math.max(0, total - subtotal) : 0;
+
+  // Category label: booking.category stores the actual category name
+  const categoryLabel = booking.category || booking.type || 'Service';
 
   return (
     <div className="min-h-screen bg-gray-100 py-10 px-4 font-sans print:bg-white print:p-0 print:m-0">
@@ -101,7 +113,7 @@ export default function InvoiceClient({ booking, services, gstSettings }: Invoic
             <div className="md:text-right">
               <h3 className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-indigo-400 mb-2 sm:mb-4">Service Details</h3>
               <div className="space-y-2 sm:space-y-3">
-                <p className="text-gray-800 text-xs sm:text-sm"><span className="text-gray-400 w-16 sm:w-20 inline-block md:w-auto font-bold uppercase text-[9px] sm:text-[10px] tracking-wider">Category:</span> <span className="font-bold bg-white px-2 sm:px-2.5 py-1 rounded-md border border-gray-200 shadow-sm ml-1">{booking.category}</span></p>
+                <p className="text-gray-800 text-xs sm:text-sm"><span className="text-gray-400 w-16 sm:w-20 inline-block md:w-auto font-bold uppercase text-[9px] sm:text-[10px] tracking-wider">Category:</span> <span className="font-bold bg-white px-2 sm:px-2.5 py-1 rounded-md border border-gray-200 shadow-sm ml-1">{categoryLabel}</span></p>
                 {booking.booking_date && (
                   <p className="text-gray-800 text-xs sm:text-sm">
                     <span className="text-gray-400 w-16 sm:w-20 inline-block md:w-auto font-bold uppercase text-[9px] sm:text-[10px] tracking-wider">Schedule:</span> 
@@ -151,7 +163,33 @@ export default function InvoiceClient({ booking, services, gstSettings }: Invoic
                     <span>-₹{subtotal - total}</span>
                   </div>
                 )}
-                
+
+                {/* Convenience Fee line (shown when not GST-eligible type) */}
+                {detectedConvenienceFee > 0 && (
+                  <div className="flex justify-between text-sm text-gray-500 font-bold">
+                    <span>Convenience Fee</span>
+                    <span className="text-gray-700">₹{detectedConvenienceFee}</span>
+                  </div>
+                )}
+
+                {/* GST breakdown: CGST + SGST */}
+                {applyGstRate && gstRate > 0 && (
+                  <>
+                    <div className="flex justify-between text-xs text-gray-500 font-semibold border-t border-gray-200/60 pt-3">
+                      <span>Taxable Amount</span>
+                      <span>₹{baseAmount.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-xs text-blue-600 font-semibold">
+                      <span>CGST @ {gstRate / 2}%</span>
+                      <span>₹{cgstAmount.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-xs text-blue-600 font-semibold">
+                      <span>SGST @ {gstRate / 2}%</span>
+                      <span>₹{sgstAmount.toFixed(2)}</span>
+                    </div>
+                  </>
+                )}
+
                 <div className="flex justify-between items-end pt-4 sm:pt-5 border-t border-gray-200/80">
                   <span className="text-xs sm:text-sm font-black text-gray-400 uppercase tracking-widest">Total Paid</span>
                   <span className="text-3xl sm:text-4xl font-black text-[#6069c9] tracking-tight">₹{total}</span>

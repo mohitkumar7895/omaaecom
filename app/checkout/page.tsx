@@ -28,6 +28,33 @@ function CheckoutContent() {
     time_slot: '',
     referred_by: searchParams.get('ref') || '',
   });
+  // Address search state
+  const [addressSearchQuery, setAddressSearchQuery] = useState('');
+  const [addressSearchResults, setAddressSearchResults] = useState<any[]>([]);
+
+  // Debounced address search
+  useEffect(() => {
+    if (!addressSearchQuery) { setAddressSearchResults([]); return; }
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/location/search?q=${encodeURIComponent(addressSearchQuery)}`);
+        const data = await res.json();
+        if (data.success) setAddressSearchResults(data.results);
+      } catch (e) {
+        console.error('Address search error', e);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [addressSearchQuery]);
+
+  const handleSelectSearchedAddress = (result:any) => {
+    setForm(prev => ({ ...prev, address: result.display_name }));
+    setErrors(prev => ({ ...prev, address: '' }));
+    setAddressSearchQuery('');
+    setAddressSearchResults([]);
+    localStorage.setItem('user_location', JSON.stringify({ address: result.display_name }));
+    window.dispatchEvent(new Event('location_changed'));
+  };
 
   useEffect(() => {
     const savedCart = localStorage.getItem("omaa_cart");
@@ -90,7 +117,9 @@ function CheckoutContent() {
   const gstItemsTotal = cart.filter(isGstItem).reduce((sum, item) => sum + (Number(item.selling_price) * item.quantity || 0), 0);
   const gstAmount = applyGst ? (gstItemsTotal * (gstRate / 100)) : 0;
 
-  const convenienceFee = cart.length > 0 ? 49 : 0;
+  // Convenience fee: waived for RO AMC and New Product carts
+  const hasGstItems = cart.some(isGstItem);
+  const convenienceFee = (cart.length > 0 && !hasGstItems) ? 49 : 0;
   const totalAmount = itemTotals + gstAmount + convenienceFee;
 
   // Check if ANY cart item requires a schedule (i.e. is NOT an AMC or New Product)
@@ -393,8 +422,31 @@ function CheckoutContent() {
                 </div>
 
                 <div className="space-y-1.5">
+                  <label className="text-[13px] font-bold text-gray-700">Service Address</label>
+                  {/* Address Search Autocomplete */}
+                  <div className="relative mb-2">
+                    <input
+                      type="text"
+                      placeholder="Search address..."
+                      value={addressSearchQuery}
+                      onChange={(e) => setAddressSearchQuery(e.target.value)}
+                      className="w-full bg-white border rounded-xl pl-4 pr-4 py-3.5 outline-none focus:border-black focus:ring-4 focus:ring-black/5 hover:border-gray-300 transition-all text-gray-900 font-medium placeholder:text-gray-300"
+                    />
+                    {addressSearchResults.length > 0 && (
+                      <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-b-xl max-h-60 overflow-y-auto shadow-lg mt-1">
+                        {addressSearchResults.map((result, idx) => (
+                          <li
+                            key={idx}
+                            onClick={() => handleSelectSearchedAddress(result)}
+                            className="px-4 py-2 text-sm cursor-pointer hover:bg-gray-100"
+                          >
+                            {result.display_name}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                   <div className="flex items-center justify-between">
-                    <label className="text-[13px] font-bold text-gray-700">Service Address</label>
                     <button
                       type="button"
                       onClick={async () => {
@@ -404,8 +456,8 @@ function CheckoutContent() {
                           if (locationData.address) {
                             setForm(prev => ({ ...prev, address: locationData.address }));
                             setErrors(prev => ({ ...prev, address: '' }));
-                            localStorage.setItem("user_location", JSON.stringify(locationData));
-                            window.dispatchEvent(new Event("location_changed"));
+                            localStorage.setItem('user_location', JSON.stringify(locationData));
+                            window.dispatchEvent(new Event('location_changed'));
                           }
                         } catch (e: any) {
                           alert(e.message || "Failed to fetch live address.");

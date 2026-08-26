@@ -88,7 +88,9 @@ export default function CartPage() {
   const gstItemsTotal = cart.filter(isGstItem).reduce((sum, item) => sum + (Number(item.selling_price) * (item.quantity || 1)), 0);
   const gstAmount = gstEnabled ? (gstItemsTotal * (gstRate / 100)) : 0;
 
-  const convenienceFee = cart.length > 0 ? 49 : 0;
+  // Exempt convenience fee for RO AMC or New Product services
+  const hasGstEligible = cart.some(isGstItem);
+  const convenienceFee = hasGstEligible ? 0 : 49;
   const totalAmount = itemTotals + gstAmount + convenienceFee;
 
   return (

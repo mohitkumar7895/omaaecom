@@ -172,28 +172,28 @@ export default function RateCardClient({
                 </button>
               </div>
 
-              {/* Exact Table Layout Matching Screenshot */}
+              {/* Professional Table Layout with dark borders and alternating rows */}
               {!collapsedHeadings[heading] && (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="border-b border-gray-200 bg-gray-50/50">
-                        <th className="py-3 px-4 sm:px-6 text-xs sm:text-sm font-bold text-gray-900 w-[60%] sm:w-[70%] border-r border-gray-100">
+                      <tr className="bg-[#23232a] border-b-2 border-[#3a3a45]">
+                        <th className="py-3.5 px-5 sm:px-6 text-xs sm:text-sm font-bold text-white w-[60%] sm:w-[70%] border-r-2 border-[#3a3a45]">
                           Description
                         </th>
-                        <th className="py-3 px-4 sm:px-6 text-xs sm:text-sm font-bold text-gray-900">
+                        <th className="py-3.5 px-5 sm:px-6 text-xs sm:text-sm font-bold text-white">
                           Service Charge
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100 text-xs sm:text-sm">
+                    <tbody className="divide-y divide-gray-200 text-xs sm:text-sm">
                       {items.map((item, idx) => (
                         <tr 
                           key={item.id || idx}
-                          className="hover:bg-gray-50/80 transition-colors"
+                          className={`transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/70'} hover:bg-indigo-50/40`}
                         >
                           {/* Part / Description */}
-                          <td className="py-3.5 px-4 sm:px-6 font-medium text-gray-800 border-r border-gray-100">
+                          <td className="py-3.5 px-5 sm:px-6 font-medium text-gray-800 border-r-2 border-gray-200">
                             <div className="leading-snug">{item.part_name}</div>
                             {selectedCatId === "all" && item.category_title && (
                               <span className="text-[10px] text-gray-400 font-normal">
@@ -202,9 +202,12 @@ export default function RateCardClient({
                             )}
                           </td>
 
-                          {/* Price matching screenshot (₹1,500 / ₹4,500 / ₹350) */}
-                          <td className="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
-                            ₹{Number(item.price || 0).toLocaleString("en-IN")}
+                          {/* Price */}
+                          <td className="py-3.5 px-5 sm:px-6 font-bold text-gray-900">
+                            <span className="inline-flex items-center gap-0.5">
+                              <span className="text-gray-500 text-xs">₹</span>
+                              <span className="text-[15px]">{Number(item.price || 0).toLocaleString('en-IN')}</span>
+                            </span>
                           </td>
                         </tr>
                       ))}
