@@ -42,7 +42,7 @@ export default function Hero({ categories = [], banners = [] }: HeroProps) {
             location.fullAddress || ""
           )
         );
-        setVisibleCategories(filtered.length > 0 ? filtered : categories);
+        setVisibleCategories(filtered);
       } catch {
         setVisibleCategories(categories);
       }
