@@ -39,7 +39,7 @@ function CheckoutContent() {
       try {
         const res = await fetch(`/api/location/search?q=${encodeURIComponent(addressSearchQuery)}`);
         const data = await res.json();
-        if (data.success) setAddressSearchResults(data.results);
+        if (data.success) setAddressSearchResults(data.results || []);
       } catch (e) {
         console.error('Address search error', e);
       }

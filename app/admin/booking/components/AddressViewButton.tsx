@@ -67,7 +67,8 @@ ${servicesText}
 Thank you for choosing *OMAA Company*! 🙏
 For any queries, contact us at support@omaacompany.com`;
 
-  const whatsappUrl = `https://wa.me/91${booking.mobile}?text=${encodeURIComponent(whatsappText)}`;
+  // WhatsApp URL without number - opens contact picker in WhatsApp
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappText)}`;
 
   return (
     <>

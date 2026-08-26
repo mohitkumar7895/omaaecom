@@ -113,7 +113,8 @@ export default function InvoiceClient({ booking, services, gstSettings }: Invoic
             <div className="md:text-right">
               <h3 className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-indigo-400 mb-2 sm:mb-4">Service Details</h3>
               <div className="space-y-2 sm:space-y-3">
-                <p className="text-gray-800 text-xs sm:text-sm"><span className="text-gray-400 w-16 sm:w-20 inline-block md:w-auto font-bold uppercase text-[9px] sm:text-[10px] tracking-wider">Category:</span> <span className="font-bold bg-white px-2 sm:px-2.5 py-1 rounded-md border border-gray-200 shadow-sm ml-1">{categoryLabel}</span></p>
+                {/* Category name shown directly as a badge - no label */}
+                <p className="font-black text-gray-900 text-base sm:text-lg bg-white px-3 py-1.5 rounded-lg border border-gray-200 shadow-sm inline-block">{categoryLabel}</p>
                 {booking.booking_date && (
                   <p className="text-gray-800 text-xs sm:text-sm">
                     <span className="text-gray-400 w-16 sm:w-20 inline-block md:w-auto font-bold uppercase text-[9px] sm:text-[10px] tracking-wider">Schedule:</span> 
