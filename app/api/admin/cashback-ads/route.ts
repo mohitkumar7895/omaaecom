@@ -1,35 +1,57 @@
 import { NextResponse } from 'next/server';
-import mysql from 'mysql2/promise';
+import pool from '../../../../lib/db';
 import path from 'path';
 import { writeFile, mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
 
-const dbConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'ommaecom'
-};
+async function runMigration() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS cashback_ads (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        ad_type VARCHAR(50) NOT NULL DEFAULT 'video',
+        media_urls JSON NOT NULL,
+        duration INT NOT NULL DEFAULT 20,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+  } catch (err) {
+    console.error("Failed to run cashback_ads migration:", err);
+  }
+}
 
 export async function GET() {
   try {
-    const connection = await mysql.createConnection(dbConfig);
-    const [rows]: any = await connection.query('SELECT * FROM cashback_ads LIMIT 1');
-    await connection.end();
+    await runMigration();
+    const [rows]: any = await pool.query('SELECT * FROM cashback_ads LIMIT 1');
 
-    if (rows.length === 0) {
+    if (!rows || rows.length === 0) {
       return NextResponse.json({ ad_type: 'video', media_urls: [], duration: 20 });
     }
 
-    return NextResponse.json(rows[0]);
+    // Safely parse media_urls if stored as string
+    let mediaUrls = rows[0].media_urls;
+    if (typeof mediaUrls === 'string') {
+      try {
+        mediaUrls = JSON.parse(mediaUrls);
+      } catch (e) {
+        mediaUrls = [];
+      }
+    }
+
+    return NextResponse.json({
+      ...rows[0],
+      media_urls: mediaUrls
+    });
   } catch (error: any) {
     console.error('Error fetching cashback ad config:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }
 
 export async function POST(req: Request) {
   try {
+    await runMigration();
     const formData = await req.formData();
     const adType = formData.get('ad_type') as string;
     let duration = parseInt(formData.get('duration') as string) || 20;
@@ -79,22 +101,20 @@ export async function POST(req: Request) {
       }
     }
 
-    const connection = await mysql.createConnection(dbConfig);
-    const [existing]: any = await connection.query('SELECT id FROM cashback_ads LIMIT 1');
+    const [existing]: any = await pool.query('SELECT id FROM cashback_ads LIMIT 1');
 
     if (existing.length > 0) {
-      await connection.query(
+      await pool.query(
         'UPDATE cashback_ads SET ad_type = ?, media_urls = ?, duration = ? WHERE id = ?',
         [adType, JSON.stringify(mediaUrls), duration, existing[0].id]
       );
     } else {
-      await connection.query(
+      await pool.query(
         'INSERT INTO cashback_ads (ad_type, media_urls, duration) VALUES (?, ?, ?)',
         [adType, JSON.stringify(mediaUrls), duration]
       );
     }
 
-    await connection.end();
     return NextResponse.json({ success: true, message: 'Ads configuration updated' });
 
   } catch (error: any) {
