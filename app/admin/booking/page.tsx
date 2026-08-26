@@ -272,8 +272,19 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                     </td>
 
                     <td className="px-4 py-4 whitespace-nowrap text-right">
-                      <div className="inline-block">
+                      <div className="flex flex-col items-end gap-1.5">
                         <WorkingStatusSelect id={row.id} defaultValue={row.working_status} action={updateWorkingStatus} />
+                        {row.working_status === 'Complete' && (
+                          <Link 
+                            href={`/invoice/${row.order_id}`}
+                            target="_blank"
+                            className="inline-flex items-center gap-1 text-[11px] font-black text-indigo-700 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded-md border border-indigo-200 shadow-xs transition-all"
+                            title="View / Print Generated Invoice"
+                          >
+                            <FilePdf className="w-3 h-3 text-indigo-600" />
+                            <span>Invoice</span>
+                          </Link>
+                        )}
                       </div>
                     </td>
                   </tr>

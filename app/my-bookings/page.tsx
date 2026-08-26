@@ -337,11 +337,11 @@ export default function MyBookingsPage() {
                       </p>
                     </div>
 
-                    {/* Complete Work Date (if completed) */}
+                    {/* Job End Date (if completed) */}
                     {isComplete && (
                       <div className="mb-2.5 text-xs flex items-center gap-2">
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">COMPLETE WORK DATE:</span>
-                        <span className="text-xs font-bold text-gray-800">{formattedDate}</span>
+                        <span className="text-[11px] font-black text-gray-900 uppercase tracking-wide">JOB END:</span>
+                        <span className="text-xs font-black text-gray-900">{formattedDate}</span>
                       </div>
                     )}
 
@@ -470,12 +470,12 @@ export default function MyBookingsPage() {
 
                         {/* Paid Stamp Graphic at Bottom Right */}
                         {isComplete && (booking.payment_status === "Completed" || booking.payment_status === "Success" || booking.payment_status === "Paid" || Number(booking.total) > 0) && (
-                          <div className="flex justify-end mt-1">
+                          <div className="flex justify-end mt-1 pr-3 sm:pr-5">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img 
                               src="/paid.png" 
                               alt="PAID THANK YOU" 
-                              className="w-14 h-14 sm:w-16 sm:h-16 object-contain select-none hover:scale-105 transition-transform" 
+                              className="w-16 h-16 sm:w-20 sm:h-20 object-contain select-none hover:scale-110 transition-transform" 
                             />
                           </div>
                         )}
