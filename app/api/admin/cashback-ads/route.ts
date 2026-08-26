@@ -56,11 +56,6 @@ export async function POST(req: Request) {
     const adType = formData.get('ad_type') as string;
     let duration = parseInt(formData.get('duration') as string) || 20;
 
-    const uploadDir = path.join(process.cwd(), 'public/uploads/ads');
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true });
-    }
-
     let mediaUrls: string[] = [];
 
     if (adType === 'video') {
@@ -70,6 +65,10 @@ export async function POST(req: Request) {
       if (videoUrl && videoUrl.trim()) {
         mediaUrls.push(videoUrl.trim());
       } else if (videoFile && videoFile.size > 0) {
+        const uploadDir = path.join(process.cwd(), 'public/uploads/ads');
+        if (!existsSync(uploadDir)) {
+          await mkdir(uploadDir, { recursive: true });
+        }
         const bytes = await videoFile.arrayBuffer();
         const buffer = Buffer.from(bytes);
         const fileName = `ad_${Date.now()}_${videoFile.name.replace(/\s+/g, '_')}`;
@@ -79,13 +78,23 @@ export async function POST(req: Request) {
       } else {
         // Keep existing if no new file
         const existingUrls = formData.get('existing_media') as string;
-        if (existingUrls) mediaUrls = JSON.parse(existingUrls);
+        if (existingUrls && existingUrls !== 'undefined') {
+          try {
+            mediaUrls = JSON.parse(existingUrls);
+          } catch (e) {
+            mediaUrls = [];
+          }
+        }
       }
     } else if (adType === 'image') {
       const imageFiles = formData.getAll('images') as File[];
 
       for (const file of imageFiles) {
         if (file && file.size > 0) {
+          const uploadDir = path.join(process.cwd(), 'public/uploads/ads');
+          if (!existsSync(uploadDir)) {
+            await mkdir(uploadDir, { recursive: true });
+          }
           const bytes = await file.arrayBuffer();
           const buffer = Buffer.from(bytes);
           const fileName = `ad_img_${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
@@ -97,7 +106,13 @@ export async function POST(req: Request) {
 
       if (mediaUrls.length === 0) {
         const existingUrls = formData.get('existing_media') as string;
-        if (existingUrls) mediaUrls = JSON.parse(existingUrls);
+        if (existingUrls && existingUrls !== 'undefined') {
+          try {
+            mediaUrls = JSON.parse(existingUrls);
+          } catch (e) {
+            mediaUrls = [];
+          }
+        }
       }
     }
 
