@@ -1,8 +1,8 @@
 "use client";
 
 import { X, Star, CheckCircle2, Check, FileText, ChevronDown } from "lucide-react";
-import { useState, useEffect } from "react";
-import { getRateCardsByCategoryId } from "../../actions/rateCards";
+import { useState } from "react";
+import Link from "next/link";
 
 type ServiceDetailsModalProps = {
   service: any;
@@ -15,16 +15,6 @@ type ServiceDetailsModalProps = {
 
 export default function ServiceDetailsModal({ service, onClose, onAdd, quantity = 0, onRemove, rateCards = [] }: ServiceDetailsModalProps) {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [showRateCardModal, setShowRateCardModal] = useState<boolean>(false);
-  const [liveRateCards, setLiveRateCards] = useState<any[]>(rateCards);
-
-  useEffect(() => {
-    getRateCardsByCategoryId(service?.category_id || 1, service?.title).then((data) => {
-      if (data && data.length > 0) {
-        setLiveRateCards(data);
-      }
-    });
-  }, [service]);
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
@@ -71,11 +61,10 @@ export default function ServiceDetailsModal({ service, onClose, onAdd, quantity 
               </div>
             </div>
 
-            {/* Clean 'Rate Cards' Button that opens dedicated popup modal */}
+            {/* Clean 'Rate Cards' Button that redirects to the separate page */}
             <div className="mb-6">
-              <button 
-                type="button"
-                onClick={() => setShowRateCardModal(true)}
+              <Link 
+                href={`/rate-card?cat_ref_id=${service?.category_id || 1}`}
                 className="w-full flex items-center justify-between bg-[#1e293b] hover:bg-[#0f172a] text-white font-bold py-3.5 px-5 rounded-2xl transition shadow-sm group active:scale-[0.99]"
               >
                 <div className="flex items-center gap-3">
@@ -88,133 +77,8 @@ export default function ServiceDetailsModal({ service, onClose, onAdd, quantity 
                   <span className="text-xs text-gray-300 font-medium group-hover:text-white">View Pricing</span>
                   <span className="text-gray-400 group-hover:translate-x-0.5 transition-transform text-base">→</span>
                 </div>
-              </button>
+              </Link>
             </div>
-
-            {/* Dedicated Rate Cards Modal Popup - Ultra Premium Luxury Theme */}
-            {showRateCardModal && (
-              <div className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-5 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-                <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[88vh] flex flex-col overflow-hidden shadow-[0_25px_60px_-15px_rgba(0,0,0,0.4)] border border-gray-100 animate-in zoom-in-95 duration-200">
-                  
-                  {/* Premium Modal Header */}
-                  <div className="p-5 sm:p-6 border-b border-gray-100 bg-gradient-to-r from-[#0f172a] via-[#1e293b] to-[#0f172a] text-white flex items-center justify-between relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
-                    
-                    <div className="flex items-center gap-3 relative z-10">
-                      <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-300 text-slate-950 flex items-center justify-center shadow-lg shadow-amber-500/20 font-black">
-                        <FileText className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-extrabold text-base sm:text-lg tracking-tight text-white">Official Rate Card & Spare Parts</h3>
-                          <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                            Verified
-                          </span>
-                        </div>
-                        <p className="text-slate-400 text-xs mt-0.5 font-medium">{service.title || "Standard Spare Parts & Labour Catalog"}</p>
-                      </div>
-                    </div>
-
-                    <button 
-                      onClick={() => setShowRateCardModal(false)}
-                      className="text-slate-400 hover:text-white p-2 rounded-full hover:bg-white/10 transition z-10"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
-
-                  {/* Blue Info Notice Banner Matching Screenshot */}
-                  <div className="bg-[#eef4ff] border-l-4 border-[#3b82f6] p-4 m-4 sm:m-6 mb-2 rounded-xl shadow-2xs">
-                    <p className="text-xs sm:text-sm font-semibold text-[#1e40af] mb-1 leading-snug">
-                      Labour Charges are extra and is capped at ₹199 per appliance.
-                    </p>
-                    <p className="text-[11px] sm:text-xs text-[#3b82f6] font-normal leading-relaxed">
-                      All prices below are inclusive of spare part price, cost of sourcing and partner conveyance. Please do not pay any extra amount for conveyance.
-                    </p>
-                  </div>
-
-                  {/* Modal Content - Grouped by Headings matching screenshot */}
-                  <div className="p-4 sm:p-6 pt-2 overflow-y-auto flex-1 bg-[#fafafc] space-y-5">
-                    {liveRateCards && liveRateCards.length > 0 ? (
-                      (() => {
-                        // Group by Heading
-                        const grouped = liveRateCards.reduce((acc: any, item: any) => {
-                          const h = item.heading_title || "General Spare Parts";
-                          if (!acc[h]) acc[h] = [];
-                          acc[h].push(item);
-                          return acc;
-                        }, {});
-
-                        return Object.entries(grouped).map(([heading, items]: [string, any]) => (
-                          <div 
-                            key={heading}
-                            className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-xs"
-                          >
-                            {/* Black Heading Bar */}
-                            <div className="bg-[#1c1c1e] px-4 py-3 text-white flex items-center justify-between">
-                              <h4 className="font-bold text-xs sm:text-sm text-white">
-                                {heading}
-                              </h4>
-                              <span className="text-[11px] text-gray-400 font-mono">T</span>
-                            </div>
-
-                            {/* Table with Description and Service Charge */}
-                            <div className="overflow-x-auto">
-                              <table className="w-full text-left border-collapse text-xs sm:text-sm">
-                                <thead>
-                                  <tr className="border-b border-gray-200 bg-gray-50">
-                                    <th className="py-2.5 px-4 font-bold text-gray-800 w-[65%] border-r border-gray-100">
-                                      Description
-                                    </th>
-                                    <th className="py-2.5 px-4 font-bold text-gray-800">
-                                      Service Charge
-                                    </th>
-                                  </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-100">
-                                  {items.map((rc: any, idx: number) => (
-                                    <tr key={idx} className="hover:bg-gray-50/60 transition-colors">
-                                      <td className="py-3 px-4 font-medium text-gray-800 border-r border-gray-100">
-                                        {rc.part_name}
-                                      </td>
-                                      <td className="py-3 px-4 font-semibold text-gray-900">
-                                        ₹{Number(rc.price || 0).toLocaleString("en-IN")}
-                                      </td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                          </div>
-                        ));
-                      })()
-                    ) : (
-                      <div className="p-12 bg-white rounded-2xl border border-dashed border-slate-200 text-center flex flex-col items-center justify-center shadow-xs">
-                        <FileText className="w-10 h-10 text-slate-300 mb-3" />
-                        <h4 className="font-bold text-slate-800 text-base mb-1">Standard Rates Apply</h4>
-                        <p className="text-slate-500 text-xs max-w-sm">
-                          Standard visiting charges included. Detailed spare parts pricing will be provided on-site by technician.
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Premium Modal Footer */}
-                  <div className="p-4 sm:p-5 border-t border-slate-100 bg-white flex items-center justify-between">
-                    <p className="text-[11px] text-slate-400 font-medium">
-                      Prices are inclusive of standard inspection & testing.
-                    </p>
-                    <button 
-                      onClick={() => setShowRateCardModal(false)}
-                      className="bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-bold px-7 py-2.5 rounded-xl text-xs transition shadow-md hover:shadow-lg"
-                    >
-                      Close Window
-                    </button>
-                  </div>
-
-                </div>
-              </div>
-            )}
 
             {/* About the service */}
             <div className="mb-8">
