@@ -8,7 +8,8 @@ import {
   Wrench, 
   ShieldCheck, 
   ChevronRight,
-  Layers
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 
 interface RateCardItem {
@@ -45,6 +46,14 @@ export default function RateCardClient({
       : (categories.length > 0 ? categories[0].id : "all")
   );
   const [searchQuery, setSearchQuery] = useState("");
+  const [collapsedHeadings, setCollapsedHeadings] = useState<Record<string, boolean>>({});
+
+  const toggleHeading = (heading: string) => {
+    setCollapsedHeadings((prev) => ({
+      ...prev,
+      [heading]: !prev[heading]
+    }));
+  };
 
   // Categories that actually have rate cards
   const categoriesWithCards = categories.filter((cat) =>
@@ -124,39 +133,7 @@ export default function RateCardClient({
         </p>
       </div>
 
-      {/* Category Selection Tabs / Buttons */}
-      <div className="bg-white rounded-2xl p-3 border border-gray-100 shadow-xs">
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar">
-          <button
-            onClick={() => setSelectedCatId("all")}
-            className={`px-4 py-2 rounded-xl font-bold text-xs sm:text-sm whitespace-nowrap transition-all flex items-center gap-1.5 ${
-              selectedCatId === "all"
-                ? "bg-[#1c1c1e] text-white shadow-sm"
-                : "bg-gray-100/80 text-gray-700 hover:bg-gray-200/80"
-            }`}
-          >
-            <Layers className="w-3.5 h-3.5" />
-            All Categories
-          </button>
 
-          {activeCategoryList.map((cat) => {
-            const isSelected = selectedCatId === cat.id;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCatId(cat.id)}
-                className={`px-4 py-2 rounded-xl font-bold text-xs sm:text-sm whitespace-nowrap transition-all flex items-center gap-1.5 ${
-                  isSelected
-                    ? "bg-[#1c1c1e] text-white shadow-sm"
-                    : "bg-gray-100/80 text-gray-700 hover:bg-gray-200/80"
-                }`}
-              >
-                {cat.title}
-              </button>
-            );
-          })}
-        </div>
-      </div>
 
       {/* Rate Card Category Sections with Exact Black Headings and Tables */}
       <div className="space-y-6">
@@ -175,54 +152,66 @@ export default function RateCardClient({
               className="bg-white rounded-2xl border border-gray-200/90 overflow-hidden shadow-xs"
             >
               {/* Black Section Heading matching screenshot */}
-              <div className="bg-[#1c1c1e] px-5 py-3.5 text-white flex items-center justify-between">
+              <div 
+                onClick={() => toggleHeading(heading)}
+                className="bg-[#1c1c1e] px-5 py-3.5 text-white flex items-center justify-between cursor-pointer select-none"
+              >
                 <h2 className="font-bold text-sm sm:text-base tracking-wide text-white">
                   {heading}
                 </h2>
-                <div className="text-[10px] sm:text-xs text-gray-400 font-mono flex items-center gap-1">
-                  <span>{items.length} items</span>
-                  <span className="text-gray-500">T</span>
-                </div>
+                <button
+                  type="button"
+                  className="p-1 hover:bg-white/10 rounded-lg transition-colors text-white flex items-center justify-center"
+                  aria-label={collapsedHeadings[heading] ? "Expand Section" : "Collapse Section"}
+                >
+                  {collapsedHeadings[heading] ? (
+                    <ChevronDown className="w-5 h-5" />
+                  ) : (
+                    <ChevronUp className="w-5 h-5" />
+                  )}
+                </button>
               </div>
 
               {/* Exact Table Layout Matching Screenshot */}
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-gray-200 bg-gray-50/50">
-                      <th className="py-3 px-4 sm:px-6 text-xs sm:text-sm font-bold text-gray-900 w-[60%] sm:w-[70%] border-r border-gray-100">
-                        Description
-                      </th>
-                      <th className="py-3 px-4 sm:px-6 text-xs sm:text-sm font-bold text-gray-900">
-                        Service Charge
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 text-xs sm:text-sm">
-                    {items.map((item, idx) => (
-                      <tr 
-                        key={item.id || idx}
-                        className="hover:bg-gray-50/80 transition-colors"
-                      >
-                        {/* Part / Description */}
-                        <td className="py-3.5 px-4 sm:px-6 font-medium text-gray-800 border-r border-gray-100">
-                          <div className="leading-snug">{item.part_name}</div>
-                          {selectedCatId === "all" && item.category_title && (
-                            <span className="text-[10px] text-gray-400 font-normal">
-                              ({item.category_title})
-                            </span>
-                          )}
-                        </td>
-
-                        {/* Price matching screenshot (₹1,500 / ₹4,500 / ₹350) */}
-                        <td className="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
-                          ₹{Number(item.price || 0).toLocaleString("en-IN")}
-                        </td>
+              {!collapsedHeadings[heading] && (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-gray-200 bg-gray-50/50">
+                        <th className="py-3 px-4 sm:px-6 text-xs sm:text-sm font-bold text-gray-900 w-[60%] sm:w-[70%] border-r border-gray-100">
+                          Description
+                        </th>
+                        <th className="py-3 px-4 sm:px-6 text-xs sm:text-sm font-bold text-gray-900">
+                          Service Charge
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 text-xs sm:text-sm">
+                      {items.map((item, idx) => (
+                        <tr 
+                          key={item.id || idx}
+                          className="hover:bg-gray-50/80 transition-colors"
+                        >
+                          {/* Part / Description */}
+                          <td className="py-3.5 px-4 sm:px-6 font-medium text-gray-800 border-r border-gray-100">
+                            <div className="leading-snug">{item.part_name}</div>
+                            {selectedCatId === "all" && item.category_title && (
+                              <span className="text-[10px] text-gray-400 font-normal">
+                                ({item.category_title})
+                              </span>
+                            )}
+                          </td>
+
+                          {/* Price matching screenshot (₹1,500 / ₹4,500 / ₹350) */}
+                          <td className="py-3.5 px-4 sm:px-6 font-semibold text-gray-900">
+                            ₹{Number(item.price || 0).toLocaleString("en-IN")}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
 
             </div>
           ))
