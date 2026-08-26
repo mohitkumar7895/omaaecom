@@ -64,10 +64,24 @@ export default function AddressViewButton({ booking }: AddressModalProps) {
     ? new Date(booking.booking_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-')
     : '—';
 
-  // First service name for the message
-  const firstService = Array.isArray(booking.services) && booking.services.length > 0
-    ? booking.services[0].title
-    : (booking.category || booking.type || 'Service');
+  // Full service list formatted like invoice
+  let servicesSection = '';
+  if (Array.isArray(booking.services) && booking.services.length > 0) {
+    if (booking.services.length === 1) {
+      const s = booking.services[0];
+      const qty = Number(s.quantity) || 1;
+      const price = Number(s.price) || 0;
+      servicesSection = `Service: ${s.title}${qty > 1 ? ` (Qty: ${qty})` : ''} - Rs.${price * qty}`;
+    } else {
+      servicesSection = `Services:\n` + booking.services.map((s: any) => {
+        const qty = Number(s.quantity) || 1;
+        const price = Number(s.price) || 0;
+        return `• ${s.title}${qty > 1 ? ` (Qty: ${qty})` : ''} - Rs.${price * qty}`;
+      }).join('\n');
+    }
+  } else {
+    servicesSection = `Service: ${booking.category || booking.type || 'Service'}`;
+  }
 
   // Map link for WhatsApp
   const mapLink = coords
@@ -78,7 +92,7 @@ export default function AddressViewButton({ booking }: AddressModalProps) {
 ${booking.category || booking.type || 'Service'}
 
 Name: ${booking.customer_name}
-Service: ${firstService}
+${servicesSection}
 Total: Rs.${booking.total}
 
 Slot Time: ${booking.time_slot || '—'}
