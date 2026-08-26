@@ -143,7 +143,7 @@ export default function CategoryZonePicker({
         <div className="flex items-center justify-between mb-1.5">
           <label className="text-[13px] font-bold text-gray-800 flex items-center gap-1.5">
             <MapPin className="w-4 h-4 text-rose-500" />
-            Add Zones & Multiple Service Locations (Map Marked)
+            Add Zones & Multiple Service Locations
           </label>
           <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
             {zones.length} {zones.length === 1 ? "Zone" : "Zones"} Selected
@@ -256,33 +256,7 @@ export default function CategoryZonePicker({
         </div>
       </div>
 
-      {/* Google Map View dynamically displaying the selected/entered zone */}
-      <div className="space-y-1.5 pt-1">
-        <div className="flex items-center justify-between text-xs font-bold text-gray-700">
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            Live Map Area: <span className="text-indigo-600">{selectedMapLocation || "Delhi NCR"}</span>
-          </span>
-          <span className="text-[11px] text-gray-400 font-normal">
-            (Interactive Google Map with live place markers)
-          </span>
-        </div>
 
-        <div className="w-full h-80 sm:h-96 border border-gray-200 rounded-xl overflow-hidden shadow-inner bg-gray-100 relative">
-          <iframe
-            key={selectedMapLocation}
-            src={`https://maps.google.com/maps?q=${encodeURIComponent(
-              selectedMapLocation ? `${selectedMapLocation}, India` : "Noida, Delhi, India"
-            )}&t=&z=12&ie=UTF8&iwloc=&output=embed`}
-            width="100%"
-            height="100%"
-            style={{ border: 0 }}
-            allowFullScreen={false}
-            loading="lazy"
-            title="Google Map Zone View"
-          ></iframe>
-        </div>
-      </div>
 
       {/* Map ke Neeche Zone History Section */}
       <div className="bg-gray-50/80 rounded-xl p-4 border border-gray-200 space-y-3 mt-2">

@@ -172,7 +172,7 @@ export function isCategoryAvailableAtLocation(
     .filter((zone) => zone.length > 0);
 
   // If "all" or "all areas" or "india" is present
-  if (rawZones.some((z) => z === "all" || z === "all areas" || z === "all cities" || z === "pan india")) {
+  if (rawZones.some((z) => z === "all" || z === "all areas" || z === "all cities" || z === "pan india" || z === "india")) {
     return true;
   }
 

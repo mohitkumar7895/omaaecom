@@ -29,21 +29,20 @@ export default function Hero({ categories = [], banners = [] }: HeroProps) {
       try {
         const saved = localStorage.getItem("user_location");
         if (!saved) {
-          setVisibleCategories([]);
+          setVisibleCategories(categories);
           return;
         }
 
         const location = JSON.parse(saved);
-        setVisibleCategories(
-          categories.filter((category) =>
-            isCategoryAvailableAtLocation(
-              category.zones_location,
-              location.city || "",
-              location.address || "",
-              location.fullAddress || ""
-            )
+        const filtered = categories.filter((category) =>
+          isCategoryAvailableAtLocation(
+            category.zones_location,
+            location.city || "",
+            location.address || "",
+            location.fullAddress || ""
           )
         );
+        setVisibleCategories(filtered.length > 0 ? filtered : categories);
       } catch {
         setVisibleCategories(categories);
       }
