@@ -5,8 +5,8 @@ import { useRouter, usePathname } from "next/navigation";
 import { ChevronDown, MapPin, X, LocateFixed, Search, ChevronRight, Loader2, AlertCircle } from "lucide-react";
 
 interface LocationData {
-  latitude: number;
-  longitude: number;
+  latitude?: number;
+  longitude?: number;
   address: string;
   city: string;
   state: string;

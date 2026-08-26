@@ -36,10 +36,10 @@ export default function HomeCategoryStream({
         const saved = localStorage.getItem("user_location");
         if (saved) {
           const parsed = JSON.parse(saved);
-          if (parsed.latitude && parsed.longitude) {
+          if (parsed.city || parsed.address) {
             setUserLocation({
-              latitude: parsed.latitude,
-              longitude: parsed.longitude,
+              latitude: parsed.latitude || 0,
+              longitude: parsed.longitude || 0,
               city: parsed.city || "",
               address: parsed.address || "",
             });

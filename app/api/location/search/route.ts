@@ -12,34 +12,48 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Use OpenStreetMap Nominatim API for forward geocoding (searching)
-    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=jsonv2&addressdetails=1&limit=5`;
-    
-    const response = await fetch(url, {
-      headers: {
-        "User-Agent": "OmaaEcom/1.0 (contact@omaa.com)", 
-        "Accept-Language": "en-US,en;q=0.9", // Request English responses
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Geocoding API responded with status: ${response.status}`);
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: "Google Maps API Key is not configured" },
+        { status: 500 }
+      );
     }
 
-    const data = await response.json();
+    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&key=${apiKey}`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error(`Google Maps API error: ${res.statusText}`);
+    }
 
-    const results = data.map((item: any) => {
-      const address = item.address || {};
-      const city = address.city || address.town || address.village || address.suburb || address.county || item.name || "";
-      
+    const data = await res.json();
+    if (data.status !== "OK" || !data.results) {
+      return NextResponse.json({
+        success: true,
+        data: [],
+      });
+    }
+
+    const results = data.results.map((item: any) => {
+      const components = item.address_components || [];
+      const getComponent = (types: string[]) => {
+        const comp = components.find((c: any) =>
+          c.types.some((t: string) => types.includes(t))
+        );
+        return comp ? comp.long_name : "";
+      };
+
+      const city = getComponent(["locality", "administrative_area_level_3"]);
+      const state = getComponent(["administrative_area_level_1"]);
+      const country = getComponent(["country"]);
+      const postalCode = getComponent(["postal_code"]);
+
       return {
-        latitude: parseFloat(item.lat),
-        longitude: parseFloat(item.lon),
-        address: item.display_name,
-        city,
-        state: address.state || "",
-        country: address.country || "",
-        postalCode: address.postcode || "",
+        address: item.formatted_address,
+        city: city || "Local Area",
+        state,
+        country,
+        postalCode,
       };
     });
 
@@ -47,11 +61,12 @@ export async function GET(req: NextRequest) {
       success: true,
       data: results,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Geocoding Search Error:", error);
     return NextResponse.json(
-      { error: "Failed to search location" },
+      { error: error.message || "Failed to search location" },
       { status: 500 }
     );
   }
 }
+
