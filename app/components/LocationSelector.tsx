@@ -109,8 +109,18 @@ export default function LocationSelector() {
       try {
         const response = await fetch(`/api/location/search?q=${encodeURIComponent(searchQuery)}`);
         const data = await response.json();
-        if (response.ok && data.success) {
-          setSearchResults(data.data);
+        if (response.ok && (data.success || data.results)) {
+          // Map Nominatim results to LocationData format
+          const mapped = (data.results || data.data || []).map((r: any) => ({
+            address: r.display_name || r.address || '',
+            city: r.address?.city || r.address?.town || r.address?.village || r.display_name?.split(',')[0] || '',
+            state: r.address?.state || '',
+            country: r.address?.country || '',
+            postalCode: r.address?.postcode || '',
+            latitude: r.lat ? Number(r.lat) : undefined,
+            longitude: r.lon ? Number(r.lon) : undefined,
+          }));
+          setSearchResults(mapped);
         } else {
           setSearchResults([]);
         }
