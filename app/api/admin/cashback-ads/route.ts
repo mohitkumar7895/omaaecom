@@ -65,16 +65,11 @@ export async function POST(req: Request) {
       if (videoUrl && videoUrl.trim()) {
         mediaUrls.push(videoUrl.trim());
       } else if (videoFile && videoFile.size > 0) {
-        const uploadDir = path.join(process.cwd(), 'public/uploads/ads');
-        if (!existsSync(uploadDir)) {
-          await mkdir(uploadDir, { recursive: true });
-        }
         const bytes = await videoFile.arrayBuffer();
         const buffer = Buffer.from(bytes);
-        const fileName = `ad_${Date.now()}_${videoFile.name.replace(/\s+/g, '_')}`;
-        const filePath = path.join(uploadDir, fileName);
-        await writeFile(filePath, buffer);
-        mediaUrls.push(`/uploads/ads/${fileName}`);
+        const base64 = buffer.toString('base64');
+        const dataUrl = `data:${videoFile.type || 'video/mp4'};base64,${base64}`;
+        mediaUrls.push(dataUrl);
       } else {
         // Keep existing if no new file
         const existingUrls = formData.get('existing_media') as string;
@@ -91,16 +86,11 @@ export async function POST(req: Request) {
 
       for (const file of imageFiles) {
         if (file && file.size > 0) {
-          const uploadDir = path.join(process.cwd(), 'public/uploads/ads');
-          if (!existsSync(uploadDir)) {
-            await mkdir(uploadDir, { recursive: true });
-          }
           const bytes = await file.arrayBuffer();
           const buffer = Buffer.from(bytes);
-          const fileName = `ad_img_${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
-          const filePath = path.join(uploadDir, fileName);
-          await writeFile(filePath, buffer);
-          mediaUrls.push(`/uploads/ads/${fileName}`);
+          const base64 = buffer.toString('base64');
+          const dataUrl = `data:${file.type || 'image/jpeg'};base64,${base64}`;
+          mediaUrls.push(dataUrl);
         }
       }
 
