@@ -45,7 +45,7 @@ export async function GET() {
     });
   } catch (error: any) {
     console.error('Error fetching cashback ad config:', error);
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message || 'Internal Server Error' });
   }
 }
 
@@ -134,6 +134,6 @@ export async function POST(req: Request) {
 
   } catch (error: any) {
     console.error('Error saving cashback ads:', error);
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message || 'Internal Server Error' });
   }
 }
