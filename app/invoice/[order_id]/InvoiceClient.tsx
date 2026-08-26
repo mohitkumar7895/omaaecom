@@ -9,9 +9,10 @@ interface InvoiceClientProps {
   booking: any;
   services: any[];
   gstSettings: any;
+  resolvedCategory?: string;
 }
 
-export default function InvoiceClient({ booking, services, gstSettings }: InvoiceClientProps) {
+export default function InvoiceClient({ booking, services, gstSettings, resolvedCategory }: InvoiceClientProps) {
   const handlePrint = () => window.print();
 
   const bookingDate = booking.booking_date
@@ -40,7 +41,7 @@ export default function InvoiceClient({ booking, services, gstSettings }: Invoic
   }
 
   const detectedConvenienceFee = !isGstEligibleService ? Math.max(0, total - subtotal) : 0;
-  const categoryLabel = booking.category || booking.type || 'Service';
+  const categoryLabel = resolvedCategory || booking.category || booking.type || 'Service';
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 font-sans print:bg-white print:p-0 print:m-0">

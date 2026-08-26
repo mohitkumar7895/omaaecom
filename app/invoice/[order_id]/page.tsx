@@ -39,8 +39,31 @@ export default async function InvoicePage(props: { params: Promise<{ order_id: s
     parsedServices = typeof booking.services === 'string' ? JSON.parse(booking.services) : booking.services;
   } catch (e) {}
 
+  // Look up actual category name from DB using first service's ID
+  // This fixes old bookings where booking.category was stored as 'Service' fallback
+  let resolvedCategory = booking.category || booking.type || 'Service';
+  if ((resolvedCategory === 'Service' || !resolvedCategory) && Array.isArray(parsedServices) && parsedServices.length > 0) {
+    const firstServiceId = parsedServices[0]?.id;
+    if (firstServiceId) {
+      try {
+        const [catRows]: any = await pool.query(
+          `SELECT c.title as category_name 
+           FROM services s 
+           JOIN categories c ON s.category_id = c.id 
+           WHERE s.id = ? LIMIT 1`,
+          [firstServiceId]
+        );
+        if (catRows && catRows.length > 0 && catRows[0].category_name) {
+          resolvedCategory = catRows[0].category_name;
+        }
+      } catch (e) {
+        console.error('Category lookup failed:', e);
+      }
+    }
+  }
+
   // Serialize entire booking to safely pass to client component (removes Date objects)
   const safeBooking = JSON.parse(JSON.stringify(booking));
 
-  return <InvoiceClient booking={safeBooking} services={parsedServices} gstSettings={gstSettings} />;
+  return <InvoiceClient booking={safeBooking} services={parsedServices} gstSettings={gstSettings} resolvedCategory={resolvedCategory} />;
 }

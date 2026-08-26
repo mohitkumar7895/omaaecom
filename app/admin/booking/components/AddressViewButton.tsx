@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MapPin, X, MessageCircle, ExternalLink, Copy, Check, User, Phone, Calendar, Clock, Package, IndianRupee } from "lucide-react";
 
 interface AddressModalProps {
@@ -24,14 +24,32 @@ interface AddressModalProps {
 export default function AddressViewButton({ booking }: AddressModalProps) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [coords, setCoords] = useState<{lat: number; lon: number} | null>(null);
 
   const address = booking.address || "Address not provided";
 
-  // Google Maps search URL from address text
-  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+  // Geocode address to get coordinates when modal opens
+  useEffect(() => {
+    if (!open || coords) return;
+    fetch(`/api/location/search?q=${encodeURIComponent(address)}`)
+      .then(r => r.json())
+      .then(data => {
+        const first = (data.results || data.data || [])[0];
+        if (first?.lat && first?.lon) {
+          setCoords({ lat: Number(first.lat), lon: Number(first.lon) });
+        }
+      })
+      .catch(() => {});
+  }, [open]);
 
-  // Google Maps embed iframe URL
-  const mapsEmbedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(address)}&output=embed&z=15`;
+  // Maps URLs
+  const googleMapsUrl = coords
+    ? `https://www.google.com/maps/dir/?api=1&destination=${coords.lat},${coords.lon}`
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+
+  const mapsEmbedUrl = coords
+    ? `https://maps.google.com/maps?q=${coords.lat},${coords.lon}&output=embed&z=16`
+    : `https://maps.google.com/maps?q=${encodeURIComponent(address)}&output=embed&z=15`;
 
   const handleCopy = async () => {
     try {
@@ -41,33 +59,34 @@ export default function AddressViewButton({ booking }: AddressModalProps) {
     } catch {}
   };
 
-  // Build WhatsApp message with full booking details
-  const servicesText = Array.isArray(booking.services)
-    ? booking.services.map((s: any) => `  • ${s.title} × ${s.quantity || 1} = ₹${s.price}`).join("\n")
-    : String(booking.services || "—");
+  // Format date as DD-Mon-YYYY
+  const formattedDate = booking.booking_date
+    ? new Date(booking.booking_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-')
+    : '—';
 
-  const whatsappText = `Hello ${booking.customer_name} 👋,
+  // First service name for the message
+  const firstService = Array.isArray(booking.services) && booking.services.length > 0
+    ? booking.services[0].title
+    : (booking.category || booking.type || 'Service');
 
-Here are your booking details:
+  // Map link for WhatsApp
+  const mapLink = coords
+    ? `https://www.google.com/maps/dir/?api=1&destination=${coords.lat},${coords.lon}`
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 
-🆔 *Order ID:* ${booking.order_id}
-📋 *Category:* ${booking.category || booking.type || "—"}
-📍 *Service Address:*
-${address}
+  const whatsappText = `*OMAA Company New Booking*
+${booking.category || booking.type || 'Service'}
 
-🛠 *Services Booked:*
-${servicesText}
+Name: ${booking.customer_name}
+Service: ${firstService}
+Total: Rs.${booking.total}
 
-💰 *Total Amount:* ₹${booking.total}
-💳 *Payment:* ${booking.payment_method}
-📅 *Date:* ${booking.booking_date ? new Date(booking.booking_date).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" }) : "—"}
-⏰ *Time Slot:* ${booking.time_slot || "—"}
-✅ *Status:* ${booking.working_status || "Pending"}
+Slot Time: ${booking.time_slot || '—'}
+Date: ${formattedDate}
+Address: ${address}
+Map: ${mapLink}`;
 
-Thank you for choosing *OMAA Company*! 🙏
-For any queries, contact us at support@omaacompany.com`;
-
-  // WhatsApp URL without number - opens contact picker in WhatsApp
+  // WhatsApp URL without number - opens contact picker
   const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappText)}`;
 
   return (
@@ -152,18 +171,34 @@ For any queries, contact us at support@omaacompany.com`;
                 </div>
               </div>
 
-              {/* Google Maps Embed */}
-              <div className="rounded-xl overflow-hidden border border-gray-200 shadow-sm">
-                <iframe
-                  src={mapsEmbedUrl}
-                  width="100%"
-                  height="220"
-                  style={{ border: 0 }}
-                  allowFullScreen
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  title="Customer Location"
-                />
+              {/* Google Maps Live Location */}
+              <div>
+                <p className="text-[11px] font-black text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <MapPin className="w-3 h-3 text-red-500" />
+                  Live Location on Google Maps
+                </p>
+                <div className="rounded-xl overflow-hidden border-2 border-blue-200 shadow-md">
+                  <iframe
+                    src={mapsEmbedUrl}
+                    width="100%"
+                    height="280"
+                    style={{ border: 0, display: 'block' }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="Customer Location"
+                  />
+                </div>
+                <a
+                  href={googleMapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-bold transition-all shadow-sm hover:-translate-y-0.5"
+                >
+                  <MapPin className="w-4 h-4" />
+                  Open Live Location in Google Maps
+                  <ExternalLink className="w-3.5 h-3.5 opacity-80" />
+                </a>
               </div>
 
               {/* Booking Summary */}

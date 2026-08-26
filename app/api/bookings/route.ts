@@ -81,6 +81,7 @@ export async function POST(req: Request) {
       title: item.title,
       quantity: item.quantity,
       price: item.selling_price,
+      category_id: item.category_id,
     })));
 
     const categoryName = cart_items[0]?.category_title || 'Service';
