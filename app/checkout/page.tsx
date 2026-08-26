@@ -419,8 +419,45 @@ function CheckoutContent() {
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="text-[13px] font-bold text-gray-700">Service Address</label>
+                  <label className="text-[13px] font-bold text-gray-700 block">Service Address</label>
+
+                  {/* 1. Manual Address Textarea (Upar) */}
+                  <textarea 
+                    rows={3}
+                    name="address"
+                    value={form.address}
+                    onChange={handleChange}
+                    placeholder="House No, Street, Landmark, City, Pincode" 
+                    className={`w-full bg-white border rounded-xl px-4 py-3 outline-none transition-all resize-none text-gray-900 font-medium placeholder:text-gray-300 ${errors.address ? 'border-red-400 focus:ring-4 focus:ring-red-100' : 'border-gray-200 focus:border-black focus:ring-4 focus:ring-black/5 hover:border-gray-300'}`}
+                  ></textarea>
+                  {errors.address && <p className="text-red-500 text-xs font-medium flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5"/>{errors.address}</p>}
+
+                  {/* 2. Compact Search Address Bar + Use GPS Button side-by-side (Neeche) */}
+                  <div className="flex items-center gap-2 pt-0.5">
+                    <div className="relative flex-1">
+                      <input
+                        type="text"
+                        value={addrQuery}
+                        onChange={e => setAddrQuery(e.target.value)}
+                        placeholder="🔍 Search area, society, landmark to auto-fill..."
+                        className="w-full bg-gray-50/80 hover:bg-white focus:bg-white border border-gray-200 rounded-xl px-3.5 py-2 text-xs sm:text-[13px] outline-none focus:border-[#6b62d9] focus:ring-2 focus:ring-[#6b62d9]/15 hover:border-gray-300 transition-all text-gray-800 placeholder:text-gray-400"
+                      />
+                      {addrResults.length > 0 && (
+                        <ul className="absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl max-h-52 overflow-y-auto divide-y divide-gray-50">
+                          {addrResults.map((r, i) => (
+                            <li
+                              key={i}
+                              onClick={() => selectAddr(r.label)}
+                              className="px-3.5 py-2 text-xs sm:text-[13px] text-gray-800 cursor-pointer hover:bg-indigo-50 hover:text-indigo-700 font-medium transition-colors"
+                            >
+                              {r.label}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+
+                    {/* Use GPS Button right next to search input */}
                     <button
                       type="button"
                       onClick={async () => {
@@ -437,48 +474,12 @@ function CheckoutContent() {
                           alert(e.message || "Failed to fetch live address.");
                         }
                       }}
-                      className="text-xs font-bold text-[#6b62d9] hover:text-[#5249be] flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition"
+                      className="shrink-0 text-xs font-bold text-[#6b62d9] hover:text-white hover:bg-[#6b62d9] flex items-center gap-1.5 bg-indigo-50 hover:bg-indigo-600 border border-indigo-200 px-3.5 py-2 rounded-xl transition shadow-xs active:scale-95 cursor-pointer"
+                      title="Fetch Live GPS Location"
                     >
                       <MapPin className="w-3.5 h-3.5" />
                       <span>Use GPS</span>
                     </button>
-                  </div>
-
-                  {/* 1. Manual Address Textarea (Upar) */}
-                  <textarea 
-                    rows={3}
-                    name="address"
-                    value={form.address}
-                    onChange={handleChange}
-                    placeholder="House No, Street, Landmark, City, Pincode" 
-                    className={`w-full bg-white border rounded-xl px-4 py-3 outline-none transition-all resize-none text-gray-900 font-medium placeholder:text-gray-300 ${errors.address ? 'border-red-400 focus:ring-4 focus:ring-red-100' : 'border-gray-200 focus:border-black focus:ring-4 focus:ring-black/5 hover:border-gray-300'}`}
-                  ></textarea>
-                  {errors.address && <p className="text-red-500 text-xs font-medium flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5"/>{errors.address}</p>}
-
-                  {/* 2. Compact Search Address Bar (Neeche) */}
-                  <div className="relative pt-0.5">
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={addrQuery}
-                        onChange={e => setAddrQuery(e.target.value)}
-                        placeholder="🔍 Or search area, society, landmark to auto-fill..."
-                        className="w-full bg-gray-50/80 hover:bg-white focus:bg-white border border-gray-200 rounded-xl px-3.5 py-2 text-xs sm:text-[13px] outline-none focus:border-[#6b62d9] focus:ring-2 focus:ring-[#6b62d9]/15 hover:border-gray-300 transition-all text-gray-800 placeholder:text-gray-400"
-                      />
-                    </div>
-                    {addrResults.length > 0 && (
-                      <ul className="absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl max-h-52 overflow-y-auto divide-y divide-gray-50">
-                        {addrResults.map((r, i) => (
-                          <li
-                            key={i}
-                            onClick={() => selectAddr(r.label)}
-                            className="px-3.5 py-2 text-xs sm:text-[13px] text-gray-800 cursor-pointer hover:bg-indigo-50 hover:text-indigo-700 font-medium transition-colors"
-                          >
-                            {r.label}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
                   </div>
                 </div>
 

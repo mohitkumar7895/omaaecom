@@ -5,6 +5,7 @@ import ExportButtons from "../components/ExportButtons";
 import WorkingStatusSelect from "./components/WorkingStatusSelect";
 import PaymentStatusSelect from "./components/PaymentStatusSelect";
 import InvoiceStatusSelect from "./components/InvoiceStatusSelect";
+import BookingSearchInput from "./components/BookingSearchInput";
 import EditableTotal from "./components/EditableTotal";
 import AddressViewButton from "./components/AddressViewButton";
 import { updateWorkingStatus, updateTotal, updateCashback, updatePaymentStatus, updateInvoiceStatus } from "./actions";
@@ -129,16 +130,8 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
             </div>
           </div>
           
-          <div className="relative w-full lg:w-64">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-4 h-4 text-gray-400" />
-            </div>
-            <input 
-              type="text" 
-              placeholder="Search bookings..." 
-              className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-[13px] outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm"
-            />
-          </div>
+          {/* Live Search Input */}
+          <BookingSearchInput tableId="bookingsTable" />
         </div>
 
         {/* The Table */}
