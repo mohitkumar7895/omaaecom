@@ -84,7 +84,25 @@ export async function POST(req: Request) {
       category_id: item.category_id,
     })));
 
-    const categoryName = cart_items[0]?.category_title || 'Service';
+    let categoryName = cart_items[0]?.category_title || cart_items[0]?.category || '';
+    if (!categoryName || categoryName.toLowerCase() === 'service') {
+      try {
+        const firstItem = cart_items[0];
+        const catId = firstItem?.category_id;
+        const svcId = firstItem?.id;
+        if (catId) {
+          const [catRows]: any = await pool.query(`SELECT title FROM categories WHERE id = ?`, [catId]);
+          if (catRows.length > 0) categoryName = catRows[0].title;
+        } else if (svcId) {
+          const [catRows]: any = await pool.query(
+            `SELECT c.title FROM services s JOIN categories c ON s.category_id = c.id WHERE s.id = ?`,
+            [svcId]
+          );
+          if (catRows.length > 0) categoryName = catRows[0].title;
+        }
+      } catch (e) {}
+    }
+    if (!categoryName) categoryName = 'Service';
 
     // Determine type (AMC vs New Product vs Normal Service)
     let bookingType = 'Normal Service';

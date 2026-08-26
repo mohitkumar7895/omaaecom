@@ -24,6 +24,20 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
       query = `SELECT * FROM bookings WHERE type = '${filter}' ORDER BY created_at DESC`;
     }
     const [rows]: any = await pool.query(query);
+    
+    // Fetch categories and services to resolve category accurately
+    const [allCats]: any = await pool.query(`SELECT id, title FROM categories`).catch(() => [[]]);
+    const catMap = new Map<number, string>();
+    if (Array.isArray(allCats)) {
+      allCats.forEach((c: any) => catMap.set(c.id, c.title));
+    }
+
+    const [allSvcs]: any = await pool.query(`SELECT id, category_id, title FROM services`).catch(() => [[]]);
+    const svcCatMap = new Map<number, number>();
+    if (Array.isArray(allSvcs)) {
+      allSvcs.forEach((s: any) => svcCatMap.set(s.id, s.category_id));
+    }
+
     bookings = rows.map((row: any) => {
       // Parse services JSON if it's a string
       let parsedServices = row.services;
@@ -32,7 +46,23 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
           parsedServices = JSON.parse(row.services);
         }
       } catch {}
-      return { ...row, services: parsedServices };
+
+      // Resolve category accurately
+      let resolvedCategory = row.category;
+      if (!resolvedCategory || resolvedCategory.toLowerCase() === 'service') {
+        if (Array.isArray(parsedServices) && parsedServices.length > 0) {
+          const firstSvc = parsedServices[0];
+          const catId = firstSvc?.category_id || svcCatMap.get(Number(firstSvc?.id));
+          if (catId && catMap.has(catId)) {
+            resolvedCategory = catMap.get(catId);
+          }
+        }
+      }
+      if (!resolvedCategory || resolvedCategory.toLowerCase() === 'service') {
+        resolvedCategory = row.type || 'Service';
+      }
+
+      return { ...row, category: resolvedCategory, services: parsedServices };
     });
   } catch (e) {
     console.error("Failed to fetch bookings:", e);
