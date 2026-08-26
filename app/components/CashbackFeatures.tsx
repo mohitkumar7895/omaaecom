@@ -27,6 +27,7 @@ export default function CashbackFeatures({ orderId, isEligible = true }: Cashbac
   const [isDragging, setIsDragging] = useState(false);
   const [dragPercent, setDragPercent] = useState(25);
   const containerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -152,6 +153,17 @@ export default function CashbackFeatures({ orderId, isEligible = true }: Cashbac
     }
     return () => clearInterval(interval);
   }, [playingAd, adCountdown, adPaused, cashbackData]);
+
+  // Controlled video play/pause
+  useEffect(() => {
+    if (videoRef.current) {
+      if (adPaused) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play().catch(() => {});
+      }
+    }
+  }, [adPaused]);
 
   // Handle 24h Timer
   useEffect(() => {
@@ -310,18 +322,13 @@ export default function CashbackFeatures({ orderId, isEligible = true }: Cashbac
                               }
                               return (
                                 <video 
+                                  ref={videoRef}
                                   src={videoSrc} 
                                   autoPlay 
                                   playsInline 
                                   muted 
                                   loop
                                   className="w-full h-full object-contain bg-black"
-                                  ref={(el) => {
-                                    if (el) {
-                                      if (adPaused) el.pause();
-                                      else el.play().catch(()=>{});
-                                    }
-                                  }}
                                 />
                               );
                             })()}

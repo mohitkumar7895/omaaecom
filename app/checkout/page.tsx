@@ -397,63 +397,19 @@ function CheckoutContent() {
                     <label className="text-[13px] font-bold text-gray-700">Service Address</label>
                     <button
                       type="button"
-                      onClick={() => {
-                        if (!("geolocation" in navigator)) {
-                          alert("Geolocation is not supported by your browser.");
-                          return;
+                      onClick={async () => {
+                        try {
+                          const { getCurrentLocation } = await import("@/lib/location");
+                          const locationData = await getCurrentLocation();
+                          if (locationData.address) {
+                            setForm(prev => ({ ...prev, address: locationData.address }));
+                            setErrors(prev => ({ ...prev, address: '' }));
+                            localStorage.setItem("user_location", JSON.stringify(locationData));
+                            window.dispatchEvent(new Event("location_changed"));
+                          }
+                        } catch (e: any) {
+                          alert(e.message || "Failed to fetch live address.");
                         }
-                        
-                        navigator.geolocation.getCurrentPosition(
-                          async (position) => {
-                            try {
-                              const { latitude, longitude } = position.coords;
-                              const res = await fetch("/api/location/geocode", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ latitude, longitude }),
-                              });
-                              const data = await res.json();
-                              
-                              if (!res.ok || !data.success) {
-                                let errorMsg = data.error || "Failed to resolve address.";
-                                if (errorMsg.includes("API Key is not configured")) {
-                                  errorMsg = "Location service configuration error (API Key is missing). Please check environment variables.";
-                                } else if (errorMsg.includes("REQUEST_DENIED")) {
-                                  errorMsg = "Google Geocoding API request denied. Please ensure Billing is enabled on the Google Cloud Project.";
-                                } else if (errorMsg.includes("Unable to resolve location")) {
-                                  errorMsg = "Address not found. Please type your address manually.";
-                                }
-                                throw new Error(errorMsg);
-                              }
-
-                              if (data.data.address) {
-                                setForm(prev => ({ ...prev, address: data.data.address }));
-                                setErrors(prev => ({ ...prev, address: '' }));
-                                localStorage.setItem("user_location", JSON.stringify(data.data));
-                                window.dispatchEvent(new Event("location_changed"));
-                              }
-                            } catch (e: any) {
-                              alert(e.message || "Failed to fetch live address.");
-                            }
-                          },
-                          (err) => {
-                            switch (err.code) {
-                              case err.PERMISSION_DENIED:
-                                alert("Location permission denied. Please allow location access in your browser settings.");
-                                break;
-                              case err.POSITION_UNAVAILABLE:
-                                alert("GPS location details are unavailable. Please type your address manually.");
-                                break;
-                              case err.TIMEOUT:
-                                alert("The request to get your GPS location timed out. Please try again.");
-                                break;
-                              default:
-                                alert("Failed to fetch GPS coordinates. Please enter manually.");
-                                break;
-                            }
-                          },
-                          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-                        );
                       }}
                       className="text-xs font-bold text-[#6b62d9] hover:text-[#5249be] flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg transition"
                     >

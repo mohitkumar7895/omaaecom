@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { getCurrentLocation } from "@/lib/location";
 import { ChevronDown, MapPin, X, LocateFixed, Search, ChevronRight, Loader2, AlertCircle } from "lucide-react";
 
 interface LocationData {
@@ -135,84 +136,28 @@ export default function LocationSelector() {
     setIsOpen(false);
   };
 
-  const handleGetCurrentLocation = () => {
+  const handleGetCurrentLocation = async () => {
     setError(null);
     setIsLoading(true);
-
-    if (!("geolocation" in navigator)) {
-      setError("Geolocation is not supported by your browser.");
-      setIsLoading(false);
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        try {
-          const { latitude, longitude } = position.coords;
-          
-          // Call our secure backend API to reverse geocode
-          const response = await fetch("/api/location/geocode", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ latitude, longitude }),
-          });
-
-          const data = await response.json();
-
-          if (!response.ok || !data.success) {
-            let errorMsg = data.error || "Failed to resolve location";
-            if (errorMsg.includes("API Key is not configured")) {
-              errorMsg = "Location service configuration error (API Key is missing). Please verify .env settings.";
-            } else if (errorMsg.includes("REQUEST_DENIED")) {
-              errorMsg = "Google Geocoding API request denied. Please ensure Billing is enabled on your Google Cloud Project.";
-            } else if (errorMsg.includes("Unable to resolve location")) {
-              errorMsg = "Address not found. Please type your location manually.";
-            }
-            throw new Error(errorMsg);
-          }
-
-          const locationData = data.data;
-          
-          // Save to state and local storage
-          setLocation(locationData);
-          localStorage.setItem("user_location", JSON.stringify(locationData));
-          window.dispatchEvent(new Event("location_changed"));
-          
-          if (locationData.city) {
-            router.push(`/${locationData.city.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`);
-          }
-          
-          // Close modal after successful detection
-          setIsOpen(false);
-        } catch (err: any) {
-          setError(err.message || "Failed to detect location");
-        } finally {
-          setIsLoading(false);
-        }
-      },
-      (geoError) => {
-        setIsLoading(false);
-        switch (geoError.code) {
-          case geoError.PERMISSION_DENIED:
-            setError("Location permission was denied. Please allow access in your browser settings.");
-            break;
-          case geoError.POSITION_UNAVAILABLE:
-            setError("Location information is currently unavailable.");
-            break;
-          case geoError.TIMEOUT:
-            setError("The request to get your location timed out.");
-            break;
-          default:
-            setError("An unknown error occurred while getting location.");
-            break;
-        }
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
+    try {
+      const locationData = await getCurrentLocation();
+      
+      // Save to state and local storage
+      setLocation(locationData);
+      localStorage.setItem("user_location", JSON.stringify(locationData));
+      window.dispatchEvent(new Event("location_changed"));
+      
+      if (locationData.city) {
+        router.push(`/${locationData.city.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`);
       }
-    );
+      
+      // Close modal after successful detection
+      setIsOpen(false);
+    } catch (err: any) {
+      setError(err.message || "Failed to detect location");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Determine what to show on the trigger button
