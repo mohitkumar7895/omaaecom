@@ -43,10 +43,12 @@ export async function GET() {
     let bookings: BookingRow[] = [];
     try {
       const [rows] = await pool.query(
-        `SELECT * FROM bookings
-         WHERE user_email = ?
-            OR (? IS NOT NULL AND mobile = ?)
-         ORDER BY created_at DESC`,
+        `SELECT b.*, w.issued_date as warranty_start, w.expiry_date as warranty_end, w.days_valid as warranty_days_valid
+         FROM bookings b
+         LEFT JOIN warranties w ON b.order_id = w.order_id
+         WHERE b.user_email = ?
+            OR (? IS NOT NULL AND b.mobile = ?)
+         ORDER BY b.created_at DESC`,
         [userEmail, userMobile, userMobile]
       ) as unknown as [BookingRow[]];
       bookings = rows || [];
@@ -58,7 +60,11 @@ export async function GET() {
         try {
         // Fallback: query bookings by mobile only (legacy approach)
         const [fallbackRows] = await pool.query(
-          `SELECT * FROM bookings WHERE mobile = ? ORDER BY created_at DESC LIMIT 50`,
+          `SELECT b.*, w.issued_date as warranty_start, w.expiry_date as warranty_end, w.days_valid as warranty_days_valid
+           FROM bookings b
+           LEFT JOIN warranties w ON b.order_id = w.order_id
+           WHERE b.mobile = ? 
+           ORDER BY b.created_at DESC LIMIT 50`,
           [userMobile]
         ) as unknown as [BookingRow[]];
         bookings = fallbackRows || [];

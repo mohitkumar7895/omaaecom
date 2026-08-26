@@ -7,7 +7,25 @@ import { writeFile } from "fs/promises";
 import path from "path";
 import fs from "fs";
 
+async function runMigration() {
+  try {
+    await pool.query("ALTER TABLE categories ADD COLUMN IF NOT EXISTS warranty_days INT DEFAULT 180");
+  } catch (e) {
+    try {
+      await pool.query("ALTER TABLE categories ADD COLUMN warranty_days INT DEFAULT 180");
+    } catch (err) {}
+  }
+  try {
+    await pool.query("ALTER TABLE categories ADD COLUMN IF NOT EXISTS short_description TEXT DEFAULT NULL");
+  } catch (e) {
+    try {
+      await pool.query("ALTER TABLE categories ADD COLUMN short_description TEXT DEFAULT NULL");
+    } catch (err) {}
+  }
+}
+
 export async function getActiveCategories() {
+  await runMigration();
   try {
     const [rows]: any = await pool.query("SELECT id, title FROM categories WHERE status = 'Active'");
     return rows;
@@ -25,6 +43,8 @@ export async function saveCategory(formData: FormData) {
   const zones = formData.get("zones") as string;
   const zonesLocation = formData.get("zones_location") as string;
   const image = formData.get("image") as File | null;
+  const warrantyDays = formData.get("warranty_days") as string || "180";
+  const shortDescription = formData.get("short_description") as string || "";
 
   let imageUrl = "";
 
@@ -42,13 +62,15 @@ export async function saveCategory(formData: FormData) {
     imageUrl = `/uploads/categories/${fileName}`;
   }
 
+  await runMigration();
+
   try {
     const query = `
-      INSERT INTO categories (title, type, labour_charges, zones, zones_location, image_url)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO categories (title, type, labour_charges, zones, zones_location, image_url, warranty_days, short_description)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
     
-    await pool.query(query, [title, type, parseInt(labourCharges), parseInt(zones), zonesLocation || '', imageUrl]);
+    await pool.query(query, [title, type, parseInt(labourCharges), parseInt(zones), zonesLocation || '', imageUrl, parseInt(warrantyDays), shortDescription]);
   } catch (error) {
     console.error("Error saving category:", error);
     return { error: "Failed to save category" };
@@ -74,13 +96,17 @@ export async function updateCategory(formData: FormData) {
   const zones = formData.get("zones") as string;
   const zonesLocation = formData.get("zones_location") as string;
   const image = formData.get("image") as File | null;
+  const warrantyDays = formData.get("warranty_days") as string || "180";
+  const shortDescription = formData.get("short_description") as string || "";
+
+  await runMigration();
 
   try {
     let query = `
       UPDATE categories 
-      SET title = ?, type = ?, labour_charges = ?, zones = ?, zones_location = ?
+      SET title = ?, type = ?, labour_charges = ?, zones = ?, zones_location = ?, warranty_days = ?, short_description = ?
     `;
-    let params: any[] = [title, type, parseInt(labourCharges) || 0, parseInt(zones) || 1, zonesLocation || ''];
+    let params: any[] = [title, type, parseInt(labourCharges) || 0, parseInt(zones) || 1, zonesLocation || '', parseInt(warrantyDays), shortDescription];
 
     if (image && image.size > 0) {
       const uploadDir = path.join(process.cwd(), "public/uploads/categories");

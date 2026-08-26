@@ -36,16 +36,33 @@ export async function updateWorkingStatus(formData: FormData) {
           try {
             const [existingW]: any = await pool.query("SELECT id FROM warranties WHERE order_id = ?", [booking.order_id]);
             if (existingW.length === 0) {
-              const days = (booking.type === 'AMC' || booking.type === 'New Product') ? 365 : 180;
+              // Fetch category's warranty days
+              let days = 180;
+              try {
+                const [catRows]: any = await pool.query(
+                  "SELECT warranty_days FROM categories WHERE title = ? LIMIT 1",
+                  [booking.category]
+                );
+                if (catRows && catRows.length > 0 && catRows[0].warranty_days !== null) {
+                  days = catRows[0].warranty_days;
+                } else {
+                  days = (booking.type === 'AMC' || booking.type === 'New Product') ? 365 : 180;
+                }
+              } catch (catErr) {
+                console.error("Error reading category warranty_days:", catErr);
+                days = (booking.type === 'AMC' || booking.type === 'New Product') ? 365 : 180;
+              }
+
               const issuedDate = new Date().toISOString().slice(0, 10);
               const expiryDateObj = new Date();
               expiryDateObj.setDate(expiryDateObj.getDate() + days);
               const expiryDate = expiryDateObj.toISOString().slice(0, 10);
               
+              // Correct columns to match setup-warranties.js schema
               await pool.query(
-                `INSERT INTO warranties (order_id, customer_name, mobile, category, warranty_days, issued_date, expiry_date, status) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?, 'ACTIVE')`,
-                [booking.order_id, booking.customer_name, booking.mobile, booking.category || booking.type || 'Service', days, issuedDate, expiryDate]
+                `INSERT INTO warranties (order_id, customer_name, customer_phone, days_valid, issued_date, expiry_date, status) 
+                 VALUES (?, ?, ?, ?, ?, ?, 'ACTIVE')`,
+                [booking.order_id, booking.customer_name, booking.mobile, days, issuedDate, expiryDate]
               );
             }
           } catch (wErr) {

@@ -132,48 +132,7 @@ export default function AddServiceForm({ categories, subcategories }: { categori
               />
             </div>
 
-            {/* Warranty */}
-            <div>
-              <label className="block text-[#2c3e50] text-[15px] font-bold mb-2">
-                Service Warranty (in days)
-              </label>
-              <input 
-                type="number" 
-                name="warranty_days"
-                placeholder="180"
-                defaultValue="180"
-                className="w-full border border-gray-200 rounded text-[15px] px-4 py-2.5 outline-none focus:border-blue-500 shadow-sm"
-              />
-              <p className="text-xs text-gray-500 mt-1">Standard is 180 days. Enter 0 for no warranty.</p>
-            </div>
 
-            {/* Warranty Description */}
-            <div>
-              <label className="block text-[#2c3e50] text-[15px] font-bold mb-2">
-                Warranty Description
-              </label>
-              <textarea 
-                name="warranty_description"
-                rows={2}
-                placeholder="Optional: Details about warranty coverage..."
-                className="w-full border border-gray-200 rounded text-[15px] px-4 py-2.5 outline-none focus:border-blue-500 shadow-sm"
-              />
-              <p className="text-xs text-gray-500 mt-1">Use | for bullet points. Example: Valid on parts | Labor excluded</p>
-            </div>
-
-            {/* Short Description */}
-            <div>
-              <label className="block text-[#2c3e50] text-[15px] font-bold mb-2">
-                Short Description (Points)
-              </label>
-              <textarea 
-                name="short_description"
-                rows={3}
-                placeholder="Enter each point on a new line or separate with | symbol"
-                className="w-full border border-gray-200 rounded text-[15px] px-4 py-2.5 outline-none focus:border-blue-500 shadow-sm"
-              />
-              <p className="text-xs text-gray-500 mt-1">Example: Professional service | Experienced staff | Quality guaranteed</p>
-            </div>
 
             {/* Long Description */}
             <div>

@@ -42,6 +42,9 @@ interface Booking {
   coupon_status?: string;
   payment_status?: string;
   type?: string;
+  warranty_start?: string;
+  warranty_end?: string;
+  warranty_days_valid?: number;
 }
 
 export default function MyBookingsPage() {
@@ -372,18 +375,38 @@ export default function MyBookingsPage() {
                     <div className="p-3.5 sm:p-4 bg-[#fafbfc] border-t border-gray-100 space-y-3 animate-in fade-in duration-150">
                       
                       {/* Warranty Details Box */}
-                      <div className="bg-white rounded-lg p-3 border border-gray-100 shadow-2xs">
-                        <div className="flex items-center gap-1.5 mb-1.5 text-[11px] font-bold uppercase tracking-wider text-gray-500 border-b border-gray-50 pb-1">
-                          <ShieldCheck className="w-3.5 h-3.5 text-gray-500" />
-                          <span>Warranty Details</span>
+                      {isComplete && (booking.warranty_start || booking.warranty_days_valid) && (
+                        <div className="bg-white rounded-lg p-3 border border-gray-100 shadow-2xs">
+                          <div className="flex items-center gap-1.5 mb-1.5 text-[11px] font-bold uppercase tracking-wider text-gray-500 border-b border-gray-50 pb-1">
+                            <ShieldCheck className="w-3.5 h-3.5 text-gray-500" />
+                            <span>Warranty Details</span>
+                          </div>
+                          <div className="space-y-1.5 text-xs text-gray-700">
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-600 font-medium">Warranty Period</span>
+                              <span className="font-bold text-gray-900">
+                                {booking.warranty_days_valid || 180} days
+                              </span>
+                            </div>
+                            {booking.warranty_start && (
+                              <div className="flex justify-between items-center">
+                                <span className="text-gray-600 font-medium">Start Date</span>
+                                <span className="font-bold text-gray-900">
+                                  {new Date(booking.warranty_start).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                </span>
+                              </div>
+                            )}
+                            {booking.warranty_end && (
+                              <div className="flex justify-between items-center">
+                                <span className="text-gray-600 font-medium">End Date</span>
+                                <span className="font-bold text-emerald-600">
+                                  {new Date(booking.warranty_end).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                </span>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex justify-between items-center text-xs">
-                          <span className="text-gray-600 font-medium">Warranty</span>
-                          <span className="font-bold text-gray-900">
-                            {booking.type === 'AMC' ? '365 days' : '180 days'}
-                          </span>
-                        </div>
-                      </div>
+                      )}
 
                       {/* Payment Summary Box */}
                       <div className="bg-white rounded-lg p-3 border border-gray-100 shadow-2xs relative">

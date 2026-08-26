@@ -131,48 +131,7 @@ export default function EditServiceForm({ service, categories, subcategories }: 
               />
             </div>
 
-            {/* Warranty */}
-            <div>
-              <label className="block text-gray-700 text-sm mb-1">
-                Warranty (days)
-              </label>
-              <input 
-                type="number" 
-                name="warranty_days"
-                defaultValue={service.warranty_days}
-                placeholder="180"
-                className="w-full border border-gray-300 rounded text-sm px-3 py-2 outline-none focus:border-[#2c3e50]"
-              />
-            </div>
 
-            {/* Warranty Description */}
-            <div>
-              <label className="block text-gray-700 text-sm mb-1">
-                Warranty Description
-              </label>
-              <textarea 
-                name="warranty_description"
-                rows={2}
-                defaultValue={service.warranty_description || ""}
-                placeholder="Optional: Details about warranty coverage..."
-                className="w-full border border-gray-300 rounded text-sm px-3 py-2 outline-none focus:border-[#2c3e50]"
-              />
-              <p className="text-xs text-gray-500 mt-1">Use | for bullet points. Example: Valid on parts | Labor excluded</p>
-            </div>
-
-            {/* Short Description */}
-            <div>
-              <label className="block text-gray-700 text-sm mb-1">
-                Short Description (Points)
-              </label>
-              <textarea 
-                name="short_description"
-                rows={3}
-                defaultValue={service.short_description || ""}
-                placeholder="Enter each point on a new line or separate with | symbol"
-                className="w-full border border-gray-300 rounded text-sm px-3 py-2 outline-none focus:border-[#2c3e50]"
-              />
-            </div>
 
             {/* Long Description */}
             <div>

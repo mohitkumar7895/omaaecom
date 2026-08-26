@@ -26,7 +26,12 @@ export default async function CategoryPage({ params }: { params: Promise<{ id: s
     const [subcats]: any = await pool.query("SELECT * FROM subcategories WHERE category_id = ?", [categoryId]);
     
     // Fetch Services
-    const [services]: any = await pool.query("SELECT * FROM services WHERE category_id = ?", [categoryId]);
+    const [servicesRows]: any = await pool.query("SELECT * FROM services WHERE category_id = ?", [categoryId]);
+    const services = servicesRows.map((s: any) => ({
+      ...s,
+      short_description: category.short_description,
+      warranty_days: category.warranty_days,
+    }));
 
     // Fetch Rate Cards added by Admin for this Category
     const [rateCards]: any = await pool.query(`

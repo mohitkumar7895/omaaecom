@@ -84,6 +84,29 @@ export default function EditCategoryForm({ category }: { category: any }) {
               />
             </div>
 
+            <div className="space-y-2">
+              <label className="text-[13px] font-bold text-gray-800">Warranty (days)</label>
+              <input 
+                type="number" 
+                name="warranty_days"
+                required
+                defaultValue={category.warranty_days || "180"}
+                placeholder="Enter Warranty Days"
+                className="w-full border border-gray-200 rounded text-sm px-4 py-2.5 outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-[13px] font-bold text-gray-800">Short Description (Points - separate with | )</label>
+              <textarea 
+                name="short_description"
+                rows={3}
+                defaultValue={category.short_description || ""}
+                placeholder="e.g. Valid on parts | Experienced staff | 100% Satisfaction Guarantee"
+                className="w-full border border-gray-200 rounded text-sm px-4 py-2.5 outline-none focus:border-blue-500"
+              />
+            </div>
+
             {/* Interactive Multiple Zones & Google Map */}
             <div className="md:col-span-2 mt-2 pt-2 border-t border-gray-100">
               <CategoryZonePicker initialZonesLocation={category.zones_location || "Noida, Delhi"} />
