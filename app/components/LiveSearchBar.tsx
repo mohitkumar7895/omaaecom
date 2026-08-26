@@ -138,7 +138,7 @@ export default function LiveSearchBar({
                   className="flex items-center gap-3 p-3 hover:bg-purple-50 cursor-pointer border-b border-gray-50 last:border-0 transition"
                 >
                   <div className="w-10 h-10 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0 flex items-center justify-center text-xl">
-                    {item.image_url && item.image_url.length > 5 ? (
+                    {item.image_url && item.image_url?.length > 5 ? (
                       <img src={item.image_url} alt={item.title} className="w-full h-full object-cover" />
                     ) : (
                       <span>{item.type === 'category' ? '📂' : '🔧'}</span>
