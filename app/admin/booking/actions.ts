@@ -165,3 +165,20 @@ export async function updatePaymentStatus(formData: FormData) {
     }
   }
 }
+
+export async function updateInvoiceStatus(formData: FormData) {
+  const id = formData.get("id");
+  const status = formData.get("invoice_status");
+  if (id && status) {
+    try {
+      try {
+        await pool.query("ALTER TABLE bookings ADD COLUMN invoice_status VARCHAR(50) DEFAULT 'Pending'");
+      } catch (e) {}
+      await pool.query("UPDATE bookings SET invoice_status = ? WHERE id = ?", [status, id]);
+      revalidatePath("/admin/booking", 'layout');
+      revalidatePath("/my-bookings", 'layout');
+    } catch (error) {
+      console.error("Error updating invoice status:", error);
+    }
+  }
+}

@@ -4,9 +4,10 @@ import Link from "next/link";
 import ExportButtons from "../components/ExportButtons";
 import WorkingStatusSelect from "./components/WorkingStatusSelect";
 import PaymentStatusSelect from "./components/PaymentStatusSelect";
+import InvoiceStatusSelect from "./components/InvoiceStatusSelect";
 import EditableTotal from "./components/EditableTotal";
 import AddressViewButton from "./components/AddressViewButton";
-import { updateWorkingStatus, updateTotal, updateCashback, updatePaymentStatus } from "./actions";
+import { updateWorkingStatus, updateTotal, updateCashback, updatePaymentStatus, updateInvoiceStatus } from "./actions";
 
 export const dynamic = 'force-dynamic';
 
@@ -17,6 +18,10 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
   let bookings: any[] = [];
 
   try {
+    try {
+      await pool.query("ALTER TABLE bookings ADD COLUMN invoice_status VARCHAR(50) DEFAULT 'Pending'");
+    } catch (e) {}
+
     let query = `SELECT * FROM bookings ORDER BY created_at DESC`;
     if (filter === "Completed") {
       query = `SELECT * FROM bookings WHERE working_status = 'Complete' ORDER BY created_at DESC`;
@@ -149,7 +154,8 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                 <th className="px-4 py-4 whitespace-nowrap">Pricing</th>
                 <th className="px-4 py-4 whitespace-nowrap text-center">Contact</th>
                 <th className="px-4 py-4 whitespace-nowrap text-center">Payment</th>
-                <th className="px-4 py-4 whitespace-nowrap text-right">Status</th>
+                <th className="px-4 py-4 whitespace-nowrap text-center">Invoice</th>
+                <th className="px-4 py-4 whitespace-nowrap text-right">Job Status</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100">
@@ -271,20 +277,14 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                       <PaymentStatusSelect id={row.id} defaultValue={row.payment_status} action={updatePaymentStatus} />
                     </td>
 
+                    {/* Dedicated Invoice Status Column */}
+                    <td className="px-4 py-4 whitespace-nowrap text-center">
+                      <InvoiceStatusSelect id={row.id} orderId={row.order_id} defaultValue={row.invoice_status} action={updateInvoiceStatus} />
+                    </td>
+
                     <td className="px-4 py-4 whitespace-nowrap text-right">
-                      <div className="flex flex-col items-end gap-1.5">
+                      <div className="inline-block">
                         <WorkingStatusSelect id={row.id} defaultValue={row.working_status} action={updateWorkingStatus} />
-                        {row.working_status === 'Complete' && (
-                          <Link 
-                            href={`/invoice/${row.order_id}`}
-                            target="_blank"
-                            className="inline-flex items-center gap-1 text-[11px] font-black text-indigo-700 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 px-2 py-0.5 rounded-md border border-indigo-200 shadow-xs transition-all"
-                            title="View / Print Generated Invoice"
-                          >
-                            <FilePdf className="w-3 h-3 text-indigo-600" />
-                            <span>Invoice</span>
-                          </Link>
-                        )}
                       </div>
                     </td>
                   </tr>

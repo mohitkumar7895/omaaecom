@@ -482,8 +482,8 @@ export default function MyBookingsPage() {
 
                       </div>
 
-                      {/* Invoice Link */}
-                      {isComplete && (
+                      {/* Invoice Link - strictly shown ONLY when Admin marks Invoice as Completed */}
+                      {(booking.invoice_status === "Completed" || booking.invoice_status === "Complete" || booking.invoice_status === "Generated") && (
                         <div className="flex justify-start pt-1">
                           <Link href={`/invoice/${booking.order_id}`}>
                             <button className="flex items-center gap-1.5 bg-[#6366f1] hover:bg-[#4f46e5] text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition shadow-xs">
