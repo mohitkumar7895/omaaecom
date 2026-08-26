@@ -1,7 +1,23 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { MapPin, X, MessageCircle, ExternalLink, Copy, Check, User, Phone, Calendar, Clock, Package, IndianRupee, Layers, Navigation } from "lucide-react";
+import {
+  MapPin,
+  X,
+  MessageCircle,
+  ExternalLink,
+  Copy,
+  Check,
+  User,
+  Phone,
+  Calendar,
+  Clock,
+  Package,
+  IndianRupee,
+  Navigation,
+  Sparkles,
+  CreditCard,
+} from "lucide-react";
 
 interface AddressModalProps {
   booking: {
@@ -29,7 +45,7 @@ export default function AddressViewButton({ booking }: AddressModalProps) {
   const address = booking.address || "Address not provided";
   const categoryName = booking.category || booking.type || "Service";
 
-  // Geocode address to get accurate lat/long coordinates when modal opens
+  // Geocode address to get accurate coordinates when modal opens
   useEffect(() => {
     if (!open || coords) return;
     fetch(`/api/location/search?q=${encodeURIComponent(address)}`)
@@ -72,10 +88,10 @@ export default function AddressViewButton({ booking }: AddressModalProps) {
       const s = booking.services[0];
       const qty = Number(s.quantity) || 1;
       const price = Number(s.price) || 0;
-      servicesSection = `🛠 *Service:* ${s.title}${qty > 1 ? ` (Qty: ${qty})` : ""} - Rs.${price * qty}`;
+      servicesSection = `🛠️ *Service:* ${s.title}${qty > 1 ? ` (Qty: ${qty})` : ""} - Rs.${price * qty}`;
     } else {
       servicesSection =
-        `🛠 *Services:*\n` +
+        `🛠️ *Services:*\n` +
         booking.services
           .map((s: any) => {
             const qty = Number(s.quantity) || 1;
@@ -85,7 +101,7 @@ export default function AddressViewButton({ booking }: AddressModalProps) {
           .join("\n");
     }
   } else {
-    servicesSection = `🛠 *Service:* ${categoryName}`;
+    servicesSection = `🛠️ *Service:* ${categoryName}`;
   }
 
   // Map link for WhatsApp
@@ -93,62 +109,72 @@ export default function AddressViewButton({ booking }: AddressModalProps) {
     ? `https://www.google.com/maps/dir/?api=1&destination=${coords.lat},${coords.lon}`
     : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 
-  const whatsappText = `*OMAA Company New Booking* ⚡
-*Category:* ${categoryName}
+  const whatsappText = `━━━━━━━━━━━━━━━━━━━━━
+✨ *OMAA COMPANY - NEW BOOKING* ✨
+━━━━━━━━━━━━━━━━━━━━━
+🏷️ *Category:* ${categoryName}
 
-👤 *Name:* ${booking.customer_name}
-📱 *Mobile:* +91 ${booking.mobile}
+👤 *Customer:* ${booking.customer_name}
+📞 *Mobile:* +91 ${booking.mobile}
 ${servicesSection}
-💰 *Total:* Rs.${booking.total}
+💳 *Total Amount:* Rs.${booking.total}
 
-⏰ *Slot Time:* ${booking.time_slot || "—"}
-📅 *Date:* ${formattedDate}
-📍 *Address:* ${address}
-🗺️ *Map Location:* ${mapLink}`;
+🕒 *Slot Time:* ${booking.time_slot || "—"}
+📅 *Booking Date:* ${formattedDate}
+📌 *Service Address:* ${address}
+
+🗺️ *Google Maps Navigation:*
+${mapLink}
+━━━━━━━━━━━━━━━━━━━━━`;
 
   // WhatsApp URL without hardcoded number - opens contact picker in WhatsApp
   const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappText)}`;
 
   return (
     <>
-      {/* Trigger Button */}
+      {/* Trigger Button with Stylish Micro-Animation */}
       <button
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white border border-indigo-200/80 text-[11px] font-bold transition-all shadow-sm hover:shadow hover:-translate-y-0.5 mt-1"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-50 to-violet-50 text-indigo-700 hover:from-indigo-600 hover:to-violet-600 hover:text-white border border-indigo-200/90 text-[11px] font-extrabold tracking-tight transition-all duration-200 shadow-sm hover:shadow-md hover:scale-[1.02] mt-1.5 group"
         title="View Address & Live Location"
       >
-        <MapPin className="w-3.5 h-3.5 text-indigo-500 group-hover:text-white" />
+        <MapPin className="w-3.5 h-3.5 text-indigo-500 group-hover:text-white transition-colors" />
         <span>View Location</span>
       </button>
 
       {/* Modal Overlay */}
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-200"
           onClick={(e) => {
             if (e.target === e.currentTarget) setOpen(false);
           }}
         >
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto border border-gray-100 flex flex-col transform transition-all scale-100">
+          <div className="bg-white rounded-[28px] shadow-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto border border-slate-100 flex flex-col transform transition-all">
             
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white/95 backdrop-blur-md rounded-t-3xl z-10">
+            <div className="flex items-center justify-between px-6 py-4.5 border-b border-slate-100 sticky top-0 bg-white/95 backdrop-blur-md rounded-t-[28px] z-10">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-tr from-indigo-600 to-violet-500 rounded-2xl flex items-center justify-center shadow-md shadow-indigo-200">
-                  <Navigation className="w-5 h-5 text-white" />
+                <div className="w-11 h-11 bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-700 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/25 text-white">
+                  <Navigation className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-base font-black text-gray-900 leading-snug tracking-tight">Booking Location & Details</h2>
-                  <p className="text-[11px] text-gray-400 font-semibold flex items-center gap-1.5">
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-[16px] font-black text-slate-900 tracking-tight leading-tight">Booking Dispatch</h2>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-indigo-50 text-indigo-600 border border-indigo-100">
+                      Live
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 font-semibold mt-0.5 flex items-center gap-1.5">
                     <span>Order #{booking.order_id}</span>
                     <span>•</span>
-                    <span className="text-indigo-600 font-bold">{categoryName}</span>
+                    <span className="text-violet-600 font-bold">{categoryName}</span>
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setOpen(false)}
-                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 flex items-center justify-center transition-colors"
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors font-bold"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -156,18 +182,27 @@ ${servicesSection}
 
             <div className="p-6 space-y-4">
               
+              {/* Category Highlight Ribbon */}
+              <div className="flex items-center justify-between bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-4 py-2.5 rounded-2xl shadow-sm">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
+                  <span className="text-[11px] font-black uppercase tracking-widest text-indigo-100">Category</span>
+                </div>
+                <span className="text-[13px] font-black tracking-tight">{categoryName}</span>
+              </div>
+
               {/* Customer & Mobile Card */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="bg-gradient-to-br from-gray-50 to-slate-50/80 rounded-2xl p-3.5 border border-gray-100/90 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1 text-gray-400">
+                <div className="bg-gradient-to-br from-slate-50 to-gray-50/70 rounded-2xl p-3.5 border border-slate-100 shadow-sm">
+                  <div className="flex items-center gap-1.5 mb-1 text-slate-400">
                     <User className="w-3.5 h-3.5 text-indigo-500" />
                     <span className="text-[10px] font-black uppercase tracking-wider">Customer Name</span>
                   </div>
-                  <p className="text-[14px] font-black text-gray-900 tracking-tight truncate">{booking.customer_name}</p>
+                  <p className="text-[14px] font-black text-slate-900 tracking-tight truncate">{booking.customer_name}</p>
                 </div>
                 
-                <div className="bg-gradient-to-br from-gray-50 to-slate-50/80 rounded-2xl p-3.5 border border-gray-100/90 shadow-sm">
-                  <div className="flex items-center gap-1.5 mb-1 text-gray-400">
+                <div className="bg-gradient-to-br from-slate-50 to-gray-50/70 rounded-2xl p-3.5 border border-slate-100 shadow-sm">
+                  <div className="flex items-center gap-1.5 mb-1 text-slate-400">
                     <Phone className="w-3.5 h-3.5 text-emerald-500" />
                     <span className="text-[10px] font-black uppercase tracking-wider">Mobile Number</span>
                   </div>
@@ -181,21 +216,21 @@ ${servicesSection}
               </div>
 
               {/* Service Address Card */}
-              <div className="bg-gradient-to-br from-blue-50/80 to-indigo-50/40 rounded-2xl p-4 border border-blue-100/80 shadow-sm">
+              <div className="bg-gradient-to-br from-blue-50/90 via-indigo-50/40 to-slate-50/80 rounded-2xl p-4 border border-blue-100 shadow-sm">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1">
                     <div className="flex items-center gap-1.5 mb-1.5">
                       <MapPin className="w-4 h-4 text-blue-600" />
-                      <span className="text-[11px] font-black text-blue-700 uppercase tracking-wider">Delivery / Service Address</span>
+                      <span className="text-[11px] font-black text-blue-700 uppercase tracking-wider">Service Address</span>
                     </div>
-                    <p className="text-[13px] font-bold text-gray-800 leading-relaxed">{address}</p>
+                    <p className="text-[13px] font-bold text-slate-800 leading-relaxed font-sans">{address}</p>
                   </div>
                   <button
                     onClick={handleCopy}
-                    className="shrink-0 p-2 rounded-xl bg-white border border-blue-200 text-blue-600 hover:bg-blue-50 shadow-sm transition-all"
+                    className="shrink-0 p-2.5 rounded-xl bg-white border border-blue-200 text-blue-600 hover:bg-blue-50 shadow-sm transition-all active:scale-95"
                     title="Copy Address"
                   >
-                    {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                    {copied ? <Check className="w-4 h-4 text-emerald-600 font-bold" /> : <Copy className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
@@ -203,19 +238,19 @@ ${servicesSection}
               {/* Compact Google Maps Embed */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <p className="text-[11px] font-black text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
+                  <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
                     <MapPin className="w-3.5 h-3.5 text-rose-500" />
-                    <span>Live Map Preview</span>
+                    <span>Live GPS Map</span>
                   </p>
                   {coords && (
-                    <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
-                      GPS Linked ✓
+                    <span className="text-[10px] font-black text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                      ● Live Coords
                     </span>
                   )}
                 </div>
                 
                 {/* Compact Map Box (160px height) */}
-                <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm bg-gray-100 relative">
+                <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-slate-100 relative">
                   <iframe
                     src={mapsEmbedUrl}
                     width="100%"
@@ -230,43 +265,43 @@ ${servicesSection}
               </div>
 
               {/* Booking Summary Highlights */}
-              <div className="bg-gray-50/90 rounded-2xl p-4 border border-gray-100 space-y-2">
-                <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-wider text-gray-400 border-b border-gray-200/50 pb-1.5">
-                  <span>Booking Overview</span>
-                  <span className="text-gray-900 font-bold bg-white px-2 py-0.5 rounded border border-gray-200">{categoryName}</span>
+              <div className="bg-slate-50/90 rounded-2xl p-4 border border-slate-100 space-y-2.5">
+                <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-200/60 pb-2">
+                  <span>Order Summary</span>
+                  <span className="text-slate-900 font-black bg-white px-2.5 py-0.5 rounded-lg border border-slate-200">{categoryName}</span>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-2.5 text-[12px] pt-1">
-                  <div className="flex items-center gap-1.5 text-gray-600 font-medium truncate">
-                    <Package className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                  <div className="flex items-center gap-1.5 text-slate-600 font-bold truncate">
+                    <Package className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                     <span className="truncate">{Array.isArray(booking.services) && booking.services.length > 0 ? booking.services[0].title : categoryName}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-gray-600 font-medium">
+                  <div className="flex items-center gap-1.5 text-slate-600 font-bold">
                     <IndianRupee className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span className="font-black text-gray-900 text-[13px]">₹{booking.total}</span>
+                    <span className="font-black text-slate-900 text-[14px]">₹{booking.total}</span>
                   </div>
                   {booking.booking_date && (
-                    <div className="flex items-center gap-1.5 text-gray-600 font-medium">
-                      <Calendar className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                    <div className="flex items-center gap-1.5 text-slate-600 font-semibold">
+                      <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                       <span>{formattedDate}</span>
                     </div>
                   )}
                   {booking.time_slot && (
-                    <div className="flex items-center gap-1.5 text-gray-600 font-medium">
-                      <Clock className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                    <div className="flex items-center gap-1.5 text-slate-600 font-semibold">
+                      <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                       <span>{booking.time_slot}</span>
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Primary Action Buttons */}
+              {/* Action Buttons */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                 <a
                   href={googleMapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-gray-900 hover:bg-black text-white text-[13px] font-black transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                  className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-slate-900 hover:bg-black text-white text-[13px] font-black transition-all shadow-md hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0"
                 >
                   <MapPin className="w-4 h-4 text-rose-400" />
                   <span>Open Google Maps</span>
@@ -277,7 +312,7 @@ ${servicesSection}
                   href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-[13px] font-black transition-all shadow-md shadow-emerald-500/20 hover:shadow-emerald-500/40 hover:-translate-y-0.5"
+                  className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-[13px] font-black transition-all shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:-translate-y-0.5 active:translate-y-0"
                 >
                   <MessageCircle className="w-4 h-4" />
                   <span>Send via WhatsApp</span>
