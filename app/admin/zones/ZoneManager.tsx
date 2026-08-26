@@ -399,7 +399,7 @@ export default function ZoneManager({
                     src={`https://maps.google.com/maps?q=${currentZone.coordinates?.center?.lat || 28.5355},${currentZone.coordinates?.center?.lng || 77.391}&z=11&output=embed`}
                     width="100%"
                     height="100%"
-                    className="min-h-[280px]"
+                    className="min-h-[280px] filter invert-[90%] hue-rotate-[180deg] contrast-[90%] brightness-[95%] grayscale-[10%]"
                     style={{ border: 0 }}
                     allowFullScreen={false}
                     loading="lazy"

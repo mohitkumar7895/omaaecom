@@ -62,6 +62,7 @@ export default function ZonesModalButton({
                     )}&t=&z=12&ie=UTF8&iwloc=&output=embed`}
                     width="100%" 
                     height="100%" 
+                    className="filter invert-[90%] hue-rotate-[180deg] contrast-[90%] brightness-[95%] grayscale-[10%]"
                     style={{ border: 0 }} 
                     allowFullScreen={false} 
                     loading="lazy" 
