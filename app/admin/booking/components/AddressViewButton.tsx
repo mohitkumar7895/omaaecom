@@ -176,6 +176,30 @@ ${servicesSection}
             </div>
 
             <div className="p-6 space-y-4">
+
+              {/* ── TOP PRIMARY ACTIONS (Send WhatsApp & Google Maps) ── */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-1">
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-[13px] font-black transition-all shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:-translate-y-0.5 active:translate-y-0"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>Send via WhatsApp</span>
+                </a>
+
+                <a
+                  href={googleMapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-slate-900 hover:bg-black text-white text-[13px] font-black transition-all shadow-md hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0"
+                >
+                  <MapPin className="w-4 h-4 text-rose-400" />
+                  <span>Open Google Maps</span>
+                  <ExternalLink className="w-3.5 h-3.5 opacity-60" />
+                </a>
+              </div>
               
               {/* Category Highlight Ribbon */}
               <div className="flex items-center justify-between bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-4 py-2.5 rounded-2xl shadow-sm">
@@ -290,30 +314,6 @@ ${servicesSection}
                     </div>
                   )}
                 </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                <a
-                  href={googleMapsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-slate-900 hover:bg-black text-white text-[13px] font-black transition-all shadow-md hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0"
-                >
-                  <MapPin className="w-4 h-4 text-rose-400" />
-                  <span>Open Google Maps</span>
-                  <ExternalLink className="w-3.5 h-3.5 opacity-60" />
-                </a>
-
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-[13px] font-black transition-all shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:-translate-y-0.5 active:translate-y-0"
-                >
-                  <MessageCircle className="w-4 h-4" />
-                  <span>Send via WhatsApp</span>
-                </a>
               </div>
 
             </div>

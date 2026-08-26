@@ -418,7 +418,7 @@ function CheckoutContent() {
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <label className="text-[13px] font-bold text-gray-700">Service Address</label>
                     <button
@@ -444,22 +444,35 @@ function CheckoutContent() {
                     </button>
                   </div>
 
-                  {/* Address Search */}
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={addrQuery}
-                      onChange={e => setAddrQuery(e.target.value)}
-                      placeholder="Search your area, society, landmark..."
-                      className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 outline-none focus:border-[#6b62d9] focus:ring-4 focus:ring-[#6b62d9]/10 hover:border-gray-300 transition-all text-gray-900 text-sm font-medium placeholder:text-gray-300"
-                    />
+                  {/* 1. Manual Address Textarea (Upar) */}
+                  <textarea 
+                    rows={3}
+                    name="address"
+                    value={form.address}
+                    onChange={handleChange}
+                    placeholder="House No, Street, Landmark, City, Pincode" 
+                    className={`w-full bg-white border rounded-xl px-4 py-3 outline-none transition-all resize-none text-gray-900 font-medium placeholder:text-gray-300 ${errors.address ? 'border-red-400 focus:ring-4 focus:ring-red-100' : 'border-gray-200 focus:border-black focus:ring-4 focus:ring-black/5 hover:border-gray-300'}`}
+                  ></textarea>
+                  {errors.address && <p className="text-red-500 text-xs font-medium flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5"/>{errors.address}</p>}
+
+                  {/* 2. Compact Search Address Bar (Neeche) */}
+                  <div className="relative pt-0.5">
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={addrQuery}
+                        onChange={e => setAddrQuery(e.target.value)}
+                        placeholder="🔍 Or search area, society, landmark to auto-fill..."
+                        className="w-full bg-gray-50/80 hover:bg-white focus:bg-white border border-gray-200 rounded-xl px-3.5 py-2 text-xs sm:text-[13px] outline-none focus:border-[#6b62d9] focus:ring-2 focus:ring-[#6b62d9]/15 hover:border-gray-300 transition-all text-gray-800 placeholder:text-gray-400"
+                      />
+                    </div>
                     {addrResults.length > 0 && (
-                      <ul className="absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl max-h-56 overflow-y-auto divide-y divide-gray-50">
+                      <ul className="absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl max-h-52 overflow-y-auto divide-y divide-gray-50">
                         {addrResults.map((r, i) => (
                           <li
                             key={i}
                             onClick={() => selectAddr(r.label)}
-                            className="px-4 py-2.5 text-sm text-gray-800 cursor-pointer hover:bg-indigo-50 hover:text-indigo-700 font-medium transition-colors"
+                            className="px-3.5 py-2 text-xs sm:text-[13px] text-gray-800 cursor-pointer hover:bg-indigo-50 hover:text-indigo-700 font-medium transition-colors"
                           >
                             {r.label}
                           </li>
@@ -467,16 +480,6 @@ function CheckoutContent() {
                       </ul>
                     )}
                   </div>
-
-                  <textarea 
-                    rows={3}
-                    name="address"
-                    value={form.address}
-                    onChange={handleChange}
-                    placeholder="House No, Street, Landmark, City, Pincode" 
-                    className={`w-full bg-white border rounded-xl px-4 py-3.5 outline-none transition-all resize-none text-gray-900 font-medium placeholder:text-gray-300 ${errors.address ? 'border-red-400 focus:ring-4 focus:ring-red-100' : 'border-gray-200 focus:border-black focus:ring-4 focus:ring-black/5 hover:border-gray-300'}`}
-                  ></textarea>
-                  {errors.address && <p className="text-red-500 text-xs mt-1.5 font-medium flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5"/>{errors.address}</p>}
                 </div>
 
                 {/* Booking Date & Time Slot */}
@@ -551,7 +554,7 @@ function CheckoutContent() {
                   <span className="font-bold text-gray-800">₹{convenienceFee}</span>
                 </div>
                 <div className="flex justify-between items-center text-[15px]">
-                  <span className="text-gray-500 font-semibold">Taxes & Visiting Charges</span>
+                  <span className="text-gray-500 font-semibold">Taxes</span>
                   <span className="font-bold text-[#328e3b] bg-green-50 px-3 py-1 rounded-full text-xs uppercase tracking-wider">Free</span>
                 </div>
               </div>
