@@ -117,13 +117,21 @@ export default function LiveSearchBar({
           <Search className="h-4 w-4 text-[#5c67b8]" />
         )}
       </div>
+      {/* Custom Typewriter Placeholder with Bold Service Name */}
+      {!query && (
+        <div className="absolute inset-y-0 left-0 pl-9 pr-3.5 flex items-center pointer-events-none text-xs sm:text-sm text-gray-400 font-normal z-5 select-none overflow-hidden whitespace-nowrap">
+          <span>Search for &quot;</span>
+          <span className="font-extrabold text-gray-900 mx-0.5 tracking-tight">{placeholderText}</span>
+          <span>&quot;</span>
+        </div>
+      )}
+
       <input
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => { if (results.length > 0) setIsOpen(true); }}
-        className="block w-full pl-9 pr-3.5 py-2 lg:py-2.5 rounded-xl leading-5 bg-white border-[1.5px] border-[#5c67b8]/60 hover:border-[#5c67b8] text-gray-900 placeholder-gray-500 font-semibold focus:outline-none focus:ring-2 focus:ring-[#5c67b8]/30 focus:border-[#5c67b8] text-xs sm:text-sm transition-all shadow-xs relative z-0"
-        placeholder={`Search for "${placeholderText}"`}
+        className="block w-full pl-9 pr-3.5 py-2 lg:py-2.5 rounded-xl leading-5 bg-white border-[1.5px] border-[#5c67b8]/60 hover:border-[#5c67b8] text-gray-900 font-semibold focus:outline-none focus:ring-2 focus:ring-[#5c67b8]/30 focus:border-[#5c67b8] text-xs sm:text-sm transition-all shadow-xs relative z-0"
       />
 
       {/* Dropdown Results */}
