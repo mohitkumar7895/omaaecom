@@ -105,9 +105,6 @@ export default function Navbar() {
             <Link href="/" className="font-semibold text-gray-900 hover:text-[#5c67b8] transition text-[15px]">
               Home
             </Link>
-            <Link href="/about" className="font-semibold text-gray-700 hover:text-[#5c67b8] transition text-[15px]">
-              About Us
-            </Link>
             <div className="relative group">
               <div className="flex items-center space-x-1 cursor-pointer font-semibold text-gray-700 hover:text-[#5c67b8] transition text-[15px] py-4">
                 <span>Services</span>
@@ -125,9 +122,6 @@ export default function Navbar() {
                 )}
               </div>
             </div>
-            <Link href="/contact" className="font-semibold text-gray-700 hover:text-[#5c67b8] transition text-[15px]">
-              Contact Us
-            </Link>
           </div>
         </div>
 

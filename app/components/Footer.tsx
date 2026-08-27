@@ -26,13 +26,13 @@ export default function Footer() {
               Home
             </Link>
             <Link href="/about" className="text-blue-100 hover:text-white hover:underline transition">
-              About
+              About Us
             </Link>
             <Link href="/#services" className="text-blue-100 hover:text-white hover:underline transition">
               Service
             </Link>
             <Link href="/contact" className="text-blue-100 hover:text-white hover:underline transition">
-              Contact
+              Contact Us
             </Link>
             <Link href="/rate-card" className="text-blue-100 hover:text-white hover:underline transition">
               Rate Card
