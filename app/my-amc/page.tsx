@@ -13,7 +13,11 @@ import {
   FileText, 
   ReceiptText,
   ShieldCheck,
-  Star 
+  Star,
+  X,
+  Printer,
+  Sparkles,
+  QrCode
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -77,6 +81,7 @@ export default function MyAmcPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"Upcoming" | "Completed" | "Cancelled">("Upcoming");
   const [expandedOrders, setExpandedOrders] = useState<Record<string, boolean>>({});
+  const [selectedAmcCardBooking, setSelectedAmcCardBooking] = useState<Booking | null>(null);
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -384,13 +389,18 @@ export default function MyAmcPage() {
                       </p>
                     </div>
 
-                    {/* Job End Date & AMC Warranty */}
+                    {/* AMC Card Button & AMC Warranty */}
                     {isComplete && (
                       <div className="mb-2.5 text-xs flex items-center justify-between flex-wrap gap-2 pt-1 border-t border-gray-100">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[11px] font-black text-gray-900 uppercase tracking-wide">START DATE:</span>
-                          <span className="text-xs font-black text-gray-900">{formattedDate}</span>
-                        </div>
+                        {/* AMC Card Trigger Button */}
+                        <button
+                          type="button"
+                          onClick={() => setSelectedAmcCardBooking(booking)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-[#6b62d9] bg-[#f0effb] hover:bg-[#e4e1f9] border border-[#dcd8f6] transition shadow-2xs cursor-pointer active:scale-95"
+                        >
+                          <ShieldCheck className="w-3.5 h-3.5 text-[#6b62d9]" />
+                          <span>AMC Card</span>
+                        </button>
 
                         {/* Warranty or Expired Badge */}
                         {isWarrantyExpired ? (
@@ -556,6 +566,128 @@ export default function MyAmcPage() {
         )}
 
       </div>
+
+      {/* Digital AMC Membership Card Modal */}
+      {selectedAmcCardBooking && (
+        <div 
+          className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200"
+          onClick={() => setSelectedAmcCardBooking(null)}
+        >
+          <div 
+            className="bg-white rounded-3xl max-w-md w-full p-6 relative shadow-2xl border border-gray-100 animate-in zoom-in-95 duration-200 overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button */}
+            <button 
+              onClick={() => setSelectedAmcCardBooking(null)} 
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-800 transition-colors p-1.5 rounded-full hover:bg-gray-100"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Modal Title */}
+            <div className="flex items-center gap-2 mb-4">
+              <div className="p-2 bg-[#f0effb] rounded-xl text-[#6b62d9]">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900 text-lg">Digital AMC Pass</h3>
+                <p className="text-gray-500 text-xs">Official OMAA Annual Maintenance Card</p>
+              </div>
+            </div>
+
+            {/* The Digital AMC Card */}
+            <div className="bg-gradient-to-br from-[#1e1b4b] via-[#312e81] to-[#4338ca] text-white rounded-2xl p-5 shadow-xl relative overflow-hidden border border-indigo-400/30">
+              {/* Background Glow */}
+              <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-indigo-500/20 rounded-full blur-2xl pointer-events-none"></div>
+              
+              {/* Card Header */}
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <span className="text-[10px] font-extrabold uppercase tracking-widest text-indigo-300 block mb-0.5">
+                    OMAA SMART PROTECTION
+                  </span>
+                  <h4 className="text-base font-black text-white">
+                    {Array.isArray(selectedAmcCardBooking.services) && selectedAmcCardBooking.services.length > 0
+                      ? selectedAmcCardBooking.services[0].title
+                      : selectedAmcCardBooking.category || "RO AMC Plan"}
+                  </h4>
+                </div>
+                <span className="px-2.5 py-1 bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[10px] font-black rounded-full uppercase tracking-wider flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-emerald-400" /> Active
+                </span>
+              </div>
+
+              {/* Card Number / Order ID */}
+              <div className="mb-6">
+                <span className="text-[10px] uppercase text-indigo-300 font-bold tracking-wider block">MEMBERSHIP PASS NO.</span>
+                <span className="font-mono text-xl sm:text-2xl font-black tracking-widest text-white">
+                  AMC-{selectedAmcCardBooking.order_id}
+                </span>
+              </div>
+
+              {/* Card Details Grid */}
+              <div className="grid grid-cols-2 gap-3 pt-3 border-t border-indigo-400/20 text-xs">
+                <div>
+                  <span className="text-[10px] text-indigo-300 uppercase font-semibold block">CARD HOLDER</span>
+                  <span className="font-bold text-white truncate block">
+                    {selectedAmcCardBooking.customer_name || user?.name || "Valued Member"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-indigo-300 uppercase font-semibold block">CONTACT</span>
+                  <span className="font-bold text-white block">
+                    {selectedAmcCardBooking.mobile || "Verified Customer"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-indigo-300 uppercase font-semibold block">VALIDITY</span>
+                  <span className="font-bold text-white block">365 Days Full Coverage</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-indigo-300 uppercase font-semibold block">SERVICE INCLUSIONS</span>
+                  <span className="font-bold text-emerald-300 block">2 Free Services + Priority</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Inclusions List */}
+            <div className="mt-4 p-3 bg-gray-50 rounded-xl border border-gray-100 text-xs text-gray-600 space-y-1.5">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span>2 Free periodic comprehensive checkups & services</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span>Filter & sediment membrane health inspection</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span>Zero service visit fee & priority breakdown repairs</span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="mt-5 flex items-center gap-3">
+              <button 
+                onClick={() => window.print()}
+                className="flex-1 py-2.5 rounded-xl bg-gray-900 hover:bg-black text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+              >
+                <Printer className="w-4 h-4" />
+                Print / Save Pass
+              </button>
+              <button 
+                onClick={() => setSelectedAmcCardBooking(null)}
+                className="px-4 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold transition cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </main>
   );
 }
