@@ -13,14 +13,13 @@ type ServiceCardProps = {
 export default function ServiceCard({ service, quantity = 0, onAdd, onRemove, onViewDetails }: ServiceCardProps) {
   return (
     <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100/90 shadow-[0_2px_12px_rgba(0,0,0,0.04)] p-3 sm:p-6 mb-3 sm:mb-5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300 w-full">
-      {/* 1. Top Section: Title & Rating together in one line */}
-      <div className="mb-2.5 sm:mb-3 flex flex-wrap items-center gap-2 sm:gap-2.5">
-        <h3 className="text-gray-900 font-bold text-base sm:text-lg leading-tight">{service.title}</h3>
-        
-        <div className="flex items-center space-x-1 text-[12px] sm:text-[13px] text-gray-600 bg-amber-50/80 border border-amber-200/70 px-2 py-0.5 rounded-full shadow-2xs">
-          <Star className="w-3.5 h-3.5 text-amber-500 fill-current" />
-          <span className="font-bold text-gray-900">{service.rating}</span>
-          <span className="text-gray-500">({service.reviews ? `${service.reviews}` : '273K reviews'})</span>
+      {/* 1. Top Section: Title & Rating */}
+      <div className="mb-2 sm:mb-2.5">
+        <h3 className="text-gray-900 font-bold text-base sm:text-lg mb-1 leading-tight">{service.title}</h3>
+        <div className="flex items-center space-x-1 text-[13px] text-gray-500">
+          <Star className="w-3.5 h-3.5 text-yellow-500 fill-current" />
+          <span className="font-bold text-black">{service.rating}</span>
+          <span>({service.reviews ? `${service.reviews}` : '273K reviews'})</span>
         </div>
       </div>
 
