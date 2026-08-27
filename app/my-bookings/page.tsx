@@ -52,6 +52,25 @@ interface Booking {
   review?: string;
 }
 
+export const isAmcBooking = (booking: any) => {
+  if (booking.type?.toLowerCase() === "amc") return true;
+  const cat = (booking.category || "").toLowerCase();
+  if (cat.includes("amc") || cat.includes("plan") || cat.includes("annual maintenance")) return true;
+  
+  if (Array.isArray(booking.services)) {
+    return booking.services.some((s: any) => {
+      const title = (s.title || s.name || "").toLowerCase();
+      const sCat = (s.category || s.type || "").toLowerCase();
+      const sId = Number(s.category_id || s.id);
+      return title.includes("amc") || title.includes("plan") || sCat.includes("amc") || sCat.includes("plan") || sId === 7;
+    });
+  } else if (typeof booking.services === "string") {
+    const sStr = booking.services.toLowerCase();
+    return sStr.includes("amc") || sStr.includes("plan");
+  }
+  return false;
+};
+
 export default function MyBookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,12 +90,13 @@ export default function MyBookingsPage() {
           if (user) {
             const bRes = await fetch("/api/bookings/my-bookings");
             if (!bRes.ok) throw new Error("Unable to load your bookings");
-            const { bookings } = await bRes.json() as { bookings?: Booking[] };
-            setBookings(bookings || []);
+            const { bookings: rawBookings } = await bRes.json() as { bookings?: Booking[] };
+            const regularBookings = (rawBookings || []).filter(b => !isAmcBooking(b));
+            setBookings(regularBookings);
             
             // Expand first booking by default
-            if (bookings && bookings.length > 0) {
-              setExpandedOrders({ [bookings[0].order_id]: true });
+            if (regularBookings && regularBookings.length > 0) {
+              setExpandedOrders({ [regularBookings[0].order_id]: true });
             }
           }
         } else {
