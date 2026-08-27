@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   MapPin,
   X,
@@ -39,8 +40,14 @@ interface AddressModalProps {
 
 export default function AddressViewButton({ booking }: AddressModalProps) {
   const [open, setOpen] = useState(false);
+  const [clickPos, setClickPos] = useState<{ x: number; y: number } | null>(null);
+  const [mounted, setMounted] = useState(false);
   const [copied, setCopied] = useState(false);
   const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const address = booking.address || "Address not provided";
   const categoryName = booking.category || booking.type || "Service";
@@ -129,29 +136,32 @@ ${servicesSection}
     <>
       {/* Trigger Button with Stylish Micro-Animation */}
       <button
-        onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-50 to-violet-50 text-indigo-700 hover:from-indigo-600 hover:to-violet-600 hover:text-white border border-indigo-200/90 text-[11px] font-extrabold tracking-tight transition-all duration-200 shadow-sm hover:shadow-md hover:scale-[1.02] mt-1.5 group"
+        onClick={(e) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          setClickPos({ x: rect.left, y: rect.bottom + 8 });
+          setOpen(true);
+        }}
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-indigo-50 to-violet-50 text-indigo-700 hover:from-indigo-600 hover:to-violet-600 hover:text-white border border-indigo-200/90 text-[11px] font-extrabold tracking-tight transition-all duration-200 shadow-sm hover:shadow-md hover:scale-[1.02] mt-1.5 group"
         title="View Address & Live Location"
       >
-        <MapPin className="w-3.5 h-3.5 text-indigo-500 group-hover:text-white transition-colors" />
+        <MapPin className="w-3 h-3 text-indigo-500 group-hover:text-white transition-colors" />
         <span>View Location</span>
       </button>
 
       {/* Modal Overlay */}
-      {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-200"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setOpen(false);
-          }}
-        >
-          <div className="bg-white rounded-[28px] shadow-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto border border-slate-100 flex flex-col transform transition-all">
+      {mounted && open && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3">
+          <div className="fixed inset-0 bg-transparent" onClick={() => setOpen(false)} />
+          <div 
+            className="relative bg-white rounded-[28px] shadow-2xl w-full max-w-lg max-h-[92vh] overflow-y-auto border border-slate-100 flex flex-col animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
             
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4.5 border-b border-slate-100 sticky top-0 bg-white/95 backdrop-blur-md rounded-t-[28px] z-10">
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-700 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/25 text-white">
-                  <Navigation className="w-5 h-5" />
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 sticky top-0 bg-white/95 backdrop-blur-md rounded-t-[28px] z-10">
+              <div className="flex items-center gap-2">
+                <div className="w-11 h-11 bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-700 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/25 text-white">
+                  <Navigation className="w-3 h-3" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
@@ -171,21 +181,21 @@ ${servicesSection}
                 onClick={() => setOpen(false)}
                 className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors font-bold"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3 h-3" />
               </button>
             </div>
 
-            <div className="p-6 space-y-4">
+            <div className="p-3 space-y-3">
 
               {/* ── TOP PRIMARY ACTIONS (Send WhatsApp & Google Maps) ── */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pb-1">
                 <a
                   href={whatsappUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-[13px] font-black transition-all shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:-translate-y-0.5 active:translate-y-0"
+                  className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-[13px] font-black transition-all shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:-translate-y-0.5 active:translate-y-0"
                 >
-                  <MessageCircle className="w-4 h-4" />
+                  <MessageCircle className="w-3 h-3" />
                   <span>Send via WhatsApp</span>
                 </a>
 
@@ -193,65 +203,65 @@ ${servicesSection}
                   href={googleMapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-slate-900 hover:bg-black text-white text-[13px] font-black transition-all shadow-md hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0"
+                  className="flex items-center justify-center gap-2 px-4 py-3.5 rounded-lg bg-slate-900 hover:bg-black text-white text-[13px] font-black transition-all shadow-md hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0"
                 >
-                  <MapPin className="w-4 h-4 text-rose-400" />
+                  <MapPin className="w-3 h-3 text-rose-400" />
                   <span>Open Google Maps</span>
-                  <ExternalLink className="w-3.5 h-3.5 opacity-60" />
+                  <ExternalLink className="w-3 h-3 opacity-60" />
                 </a>
               </div>
               
               {/* Category Highlight Ribbon */}
-              <div className="flex items-center justify-between bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-4 py-2.5 rounded-2xl shadow-sm">
+              <div className="flex items-center justify-between bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-4 py-2.5 rounded-lg shadow-sm">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
+                  <Sparkles className="w-3 h-3 text-amber-300 animate-pulse" />
                   <span className="text-[11px] font-black uppercase tracking-widest text-indigo-100">Category</span>
                 </div>
                 <span className="text-[13px] font-black tracking-tight">{categoryName}</span>
               </div>
 
               {/* Customer & Mobile Card */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="bg-gradient-to-br from-slate-50 to-gray-50/70 rounded-2xl p-3.5 border border-slate-100 shadow-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="bg-gradient-to-br from-slate-50 to-gray-50/70 rounded-lg p-2.5 border border-slate-100 shadow-sm">
                   <div className="flex items-center gap-1.5 mb-1 text-slate-400">
-                    <User className="w-3.5 h-3.5 text-indigo-500" />
+                    <User className="w-3 h-3 text-indigo-500" />
                     <span className="text-[10px] font-black uppercase tracking-wider">Customer Name</span>
                   </div>
                   <p className="text-[14px] font-black text-slate-900 tracking-tight truncate">{booking.customer_name}</p>
                 </div>
                 
-                <div className="bg-gradient-to-br from-slate-50 to-gray-50/70 rounded-2xl p-3.5 border border-slate-100 shadow-sm flex flex-col justify-between">
+                <div className="bg-gradient-to-br from-slate-50 to-gray-50/70 rounded-lg p-2.5 border border-slate-100 shadow-sm flex flex-col justify-between">
                   <div className="flex items-center gap-1.5 mb-1.5 text-slate-400">
-                    <Phone className="w-3.5 h-3.5 text-emerald-500" />
+                    <Phone className="w-3 h-3 text-emerald-500" />
                     <span className="text-[10px] font-black uppercase tracking-wider">Direct Call</span>
                   </div>
                   <a
                     href={`tel:${booking.mobile}`}
-                    className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-[12px] font-black tracking-wide shadow-sm hover:shadow transition-all active:scale-95"
+                    className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-[12px] font-black tracking-wide shadow-sm hover:shadow transition-all active:scale-95"
                     title={`Click to Call ${booking.customer_name}`}
                   >
-                    <Phone className="w-3.5 h-3.5" />
+                    <Phone className="w-3 h-3" />
                     <span>Call Customer</span>
                   </a>
                 </div>
               </div>
 
               {/* Service Address Card */}
-              <div className="bg-gradient-to-br from-blue-50/90 via-indigo-50/40 to-slate-50/80 rounded-2xl p-4 border border-blue-100 shadow-sm">
+              <div className="bg-gradient-to-br from-blue-50/90 via-indigo-50/40 to-slate-50/80 rounded-lg p-3 border border-blue-100 shadow-sm">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1">
                     <div className="flex items-center gap-1.5 mb-1.5">
-                      <MapPin className="w-4 h-4 text-blue-600" />
+                      <MapPin className="w-3 h-3 text-blue-600" />
                       <span className="text-[11px] font-black text-blue-700 uppercase tracking-wider">Service Address</span>
                     </div>
                     <p className="text-[13px] font-bold text-slate-800 leading-relaxed font-sans">{address}</p>
                   </div>
                   <button
                     onClick={handleCopy}
-                    className="shrink-0 p-2.5 rounded-xl bg-white border border-blue-200 text-blue-600 hover:bg-blue-50 shadow-sm transition-all active:scale-95"
+                    className="shrink-0 p-2.5 rounded-lg bg-white border border-blue-200 text-blue-600 hover:bg-blue-50 shadow-sm transition-all active:scale-95"
                     title="Copy Address"
                   >
-                    {copied ? <Check className="w-4 h-4 text-emerald-600 font-bold" /> : <Copy className="w-4 h-4" />}
+                    {copied ? <Check className="w-3 h-3 text-emerald-600 font-bold" /> : <Copy className="w-3 h-3" />}
                   </button>
                 </div>
               </div>
@@ -260,7 +270,7 @@ ${servicesSection}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-rose-500" />
+                    <MapPin className="w-3 h-3 text-rose-500" />
                     <span>Live GPS Map</span>
                   </p>
                   {coords && (
@@ -271,7 +281,7 @@ ${servicesSection}
                 </div>
                 
                 {/* Compact Map Box (160px height) */}
-                <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-slate-100 relative">
+                <div className="rounded-lg overflow-hidden border border-slate-200 shadow-sm bg-slate-100 relative">
                   <iframe
                     src={mapsEmbedUrl}
                     width="100%"
@@ -286,7 +296,7 @@ ${servicesSection}
               </div>
 
               {/* Booking Summary Highlights */}
-              <div className="bg-slate-50/90 rounded-2xl p-4 border border-slate-100 space-y-2.5">
+              <div className="bg-slate-50/90 rounded-lg p-3 border border-slate-100 space-y-2.5">
                 <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-200/60 pb-2">
                   <span>Order Summary</span>
                   <span className="text-slate-900 font-black bg-white px-2.5 py-0.5 rounded-lg border border-slate-200">{categoryName}</span>
@@ -294,22 +304,22 @@ ${servicesSection}
                 
                 <div className="grid grid-cols-2 gap-2.5 text-[12px] pt-1">
                   <div className="flex items-center gap-1.5 text-slate-600 font-bold truncate">
-                    <Package className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <Package className="w-3 h-3 text-slate-400 shrink-0" />
                     <span className="truncate">{Array.isArray(booking.services) && booking.services.length > 0 ? booking.services[0].title : categoryName}</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-slate-600 font-bold">
-                    <IndianRupee className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <IndianRupee className="w-3 h-3 text-emerald-600 shrink-0" />
                     <span className="font-black text-slate-900 text-[14px]">₹{booking.total}</span>
                   </div>
                   {booking.booking_date && (
                     <div className="flex items-center gap-1.5 text-slate-600 font-semibold">
-                      <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <Calendar className="w-3 h-3 text-slate-400 shrink-0" />
                       <span>{formattedDate}</span>
                     </div>
                   )}
                   {booking.time_slot && (
                     <div className="flex items-center gap-1.5 text-slate-600 font-semibold">
-                      <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <Clock className="w-3 h-3 text-slate-400 shrink-0" />
                       <span>{booking.time_slot}</span>
                     </div>
                   )}
@@ -318,7 +328,8 @@ ${servicesSection}
 
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

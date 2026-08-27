@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
+import { createPortal } from "react-dom";
 import { 
   PackagePlus, 
   Trash2, 
@@ -54,9 +55,15 @@ export default function BookingItemsManager({
   initialTotal,
 }: BookingItemsManagerProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [clickPos, setClickPos] = useState<{ x: number; y: number } | null>(null);
+  const [mounted, setMounted] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Rate card dropdown options
   const [rateCardOptions, setRateCardOptions] = useState<RateCardItem[]>([]);
@@ -103,7 +110,10 @@ export default function BookingItemsManager({
   const [newQuantity, setNewQuantity] = useState("1");
   const [selectedRateCardId, setSelectedRateCardId] = useState("");
 
-  const openModal = () => {
+  const openModal = (e: React.MouseEvent) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    // Position just below the button
+    setClickPos({ x: rect.left, y: rect.bottom + 8 });
     const loaded = parseInitialItems();
     setItems(loaded);
     setCustomTotal(String(initialTotal || ""));
@@ -251,27 +261,30 @@ export default function BookingItemsManager({
         className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 hover:text-indigo-700 transition-all border border-indigo-200/80 shadow-2xs cursor-pointer active:scale-95"
         title="Add or edit items and prices from Rate Card or custom"
       >
-        <PackagePlus className="w-3.5 h-3.5" />
+        <PackagePlus className="w-3 h-3" />
         <span>+ Add / Edit Items</span>
       </button>
 
       {/* Modal Dialog */}
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+      {mounted && isOpen && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3">
+          {/* Transparent backdrop */}
+          <div className="fixed inset-0 bg-transparent" onClick={closeModal} />
+          {/* Modal Container */}
           <div 
-            className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-gray-200 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150"
+            className="relative bg-white w-full max-w-2xl rounded-lg shadow-2xl border border-gray-200 overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-150"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="px-6 py-4 bg-gradient-to-r from-gray-900 via-gray-800 to-indigo-950 text-white flex items-center justify-between">
+            <div className="px-4 py-3 bg-gradient-to-r from-gray-900 via-gray-800 to-indigo-950 text-white flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2">
-                  <ShoppingBag className="w-5 h-5 text-indigo-400" />
-                  <h3 className="font-bold text-base text-white tracking-tight">
+                  <ShoppingBag className="w-3 h-3 text-indigo-400" />
+                  <h3 className="font-bold text-[11px] text-white tracking-tight">
                     Manage Items & Pricing
                   </h3>
                 </div>
-                <p className="text-xs text-gray-300 mt-0.5">
+                <p className="text-[11px] text-gray-300 mt-0.5">
                   Order #{orderId} {customerName ? `• Customer: ${customerName}` : ""}
                 </p>
               </div>
@@ -279,15 +292,15 @@ export default function BookingItemsManager({
                 onClick={closeModal}
                 className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white flex items-center justify-center transition"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3 h-3" />
               </button>
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 overflow-y-auto space-y-6 flex-1 text-gray-800">
+            <div className="p-3 overflow-y-auto space-y-3 flex-1 text-gray-800">
               {error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-center gap-2 text-xs font-bold text-red-700">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-[11px] font-bold text-red-700">
+                  <AlertCircle className="w-3 h-3 shrink-0" />
                   <span>{error}</span>
                 </div>
               )}
@@ -295,14 +308,14 @@ export default function BookingItemsManager({
               {/* Existing Items Table */}
               <div>
                 <div className="flex items-center justify-between mb-2.5">
-                  <label className="text-xs font-black text-gray-900 uppercase tracking-wider">
+                  <label className="text-[11px] font-black text-gray-900 uppercase tracking-wider">
                     Booking Items ({items.length})
                   </label>
                   <span className="text-[11px] text-gray-400 font-medium">Edit title, qty or price directly</span>
                 </div>
 
-                <div className="border border-gray-200 rounded-xl overflow-x-auto w-full shadow-2xs">
-                  <table className="w-full min-w-[500px] text-left text-xs border-collapse">
+                <div className="border border-gray-200 rounded-lg overflow-x-auto w-full shadow-2xs">
+                  <table className="w-full min-w-[500px] text-left text-[11px] border-collapse">
                     <thead className="bg-gray-50 text-[11px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">
                       <tr>
                         <th className="px-3 py-2.5">Item / Service Title</th>
@@ -323,7 +336,7 @@ export default function BookingItemsManager({
                                 value={item.title}
                                 onChange={(e) => updateItemField(idx, "title", e.target.value)}
                                 placeholder="Service or product title"
-                                className="w-full px-2 py-1 bg-gray-50/80 border border-gray-200 rounded-lg text-xs font-semibold text-gray-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                                className="w-full px-2 py-1 bg-gray-50/80 border border-gray-200 rounded-lg text-[11px] font-semibold text-gray-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
                               />
                             </td>
                             <td className="px-3 py-2 text-center">
@@ -332,7 +345,7 @@ export default function BookingItemsManager({
                                 min="1"
                                 value={item.quantity}
                                 onChange={(e) => updateItemField(idx, "quantity", e.target.value)}
-                                className="w-16 px-1.5 py-1 text-center bg-gray-50/80 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                                className="w-16 px-1.5 py-1 text-center bg-gray-50/80 border border-gray-200 rounded-lg text-[11px] font-bold text-gray-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
                               />
                             </td>
                             <td className="px-3 py-2 text-right">
@@ -343,7 +356,7 @@ export default function BookingItemsManager({
                                   min="0"
                                   value={item.price}
                                   onChange={(e) => updateItemField(idx, "price", e.target.value)}
-                                  className="w-full pl-5 pr-1.5 py-1 text-right bg-gray-50/80 border border-gray-200 rounded-lg text-xs font-bold text-gray-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                                  className="w-full pl-5 pr-1.5 py-1 text-right bg-gray-50/80 border border-gray-200 rounded-lg text-[11px] font-bold text-gray-900 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
                                 />
                               </div>
                             </td>
@@ -357,7 +370,7 @@ export default function BookingItemsManager({
                                 className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition"
                                 title="Remove item"
                               >
-                                <Trash2 className="w-3.5 h-3.5" />
+                                <Trash2 className="w-3 h-3" />
                               </button>
                             </td>
                           </tr>
@@ -369,10 +382,10 @@ export default function BookingItemsManager({
               </div>
 
               {/* Add New Item Box with Rate Card Dropdown */}
-              <div className="p-4 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-3.5">
+              <div className="p-3 bg-indigo-50/50 rounded-lg border border-indigo-100 space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-xs font-black text-indigo-950 uppercase tracking-wider">
-                    <Plus className="w-4 h-4 text-indigo-600" />
+                  <div className="flex items-center gap-1.5 text-[11px] font-black text-indigo-950 uppercase tracking-wider">
+                    <Plus className="w-3 h-3 text-indigo-600" />
                     <span>Add Extra Item / Spare Part / Service</span>
                   </div>
                   <span className="text-[11px] text-indigo-600 font-semibold flex items-center gap-1">
@@ -389,7 +402,7 @@ export default function BookingItemsManager({
                     value={selectedRateCardId}
                     onChange={handleRateCardSelect}
                     disabled={loadingRateCards}
-                    className="w-full px-3 py-2 bg-white border border-indigo-200 rounded-lg text-xs font-semibold text-gray-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none shadow-2xs"
+                    className="w-full px-3 py-2 bg-white border border-indigo-200 rounded-lg text-[11px] font-semibold text-gray-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none shadow-2xs"
                   >
                     <option value="">
                       {loadingRateCards ? "⏳ Loading Rate Cards..." : "-- Choose from Rate Card or Services (Auto-fills Name & Price) --"}
@@ -429,7 +442,7 @@ export default function BookingItemsManager({
                       value={newTitle}
                       onChange={(e) => setNewTitle(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleAddNewItem()}
-                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none shadow-2xs"
+                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-[11px] font-medium text-gray-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none shadow-2xs"
                     />
                   </div>
 
@@ -443,7 +456,7 @@ export default function BookingItemsManager({
                       placeholder="1"
                       value={newQuantity}
                       onChange={(e) => setNewQuantity(e.target.value)}
-                      className="w-full px-2 py-2 text-center bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none shadow-2xs"
+                      className="w-full px-2 py-2 text-center bg-white border border-gray-200 rounded-lg text-[11px] font-bold text-gray-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none shadow-2xs"
                     />
                   </div>
 
@@ -458,7 +471,7 @@ export default function BookingItemsManager({
                       value={newPrice}
                       onChange={(e) => setNewPrice(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleAddNewItem()}
-                      className="w-full px-2 py-2 text-right bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none shadow-2xs"
+                      className="w-full px-2 py-2 text-right bg-white border border-gray-200 rounded-lg text-[11px] font-bold text-gray-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none shadow-2xs"
                     />
                     {parseInt(newQuantity) > 1 && parseFloat(newPrice) > 0 && (
                       <span className="text-[10px] text-emerald-700 font-black block mt-1 text-right whitespace-nowrap">
@@ -471,9 +484,9 @@ export default function BookingItemsManager({
                     <button
                       type="button"
                       onClick={handleAddNewItem}
-                      className="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 shadow-xs active:scale-95"
+                      className="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[11px] font-bold transition flex items-center justify-center gap-1 shadow-xs active:scale-95"
                     >
-                      <Plus className="w-3.5 h-3.5" />
+                      <Plus className="w-3 h-3" />
                       <span>Add</span>
                     </button>
                   </div>
@@ -481,7 +494,7 @@ export default function BookingItemsManager({
               </div>
 
               {/* Price Breakdown & Summary */}
-              <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-2 text-xs">
+              <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 space-y-2 text-[11px]">
                 <div className="flex justify-between items-center text-gray-600">
                   <span>Items Subtotal:</span>
                   <span className="font-bold text-gray-900">₹{Math.round(itemsSubtotal).toLocaleString("en-IN")}</span>
@@ -496,7 +509,7 @@ export default function BookingItemsManager({
 
                 <div className="pt-2 border-t border-gray-200 flex justify-between items-center">
                   <div>
-                    <span className="font-black text-sm text-gray-900 block">Final Booking Total:</span>
+                    <span className="font-black text-[11px] text-gray-900 block">Final Booking Total:</span>
                     <span className="text-[10px] text-gray-400">Reflected in My Bookings, Invoice & Receipt</span>
                   </div>
 
@@ -511,7 +524,7 @@ export default function BookingItemsManager({
                           setIsCustomTotalOverride(true);
                           setCustomTotal(e.target.value);
                         }}
-                        className="w-32 pl-6 pr-2 py-1.5 bg-white border border-emerald-300 rounded-lg text-base font-black text-emerald-700 text-right outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 shadow-inner"
+                        className="w-32 pl-6 pr-2 py-1.5 bg-white border border-emerald-300 rounded-lg text-[11px] font-black text-emerald-700 text-right outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 shadow-inner"
                       />
                     </div>
                   </div>
@@ -520,12 +533,12 @@ export default function BookingItemsManager({
             </div>
 
             {/* Footer Buttons */}
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-end gap-3">
+            <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 flex items-center justify-end gap-2">
               <button
                 type="button"
                 onClick={closeModal}
                 disabled={isPending}
-                className="px-4 py-2 text-xs font-bold text-gray-600 hover:text-gray-900 bg-white hover:bg-gray-100 border border-gray-200 rounded-xl transition"
+                className="px-4 py-2 text-[11px] font-bold text-gray-600 hover:text-gray-900 bg-white hover:bg-gray-100 border border-gray-200 rounded-lg transition"
               >
                 Cancel
               </button>
@@ -533,7 +546,7 @@ export default function BookingItemsManager({
                 type="button"
                 onClick={handleSave}
                 disabled={isPending}
-                className={`px-5 py-2 text-xs font-bold text-white rounded-xl transition flex items-center gap-1.5 shadow-sm active:scale-95 ${
+                className={`px-5 py-2 text-[11px] font-bold text-white rounded-lg transition flex items-center gap-1.5 shadow-sm active:scale-95 ${
                   saved 
                     ? "bg-emerald-600 hover:bg-emerald-700" 
                     : "bg-indigo-600 hover:bg-indigo-700"
@@ -541,21 +554,22 @@ export default function BookingItemsManager({
               >
                 {saved ? (
                   <>
-                    <Check className="w-4 h-4" />
+                    <Check className="w-3 h-3" />
                     <span>Saved Successfully!</span>
                   </>
                 ) : isPending ? (
                   <span>Saving Changes...</span>
                 ) : (
                   <>
-                    <Save className="w-4 h-4" />
+                    <Save className="w-3 h-3" />
                     <span>Save Booking & Update Total</span>
                   </>
                 )}
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
