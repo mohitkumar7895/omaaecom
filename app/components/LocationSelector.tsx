@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { getCurrentLocation } from "@/lib/location";
+import { getCurrentLocation, autoDetectLocation } from "@/lib/location";
 import { ChevronDown, MapPin, X, LocateFixed, Search, ChevronRight, Loader2, AlertCircle } from "lucide-react";
 
 interface LocationData {
@@ -24,6 +24,7 @@ export default function LocationSelector() {
   
   // Location States
   const [isLoading, setIsLoading] = useState(false);
+  const [isAutoDetecting, setIsAutoDetecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [location, setLocation] = useState<LocationData | null>(null);
   
@@ -32,7 +33,7 @@ export default function LocationSelector() {
   const [searchResults, setSearchResults] = useState<LocationData[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  // Load saved location on mount, or auto-detect
+  // Load saved location on mount, or auto-detect immediately
   useEffect(() => {
     const syncUrl = (city: string) => {
       if (pathname === '/' && city) {
@@ -41,42 +42,57 @@ export default function LocationSelector() {
       }
     };
 
-    const savedLocation = localStorage.getItem("user_location");
-    if (savedLocation) {
+    const loadOrDetect = async () => {
+      const savedLocation = localStorage.getItem("user_location");
+      if (savedLocation) {
+        try {
+          const parsed = JSON.parse(savedLocation);
+          if (parsed && (parsed.city || parsed.address)) {
+            setLocation(parsed);
+            if (parsed.city) syncUrl(parsed.city);
+            return;
+          }
+        } catch (e) {
+          console.error("Failed to parse saved location");
+        }
+      }
+
+      // Auto-detect immediately on website open
+      setIsAutoDetecting(true);
       try {
-        const parsed = JSON.parse(savedLocation);
-        setLocation(parsed);
-        if (parsed.city) syncUrl(parsed.city);
-      } catch (e) {
-        console.error("Failed to parse saved location");
+        const detected = await autoDetectLocation();
+        if (detected) {
+          setLocation(detected);
+          if (detected.city) syncUrl(detected.city);
+        }
+      } catch (err) {
+        console.warn("Auto detect location failed:", err);
+      } finally {
+        setIsAutoDetecting(false);
       }
-    } else {
-      // Silently try to get location if not set
-      if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          async (position) => {
-            try {
-              const { latitude, longitude } = position.coords;
-              const response = await fetch("/api/location/geocode", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ latitude, longitude }),
-              });
-              const data = await response.json();
-              if (response.ok && data.success) {
-                setLocation(data.data);
-                localStorage.setItem("user_location", JSON.stringify(data.data));
-                if (data.data.city) syncUrl(data.data.city);
-              }
-            } catch (err) {
-              console.warn("Auto-detect location failed", err);
-            }
-          },
-          (err) => { console.warn("Auto-detect permission denied or failed", err); },
-          { timeout: 5000 }
-        );
-      }
-    }
+    };
+
+    loadOrDetect();
+
+    // Listen to location changes across windows/components
+    const handleLocationChange = () => {
+      try {
+        const saved = localStorage.getItem("user_location");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          setLocation(parsed);
+          if (parsed.city) syncUrl(parsed.city);
+        }
+      } catch (e) {}
+    };
+
+    window.addEventListener("location_changed", handleLocationChange);
+    window.addEventListener("storage", handleLocationChange);
+
+    return () => {
+      window.removeEventListener("location_changed", handleLocationChange);
+      window.removeEventListener("storage", handleLocationChange);
+    };
   }, [pathname]);
 
   // Handle modal animation
@@ -178,6 +194,9 @@ export default function LocationSelector() {
     if (location && location.city) {
       return location.city;
     }
+    if (isAutoDetecting) {
+      return "Detecting location...";
+    }
     return "Select Location";
   };
 
@@ -190,7 +209,11 @@ export default function LocationSelector() {
         title={getButtonText()}
       >
         <div className="flex items-center space-x-2 overflow-hidden">
-          <MapPin className="text-rose-500 w-4 h-4 shrink-0" />
+          {isAutoDetecting ? (
+            <Loader2 className="text-[#6b62d9] w-4 h-4 shrink-0 animate-spin" />
+          ) : (
+            <MapPin className="text-rose-500 w-4 h-4 shrink-0" />
+          )}
           <span className="text-[13px] sm:text-[14px] text-gray-800 font-medium line-clamp-1 break-words">{getButtonText()}</span>
         </div>
         <ChevronDown className="text-gray-400 w-4 h-4 shrink-0 ml-1.5" />

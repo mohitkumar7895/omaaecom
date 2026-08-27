@@ -2,17 +2,60 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { latitude, longitude } = body;
+    const body = await req.json().catch(() => ({}));
+    let { latitude, longitude } = body || {};
 
+    let resolvedData: any = null;
+
+    // 0. If no coordinates provided, attempt IP Geolocation fallback via BigDataCloud
     if (!latitude || !longitude) {
+      try {
+        const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip");
+        const bdcIpUrl = clientIp && clientIp !== "127.0.0.1" && clientIp !== "::1"
+          ? `https://api.bigdatacloud.net/data/reverse-geocode-client?ip=${clientIp}&localityLanguage=en`
+          : `https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=en`;
+
+        const ipRes = await fetch(bdcIpUrl);
+        if (ipRes.ok) {
+          const ipData = await ipRes.json();
+          if (ipData && (ipData.city || ipData.locality || ipData.principalSubdivision)) {
+            const cityOrDistrict = ipData.city || ipData.locality || ipData.principalSubdivision || "Local Area";
+            const state = ipData.principalSubdivision || "";
+            const country = ipData.countryName || "India";
+            const fullAddress = [cityOrDistrict, state, country].filter(Boolean).join(", ");
+
+            resolvedData = {
+              address: fullAddress,
+              shortAddress: cityOrDistrict,
+              fullAddress: fullAddress,
+              houseNumber: "",
+              street: "",
+              mohalla: cityOrDistrict,
+              city: cityOrDistrict,
+              state: state,
+              country: country,
+              postalCode: ipData.postcode || "",
+              latitude: ipData.latitude || 0,
+              longitude: ipData.longitude || 0,
+            };
+          }
+        }
+      } catch (ipErr) {
+        console.warn("IP Geolocation fallback failed:", ipErr);
+      }
+
+      if (resolvedData) {
+        return NextResponse.json({
+          success: true,
+          data: resolvedData,
+        });
+      }
+
       return NextResponse.json(
-        { error: "Latitude and longitude are required" },
+        { error: "Latitude and longitude are required and IP lookup failed" },
         { status: 400 }
       );
     }
-
-    let resolvedData: any = null;
 
     // 1. Google Maps Geocoding (Primary - High Precision)
     const apiKey = process.env.GOOGLE_MAPS_API_KEY;
