@@ -2,6 +2,8 @@ import { getSiteSettings, updateSiteSettings } from "@/app/actions/settings";
 import { Save, BellRing, Settings as SettingsIcon } from "lucide-react";
 import AdminPasswordSection from "./AdminPasswordSection";
 
+export const dynamic = "force-dynamic";
+
 export default async function SettingsPage() {
   const settings = await getSiteSettings();
 

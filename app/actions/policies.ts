@@ -134,13 +134,14 @@ async function ensurePolicyTable() {
 }
 
 export async function getPolicy(policyId: string): Promise<PolicyData> {
-  await ensurePolicyTable();
-
   try {
-    const [rows]: any = await pool.query(
+    const queryPromise = pool.query(
       "SELECT * FROM site_policies WHERE id = ?",
       [policyId]
     );
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 2000));
+
+    const [rows]: any = await Promise.race([queryPromise, timeoutPromise]);
 
     if (rows && rows.length > 0) {
       const row = rows[0];
@@ -161,8 +162,8 @@ export async function getPolicy(policyId: string): Promise<PolicyData> {
         updated_at: row.updated_at,
       };
     }
-  } catch (error) {
-    console.error(`Error fetching policy '${policyId}':`, error);
+  } catch {
+    // Fail silently to default policy without throwing
   }
 
   // Fallback to default policy

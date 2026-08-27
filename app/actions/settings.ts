@@ -5,8 +5,10 @@ import { revalidatePath } from "next/cache";
 
 export async function getSiteSettings() {
   try {
-    // Fetch settings directly, no DDL queries on every request!
-    const [rows]: any = await pool.query("SELECT * FROM site_settings WHERE id = 1");
+    const queryPromise = pool.query("SELECT * FROM site_settings WHERE id = 1");
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 2000));
+    
+    const [rows]: any = await Promise.race([queryPromise, timeoutPromise]);
 
     if (!rows || rows.length === 0) {
       return { offer_text: "", offer_enabled: false };
@@ -16,11 +18,8 @@ export async function getSiteSettings() {
       offer_text: rows[0].offer_text,
       offer_enabled: rows[0].offer_enabled === 1,
     };
-  } catch (error: any) {
-    // If the table doesn't exist yet, we just return default empty settings silently.
-    if (error.code !== 'ER_NO_SUCH_TABLE') {
-      console.error("Failed to fetch site settings:", error);
-    }
+  } catch {
+    // Fail silently with default fallback during build/unreachable DB
     return { offer_text: "", offer_enabled: false };
   }
 }
