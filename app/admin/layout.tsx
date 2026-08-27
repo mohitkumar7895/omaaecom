@@ -1,13 +1,18 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "./components/Sidebar";
 import { Search, Bell, UserCircle, Menu } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
   
   const isAuthPage = pathname === "/admin/login" || pathname === "/admin/register";
 
@@ -75,7 +80,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </header>
         
         {/* Main Scrollable Content */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-slate-50/50 p-4 md:p-6 lg:p-8">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-slate-50/50 p-2 md:p-6 lg:p-8">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>

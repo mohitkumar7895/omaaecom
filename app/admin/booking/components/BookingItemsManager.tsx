@@ -301,8 +301,8 @@ export default function BookingItemsManager({
                   <span className="text-[11px] text-gray-400 font-medium">Edit title, qty or price directly</span>
                 </div>
 
-                <div className="border border-gray-200 rounded-xl overflow-hidden shadow-2xs">
-                  <table className="w-full text-left text-xs border-collapse">
+                <div className="border border-gray-200 rounded-xl overflow-x-auto w-full shadow-2xs">
+                  <table className="w-full min-w-[500px] text-left text-xs border-collapse">
                     <thead className="bg-gray-50 text-[11px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">
                       <tr>
                         <th className="px-3 py-2.5">Item / Service Title</th>
