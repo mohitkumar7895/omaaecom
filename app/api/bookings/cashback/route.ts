@@ -16,7 +16,7 @@ export async function POST(req: Request) {
     }
 
     await pool.query(
-      `UPDATE bookings SET ad_watched = TRUE, ad_watched_at = NOW() WHERE order_id = ?`,
+      `UPDATE bookings SET ad_watched = TRUE, ad_watched_at = NOW(), cashback_amount = COALESCE(NULLIF(cashback_amount, 0), 4) WHERE order_id = ?`,
       [orderId]
     );
 

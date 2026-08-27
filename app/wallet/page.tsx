@@ -10,11 +10,6 @@ export default function WalletPage() {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
-  
-  // States for Add Money
-  const [isAdding, setIsAdding] = useState(false);
-  const [addSuccess, setAddSuccess] = useState("");
-  const [addError, setAddError] = useState("");
 
   const fetchWallet = async () => {
     try {
@@ -42,34 +37,6 @@ export default function WalletPage() {
   useEffect(() => {
     fetchWallet();
   }, []);
-
-  const handleAddMoney = async () => {
-    setIsAdding(true);
-    setAddError("");
-    setAddSuccess("");
-    
-    // Simulate adding ₹500
-    try {
-      const res = await fetch("/api/wallet/add-money", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: 500 })
-      });
-      const data = await res.json();
-      
-      if (!res.ok) throw new Error(data.error || "Failed to add money");
-      
-      setAddSuccess(`Success! ₹500 added.`);
-      fetchWallet(); // refresh balance and history
-      
-      setTimeout(() => setAddSuccess(""), 3000);
-    } catch (err: any) {
-      setAddError(err.message);
-      setTimeout(() => setAddError(""), 3000);
-    } finally {
-      setIsAdding(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -123,18 +90,6 @@ export default function WalletPage() {
             <p className="text-gray-500 font-medium text-sm mt-1">Your premium rewards and balance</p>
           </div>
         </div>
-
-        {/* Notifications */}
-        {addSuccess && (
-          <div className="mb-4 p-3 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-xl text-sm font-semibold flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4" /> {addSuccess}
-          </div>
-        )}
-        {addError && (
-          <div className="mb-4 p-3 bg-red-50 text-red-700 border border-red-100 rounded-xl text-sm font-semibold">
-            {addError}
-          </div>
-        )}
 
         {/* Premium Balance Card */}
         <div className="relative overflow-hidden bg-gradient-to-br from-gray-900 via-[#1a1c29] to-black rounded-[32px] p-8 sm:p-12 mb-10 shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-white/10 group">
