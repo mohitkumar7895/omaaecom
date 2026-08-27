@@ -458,7 +458,7 @@ export default function CashbackFeatures({ orderId, isEligible = true }: Cashbac
         </button>
       ) : (
         /* Direct Embedded Interactive Slider (Elongated & Sleek) */
-        <div className="bg-white/95 border border-gray-200/90 rounded-full px-3 py-1 sm:px-4 sm:py-1.5 shadow-2xs flex items-center gap-2 sm:gap-3.5 select-none transition-all hover:border-gray-300">
+        <div className="bg-white/95 border border-gray-200/90 rounded-full px-3 py-1 sm:px-3.5 sm:py-1 shadow-2xs flex items-center gap-1.5 sm:gap-2.5 select-none transition-all hover:border-gray-300">
           {/* Service Option */}
           <button 
             type="button"
@@ -467,19 +467,18 @@ export default function CashbackFeatures({ orderId, isEligible = true }: Cashbac
               setActiveTab('service');
               setShowServiceModal(true);
             }}
-            className={`flex items-center gap-1.5 font-bold text-xs sm:text-[13px] transition-all cursor-pointer ${
-              activeTab === 'service' ? 'text-blue-600 font-black scale-105' : 'text-gray-600 hover:text-blue-600'
+            className={`font-bold text-[11px] sm:text-xs transition-all cursor-pointer whitespace-nowrap ${
+              activeTab === 'service' ? 'text-blue-600 font-black scale-105' : 'text-gray-700 hover:text-blue-600'
             }`}
           >
-            <Gift className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500 shrink-0" />
-            <span>Service</span>
+            <span>Service Active</span>
           </button>
 
           {/* Toggle Pill Slider Track (Elongated) */}
           <div 
             ref={containerRef}
             onClick={handleBgClick}
-            className="relative w-20 sm:w-24 h-6 sm:h-7 rounded-full p-0.5 shadow-inner cursor-pointer border border-amber-200/80 bg-[#fef3c7] transition-colors"
+            className="relative w-16 sm:w-20 h-5 sm:h-6 rounded-full p-0.5 shadow-inner cursor-pointer border border-amber-200/80 bg-[#fef3c7] transition-colors shrink-0"
           >
             <div className="relative w-full h-full">
               <div
@@ -491,8 +490,8 @@ export default function CashbackFeatures({ orderId, isEligible = true }: Cashbac
                 style={{ left: `${dragPercent}%`, transform: isDragging ? 'scale(0.95)' : 'scale(1)' }}
               >
                 <div className="flex gap-[2px]">
-                  <div className="w-[2px] h-[8px] sm:h-[10px] rounded-full bg-gray-400"></div>
-                  <div className="w-[2px] h-[8px] sm:h-[10px] rounded-full bg-gray-400"></div>
+                  <div className="w-[1.5px] h-[7px] sm:h-[8px] rounded-full bg-gray-400"></div>
+                  <div className="w-[1.5px] h-[7px] sm:h-[8px] rounded-full bg-gray-400"></div>
                 </div>
               </div>
             </div>
@@ -506,12 +505,11 @@ export default function CashbackFeatures({ orderId, isEligible = true }: Cashbac
               setActiveTab('cashback');
               setShowCashbackModal(true);
             }}
-            className={`flex items-center gap-1.5 font-bold text-xs sm:text-[13px] transition-all cursor-pointer ${
-              activeTab === 'cashback' ? 'text-amber-600 font-black scale-105' : 'text-gray-600 hover:text-amber-600'
+            className={`font-bold text-[11px] sm:text-xs transition-all cursor-pointer whitespace-nowrap ${
+              activeTab === 'cashback' ? 'text-amber-600 font-black scale-105' : 'text-gray-700 hover:text-amber-600'
             }`}
           >
-            <span>Cashback</span>
-            <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 shrink-0" />
+            <span>Cashback up to 100%</span>
           </button>
         </div>
       )}

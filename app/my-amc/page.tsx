@@ -395,14 +395,14 @@ export default function MyAmcPage() {
                         {/* Warranty or Expired Badge */}
                         {isWarrantyExpired ? (
                           <div className="flex items-center gap-1.5 text-xs">
-                            <span className="text-[11px] font-black text-gray-900 uppercase tracking-wide">AMC COVERAGE:</span>
+                            <span className="text-[11px] font-black text-gray-900 uppercase tracking-wide">AMC:</span>
                             <span className="px-2 py-0.5 rounded-md text-[11px] font-black bg-rose-50 text-rose-700 border border-rose-200">
                               Expired
                             </span>
                           </div>
                         ) : (
                           <div className="flex items-center gap-1.5 text-xs">
-                            <span className="text-[11px] font-black text-gray-900 uppercase tracking-wide">AMC COVERAGE:</span>
+                            <span className="text-[11px] font-black text-gray-900 uppercase tracking-wide">AMC:</span>
                             <span className="font-black text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md text-[11px]">
                               {warrantyDays} days active
                             </span>
