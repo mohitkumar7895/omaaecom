@@ -202,10 +202,12 @@ export default function CartPage() {
                   </div>
                 )}
                 
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600 text-[14px]">Convenience fee</span>
-                  <span className="text-gray-800 text-[15px]">₹{convenienceFee.toLocaleString()}</span>
-                </div>
+                {convenienceFee > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600 text-[14px]">Convenience fee</span>
+                    <span className="text-gray-800 text-[15px]">₹{convenienceFee.toLocaleString()}</span>
+                  </div>
+                )}
               </div>
 
               <div className="border-t border-gray-100 pt-4 mb-4">

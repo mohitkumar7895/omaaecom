@@ -549,10 +549,12 @@ function CheckoutContent() {
                     <span className="font-bold text-gray-800">₹{Math.round(gstAmount).toLocaleString()}</span>
                   </div>
                 )}
-                <div className="flex justify-between items-center text-[15px]">
-                  <span className="text-gray-500 font-semibold">Convenience Fee</span>
-                  <span className="font-bold text-gray-800">₹{convenienceFee}</span>
-                </div>
+                {convenienceFee > 0 && (
+                  <div className="flex justify-between items-center text-[15px]">
+                    <span className="text-gray-500 font-semibold">Convenience Fee</span>
+                    <span className="font-bold text-gray-800">₹{convenienceFee}</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center text-[15px]">
                   <span className="text-gray-500 font-semibold">Taxes</span>
                   <span className="font-bold text-[#328e3b] bg-green-50 px-3 py-1 rounded-full text-xs uppercase tracking-wider">Free</span>
