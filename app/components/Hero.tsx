@@ -159,9 +159,9 @@ export default function Hero({ categories = [], banners = [] }: HeroProps) {
               </div>
             </div>
 
-            {/* Bottom Row: Omaa Premium Package (New Products & RO AMC) */}
+            {/* Bottom Row: OMAA PREMIUM PACKAGE (New Products & RO AMC) */}
             {(newProducts.length > 0 || amcProducts.length > 0) && (
-              <div className="pt-1 w-full">
+              <div className="pt-2 w-full">
                 <style dangerouslySetInnerHTML={{__html: `
                   @keyframes premium-shimmer {
                     0% { background-position: 0% 50%; }
@@ -175,16 +175,16 @@ export default function Hero({ categories = [], banners = [] }: HeroProps) {
                     -webkit-text-fill-color: transparent;
                     animation: premium-shimmer 4s ease infinite;
                     display: inline-block;
-                    padding-bottom: 4px;
-                    padding-right: 6px;
+                    padding-bottom: 2px;
+                    padding-right: 4px;
                   }
                 `}} />
-                <div className="flex items-center justify-between mb-3 gap-2 flex-wrap sm:flex-nowrap">
-                  <h4 className="omaa-premium-gradient font-black text-[20px] sm:text-[23px] md:text-[25px] tracking-tight leading-normal">
-                    Omaa Premium Package
-                  </h4>
-                  <span className="text-[11px] sm:text-[12px] font-black text-rose-600 bg-rose-50 border border-rose-200 px-3 py-1 rounded-full shadow-2xs flex items-center gap-1.5 shrink-0">
-                    <span className="text-[13px]">✨</span> Premium
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="omaa-premium-gradient font-black text-[17px] sm:text-[19px] md:text-[20px] tracking-tight uppercase">
+                    OMAA PREMIUM PACKAGE
+                  </h3>
+                  <span className="text-[11px] sm:text-[12px] font-bold text-rose-600 bg-rose-50 border border-rose-200 px-3 py-1 rounded-full shadow-2xs flex items-center gap-1.5 shrink-0">
+                    <span className="text-[12px]">✨</span> Premium
                   </span>
                 </div>
 
