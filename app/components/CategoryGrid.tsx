@@ -51,18 +51,18 @@ export default function CategoryGrid({ title, services }: CategoryGridProps) {
         </h2>
       </div>
       
-      <div className="overflow-hidden pb-3 pt-1 -mt-1 -mx-4 px-4">
-        <div className={`flex gap-3 sm:gap-3.5 md:gap-4 items-stretch ${services.length > 3 ? 'animate-smooth-slide' : ''}`}>
+      <div className="overflow-hidden pb-4 pt-1.5 -mt-1.5 -mx-4 px-4">
+        <div className={`flex gap-3.5 sm:gap-4 md:gap-5 items-stretch ${services.length > 3 ? 'animate-smooth-slide' : ''}`}>
           {displayServices.map((service, index) => (
             <Link 
               href={`/services/${service.category_id}`}
               key={`${service.id}-${index}`} 
-              className="flex-none w-[140px] sm:w-[165px] md:w-[185px] snap-start bg-white rounded-2xl border border-gray-200/80 shadow-2xs transition-all duration-300 overflow-hidden cursor-pointer flex flex-col group/card hover:border-[#6b62d9]/50 hover:shadow-md"
+              className="flex-none w-[180px] sm:w-[215px] md:w-[245px] snap-start bg-white rounded-2xl border border-gray-200/80 shadow-xs transition-all duration-300 overflow-hidden cursor-pointer flex flex-col group/card hover:border-[#6b62d9]/50 hover:shadow-lg"
             >
-              {/* Image Area - Compact & proportional */}
-              <div className="relative h-28 sm:h-32 md:h-36 bg-[#f8f9fb] w-full shrink-0 flex items-center justify-center overflow-hidden p-2">
+              {/* Image Area - Prominent and Spacious */}
+              <div className="relative h-42 sm:h-48 md:h-52 bg-[#f8f9fb] w-full shrink-0 flex items-center justify-center overflow-hidden p-3">
                 {service.discount && (
-                  <span className="absolute top-2 left-2 bg-rose-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded z-10 shadow-xs">
+                  <span className="absolute top-2.5 left-2.5 bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-md z-10 shadow-xs">
                     {service.discount}
                   </span>
                 )}
@@ -80,7 +80,7 @@ export default function CategoryGrid({ title, services }: CategoryGridProps) {
                     }}
                   />
                 ) : null}
-                <div className={`text-3xl opacity-60 ${service.image_url ? 'hidden' : ''}`}>
+                <div className={`text-4xl opacity-60 ${service.image_url ? 'hidden' : ''}`}>
                   {title.includes("AC") ? "❄️" : 
                    title.includes("Refrigerator") ? "🧊" : 
                    title.includes("Washing") ? "👕" : 
@@ -89,16 +89,16 @@ export default function CategoryGrid({ title, services }: CategoryGridProps) {
                 </div>
               </div>
               
-              {/* Text Area - Compact & tightly fitted */}
-              <div className="p-2.5 sm:p-3 flex flex-col flex-1 justify-between bg-white">
-                <h3 className="font-bold text-xs sm:text-[13px] text-gray-900 leading-snug line-clamp-2 group-hover/card:text-[#6b62d9] transition-colors">
+              {/* Text Area */}
+              <div className="p-3.5 sm:p-4 flex flex-col flex-1 justify-between bg-white">
+                <h3 className="font-bold text-xs sm:text-[14px] text-gray-900 leading-snug line-clamp-2 group-hover/card:text-[#6b62d9] transition-colors">
                   {service.title}
                 </h3>
                 
-                <div className="mt-1.5 flex items-center space-x-1 text-[11px] text-gray-500 font-medium">
-                  <Star className="w-3 h-3 text-amber-400 fill-current" />
+                <div className="mt-2 flex items-center space-x-1.5 text-xs text-gray-500 font-medium">
+                  <Star className="w-3.5 h-3.5 text-amber-400 fill-current" />
                   <span className="text-gray-800 font-bold">{service.rating || "4.8"}</span>
-                  {service.reviews && <span className="text-gray-400 text-[10px]">({service.reviews})</span>}
+                  {service.reviews && <span className="text-gray-400 text-[11px]">({service.reviews})</span>}
                 </div>
               </div>
             </Link>
