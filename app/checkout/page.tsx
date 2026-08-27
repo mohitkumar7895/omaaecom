@@ -529,7 +529,7 @@ function CheckoutContent() {
                       </div>
                       <div className="flex-1">
                         <p className="font-bold text-gray-900 text-[14px] leading-snug line-clamp-2">{item.title}</p>
-                        <p className="text-xs text-gray-500 mt-1 font-medium bg-white px-2 py-0.5 rounded-full inline-block border border-gray-200 shadow-sm">Qty: {item.quantity}</p>
+                        <p className="text-xs text-gray-500 mt-1 font-medium bg-white px-2 py-0.5 rounded-full inline-block border border-gray-200 shadow-sm">Item: {item.quantity}</p>
                       </div>
                       <p className="font-black text-gray-900 text-base shrink-0">₹{(Number(item.selling_price) * item.quantity).toLocaleString()}</p>
                     </div>

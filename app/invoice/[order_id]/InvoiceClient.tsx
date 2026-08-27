@@ -132,7 +132,7 @@ export default function InvoiceClient({ booking, services, gstSettings, resolved
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-200">
                     <th className="px-4 py-3 font-bold text-gray-800 w-[50%]">Service</th>
-                    <th className="px-4 py-3 font-bold text-gray-800 text-center w-[15%]">Qty</th>
+                    <th className="px-4 py-3 font-bold text-gray-800 text-center w-[15%]">Item</th>
                     <th className="px-4 py-3 font-bold text-gray-800 text-right w-[17%]">Price</th>
                     <th className="px-4 py-3 font-bold text-gray-800 text-right w-[18%]">Total</th>
                   </tr>
@@ -142,8 +142,8 @@ export default function InvoiceClient({ booking, services, gstSettings, resolved
                     <tr key={idx} className="hover:bg-gray-50/60">
                       <td className="px-4 py-3.5 text-gray-800 font-medium">{item.title}</td>
                       <td className="px-4 py-3.5 text-gray-600 text-center">{item.quantity}</td>
-                      <td className="px-4 py-3.5 text-gray-700 text-right">₹{Number(item.price).toLocaleString('en-IN')}</td>
-                      <td className="px-4 py-3.5 text-gray-900 font-bold text-right">₹{(Number(item.price) * Number(item.quantity)).toLocaleString('en-IN')}</td>
+                      <td className="px-4 py-3.5 text-gray-700 text-right">₹{Math.round(Number(item.price)).toLocaleString('en-IN')}</td>
+                      <td className="px-4 py-3.5 text-gray-900 font-bold text-right">₹{Math.round(Number(item.price) * Number(item.quantity)).toLocaleString('en-IN')}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -155,20 +155,20 @@ export default function InvoiceClient({ booking, services, gstSettings, resolved
               <div className="w-full sm:w-72 space-y-2 text-sm">
                 <div className="flex justify-between text-gray-600">
                   <span>Subtotal</span>
-                  <span className="font-bold text-gray-800">₹{subtotal.toLocaleString('en-IN')}</span>
+                  <span className="font-bold text-gray-800">₹{Math.round(subtotal).toLocaleString('en-IN')}</span>
                 </div>
 
                 {total < subtotal && (
                   <div className="flex justify-between text-emerald-600">
                     <span>Discount</span>
-                    <span className="font-bold">-₹{(subtotal - total).toLocaleString('en-IN')}</span>
+                    <span className="font-bold">-₹{Math.round(subtotal - total).toLocaleString('en-IN')}</span>
                   </div>
                 )}
 
                 {detectedConvenienceFee > 0 && (
                   <div className="flex justify-between text-gray-600">
                     <span>Convenience Fee</span>
-                    <span className="font-bold">₹{detectedConvenienceFee}</span>
+                    <span className="font-bold">₹{Math.round(detectedConvenienceFee)}</span>
                   </div>
                 )}
 
@@ -176,22 +176,22 @@ export default function InvoiceClient({ booking, services, gstSettings, resolved
                   <>
                     <div className="flex justify-between text-gray-500 text-xs pt-1">
                       <span>Taxable Amount</span>
-                      <span>₹{baseAmount.toFixed(2)}</span>
+                      <span>₹{Math.round(baseAmount).toLocaleString('en-IN')}</span>
                     </div>
                     <div className="flex justify-between text-blue-600 text-xs">
                       <span>CGST @ {gstRate / 2}%</span>
-                      <span>₹{cgstAmount.toFixed(2)}</span>
+                      <span>₹{Math.round(cgstAmount).toLocaleString('en-IN')}</span>
                     </div>
                     <div className="flex justify-between text-blue-600 text-xs">
                       <span>SGST @ {gstRate / 2}%</span>
-                      <span>₹{sgstAmount.toFixed(2)}</span>
+                      <span>₹{Math.round(sgstAmount).toLocaleString('en-IN')}</span>
                     </div>
                   </>
                 )}
 
                 <div className="border-t border-gray-200 pt-3 mt-2 flex justify-between items-center">
                   <span className="font-bold text-gray-900 text-base">Total</span>
-                  <span className="font-black text-gray-900 text-2xl">₹{total.toLocaleString('en-IN')}</span>
+                  <span className="font-black text-gray-900 text-2xl">₹{Math.round(total).toLocaleString('en-IN')}</span>
                 </div>
               </div>
             </div>

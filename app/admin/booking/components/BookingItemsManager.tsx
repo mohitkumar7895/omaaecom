@@ -306,7 +306,7 @@ export default function BookingItemsManager({
                     <thead className="bg-gray-50 text-[11px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">
                       <tr>
                         <th className="px-3 py-2.5">Item / Service Title</th>
-                        <th className="px-3 py-2.5 text-center w-20">Qty</th>
+                        <th className="px-3 py-2.5 text-center w-20">Item</th>
                         <th className="px-3 py-2.5 text-right w-28">Price (₹)</th>
                         <th className="px-3 py-2.5 text-right w-28">Total (₹)</th>
                         <th className="px-2 py-2.5 text-center w-10"></th>
@@ -314,7 +314,7 @@ export default function BookingItemsManager({
                     </thead>
                     <tbody className="divide-y divide-gray-100 bg-white">
                       {items.map((item, idx) => {
-                        const lineTotal = (parseFloat(String(item.price)) || 0) * (parseInt(String(item.quantity)) || 1);
+                        const lineTotal = Math.round((parseFloat(String(item.price)) || 0) * (parseInt(String(item.quantity)) || 1));
                         return (
                           <tr key={idx} className="hover:bg-gray-50/70 transition-colors">
                             <td className="px-3 py-2">
@@ -435,7 +435,7 @@ export default function BookingItemsManager({
 
                   <div className="sm:col-span-2">
                     <label className="text-[11px] font-bold text-gray-700 block mb-1">
-                      Qty
+                      Item
                     </label>
                     <input
                       type="number"
@@ -462,7 +462,7 @@ export default function BookingItemsManager({
                     />
                     {parseInt(newQuantity) > 1 && parseFloat(newPrice) > 0 && (
                       <span className="text-[10px] text-emerald-700 font-black block mt-1 text-right whitespace-nowrap">
-                        = ₹{(parseFloat(newPrice) * parseInt(newQuantity)).toLocaleString("en-IN")}
+                        = ₹{Math.round(parseFloat(newPrice) * parseInt(newQuantity)).toLocaleString("en-IN")}
                       </span>
                     )}
                   </div>
@@ -484,13 +484,13 @@ export default function BookingItemsManager({
               <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-2 text-xs">
                 <div className="flex justify-between items-center text-gray-600">
                   <span>Items Subtotal:</span>
-                  <span className="font-bold text-gray-900">₹{itemsSubtotal.toLocaleString("en-IN")}</span>
+                  <span className="font-bold text-gray-900">₹{Math.round(itemsSubtotal).toLocaleString("en-IN")}</span>
                 </div>
 
                 {convenienceFee > 0 && (
                   <div className="flex justify-between items-center text-gray-600">
                     <span>Convenience Fee:</span>
-                    <span className="font-bold text-gray-900">₹{convenienceFee}</span>
+                    <span className="font-bold text-gray-900">₹{Math.round(convenienceFee)}</span>
                   </div>
                 )}
 
@@ -506,7 +506,7 @@ export default function BookingItemsManager({
                       <input
                         type="number"
                         min="0"
-                        value={isCustomTotalOverride ? customTotal : autoComputedTotal}
+                        value={isCustomTotalOverride ? customTotal : Math.round(autoComputedTotal)}
                         onChange={(e) => {
                           setIsCustomTotalOverride(true);
                           setCustomTotal(e.target.value);

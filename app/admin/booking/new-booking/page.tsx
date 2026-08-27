@@ -140,7 +140,7 @@ export default async function NewBookingPage() {
                     </td>
 
                     <td className="px-4 py-4">
-                      <div className="font-bold text-gray-900 text-sm">₹{Number(row.total).toLocaleString()}</div>
+                      <div className="font-bold text-gray-900 text-sm">₹{Math.round(Number(row.total || 0)).toLocaleString('en-IN')}</div>
                     </td>
 
                     <td className="px-4 py-4">

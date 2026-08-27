@@ -88,7 +88,7 @@ export default function AddressViewButton({ booking }: AddressModalProps) {
       const s = booking.services[0];
       const qty = Number(s.quantity) || 1;
       const price = Number(s.price) || 0;
-      servicesSection = `*Service:* *${s.title}*${qty > 1 ? ` (Qty: ${qty})` : ""} - *Rs.${price * qty}*`;
+      servicesSection = `*Service:* *${s.title}*${qty > 1 ? ` (Item: ${qty})` : ""} - *Rs.${Math.round(price * qty)}*`;
     } else {
       servicesSection =
         `*Services:*\n` +
@@ -96,7 +96,7 @@ export default function AddressViewButton({ booking }: AddressModalProps) {
           .map((s: any) => {
             const qty = Number(s.quantity) || 1;
             const price = Number(s.price) || 0;
-            return `• *${s.title}*${qty > 1 ? ` (Qty: ${qty})` : ""} - *Rs.${price * qty}*`;
+            return `• *${s.title}*${qty > 1 ? ` (Item: ${qty})` : ""} - *Rs.${Math.round(price * qty)}*`;
           })
           .join("\n");
     }

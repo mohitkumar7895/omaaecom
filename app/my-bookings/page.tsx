@@ -431,13 +431,13 @@ export default function MyBookingsPage() {
                             {booking.services.map((item, i) => {
                               const qty = Number(item.quantity) || 1;
                               const unitPrice = Number(item.price) || 0;
-                              const lineTotal = unitPrice * qty;
+                              const lineTotal = Math.round(unitPrice * qty);
                               return (
                                 <div key={i} className="flex justify-between items-center text-xs py-0.5">
                                   <span className="font-medium text-gray-700">{item.title}</span>
                                   <div className="flex items-center gap-3">
-                                    <span className="text-[11px] text-gray-400 font-semibold">Qty: {qty}</span>
-                                    <span className="font-bold text-gray-900">₹{lineTotal.toLocaleString()}</span>
+                                    <span className="text-[11px] text-gray-400 font-semibold">Item: {qty}</span>
+                                    <span className="font-bold text-gray-900">₹{lineTotal.toLocaleString("en-IN")}</span>
                                   </div>
                                 </div>
                               );
@@ -455,8 +455,8 @@ export default function MyBookingsPage() {
                           <div className="flex justify-between items-center text-xs py-1 mb-2">
                             <span className="font-medium text-gray-700">{booking.category || "Service Charge"}</span>
                             <div className="flex items-center gap-4">
-                              <span className="text-[11px] text-gray-400 font-semibold">Qty: 1</span>
-                              <span className="font-bold text-gray-900">₹{Number(booking.total || 0).toLocaleString()}</span>
+                              <span className="text-[11px] text-gray-400 font-semibold">Item: 1</span>
+                              <span className="font-bold text-gray-900">₹{Math.round(Number(booking.total || 0)).toLocaleString("en-IN")}</span>
                             </div>
                           </div>
                         )}
@@ -465,7 +465,7 @@ export default function MyBookingsPage() {
                         <div className="flex items-center justify-between pt-2 border-t border-gray-100">
                           <span className="font-bold text-xs sm:text-sm text-gray-700">Total Amount:</span>
                           <span className="font-black text-lg sm:text-xl text-emerald-600">
-                            ₹{Number(booking.total || 0).toLocaleString()}
+                            ₹{Math.round(Number(booking.total || 0)).toLocaleString("en-IN")}
                           </span>
                         </div>
 

@@ -5,13 +5,18 @@ import { useRouter } from "next/navigation";
 import { Check } from "lucide-react";
 
 export default function EditableTotal({ id, defaultValue, action }: { id: string | number, defaultValue: number | string, action: any }) {
-  const [value, setValue] = useState(defaultValue);
+  const formatVal = (val: number | string) => {
+    const num = Number(val);
+    return isNaN(num) ? "" : String(Math.round(num));
+  };
+
+  const [value, setValue] = useState(formatVal(defaultValue));
   const [isPending, startTransition] = useTransition();
   const [saved, setSaved] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    setValue(defaultValue);
+    setValue(formatVal(defaultValue));
   }, [defaultValue]);
 
   const handleSave = (e: React.FormEvent) => {
