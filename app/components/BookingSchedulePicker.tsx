@@ -161,8 +161,8 @@ export default function BookingSchedulePicker({
         {/* Date Selection */}
         <div>
           <div className="flex justify-between items-center mb-4">
-            <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-              <CalendarCheck className="w-3.5 h-3.5" /> Select Date
+            <label className="text-[12px] font-extrabold text-[#6069c9] uppercase tracking-wider flex items-center gap-1.5 bg-[#f0effb] px-2.5 py-1 rounded-lg">
+              <CalendarCheck className="w-4 h-4 text-[#6069c9]" /> Select Date
             </label>
             {errorDate && !selectedDate && (
               <span className="text-red-500 text-xs font-bold">{errorDate}</span>
@@ -204,8 +204,8 @@ export default function BookingSchedulePicker({
         {/* Time Slot Selection */}
         <div>
           <div className="flex justify-between items-center mb-4">
-            <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5" /> Available Slots
+            <label className="text-[12px] font-extrabold text-[#6069c9] uppercase tracking-wider flex items-center gap-1.5 bg-[#f0effb] px-2.5 py-1 rounded-lg">
+              <Clock className="w-4 h-4 text-[#6069c9]" /> Time Slots
             </label>
             {errorTime && !selectedTime && (
               <span className="text-red-500 text-xs font-bold">{errorTime}</span>
