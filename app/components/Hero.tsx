@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Scissors, ShoppingCart } from "lucide-react";
+import { Home, ShoppingCart, ShieldCheck, Sparkles } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import MobileBannerCarousel from "./MobileBannerCarousel";
@@ -69,102 +69,146 @@ export default function Hero({ categories = [], banners = [] }: HeroProps) {
     return "🔧";
   };
 
-  // Filter categories by type
-  const homeServices = visibleCategories.filter(c => c.type && c.type.toLowerCase().includes("service")).slice(0, 6);
+  // Filter categories by type and order them explicitly:
+  // Col 1: AC -> Microwave
+  // Col 2: Refrigerator -> Water Purifier
+  // Col 3: Washing Machine
+  const allServices = visibleCategories.filter(c => c.type && c.type.toLowerCase().includes("service"));
+  
+  const findService = (query: string) => 
+    allServices.find(s => s.title.toLowerCase().includes(query.toLowerCase()));
+
+  const acService = findService("ac");
+  const fridgeService = findService("refrigerator");
+  const washingService = findService("washing");
+  const microwaveService = findService("microwave");
+  const roService = findService("water") || findService("purifier") || findService("ro");
+
+  const orderedCategories = [
+    acService,        // Col 1, Row 1 (AC)
+    fridgeService,    // Col 2, Row 1 (Refrigerator)
+    washingService,   // Col 3, Row 1 (Washing Machine)
+    microwaveService, // Col 1, Row 2 (Microwave - under AC!)
+    roService,        // Col 2, Row 2 (Water Purifier - under Refrigerator!)
+  ].filter(Boolean) as HeroCategory[];
+
+  // Fallback if any missing
+  const usedIds = new Set(orderedCategories.map(s => s.id));
+  const remainingServices = allServices.filter(s => !usedIds.has(s.id));
+  while (orderedCategories.length < 5 && remainingServices.length > 0) {
+    orderedCategories.push(remainingServices.shift()!);
+  }
+
   const newProducts = visibleCategories.filter(c => c.type && c.type.toLowerCase().includes("product")).slice(0, 1);
   const amcProducts = visibleCategories.filter(c => c.type && c.type.toLowerCase().includes("amc")).slice(0, 1);
 
   return (
-    <div className="relative bg-linear-to-br from-[#6277db] via-[#a268b8] to-[#db5285] text-white w-full font-sans overflow-hidden py-4 md:py-10 px-4 md:px-10 lg:px-12">
+    <div className="relative bg-linear-to-br from-[#6277db] via-[#a268b8] to-[#db5285] text-white w-full font-sans overflow-hidden py-4 md:py-8 px-4 md:px-10 lg:px-12">
 
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 md:gap-6 items-stretch justify-between">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 md:gap-6 items-start justify-between">
 
         {/* Left Side: Title & Services Card */}
-        <div className="w-full md:w-1/2 flex flex-col space-y-4 md:space-y-5 z-10">
+        <div className="w-full md:w-1/2 flex flex-col space-y-3 md:space-y-4 z-10">
 
           {/* Mobile Carousel (Mobile Only) */}
           <div className="md:hidden">
             <MobileBannerCarousel banners={banners} />
           </div>
 
-          <h1 className="hidden md:block text-[34px] lg:text-[44px] xl:text-[50px] font-extrabold tracking-tight leading-[1.15] text-white drop-shadow-md">
+          <h1 className="hidden md:block text-[32px] lg:text-[40px] xl:text-[46px] font-extrabold tracking-tight leading-[1.12] text-white drop-shadow-md">
             Home services at your <br /> doorsteps
           </h1>
 
           {/* Mobile Search Bar */}
           <LiveSearchBar className="md:hidden" />
 
-          {/* Services Box */}
-          <div className="bg-white rounded-3xl p-4 sm:p-5 md:p-6 shadow-2xl text-gray-800 flex flex-col space-y-4">
+          {/* Services Box (Urban Company Style) */}
+          <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-2xl text-gray-800 flex flex-col space-y-5">
 
             {/* Top Section: Home Services */}
             <div>
-              <div className="flex items-center space-x-2 mb-0">
-                <Scissors className="w-4 h-4 text-gray-800" />
-                <h3 className="font-bold text-[17px] md:text-[19px] text-gray-900 tracking-tight">Home Services</h3>
-              </div>
-              <div className="grid grid-cols-3 gap-0 text-center justify-items-center">
-                {homeServices.map((service, index) => (
-                  <Link href={`/services/${service.id}`} key={index} className="flex flex-col items-center group w-full cursor-pointer">
-                    <div className="w-20 h-20 sm:w-21.5 sm:h-21.5 md:w-22.5 md:h-22.5 bg-[#f4f5f8] rounded-2xl flex items-center justify-center text-[30px] md:text-[36px] shadow-sm group-hover:shadow-md transition-all overflow-hidden p-1 mb-1 group-hover:-translate-y-0.5">
+              <h3 className="font-bold text-[18px] md:text-[20px] text-gray-900 tracking-tight mb-3">
+                Home Services
+              </h3>
+              
+              {/* 3-Column Wide-Tile Grid matching reference screenshot:
+                  Row 1: Ac Repair & Services | Refrigerator Repair | Washing Machine
+                  Row 2: Microwave Repair | Water Purifier */}
+              <div className="grid grid-cols-3 gap-3 sm:gap-4 text-center justify-items-center w-full">
+                {orderedCategories.map((service, index) => (
+                  <Link 
+                    href={`/services/${service.id}`} 
+                    key={index} 
+                    className="flex flex-col items-center group w-full cursor-pointer"
+                  >
+                    {/* Sleek Compact Wide Tile */}
+                    <div className="w-full h-16 sm:h-18 md:h-19 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
                       {service.image_url && service.image_url.length > 5 ? (
                         /* eslint-disable-next-line @next/next/no-img-element */
                         <img src={service.image_url} alt={service.title} className="w-full h-full object-contain" />
                       ) : (
-                        <span>{getIcon(service.title)}</span>
+                        <span className="text-[28px] sm:text-[32px]">{getIcon(service.title)}</span>
                       )}
                     </div>
-                    <span className="text-[11.5px] md:text-[12.5px] font-medium text-gray-800 leading-tight group-hover:text-black transition-colors px-0.5">{service.title}</span>
+                    {/* Title Text */}
+                    <span className="text-[11.5px] sm:text-[12.5px] font-semibold text-gray-800 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5">
+                      {service.title}
+                    </span>
                   </Link>
                 ))}
               </div>
             </div>
 
-            {/* Divider */}
-            <div className="w-full h-px bg-gray-100 my-1"></div>
+            {/* Bottom Section: Native Smart Products & AMC */}
+            {(newProducts.length > 0 || amcProducts.length > 0) && (
+              <div>
+                <h3 className="font-bold text-[17px] md:text-[19px] text-gray-900 tracking-tight mb-2.5">
+                  Native Smart Products
+                </h3>
 
-            {/* Bottom Section: New Products & AMC */}
-            <div className="grid grid-cols-2 gap-3 w-full">
-              {/* New Products Card */}
-              {newProducts.length > 0 && (
-                <Link href={`/services/${newProducts[0].id}`} className="flex flex-col group cursor-pointer bg-[#f4f5f8] rounded-2xl p-3 hover:bg-gray-100 transition-colors">
-                  <div className="flex items-center space-x-1.5 text-[#2c8af8] mb-1">
-                    <ShoppingCart className="w-4 h-4" fill="currentColor" />
-                    <span className="font-bold text-[13px] tracking-tight truncate leading-none pt-0.5">New Products</span>
-                  </div>
-                  <div className="flex justify-center items-center mt-0.5">
-                    <div className="w-20 h-20 md:w-22 md:h-22 bg-white rounded-[14px] shrink-0 flex items-center justify-center shadow-sm overflow-hidden p-1 group-hover:-translate-y-0.5 transition-transform">
-                      {newProducts[0].image_url && newProducts[0].image_url.length > 5 ? (
-                        /* eslint-disable-next-line @next/next/no-img-element */
-                        <img src={newProducts[0].image_url} alt={newProducts[0].title} className="w-full h-full object-contain" />
-                      ) : (
-                        <span>📦</span>
-                      )}
-                    </div>
-                  </div>
-                </Link>
-              )}
+                <div className="grid grid-cols-3 gap-3 sm:gap-4 text-center justify-items-center w-full">
+                  {/* New Products */}
+                  {newProducts.length > 0 && (
+                    <Link 
+                      href={`/services/${newProducts[0].id}`} 
+                      className="flex flex-col items-center group w-full cursor-pointer"
+                    >
+                      <div className="w-full h-16 sm:h-18 md:h-19 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
+                        {newProducts[0].image_url && newProducts[0].image_url.length > 5 ? (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img src={newProducts[0].image_url} alt={newProducts[0].title} className="w-full h-full object-contain" />
+                        ) : (
+                          <span className="text-[28px] sm:text-[32px]">📦</span>
+                        )}
+                      </div>
+                      <span className="text-[11.5px] sm:text-[12.5px] font-semibold text-gray-800 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5">
+                        {newProducts[0].title || "Native Water Purifier"}
+                      </span>
+                    </Link>
+                  )}
 
-              {/* AMC Products Card */}
-              {amcProducts.length > 0 && (
-                <Link href={`/services/${amcProducts[0].id}`} className="flex flex-col group cursor-pointer bg-[#f4f5f8] rounded-2xl p-3 hover:bg-gray-100 transition-colors relative">
-                  <div className="flex items-center space-x-1.5 text-[#21a868] mb-1">
-                    <span className="font-bold text-[13px] tracking-tight truncate leading-none pt-0.5">RO AMC</span>
-                  </div>
-                  <div className="flex justify-center items-center mt-0.5">
-                    <div className="w-20 h-20 md:w-22 md:h-22 bg-white rounded-[14px] shrink-0 flex items-center justify-center shadow-sm relative overflow-hidden p-1 group-hover:-translate-y-0.5 transition-transform">
-                      {amcProducts[0].image_url && amcProducts[0].image_url.length > 5 ? (
-                        /* eslint-disable-next-line @next/next/no-img-element */
-                        <img src={amcProducts[0].image_url} alt={amcProducts[0].title} className="w-full h-full object-contain" />
-                      ) : (
-                        <span>🛡️</span>
-                      )}
-                    </div>
-                  </div>
-                  <span className="absolute top-2.5 right-2.5 bg-[#21a868] text-white text-[9px] px-1.5 py-0.5 rounded-md font-bold shadow-sm">PRO</span>
-                </Link>
-              )}
-            </div>
+                  {/* RO AMC */}
+                  {amcProducts.length > 0 && (
+                    <Link 
+                      href={`/services/${amcProducts[0].id}`} 
+                      className="flex flex-col items-center group w-full cursor-pointer"
+                    >
+                      <div className="w-full h-16 sm:h-18 md:h-19 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
+                        {amcProducts[0].image_url && amcProducts[0].image_url.length > 5 ? (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img src={amcProducts[0].image_url} alt={amcProducts[0].title} className="w-full h-full object-contain" />
+                        ) : (
+                          <span className="text-[28px] sm:text-[32px]">🛡️</span>
+                        )}
+                      </div>
+                      <span className="text-[11.5px] sm:text-[12.5px] font-semibold text-gray-800 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5">
+                        {amcProducts[0].title || "RO AMC Plan"}
+                      </span>
+                    </Link>
+                  )}
+                </div>
+              </div>
+            )}
 
           </div>
 
