@@ -131,27 +131,72 @@ export default function Hero({ categories = [], banners = [] }: HeroProps) {
                 Home Services
               </h3>
               
-              {/* 3-Column Wide-Tile Grid:
-                  Row 1: Ac Repair & Services | Refrigerator Repair | Washing Machine
-                  Row 2: Microwave Repair | Water Purifier */}
-              <div className="grid grid-cols-3 gap-3 sm:gap-4 text-center justify-items-center w-full">
+              {/* Mobile View: Row 1 (3 cols) + Row 2 (2 cols full width) */}
+              <div className="md:hidden space-y-3">
+                <div className="grid grid-cols-3 gap-3 text-center justify-items-center w-full">
+                  {orderedCategories.slice(0, 3).map((service, index) => (
+                    <Link 
+                      href={`/services/${service.id}`} 
+                      key={index} 
+                      className="flex flex-col items-center group w-full cursor-pointer"
+                    >
+                      <div className="w-full h-16 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
+                        {service.image_url && service.image_url.length > 5 ? (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img src={service.image_url} alt={service.title} className="w-full h-full object-contain" />
+                        ) : (
+                          <span className="text-[28px]">{getIcon(service.title)}</span>
+                        )}
+                      </div>
+                      <span className="text-[12px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-8 flex items-start justify-center text-center">
+                        {service.title}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+
+                {orderedCategories.length > 3 && (
+                  <div className="grid grid-cols-2 gap-3 text-center justify-items-center w-full">
+                    {orderedCategories.slice(3, 5).map((service, index) => (
+                      <Link 
+                        href={`/services/${service.id}`} 
+                        key={index + 3} 
+                        className="flex flex-col items-center group w-full cursor-pointer"
+                      >
+                        <div className="w-full h-16 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
+                          {service.image_url && service.image_url.length > 5 ? (
+                            /* eslint-disable-next-line @next/next/no-img-element */
+                            <img src={service.image_url} alt={service.title} className="w-full h-full object-contain" />
+                          ) : (
+                            <span className="text-[28px]">{getIcon(service.title)}</span>
+                          )}
+                        </div>
+                        <span className="text-[12px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-8 flex items-start justify-center text-center">
+                          {service.title}
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Desktop View: Exact Original 3-Column Layout */}
+              <div className="hidden md:grid md:grid-cols-3 gap-4 text-center justify-items-center w-full">
                 {orderedCategories.map((service, index) => (
                   <Link 
                     href={`/services/${service.id}`} 
                     key={index} 
                     className="flex flex-col items-center group w-full cursor-pointer"
                   >
-                    {/* Sleek Compact Wide Tile */}
-                    <div className="w-full h-16 sm:h-18 md:h-19 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
+                    <div className="w-full h-18 md:h-19 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
                       {service.image_url && service.image_url.length > 5 ? (
                         /* eslint-disable-next-line @next/next/no-img-element */
                         <img src={service.image_url} alt={service.title} className="w-full h-full object-contain" />
                       ) : (
-                        <span className="text-[28px] sm:text-[32px]">{getIcon(service.title)}</span>
+                        <span className="text-[32px]">{getIcon(service.title)}</span>
                       )}
                     </div>
-                    {/* Title Text (Dark & Bold - Strictly Equal Height) */}
-                    <span className="text-[12px] sm:text-[13px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-8 sm:h-9 flex items-start justify-center text-center">
+                    <span className="text-[13px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-9 flex items-start justify-center text-center">
                       {service.title}
                     </span>
                   </Link>
@@ -179,16 +224,14 @@ export default function Hero({ categories = [], banners = [] }: HeroProps) {
                     padding-right: 4px;
                   }
                 `}} />
-                <div className="flex items-center justify-between mb-3">
+                <div className="mb-3">
                   <h3 className="omaa-premium-gradient font-black text-[17px] sm:text-[19px] md:text-[20px] tracking-tight uppercase">
                     OMAA PREMIUM PACKAGE
                   </h3>
-                  <span className="text-[11px] sm:text-[12px] font-bold text-rose-600 bg-rose-50 border border-rose-200 px-3 py-1 rounded-full shadow-2xs flex items-center gap-1.5 shrink-0">
-                    <span className="text-[12px]">✨</span> Premium
-                  </span>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3 sm:gap-4 text-center justify-items-center w-full">
+                {/* 2 Cols on Mobile (Full Width), 3 Cols on Desktop (Original Alignment) */}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 text-center justify-items-center w-full">
                   {/* New Products */}
                   {newProducts.length > 0 && (
                     <Link 

@@ -28,24 +28,28 @@ export default function CategoryGrid({ title, services }: CategoryGridProps) {
 
   if (!services || services.length === 0) return null;
   
-  // We duplicate the array to allow infinite scrolling in CSS if items > 3
-  const displayServices = services.length > 3 ? [...services, ...services] : services;
+  // If items > 3, auto-slide infinitely. If <= 3 (like Microwave), show exact items and enable touch scroll on mobile
+  const isLargeSet = services.length > 3;
+  const displayServices = isLargeSet ? [...services, ...services] : services;
+  const slideDuration = services.length * 3.5;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-5 relative group overflow-hidden">
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes smooth-slide {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-        .animate-smooth-slide {
-          animation: smooth-slide ${services.length * 3.5}s linear infinite;
-          width: max-content;
-        }
-        .animate-smooth-slide:hover, .animate-smooth-slide:active {
-          animation-play-state: paused;
-        }
-      `}} />
+      {isLargeSet && (
+        <style dangerouslySetInnerHTML={{__html: `
+          @keyframes smooth-slide {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+          .animate-smooth-slide {
+            animation: smooth-slide ${slideDuration}s linear infinite;
+            width: max-content;
+          }
+          .animate-smooth-slide:hover, .animate-smooth-slide:active {
+            animation-play-state: paused;
+          }
+        `}} />
+      )}
       
       <div className="flex justify-between items-end mb-4 sm:mb-5">
         <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-gray-900 tracking-tight inline-block border-b-4 border-[#6b62d9] pb-2">
@@ -53,8 +57,8 @@ export default function CategoryGrid({ title, services }: CategoryGridProps) {
         </h2>
       </div>
       
-      <div className="overflow-hidden pb-4 pt-1.5 -mt-1.5 -mx-4 px-4">
-        <div className={`flex gap-3.5 sm:gap-4 md:gap-5 items-stretch ${services.length > 3 ? 'animate-smooth-slide' : ''}`}>
+      <div className={`pb-4 pt-1.5 -mt-1.5 -mx-4 px-4 ${isLargeSet ? 'overflow-hidden' : 'overflow-x-auto'}`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <div className={`flex gap-3.5 sm:gap-4 md:gap-5 items-stretch ${isLargeSet ? 'animate-smooth-slide' : 'w-max sm:w-auto flex-nowrap'}`}>
           {displayServices.map((service, index) => (
             <Link 
               href={`/services/${service.category_id}`}
