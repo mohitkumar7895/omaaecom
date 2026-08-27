@@ -1,6 +1,7 @@
 import pool from "@/lib/db";
 import { Mail, Phone, MessageSquare, Trash2, CheckCircle2, Clock, User } from "lucide-react";
-import { updateContactStatus, deleteContact } from "@/app/actions/contacts";
+import { deleteContact } from "@/app/actions/contacts";
+import StatusSelect from "./StatusSelect";
 
 export const dynamic = "force-dynamic";
 
@@ -158,26 +159,7 @@ export default async function AdminContactsPage() {
 
                     {/* Status Dropdown */}
                     <td className="px-5 py-4 text-center">
-                      <form action={updateContactStatus} className="inline-block">
-                        <input type="hidden" name="id" value={row.id} />
-                        <select
-                          name="status"
-                          defaultValue={row.status || "New"}
-                          // @ts-ignore
-                          onChange={(e) => e.target.form?.requestSubmit()}
-                          className={`text-xs font-bold rounded-lg px-2.5 py-1.5 outline-none border cursor-pointer transition ${
-                            row.status === "Contacted"
-                              ? "bg-amber-50 text-amber-700 border-amber-200 focus:ring-1 focus:ring-amber-400"
-                              : row.status === "Closed" || row.status === "Resolved"
-                              ? "bg-emerald-50 text-emerald-700 border-emerald-200 focus:ring-1 focus:ring-emerald-400"
-                              : "bg-indigo-50 text-indigo-700 border-indigo-200 focus:ring-1 focus:ring-indigo-400"
-                          }`}
-                        >
-                          <option value="New">New</option>
-                          <option value="Contacted">Contacted</option>
-                          <option value="Closed">Closed</option>
-                        </select>
-                      </form>
+                      <StatusSelect id={row.id} currentStatus={row.status} />
                     </td>
 
                     {/* Actions */}

@@ -66,10 +66,6 @@ export default function Sidebar() {
     { name: "Dashboard", icon: <LayoutDashboard className="w-[18px] h-[18px]" />, href: "/admin" },
   ];
 
-  const catalogSingleItems = [
-    { name: "Brands", icon: <Tag className="w-[18px] h-[18px]" />, href: "/admin/brands" },
-  ];
-
   const operationsItems = [
     { name: "Warranties", icon: <ShieldCheck className="w-[18px] h-[18px]" />, href: "/admin/warranties" },
     { name: "Complaints", icon: <MessageSquare className="w-[18px] h-[18px]" />, href: "/admin/complaints" },
@@ -156,20 +152,6 @@ export default function Sidebar() {
               </div>
             </div>
           </div>
-
-          {/* Brands & Zones */}
-          {catalogSingleItems.map((item, index) => (
-            <Link
-              key={`catalog-${index}`}
-              href={item.href}
-              className={getLinkClass(item.href)}
-            >
-              <div className="flex items-center space-x-3">
-                <span className={getIconClass(item.href)}>{item.icon}</span>
-                <span>{item.name}</span>
-              </div>
-            </Link>
-          ))}
 
           {/* Rate Card Dropdown Section */}
           <div className="mb-1">

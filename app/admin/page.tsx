@@ -39,7 +39,6 @@ export default async function AdminDashboard() {
       bookingsRes,
       categoriesRes,
       servicesRes,
-      brandsRes,
       bannersRes,
       registrationsRes,
       recentBookingsRes
@@ -47,7 +46,6 @@ export default async function AdminDashboard() {
       pool.query("SELECT COUNT(*) as count FROM bookings").catch(() => [[{ count: 0 }]]),
       pool.query("SELECT COUNT(*) as count FROM categories").catch(() => [[{ count: 0 }]]),
       pool.query("SELECT COUNT(*) as count FROM services").catch(() => [[{ count: 0 }]]),
-      pool.query("SELECT COUNT(*) as count FROM brands").catch(() => [[{ count: 0 }]]),
       pool.query("SELECT COUNT(*) as count FROM banners").catch(() => [[{ count: 0 }]]),
       pool.query("SELECT COUNT(*) as count FROM technician_registrations").catch(() => [[{ count: 0 }]]),
       pool.query("SELECT id, name, mobile, address, total_amount, working_status, created_at, services FROM bookings ORDER BY created_at DESC LIMIT 5").catch(() => [[]]),
@@ -56,7 +54,6 @@ export default async function AdminDashboard() {
     bookingCount = (bookingsRes[0] as any)[0]?.count || 0;
     categoryCount = (categoriesRes[0] as any)[0]?.count || 0;
     serviceCount = (servicesRes[0] as any)[0]?.count || 0;
-    brandCount = (brandsRes[0] as any)[0]?.count || 0;
     bannerCount = (bannersRes[0] as any)[0]?.count || 0;
     registrationCount = (registrationsRes[0] as any)[0]?.count || 0;
     recentBookings = (recentBookingsRes[0] as any) || [];
@@ -103,15 +100,6 @@ export default async function AdminDashboard() {
       badge: "Technicians"
     },
     {
-      label: "Partner Brands",
-      value: brandCount.toString(),
-      icon: <Tag className="w-5 h-5" />,
-      color: "from-rose-500 to-pink-600",
-      shadow: "shadow-rose-500/20",
-      href: "/admin/brands",
-      badge: "Verified"
-    },
-    {
       label: "Live Banners",
       value: bannerCount.toString(),
       icon: <ImageIcon className="w-5 h-5" />,
@@ -132,7 +120,6 @@ export default async function AdminDashboard() {
         { name: "Subcategories", desc: "Grouped service options", href: "/admin/subcategories", icon: <ListTree className="w-5 h-5 text-blue-500" />, bg: "bg-blue-50" },
         { name: "All Services", desc: "Add or edit service items", href: "/admin/services", icon: <Settings className="w-5 h-5 text-emerald-500" />, bg: "bg-emerald-50" },
         { name: "Rate Cards", desc: "Tiered pricing & rate items", href: "/admin/rate-cards", icon: <IndianRupee className="w-5 h-5 text-amber-500" />, bg: "bg-amber-50" },
-        { name: "Brands", desc: "Appliance brand partners", href: "/admin/brands", icon: <Tag className="w-5 h-5 text-purple-500" />, bg: "bg-purple-50" },
       ]
     },
     {
