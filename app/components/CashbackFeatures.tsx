@@ -457,60 +457,71 @@ export default function CashbackFeatures({ orderId, isEligible = true }: Cashbac
           <span>{timeLeft > 0 ? `Claim in ${formatTime(timeLeft)}` : "Claim Cashback"}</span>
         </button>
       ) : (
-        /* Direct Embedded Interactive Slider (Elongated & Sleek) */
-        <div className="bg-white/95 border border-gray-200/90 rounded-full px-3 py-1 sm:px-3.5 sm:py-1 shadow-2xs flex items-center gap-1.5 sm:gap-2.5 select-none transition-all hover:border-gray-300">
-          {/* Service Option */}
-          <button 
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setActiveTab('service');
-              setShowServiceModal(true);
-            }}
-            className={`font-bold text-[11px] sm:text-xs transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === 'service' ? 'text-blue-600 font-black scale-105' : 'text-gray-700 hover:text-blue-600'
-            }`}
-          >
-            <span>Service Active</span>
-          </button>
+        /* Direct Embedded Interactive Slider with Alert Note */
+        <div className="flex flex-col items-end sm:items-start">
+          {/* Soft Red Notice */}
+          <div className="text-[10px] sm:text-[11px] font-semibold text-rose-500 mb-1 flex items-center gap-1">
+            <span>* You can choose only one side (Service or Cashback)</span>
+          </div>
 
-          {/* Toggle Pill Slider Track (Elongated) */}
-          <div 
-            ref={containerRef}
-            onClick={handleBgClick}
-            className="relative w-16 sm:w-20 h-5 sm:h-6 rounded-full p-0.5 shadow-inner cursor-pointer border border-amber-200/80 bg-[#fef3c7] transition-colors shrink-0"
-          >
-            <div className="relative w-full h-full">
-              <div
-                onPointerDown={handlePointerDown}
-                onPointerMove={handlePointerMove}
-                onPointerUp={handlePointerUp}
-                onPointerCancel={handlePointerUp}
-                className="absolute top-0 bottom-0 w-1/2 rounded-full flex items-center justify-center z-10 touch-none transition-all duration-300 ease-out bg-white shadow-[0_1px_4px_rgba(0,0,0,0.15)] cursor-grab active:cursor-grabbing"
-                style={{ left: `${dragPercent}%`, transform: isDragging ? 'scale(0.95)' : 'scale(1)' }}
-              >
-                <div className="flex gap-[2px]">
-                  <div className="w-[1.5px] h-[7px] sm:h-[8px] rounded-full bg-gray-400"></div>
-                  <div className="w-[1.5px] h-[7px] sm:h-[8px] rounded-full bg-gray-400"></div>
+          <div className="bg-gradient-to-r from-blue-50/80 via-white to-amber-50/80 border border-gray-200/90 rounded-full p-1 shadow-2xs flex items-center gap-1.5 sm:gap-2.5 select-none transition-all hover:border-gray-300">
+            {/* Service Active Button (Distinct Blue Badge) */}
+            <button 
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveTab('service');
+                setShowServiceModal(true);
+              }}
+              className={`font-bold text-[11px] sm:text-xs px-2.5 py-1 rounded-full transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === 'service' 
+                  ? 'bg-blue-600 text-white shadow-xs scale-105' 
+                  : 'text-blue-700 bg-blue-100/70 hover:bg-blue-100'
+              }`}
+            >
+              <span>Service Active</span>
+            </button>
+
+            {/* Toggle Pill Slider Track (Elongated) */}
+            <div 
+              ref={containerRef}
+              onClick={handleBgClick}
+              className="relative w-16 sm:w-20 h-5 sm:h-6 rounded-full p-0.5 shadow-inner cursor-pointer border border-amber-200/80 bg-gradient-to-r from-blue-100/80 via-amber-100 to-amber-200/80 transition-colors shrink-0"
+            >
+              <div className="relative w-full h-full">
+                <div
+                  onPointerDown={handlePointerDown}
+                  onPointerMove={handlePointerMove}
+                  onPointerUp={handlePointerUp}
+                  onPointerCancel={handlePointerUp}
+                  className="absolute top-0 bottom-0 w-1/2 rounded-full flex items-center justify-center z-10 touch-none transition-all duration-300 ease-out bg-white shadow-[0_1px_4px_rgba(0,0,0,0.15)] cursor-grab active:cursor-grabbing"
+                  style={{ left: `${dragPercent}%`, transform: isDragging ? 'scale(0.95)' : 'scale(1)' }}
+                >
+                  <div className="flex gap-[2px]">
+                    <div className="w-[1.5px] h-[7px] sm:h-[8px] rounded-full bg-gray-400"></div>
+                    <div className="w-[1.5px] h-[7px] sm:h-[8px] rounded-full bg-gray-400"></div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Cashback Option */}
-          <button 
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setActiveTab('cashback');
-              setShowCashbackModal(true);
-            }}
-            className={`font-bold text-[11px] sm:text-xs transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === 'cashback' ? 'text-amber-600 font-black scale-105' : 'text-gray-700 hover:text-amber-600'
-            }`}
-          >
-            <span>Cashback up to 100%</span>
-          </button>
+            {/* Cashback up to 100% Button (Distinct Amber Badge) */}
+            <button 
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveTab('cashback');
+                setShowCashbackModal(true);
+              }}
+              className={`font-bold text-[11px] sm:text-xs px-2.5 py-1 rounded-full transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === 'cashback' 
+                  ? 'bg-amber-500 text-white shadow-xs scale-105' 
+                  : 'text-amber-800 bg-amber-100/70 hover:bg-amber-100'
+              }`}
+            >
+              <span>Cashback up to 100%</span>
+            </button>
+          </div>
         </div>
       )}
 

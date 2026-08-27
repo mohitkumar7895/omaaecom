@@ -121,65 +121,7 @@ export default function Sidebar() {
           ))}
         </div>
 
-        {/* 2. Catalog & Services */}
-        <div>
-          <div className="px-7 mb-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Catalog & Services</div>
-          
-          {/* Categories Dropdown Section */}
-          <div className="mb-1">
-            <button 
-              onClick={() => setCategoryOpen(!categoryOpen)}
-              className={`w-[calc(100%-24px)] mx-3 flex items-center justify-between px-4 py-3 text-[14px] font-medium transition-all duration-200 rounded-xl hover:bg-slate-800 text-slate-300`}
-            >
-              <div className="flex items-center space-x-3">
-                <ListTree className="w-[18px] h-[18px] text-slate-400" />
-                <span>Categories</span>
-              </div>
-              <ChevronRight className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${categoryOpen ? 'rotate-90' : ''}`} />
-            </button>
-            
-            <div className={`overflow-hidden transition-all duration-300 ${categoryOpen ? 'max-h-48 mt-1' : 'max-h-0'}`}>
-              <div className="space-y-0.5 relative before:absolute before:left-7 before:top-2 before:bottom-2 before:w-px before:bg-slate-800">
-                <Link href="/admin/categories" className={getLinkClass("/admin/categories", true)}>
-                  <span>Category</span>
-                </Link>
-                <Link href="/admin/subcategories" className={getLinkClass("/admin/subcategories", true)}>
-                  <span>Subcategories</span>
-                </Link>
-                <Link href="/admin/services" className={getLinkClass("/admin/services", true)}>
-                  <span>Services</span>
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* Rate Card Dropdown Section */}
-          <div className="mb-1">
-            <button 
-              onClick={() => setRateCardOpen(!rateCardOpen)}
-              className={`w-[calc(100%-24px)] mx-3 flex items-center justify-between px-4 py-3 text-[14px] font-medium transition-all duration-200 rounded-xl hover:bg-slate-800 text-slate-300`}
-            >
-              <div className="flex items-center space-x-3">
-                <IndianRupee className="w-[18px] h-[18px] text-slate-400" />
-                <span>Rate Card</span>
-              </div>
-              <ChevronRight className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${rateCardOpen ? 'rotate-90' : ''}`} />
-            </button>
-            
-            <div className={`overflow-hidden transition-all duration-300 ${rateCardOpen ? 'max-h-32 mt-1' : 'max-h-0'}`}>
-              <div className="space-y-0.5 relative before:absolute before:left-7 before:top-2 before:bottom-2 before:w-px before:bg-slate-800">
-                <Link href="/admin/rate-headings" className={getLinkClass("/admin/rate-headings", true)}>
-                  <span>Rate Heading</span>
-                </Link>
-                <Link href="/admin/rate-cards" className={getLinkClass("/admin/rate-cards", true)}>
-                  <span>Rate Cards</span>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 3. Bookings & Operations */}
+        {/* 2. Bookings & Operations */}
         <div>
           <div className="px-7 mb-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Bookings & Operations</div>
           
@@ -235,6 +177,64 @@ export default function Sidebar() {
               </div>
             </Link>
           ))}
+        </div>
+
+        {/* 3. Catalog & Services */}
+        <div>
+          <div className="px-7 mb-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Catalog & Services</div>
+          
+          {/* Categories Dropdown Section */}
+          <div className="mb-1">
+            <button 
+              onClick={() => setCategoryOpen(!categoryOpen)}
+              className={`w-[calc(100%-24px)] mx-3 flex items-center justify-between px-4 py-3 text-[14px] font-medium transition-all duration-200 rounded-xl hover:bg-slate-800 text-slate-300`}
+            >
+              <div className="flex items-center space-x-3">
+                <ListTree className="w-[18px] h-[18px] text-slate-400" />
+                <span>Categories</span>
+              </div>
+              <ChevronRight className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${categoryOpen ? 'rotate-90' : ''}`} />
+            </button>
+            
+            <div className={`overflow-hidden transition-all duration-300 ${categoryOpen ? 'max-h-48 mt-1' : 'max-h-0'}`}>
+              <div className="space-y-0.5 relative before:absolute before:left-7 before:top-2 before:bottom-2 before:w-px before:bg-slate-800">
+                <Link href="/admin/categories" className={getLinkClass("/admin/categories", true)}>
+                  <span>Category</span>
+                </Link>
+                <Link href="/admin/subcategories" className={getLinkClass("/admin/subcategories", true)}>
+                  <span>Subcategories</span>
+                </Link>
+                <Link href="/admin/services" className={getLinkClass("/admin/services", true)}>
+                  <span>Services</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Rate Card Dropdown Section */}
+          <div className="mb-1">
+            <button 
+              onClick={() => setRateCardOpen(!rateCardOpen)}
+              className={`w-[calc(100%-24px)] mx-3 flex items-center justify-between px-4 py-3 text-[14px] font-medium transition-all duration-200 rounded-xl hover:bg-slate-800 text-slate-300`}
+            >
+              <div className="flex items-center space-x-3">
+                <IndianRupee className="w-[18px] h-[18px] text-slate-400" />
+                <span>Rate Card</span>
+              </div>
+              <ChevronRight className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${rateCardOpen ? 'rotate-90' : ''}`} />
+            </button>
+            
+            <div className={`overflow-hidden transition-all duration-300 ${rateCardOpen ? 'max-h-32 mt-1' : 'max-h-0'}`}>
+              <div className="space-y-0.5 relative before:absolute before:left-7 before:top-2 before:bottom-2 before:w-px before:bg-slate-800">
+                <Link href="/admin/rate-headings" className={getLinkClass("/admin/rate-headings", true)}>
+                  <span>Rate Heading</span>
+                </Link>
+                <Link href="/admin/rate-cards" className={getLinkClass("/admin/rate-cards", true)}>
+                  <span>Rate Cards</span>
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* 4. Partners & Vendors */}
