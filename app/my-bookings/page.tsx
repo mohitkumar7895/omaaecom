@@ -46,6 +46,7 @@ interface Booking {
   warranty_start?: string;
   warranty_end?: string;
   warranty_days_valid?: number;
+  warranty_status?: string;
 }
 
 export default function MyBookingsPage() {
@@ -249,6 +250,13 @@ export default function MyBookingsPage() {
               const isComplete = booking.working_status === "Complete" || booking.working_status === "Completed";
               const isReject = booking.working_status === "Reject" || booking.working_status === "Cancelled";
 
+              const isWarrantyExpired = Boolean(
+                booking.warranty_status === "Expired" || 
+                booking.warranty_status === "EXPIRED" || 
+                (booking.warranty_end && new Date(booking.warranty_end).getTime() < Date.now())
+              );
+              const warrantyDays = booking.warranty_days_valid || 180;
+
               const formattedDate = booking.booking_date 
                 ? new Date(booking.booking_date).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" }) 
                 : new Date(booking.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "2-digit" });
@@ -338,11 +346,30 @@ export default function MyBookingsPage() {
                       </p>
                     </div>
 
-                    {/* Job End Date (if completed) */}
+                    {/* Job End Date & Warranty (if completed) */}
                     {isComplete && (
-                      <div className="mb-2.5 text-xs flex items-center gap-2">
-                        <span className="text-[11px] font-black text-gray-900 uppercase tracking-wide">JOB END:</span>
-                        <span className="text-xs font-black text-gray-900">{formattedDate}</span>
+                      <div className="mb-2.5 text-xs flex items-center justify-between flex-wrap gap-2 pt-1 border-t border-gray-100">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[11px] font-black text-gray-900 uppercase tracking-wide">JOB END:</span>
+                          <span className="text-xs font-black text-gray-900">{formattedDate}</span>
+                        </div>
+
+                        {/* Warranty Period or Expired Badge */}
+                        {isWarrantyExpired ? (
+                          <div className="flex items-center gap-1 text-xs">
+                            <span className="text-[11px] font-bold text-gray-500 uppercase">Warranty:</span>
+                            <span className="px-2 py-0.5 rounded-md text-[11px] font-extrabold bg-rose-50 text-rose-700 border border-rose-200">
+                              Expired
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5 text-xs">
+                            <span className="text-[11px] font-bold text-gray-500 uppercase">Warranty Period:</span>
+                            <span className="font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md text-[11px]">
+                              {warrantyDays} days
+                            </span>
+                          </div>
+                        )}
                       </div>
                     )}
 
@@ -379,40 +406,6 @@ export default function MyBookingsPage() {
                   {isExpanded && (
                     <div className="p-3.5 sm:p-4 bg-[#fafbfc] border-t border-gray-100 space-y-3 animate-in fade-in duration-150">
                       
-                      {/* Warranty Details Box */}
-                      {isComplete && (booking.warranty_start || booking.warranty_days_valid) && (
-                        <div className="bg-white rounded-lg p-3 border border-gray-100 shadow-2xs">
-                          <div className="flex items-center gap-1.5 mb-1.5 text-[11px] font-bold uppercase tracking-wider text-gray-500 border-b border-gray-50 pb-1">
-                            <ShieldCheck className="w-3.5 h-3.5 text-gray-500" />
-                            <span>Warranty Details</span>
-                          </div>
-                          <div className="space-y-1.5 text-xs text-gray-700">
-                            <div className="flex justify-between items-center">
-                              <span className="text-gray-600 font-medium">Warranty Period</span>
-                              <span className="font-bold text-gray-900">
-                                {booking.warranty_days_valid || 180} days
-                              </span>
-                            </div>
-                            {booking.warranty_start && (
-                              <div className="flex justify-between items-center">
-                                <span className="text-gray-600 font-medium">Start Date</span>
-                                <span className="font-bold text-gray-900">
-                                  {new Date(booking.warranty_start).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                </span>
-                              </div>
-                            )}
-                            {booking.warranty_end && (
-                              <div className="flex justify-between items-center">
-                                <span className="text-gray-600 font-medium">End Date</span>
-                                <span className="font-bold text-emerald-600">
-                                  {new Date(booking.warranty_end).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-
                       {/* Payment Summary Box */}
                       <div className="bg-white rounded-lg p-3 border border-gray-100 shadow-2xs relative">
                         <div className="flex items-center gap-1.5 mb-2 text-[11px] font-bold uppercase tracking-wider text-gray-500 border-b border-gray-50 pb-1">

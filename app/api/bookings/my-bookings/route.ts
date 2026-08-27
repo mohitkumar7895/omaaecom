@@ -43,7 +43,7 @@ export async function GET() {
     let bookings: BookingRow[] = [];
     try {
       const [rows] = await pool.query(
-        `SELECT b.*, w.issued_date as warranty_start, w.expiry_date as warranty_end, w.days_valid as warranty_days_valid
+        `SELECT b.*, w.issued_date as warranty_start, w.expiry_date as warranty_end, w.days_valid as warranty_days_valid, w.status as warranty_status
          FROM bookings b
          LEFT JOIN warranties w ON b.order_id = w.order_id
          WHERE b.user_email = ?
@@ -60,7 +60,7 @@ export async function GET() {
         try {
         // Fallback: query bookings by mobile only (legacy approach)
         const [fallbackRows] = await pool.query(
-          `SELECT b.*, w.issued_date as warranty_start, w.expiry_date as warranty_end, w.days_valid as warranty_days_valid
+          `SELECT b.*, w.issued_date as warranty_start, w.expiry_date as warranty_end, w.days_valid as warranty_days_valid, w.status as warranty_status
            FROM bookings b
            LEFT JOIN warranties w ON b.order_id = w.order_id
            WHERE b.mobile = ? 
