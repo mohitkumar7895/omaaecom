@@ -137,8 +137,20 @@ export default function Navbar() {
             <LocationSelector />
           </div>
 
+          {/* Cart Button */}
+          <Link href="/cart" className="order-3">
+            <button className="relative bg-[#6069c9] p-1.5 lg:p-2.5 rounded-[8px] lg:rounded-[10px] text-white hover:bg-[#525ab5] transition shadow-sm flex items-center justify-center">
+              <ShoppingCart className="w-4 h-4 lg:w-5 lg:h-5 stroke-[1.5]" />
+              {cartItemCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] font-bold w-4 h-4 lg:w-[18px] lg:h-[18px] flex items-center justify-center rounded-full shadow-sm">
+                  {cartItemCount > 9 ? '9+' : cartItemCount}
+                </span>
+              )}
+            </button>
+          </Link>
+
           {/* User Button & Dropdown */}
-          <div className="relative order-4 lg:order-3" ref={profileRef}>
+          <div className="relative order-4" ref={profileRef}>
             <button 
               onClick={() => {
                 if (user) {
@@ -164,18 +176,6 @@ export default function Navbar() {
               }} 
             />
           </div>
-          
-          {/* Cart Button */}
-          <Link href="/cart" className="order-3 lg:order-4">
-            <button className="relative bg-[#6069c9] p-1.5 lg:p-2.5 rounded-[8px] lg:rounded-[10px] text-white hover:bg-[#525ab5] transition shadow-sm flex items-center justify-center">
-              <ShoppingCart className="w-4 h-4 lg:w-5 lg:h-5 stroke-[1.5]" />
-              {cartItemCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-rose-500 text-white text-[10px] font-bold w-4 h-4 lg:w-[18px] lg:h-[18px] flex items-center justify-center rounded-full shadow-sm">
-                  {cartItemCount > 9 ? '9+' : cartItemCount}
-                </span>
-              )}
-            </button>
-          </Link>
 
           <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
         </div>
