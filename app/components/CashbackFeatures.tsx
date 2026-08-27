@@ -165,13 +165,17 @@ export default function CashbackFeatures({ orderId, isEligible = true }: Cashbac
     }
   }, [adPaused]);
 
+  const [claiming, setClaiming] = useState(false);
+
   // Handle 24h Timer
   useEffect(() => {
     let interval: any;
-    if (cashbackData?.ad_watched && cashbackData?.ad_watched_at) {
+    if (cashbackData?.ad_watched) {
       const calculateTimeLeft = () => {
-        const watchedTime = new Date(cashbackData.ad_watched_at).getTime();
-        const endTime = watchedTime + 24 * 60 * 60 * 1000;
+        const lastClaimTimestamp = cashbackData.last_cashback_claim_at || cashbackData.ad_watched_at;
+        if (!lastClaimTimestamp) return 0;
+        const lastTime = new Date(lastClaimTimestamp).getTime();
+        const endTime = lastTime + 24 * 60 * 60 * 1000;
         const now = new Date().getTime();
         return Math.max(0, endTime - now);
       };
@@ -185,6 +189,29 @@ export default function CashbackFeatures({ orderId, isEligible = true }: Cashbac
     return () => clearInterval(interval);
   }, [cashbackData]);
 
+  const handleClaimDailyCashback = async () => {
+    setClaiming(true);
+    try {
+      const res = await fetch('/api/bookings/cashback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, action: 'claim_daily' })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        fetchCashbackData();
+        window.dispatchEvent(new CustomEvent("booking_updated"));
+        setShowCashbackModal(true);
+      } else {
+        alert(data.error || 'Unable to claim cashback right now.');
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setClaiming(false);
+    }
+  };
+
   const markAdAsWatched = async () => {
     try {
       await fetch('/api/bookings/cashback', {
@@ -193,6 +220,7 @@ export default function CashbackFeatures({ orderId, isEligible = true }: Cashbac
         body: JSON.stringify({ orderId })
       });
       fetchCashbackData(); // Refresh data to get ad_watched_at timestamp
+      window.dispatchEvent(new CustomEvent("booking_updated"));
     } catch (e) {
       console.error(e);
     }
@@ -206,10 +234,18 @@ export default function CashbackFeatures({ orderId, isEligible = true }: Cashbac
         body: JSON.stringify({ orderId, action: 'opt_service' })
       });
       fetchCashbackData(); // Refresh data
+      window.dispatchEvent(new CustomEvent("booking_updated"));
     } catch (e) {
       console.error(e);
     }
   };
+
+  // Automatically start ad/video when Cashback modal opens
+  useEffect(() => {
+    if (showCashbackModal && !cashbackData?.ad_watched) {
+      startAd();
+    }
+  }, [showCashbackModal, cashbackData]);
 
   const startAd = () => {
     const config = cashbackData?.adConfig;
@@ -217,6 +253,10 @@ export default function CashbackFeatures({ orderId, isEligible = true }: Cashbac
     setPlayingAd(true);
     setAdPaused(false);
     setCurrentImageIndex(0);
+    if (videoRef.current) {
+      videoRef.current.currentTime = 0;
+      videoRef.current.play().catch(() => {});
+    }
   };
 
   // Format 24h timer (HH:MM:SS)
@@ -266,35 +306,38 @@ export default function CashbackFeatures({ orderId, isEligible = true }: Cashbac
           </div>
         )}
 
-        {/* Cashback Modal */}
+        {/* Cashback Modal (Extra Large Cinema Display) */}
         {showCashbackModal && (
           <div 
-            className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/70"
+            className="fixed inset-0 z-[999999] flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-xs"
             style={{ animation: 'modal-overlay 0.3s ease-out forwards' }}
           >
             <div 
-              className="bg-white rounded-[24px] max-w-md w-full p-6 sm:p-8 text-center relative shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] border border-gray-100 overflow-hidden"
+              className="bg-white rounded-3xl max-w-3xl sm:max-w-4xl w-full p-5 sm:p-7 text-center relative shadow-[0_25px_70px_-15px_rgba(0,0,0,0.7)] border border-gray-100 overflow-hidden max-h-[95vh] flex flex-col justify-between"
               style={{ animation: 'modal-content 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards' }}
             >
-              <button onClick={() => { setShowCashbackModal(false); setPlayingAd(false); }} className="absolute top-4 right-4 text-gray-400 hover:text-gray-800 z-10 transition-transform hover:rotate-90">
+              <button onClick={() => { setShowCashbackModal(false); setPlayingAd(false); }} className="absolute top-4 right-4 text-gray-400 hover:text-gray-800 z-10 transition-transform hover:rotate-90 p-1.5 rounded-full hover:bg-gray-100">
                 <X className="w-6 h-6" />
               </button>
               
               {loading ? (
-                <div className="py-12 flex flex-col items-center">
-                  <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                <div className="py-20 flex flex-col items-center">
+                  <div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mb-4"></div>
                   <p className="text-gray-500 font-medium text-lg">Loading your cashback status...</p>
                 </div>
               ) : (
                 <>
                   {!cashbackData?.ad_watched ? (
-                    /* Step 1: Watch Ad */
+                    /* Step 1: Watch Ad (Extra Large Video Screen) */
                     <div>
-                      <h3 className="text-2xl font-extrabold text-gray-900 mb-2">Claim Your Cashback</h3>
-                      <p className="text-gray-500 font-medium text-base mb-6">Watch to unlock your cashback timer.</p>
+                      <h3 className="text-2xl sm:text-3xl font-black text-gray-900 mb-1 tracking-tight">Claim 100% Cashback</h3>
+                      <p className="text-gray-500 font-medium text-xs sm:text-sm mb-3">
+                        Video will complete in <b className="text-amber-600 font-mono">{adCountdown}s</b>. <span className="text-rose-500 font-bold block sm:inline">* (Opting for Cashback will void free warranty service)</span>
+                      </p>
                       
+                      {/* Extra Large Video Screen */}
                       <div 
-                        className="relative w-full aspect-video bg-gray-900 rounded-xl overflow-hidden mb-6 flex items-center justify-center shadow-inner cursor-pointer"
+                        className="relative w-full aspect-[16/9] min-h-[260px] sm:min-h-[420px] md:min-h-[460px] bg-black rounded-2xl overflow-hidden mb-2 flex items-center justify-center shadow-2xl cursor-pointer border border-gray-800"
                         onPointerDown={() => playingAd && setAdPaused(true)}
                         onPointerUp={() => playingAd && setAdPaused(false)}
                         onPointerLeave={() => playingAd && setAdPaused(false)}
@@ -334,31 +377,31 @@ export default function CashbackFeatures({ orderId, isEligible = true }: Cashbac
                             })()}
                             
                             {/* Overlay Controls */}
-                            <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-2 shadow-sm border border-white/10 z-10">
-                              <div className={`w-2 h-2 rounded-full ${adPaused ? 'bg-amber-500' : 'bg-green-500 animate-pulse'}`}></div>
+                            <div className="absolute top-4 right-4 bg-black/70 backdrop-blur-md px-3.5 py-1.5 rounded-full flex items-center gap-2 shadow-md border border-white/15 z-10">
+                              <div className={`w-2.5 h-2.5 rounded-full ${adPaused ? 'bg-amber-500' : 'bg-green-400 animate-pulse'}`}></div>
                               <span className="text-sm font-bold text-white font-mono">{adCountdown}s</span>
                             </div>
                             
                             {adPaused && (
-                              <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-[2px] z-20">
-                                <div className="bg-white/90 text-gray-900 px-4 py-2 rounded-full font-bold shadow-lg flex items-center gap-2">
-                                  <div className="w-3 h-4 border-l-4 border-r-4 border-gray-900"></div>
+                              <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-[2px] z-20">
+                                <div className="bg-white/95 text-gray-900 px-5 py-2.5 rounded-full font-black shadow-xl flex items-center gap-2">
+                                  <div className="w-3.5 h-4 border-l-4 border-r-4 border-gray-900"></div>
                                   Paused
                                 </div>
                               </div>
                             )}
 
                             {!adPaused && (
-                              <div className="absolute bottom-3 left-0 right-0 text-center pointer-events-none z-10">
-                                <span className="bg-black/50 text-white text-[10px] px-3 py-1 rounded-full backdrop-blur-sm shadow-sm">
-                                  Hold to Pause
+                              <div className="absolute bottom-4 left-0 right-0 text-center pointer-events-none z-10">
+                                <span className="bg-black/60 text-white text-xs px-3.5 py-1.5 rounded-full backdrop-blur-sm shadow-sm">
+                                  Hold / Tap to Pause
                                 </span>
                               </div>
                             )}
                           </div>
                         ) : (
-                          <button onClick={startAd} className="bg-amber-500 hover:bg-amber-600 text-white font-bold px-8 py-3.5 rounded-full flex items-center gap-2 transition transform hover:scale-105 active:scale-95 shadow-[0_8px_20px_-8px_rgba(245,158,11,0.6)] text-lg">
-                            <PlayCircle className="w-6 h-6" /> Watch Now
+                          <button onClick={startAd} className="bg-amber-500 hover:bg-amber-600 text-white font-black px-9 py-4 rounded-2xl flex items-center gap-3 transition transform hover:scale-105 active:scale-95 shadow-[0_8px_25px_-5px_rgba(245,158,11,0.7)] text-lg cursor-pointer">
+                            <PlayCircle className="w-7 h-7" /> Watch Video & Unlock
                           </button>
                         )}
                       </div>
@@ -382,46 +425,28 @@ export default function CashbackFeatures({ orderId, isEligible = true }: Cashbac
                           </div>
                         </div>
                       ) : (
-                        <div>
-                          {cashbackData.working_status === 'Completed' ? (
-                            <div className="text-left">
-                              <h3 className="text-2xl font-extrabold text-green-600 mb-2 text-center">100% Cashback Unlocked! 🎉</h3>
-                              <p className="text-gray-500 font-medium mb-4 text-center text-sm">Here is how you will receive your cashback:</p>
-                              
-                              <div className="bg-green-50 border border-green-200 rounded-2xl p-5 mb-4 shadow-sm">
-                                <ul className="space-y-3 text-sm text-green-800 font-medium leading-relaxed">
-                                  <li className="flex gap-2">
-                                    <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
-                                    <span>You will receive <b>₹4 daily</b> in your Omaa Wallet.</span>
-                                  </li>
-                                  <li className="flex gap-2">
-                                    <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
-                                    <span>A new 24-hour timer will run every day.</span>
-                                  </li>
-                                  <li className="flex gap-2">
-                                    <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
-                                    <span>Once the timer finishes, go to the Cashback page and click "Claim" to add it to your Wallet.</span>
-                                  </li>
-                                  <li className="flex gap-2">
-                                    <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
-                                    <span>Keep claiming daily until you receive the full 100% value of your product!</span>
-                                  </li>
-                                </ul>
-                              </div>
-                              
-                              <a href="/cashback" className="block w-full text-center bg-green-600 hover:bg-green-700 text-white font-bold py-3.5 rounded-xl transition transform hover:scale-[1.02] active:scale-95 shadow-[0_8px_20px_-8px_rgba(22,163,74,0.6)] text-lg">
-                                Go to Cashback Page
-                              </a>
-                            </div>
-                          ) : (
-                            <div>
-                              <h3 className="text-xl font-extrabold text-gray-900 mb-2">Almost There! ⏳</h3>
-                              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex gap-3 text-left my-6 shadow-sm">
-                                <AlertCircle className="w-6 h-6 text-blue-600 shrink-0 mt-0.5" />
-                                <p className="text-[14px] text-blue-800 font-medium">The 24-hour timer is complete! We are just waiting for the technician to mark the job as <strong>Completed</strong> to release your cashback.</p>
-                              </div>
-                            </div>
-                          )}
+                        <div className="pt-2">
+                          <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner border border-emerald-100">
+                            <Gift className="w-8 h-8 text-emerald-600 animate-bounce" />
+                          </div>
+                          <h3 className="text-2xl font-black text-gray-900 mb-1">Today's Cashback Ready! 🎉</h3>
+                          <p className="text-gray-500 font-medium mb-5 text-sm">
+                            Click below to claim <b>₹{cashbackData.cashback_amount || 4}</b> into your Omaa Wallet. You must claim daily to receive your cashback.
+                          </p>
+
+                          <button 
+                            onClick={handleClaimDailyCashback}
+                            disabled={claiming}
+                            className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-black text-lg shadow-lg transition active:scale-95 cursor-pointer flex items-center justify-center gap-2"
+                          >
+                            <Gift className="w-6 h-6" />
+                            <span>{claiming ? "Crediting Wallet..." : `Claim ₹${cashbackData.cashback_amount || 4} to Wallet`}</span>
+                          </button>
+
+                          <div className="mt-4 p-3 bg-amber-50 rounded-xl border border-amber-100 text-xs text-amber-800 font-medium text-left flex items-start gap-2">
+                            <Clock className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                            <span>Note: Once claimed, your next daily cashback unlocks after 24 hours.</span>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -448,14 +473,26 @@ export default function CashbackFeatures({ orderId, isEligible = true }: Cashbac
           <span>1-Yr Service Active</span>
         </button>
       ) : cashbackData?.ad_watched ? (
-        <button 
-          type="button"
-          onClick={() => setShowCashbackModal(true)}
-          className="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 flex items-center gap-1.5 shadow-2xs cursor-pointer"
-        >
-          <Wallet className="w-3.5 h-3.5 text-amber-600" />
-          <span>{timeLeft > 0 ? `Claim in ${formatTime(timeLeft)}` : "Claim Cashback"}</span>
-        </button>
+        timeLeft > 0 ? (
+          <button 
+            type="button"
+            onClick={() => setShowCashbackModal(true)}
+            className="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 flex items-center gap-1.5 shadow-2xs cursor-pointer"
+          >
+            <Clock className="w-3.5 h-3.5 text-amber-600" />
+            <span>Unlocking in {formatTime(timeLeft)}</span>
+          </button>
+        ) : (
+          <button 
+            type="button"
+            onClick={handleClaimDailyCashback}
+            disabled={claiming}
+            className="px-4 py-1.5 rounded-xl text-xs font-black transition-all bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white flex items-center gap-1.5 shadow-md active:scale-95 cursor-pointer animate-pulse"
+          >
+            <Gift className="w-3.5 h-3.5 text-white" />
+            <span>{claiming ? "Claiming..." : `Claim Cashback (₹${cashbackData.cashback_amount || 4})`}</span>
+          </button>
+        )
       ) : (
         /* Direct Embedded Interactive Slider with Alert Note */
         <div className="flex flex-col items-end sm:items-start">

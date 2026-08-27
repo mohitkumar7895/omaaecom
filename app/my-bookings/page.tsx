@@ -50,6 +50,8 @@ interface Booking {
   warranty_status?: string;
   rating?: number;
   review?: string;
+  ad_watched?: boolean | number | string;
+  service_opted?: boolean | number | string;
 }
 
 export const isAmcBooking = (booking: any) => {
@@ -112,8 +114,10 @@ export default function MyBookingsPage() {
     fetchBookings();
 
     window.addEventListener("rating_submitted", fetchBookings);
+    window.addEventListener("booking_updated", fetchBookings);
     return () => {
       window.removeEventListener("rating_submitted", fetchBookings);
+      window.removeEventListener("booking_updated", fetchBookings);
     };
   }, []);
 
@@ -382,8 +386,15 @@ export default function MyBookingsPage() {
                           <span className="text-xs font-black text-gray-900">{formattedDate}</span>
                         </div>
 
-                        {/* Warranty or Expired Badge */}
-                        {isWarrantyExpired ? (
+                        {/* Warranty or Expired / Inactive Badge */}
+                        {(booking.ad_watched === 1 || (booking as any).ad_watched === true || (booking as any).ad_watched === "1") ? (
+                          <div className="flex items-center gap-1.5 text-xs">
+                            <span className="text-[11px] font-black text-gray-900 uppercase tracking-wide">WARRANTY:</span>
+                            <span className="px-2 py-0.5 rounded-md text-[11px] font-black bg-rose-50 text-rose-700 border border-rose-200">
+                              Inactive Warranty
+                            </span>
+                          </div>
+                        ) : isWarrantyExpired ? (
                           <div className="flex items-center gap-1.5 text-xs">
                             <span className="text-[11px] font-black text-gray-900 uppercase tracking-wide">WARRANTY:</span>
                             <span className="px-2 py-0.5 rounded-md text-[11px] font-black bg-rose-50 text-rose-700 border border-rose-200">

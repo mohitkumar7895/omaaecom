@@ -53,6 +53,8 @@ interface Booking {
   warranty_status?: string;
   rating?: number;
   review?: string;
+  ad_watched?: boolean | number | string;
+  service_opted?: boolean | number | string;
 }
 
 const isAmcBooking = (booking: any) => {
@@ -116,8 +118,10 @@ export default function MyAmcPage() {
     fetchBookings();
 
     window.addEventListener("rating_submitted", fetchBookings);
+    window.addEventListener("booking_updated", fetchBookings);
     return () => {
       window.removeEventListener("rating_submitted", fetchBookings);
+      window.removeEventListener("booking_updated", fetchBookings);
     };
   }, []);
 
@@ -402,8 +406,15 @@ export default function MyAmcPage() {
                           <span>AMC Card</span>
                         </button>
 
-                        {/* Warranty or Expired Badge */}
-                        {isWarrantyExpired ? (
+                        {/* Warranty or Expired / Inactive Badge */}
+                        {(booking.ad_watched === 1 || (booking as any).ad_watched === true || (booking as any).ad_watched === "1") ? (
+                          <div className="flex items-center gap-1.5 text-xs">
+                            <span className="text-[11px] font-black text-gray-900 uppercase tracking-wide">AMC:</span>
+                            <span className="px-2 py-0.5 rounded-md text-[11px] font-black bg-rose-50 text-rose-700 border border-rose-200">
+                              Inactive Warranty
+                            </span>
+                          </div>
+                        ) : isWarrantyExpired ? (
                           <div className="flex items-center gap-1.5 text-xs">
                             <span className="text-[11px] font-black text-gray-900 uppercase tracking-wide">AMC:</span>
                             <span className="px-2 py-0.5 rounded-md text-[11px] font-black bg-rose-50 text-rose-700 border border-rose-200">
@@ -613,9 +624,15 @@ export default function MyAmcPage() {
                       : selectedAmcCardBooking.category || "RO AMC Plan"}
                   </h4>
                 </div>
-                <span className="px-2.5 py-1 bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[10px] font-black rounded-full uppercase tracking-wider flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 text-emerald-400" /> Active
-                </span>
+                {selectedAmcCardBooking.ad_watched ? (
+                  <span className="px-2.5 py-1 bg-rose-500/20 border border-rose-400/40 text-rose-300 text-[10px] font-black rounded-full uppercase tracking-wider flex items-center gap-1">
+                    Inactive Warranty
+                  </span>
+                ) : (
+                  <span className="px-2.5 py-1 bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[10px] font-black rounded-full uppercase tracking-wider flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-emerald-400" /> Active
+                  </span>
+                )}
               </div>
 
               {/* Card Number / Order ID */}
@@ -642,11 +659,15 @@ export default function MyAmcPage() {
                 </div>
                 <div>
                   <span className="text-[10px] text-indigo-300 uppercase font-semibold block">VALIDITY</span>
-                  <span className="font-bold text-white block">365 Days Full Coverage</span>
+                  <span className={`font-bold block ${selectedAmcCardBooking.ad_watched ? 'text-rose-300' : 'text-white'}`}>
+                    {selectedAmcCardBooking.ad_watched ? 'Inactive Warranty' : '365 Days Full Coverage'}
+                  </span>
                 </div>
                 <div>
                   <span className="text-[10px] text-indigo-300 uppercase font-semibold block">SERVICE INCLUSIONS</span>
-                  <span className="font-bold text-emerald-300 block">2 Free Services + Priority</span>
+                  <span className={`font-bold block ${selectedAmcCardBooking.ad_watched ? 'text-rose-300' : 'text-emerald-300'}`}>
+                    {selectedAmcCardBooking.ad_watched ? 'Inactive (Cashback Opted)' : '2 Free Services + Priority'}
+                  </span>
                 </div>
               </div>
             </div>
