@@ -106,11 +106,10 @@ function CheckoutContent() {
 
   const itemTotals = cart.reduce((total, item) => total + (Number(item.selling_price) * item.quantity || 0), 0);
 
-  // Apply GST on checkout based on payment method selection
+  // Apply GST on checkout strictly if master GST toggle is enabled
   const gstRate = Number(gstSettings?.gst_rate || 0);
-  const isOnline = paymentMethod === 'online';
-  const gstEnabledForPayment = gstSettings ? (isOnline ? gstSettings.online_gst_enabled : gstSettings.cash_gst_enabled) : false;
-  const applyGst = cart.some(isGstItem) && gstEnabledForPayment;
+  const gstEnabled = Boolean(gstSettings && (Number(gstSettings.online_gst_enabled) === 1 || Number(gstSettings.cash_gst_enabled) === 1));
+  const applyGst = cart.some(isGstItem) && gstEnabled && gstRate > 0;
   const gstItemsTotal = cart.filter(isGstItem).reduce((sum, item) => sum + (Number(item.selling_price) * item.quantity || 0), 0);
   const gstAmount = applyGst ? (gstItemsTotal * (gstRate / 100)) : 0;
 

@@ -82,11 +82,11 @@ export default function CartPage() {
 
   const itemTotals = cart.reduce((sum, item) => sum + (Number(item.selling_price) * (item.quantity || 1)), 0);
   
-  // Calculate GST amount for eligible items (RO AMC & New Products)
+  // Calculate GST amount for eligible items (RO AMC & New Products) strictly if enabled
   const gstRate = Number(gstSettings?.gst_rate || 0);
-  const gstEnabled = gstSettings ? (gstSettings.online_gst_enabled || gstSettings.cash_gst_enabled) : false;
+  const gstEnabled = Boolean(gstSettings && (Number(gstSettings.online_gst_enabled) === 1 || Number(gstSettings.cash_gst_enabled) === 1));
   const gstItemsTotal = cart.filter(isGstItem).reduce((sum, item) => sum + (Number(item.selling_price) * (item.quantity || 1)), 0);
-  const gstAmount = gstEnabled ? (gstItemsTotal * (gstRate / 100)) : 0;
+  const gstAmount = (gstEnabled && gstRate > 0) ? (gstItemsTotal * (gstRate / 100)) : 0;
 
   // Exempt convenience fee for RO AMC or New Product services
   const hasGstEligible = cart.some(isGstItem);

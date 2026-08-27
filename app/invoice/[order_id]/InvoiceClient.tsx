@@ -22,8 +22,9 @@ export default function InvoiceClient({ booking, services, gstSettings, resolved
   const bookingTime = booking.time_slot || new Date(booking.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
 
   const isGstEligibleService = booking.type === 'AMC' || booking.type === 'New Product';
-  const applyGstRate = isGstEligibleService && gstSettings && gstSettings.online_gst_enabled;
-  const showGstNumber = isGstEligibleService && gstSettings && gstSettings.show_gst_on_invoice && gstSettings.gst_number && gstSettings.gst_number !== '0' && gstSettings.gst_number !== 'null';
+  const isGstEnabled = Boolean(gstSettings && (Number(gstSettings.online_gst_enabled) === 1 || Number(gstSettings.cash_gst_enabled) === 1));
+  const applyGstRate = isGstEligibleService && isGstEnabled;
+  const showGstNumber = isGstEligibleService && isGstEnabled && Boolean(gstSettings?.show_gst_on_invoice) && gstSettings.gst_number && gstSettings.gst_number !== '0' && gstSettings.gst_number !== 'null';
 
   const subtotal = services.reduce((sum, item) => sum + (Number(item.price) * Number(item.quantity)), 0);
   const total = Number(booking.total);
