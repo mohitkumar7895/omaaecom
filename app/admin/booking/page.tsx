@@ -212,15 +212,19 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                       <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">{row.category || '—'}</div>
                       {Array.isArray(row.services) && row.services.length > 0 ? (
                         <div className="space-y-1 mb-2">
-                          {row.services.map((item: any, idx: number) => (
-                            <div key={idx} className="flex justify-between items-center text-xs bg-gray-50 px-2 py-1 rounded border border-gray-100">
-                              <span className="font-semibold text-gray-800 line-clamp-1">{item.title}</span>
-                              <div className="flex items-center gap-1.5 ml-2 shrink-0">
-                                {item.price ? <span className="text-gray-900 font-bold text-[11px]">₹{item.price}</span> : null}
-                                <span className="text-gray-500 font-bold text-[11px]">x{item.quantity || 1}</span>
+                          {row.services.map((item: any, idx: number) => {
+                            const qty = Number(item.quantity) || 1;
+                            const price = Number(item.price) || 0;
+                            return (
+                              <div key={idx} className="flex justify-between items-center text-xs bg-gray-50 px-2 py-1 rounded border border-gray-100">
+                                <span className="font-semibold text-gray-800 line-clamp-1">{item.title}</span>
+                                <div className="flex items-center gap-1.5 ml-2 shrink-0">
+                                  {price ? <span className="text-gray-900 font-bold text-[11px]">₹{(price * qty).toLocaleString()}</span> : null}
+                                  <span className="text-gray-500 font-bold text-[11px]">x{qty}</span>
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       ) : (
                         <div className="text-gray-500 text-[11px] italic mb-2">{String(row.services || '—')}</div>

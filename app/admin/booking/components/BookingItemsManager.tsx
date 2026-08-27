@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { 
   PackagePlus, 
   Trash2, 
@@ -11,7 +11,9 @@ import {
   IndianRupee, 
   AlertCircle,
   Save,
-  Pencil
+  Pencil,
+  Layers,
+  Sparkles
 } from "lucide-react";
 import { updateBookingItems } from "../actions";
 
@@ -19,6 +21,17 @@ export interface BookingItem {
   title: string;
   price: number | string;
   quantity: number | string;
+}
+
+interface RateCardItem {
+  id: string;
+  type: string;
+  name: string;
+  price: number;
+  labourCharges: number;
+  category: string;
+  heading: string;
+  displayName: string;
 }
 
 interface BookingItemsManagerProps {
@@ -44,6 +57,10 @@ export default function BookingItemsManager({
   const [isPending, startTransition] = useTransition();
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Rate card dropdown options
+  const [rateCardOptions, setRateCardOptions] = useState<RateCardItem[]>([]);
+  const [loadingRateCards, setLoadingRateCards] = useState(false);
 
   // Normalize initial items
   const parseInitialItems = (): BookingItem[] => {
@@ -84,6 +101,7 @@ export default function BookingItemsManager({
   const [newTitle, setNewTitle] = useState("");
   const [newPrice, setNewPrice] = useState("");
   const [newQuantity, setNewQuantity] = useState("1");
+  const [selectedRateCardId, setSelectedRateCardId] = useState("");
 
   const openModal = () => {
     const loaded = parseInitialItems();
@@ -93,11 +111,39 @@ export default function BookingItemsManager({
     setError(null);
     setSaved(false);
     setIsOpen(true);
+
+    // Fetch rate card items if not yet loaded
+    if (rateCardOptions.length === 0) {
+      setLoadingRateCards(true);
+      fetch("/api/admin/rate-cards")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && Array.isArray(data.allItems)) {
+            setRateCardOptions(data.allItems);
+          }
+        })
+        .catch((err) => console.error("Error loading rate cards:", err))
+        .finally(() => setLoadingRateCards(false));
+    }
   };
 
   const closeModal = () => {
     setIsOpen(false);
     setError(null);
+  };
+
+  // Handle selecting an item from the Rate Card dropdown
+  const handleRateCardSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const val = e.target.value;
+    setSelectedRateCardId(val);
+    if (!val) return;
+
+    const found = rateCardOptions.find((opt) => opt.id === val);
+    if (found) {
+      setNewTitle(found.name);
+      setNewPrice(String(found.price));
+      setError(null);
+    }
   };
 
   // Handle editing an existing item
@@ -120,7 +166,7 @@ export default function BookingItemsManager({
   // Add new item
   const handleAddNewItem = () => {
     if (!newTitle.trim()) {
-      setError("Please enter an item or service name.");
+      setError("Please select from Rate Card or enter an item name.");
       return;
     }
     const priceNum = parseFloat(newPrice);
@@ -142,6 +188,7 @@ export default function BookingItemsManager({
     setNewTitle("");
     setNewPrice("");
     setNewQuantity("1");
+    setSelectedRateCardId("");
     setError(null);
   };
 
@@ -191,6 +238,10 @@ export default function BookingItemsManager({
     });
   };
 
+  // Filter Rate Card vs Services for grouped options
+  const rateCardsGroup = rateCardOptions.filter((it) => it.type === "Rate Card / Spare Part");
+  const servicesGroup = rateCardOptions.filter((it) => it.type === "Service");
+
   return (
     <>
       {/* Trigger Button inside Admin Table */}
@@ -198,7 +249,7 @@ export default function BookingItemsManager({
         type="button"
         onClick={openModal}
         className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 hover:text-indigo-700 transition-all border border-indigo-200/80 shadow-2xs cursor-pointer active:scale-95"
-        title="Add or edit items and prices for this booking"
+        title="Add or edit items and prices from Rate Card or custom"
       >
         <PackagePlus className="w-3.5 h-3.5" />
         <span>+ Add / Edit Items</span>
@@ -317,16 +368,59 @@ export default function BookingItemsManager({
                 </div>
               </div>
 
-              {/* Add New Item Box */}
-              <div className="p-4 bg-indigo-50/40 rounded-xl border border-indigo-100/90 space-y-3">
-                <div className="flex items-center gap-1.5 text-xs font-black text-indigo-950 uppercase tracking-wider">
-                  <Plus className="w-4 h-4 text-indigo-600" />
-                  <span>Add Extra Item / Spare Part / Service</span>
+              {/* Add New Item Box with Rate Card Dropdown */}
+              <div className="p-4 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-3.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs font-black text-indigo-950 uppercase tracking-wider">
+                    <Plus className="w-4 h-4 text-indigo-600" />
+                    <span>Add Extra Item / Spare Part / Service</span>
+                  </div>
+                  <span className="text-[11px] text-indigo-600 font-semibold flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-indigo-500" /> Auto-fill from Rate Card
+                  </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-end">
+                {/* Rate Card Dropdown Selector */}
+                <div>
+                  <label className="text-[11px] font-bold text-gray-700 block mb-1">
+                    Select from Rate Card / Spare Parts / Services
+                  </label>
+                  <select
+                    value={selectedRateCardId}
+                    onChange={handleRateCardSelect}
+                    disabled={loadingRateCards}
+                    className="w-full px-3 py-2 bg-white border border-indigo-200 rounded-lg text-xs font-semibold text-gray-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none shadow-2xs"
+                  >
+                    <option value="">
+                      {loadingRateCards ? "⏳ Loading Rate Cards..." : "-- Choose from Rate Card or Services (Auto-fills Name & Price) --"}
+                    </option>
+
+                    {rateCardsGroup.length > 0 && (
+                      <optgroup label="📋 Rate Card Spare Parts">
+                        {rateCardsGroup.map((opt) => (
+                          <option key={opt.id} value={opt.id}>
+                            {opt.displayName}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+
+                    {servicesGroup.length > 0 && (
+                      <optgroup label="🛠️ Main Services">
+                        {servicesGroup.map((opt) => (
+                          <option key={opt.id} value={opt.id}>
+                            {opt.displayName}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                  </select>
+                </div>
+
+                {/* Form Fields: Item Name, Qty, Price */}
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-end pt-1 border-t border-indigo-100/80">
                   <div className="sm:col-span-6">
-                    <label className="text-[11px] font-bold text-gray-600 block mb-1">
+                    <label className="text-[11px] font-bold text-gray-700 block mb-1">
                       Item / Service Name
                     </label>
                     <input
@@ -335,12 +429,12 @@ export default function BookingItemsManager({
                       value={newTitle}
                       onChange={(e) => setNewTitle(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleAddNewItem()}
-                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none shadow-2xs"
                     />
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="text-[11px] font-bold text-gray-600 block mb-1">
+                    <label className="text-[11px] font-bold text-gray-700 block mb-1">
                       Qty
                     </label>
                     <input
@@ -349,13 +443,13 @@ export default function BookingItemsManager({
                       placeholder="1"
                       value={newQuantity}
                       onChange={(e) => setNewQuantity(e.target.value)}
-                      className="w-full px-2 py-2 text-center bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                      className="w-full px-2 py-2 text-center bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none shadow-2xs"
                     />
                   </div>
 
                   <div className="sm:col-span-2">
-                    <label className="text-[11px] font-bold text-gray-600 block mb-1">
-                      Price (₹)
+                    <label className="text-[11px] font-bold text-gray-700 block mb-1">
+                      Price/Unit (₹)
                     </label>
                     <input
                       type="number"
@@ -364,8 +458,13 @@ export default function BookingItemsManager({
                       value={newPrice}
                       onChange={(e) => setNewPrice(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleAddNewItem()}
-                      className="w-full px-2 py-2 text-right bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+                      className="w-full px-2 py-2 text-right bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none shadow-2xs"
                     />
+                    {parseInt(newQuantity) > 1 && parseFloat(newPrice) > 0 && (
+                      <span className="text-[10px] text-emerald-700 font-black block mt-1 text-right whitespace-nowrap">
+                        = ₹{(parseFloat(newPrice) * parseInt(newQuantity)).toLocaleString("en-IN")}
+                      </span>
+                    )}
                   </div>
 
                   <div className="sm:col-span-2">

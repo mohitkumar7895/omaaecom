@@ -428,15 +428,20 @@ export default function MyBookingsPage() {
                         {/* Services itemized */}
                         {Array.isArray(booking.services) && booking.services.length > 0 ? (
                           <div className="space-y-1 mb-2.5">
-                            {booking.services.map((item, i) => (
-                              <div key={i} className="flex justify-between items-center text-xs py-0.5">
-                                <span className="font-medium text-gray-700">{item.title}</span>
-                                <div className="flex items-center gap-4">
-                                  <span className="text-[11px] text-gray-400 font-semibold">Qty: {item.quantity || 1}</span>
-                                  <span className="font-bold text-gray-900">₹{Number(item.price || 0).toLocaleString()}</span>
+                            {booking.services.map((item, i) => {
+                              const qty = Number(item.quantity) || 1;
+                              const unitPrice = Number(item.price) || 0;
+                              const lineTotal = unitPrice * qty;
+                              return (
+                                <div key={i} className="flex justify-between items-center text-xs py-0.5">
+                                  <span className="font-medium text-gray-700">{item.title}</span>
+                                  <div className="flex items-center gap-3">
+                                    <span className="text-[11px] text-gray-400 font-semibold">Qty: {qty}</span>
+                                    <span className="font-bold text-gray-900">₹{lineTotal.toLocaleString()}</span>
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
+                              );
+                            })}
 
                             {/* Convenience Fee Row (Normal Services only) */}
                             {booking.type !== 'AMC' && booking.type !== 'New Product' && (
