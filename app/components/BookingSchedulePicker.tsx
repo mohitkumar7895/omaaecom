@@ -65,6 +65,7 @@ export default function BookingSchedulePicker({
   }, []);
 
   // Check if a time slot is expired for the currently selected date
+  // (Keep currently running slot OPEN and only disable when slot END time has passed)
   const isSlotDisabled = (slot: string) => {
     if (!selectedDate) return false;
 
@@ -74,9 +75,13 @@ export default function BookingSchedulePicker({
     // If selected date is before today, it's disabled
     if (selectedDate < todayStr) return true;
 
-    // If selected date is today, check if the slot start time has already passed
+    // If selected date is today, check if the slot END time has already passed
     if (selectedDate === todayStr) {
-      const match = slot.match(/(\d+):(\d+)\s*(AM|PM)/i);
+      // Extract the end time (e.g. from "10:00 AM - 12:00 PM", get "12:00 PM")
+      const parts = slot.split("-");
+      const endTimeStr = (parts[1] || parts[0]).trim();
+      const match = endTimeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+      
       if (match) {
         let hour = parseInt(match[1]);
         const min = parseInt(match[2]);
@@ -86,16 +91,47 @@ export default function BookingSchedulePicker({
         if (ampm === "AM" && hour === 12) hour = 0;
 
         const currentTime = new Date();
-        const slotStartTime = new Date();
-        slotStartTime.setHours(hour, min, 0, 0);
+        const slotEndTime = new Date();
+        slotEndTime.setHours(hour, min, 0, 0);
 
-        // If current time has reached or passed the start time, disable
-        if (currentTime >= slotStartTime) {
+        // Only disable if the current time has reached or passed the END time of the slot
+        if (currentTime >= slotEndTime) {
           return true;
         }
       }
     }
 
+    return false;
+  };
+
+  // Helper to identify if a slot is currently in-progress right now
+  const isSlotOngoing = (slot: string) => {
+    if (!selectedDate) return false;
+    const today = new Date();
+    const todayStr = getLocalDateStr(today);
+    if (selectedDate !== todayStr) return false;
+
+    const parts = slot.split("-");
+    const startMatch = (parts[0] || "").trim().match(/(\d+):(\d+)\s*(AM|PM)/i);
+    const endMatch = (parts[1] || parts[0]).trim().match(/(\d+):(\d+)\s*(AM|PM)/i);
+
+    if (startMatch && endMatch) {
+      let startHour = parseInt(startMatch[1]);
+      if (startMatch[3].toUpperCase() === "PM" && startHour < 12) startHour += 12;
+      if (startMatch[3].toUpperCase() === "AM" && startHour === 12) startHour = 0;
+
+      let endHour = parseInt(endMatch[1]);
+      if (endMatch[3].toUpperCase() === "PM" && endHour < 12) endHour += 12;
+      if (endMatch[3].toUpperCase() === "AM" && endHour === 12) endHour = 0;
+
+      const now = new Date();
+      const startTime = new Date();
+      startTime.setHours(startHour, parseInt(startMatch[2]), 0, 0);
+      const endTime = new Date();
+      endTime.setHours(endHour, parseInt(endMatch[2]), 0, 0);
+
+      return now >= startTime && now < endTime;
+    }
     return false;
   };
 
@@ -179,6 +215,7 @@ export default function BookingSchedulePicker({
           <div className="grid grid-cols-2 gap-2.5">
             {timeSlots.map((slot, idx) => {
               const disabled = isSlotDisabled(slot);
+              const ongoing = isSlotOngoing(slot);
               const isSelected = selectedTime === slot;
               
               return (
@@ -192,10 +229,15 @@ export default function BookingSchedulePicker({
                       ? "bg-gray-100/70 border-gray-200 text-gray-400 opacity-50 cursor-not-allowed line-through"
                       : isSelected
                       ? "bg-[#6b62d9] text-white border-[#6b62d9] shadow-[0_4px_12px_rgba(107,98,217,0.3)] scale-[1.02]"
+                      : ongoing
+                      ? "bg-emerald-50/70 border-emerald-300 text-emerald-950 hover:bg-emerald-100/70 cursor-pointer shadow-sm"
                       : "bg-white border-gray-200 text-gray-700 hover:border-[#6b62d9]/50 hover:bg-[#f8f7ff] cursor-pointer"
                   }`}
                 >
                   {slot}
+                  {ongoing && !isSelected && (
+                    <span className="block text-[9px] font-bold text-emerald-600 no-underline not-italic">Active Now</span>
+                  )}
                   {disabled && (
                     <span className="block text-[9px] font-normal text-gray-400 no-underline not-italic">Passed</span>
                   )}
