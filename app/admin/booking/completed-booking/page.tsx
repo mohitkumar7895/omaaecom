@@ -83,8 +83,8 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                 <th className="px-3 py-4 border-r border-gray-600/30 text-center">Share</th>
                 <th className="px-3 py-4 border-r border-gray-600/30">Payment</th>
                 <th className="px-3 py-4 border-r border-gray-600/30">Payment Status</th>
-                <th className="px-3 py-4 border-r border-gray-600/30">Customer Review</th>
-                <th className="px-3 py-4">Working Status</th>
+                <th className="px-3 py-4 border-r border-gray-600/30">Working Status</th>
+                <th className="px-3 py-4">Customer Review</th>
               </tr>
             </thead>
             <tbody className="bg-white">
@@ -180,8 +180,12 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                       </span>
                     </td>
 
+                    <td className="px-3 py-4 border-r border-gray-200 text-center">
+                      <WorkingStatusSelect id={row.id} defaultValue={row.working_status} action={updateWorkingStatus} />
+                    </td>
+
                     {/* Customer Rating & Review */}
-                    <td className="px-3 py-4 border-r border-gray-200 min-w-[170px] max-w-[220px]">
+                    <td className="px-3 py-4 min-w-[100px] md:min-w-[170px] max-w-[130px] md:max-w-[220px]">
                       {row.rating ? (
                         <div className="space-y-1">
                           <div className="flex items-center space-x-1 bg-amber-50 border border-amber-200 text-amber-900 px-2 py-0.5 rounded-md w-max text-[11px] font-bold">
@@ -202,10 +206,6 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                       ) : (
                         <span className="text-[11px] text-gray-400 italic">Pending Review</span>
                       )}
-                    </td>
-
-                    <td className="px-3 py-4 text-center">
-                      <WorkingStatusSelect id={row.id} defaultValue={row.working_status} action={updateWorkingStatus} />
                     </td>
                   </tr>
                 ))

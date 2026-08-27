@@ -123,8 +123,8 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                 <th className="px-4 py-4 whitespace-nowrap text-center">Contact</th>
                 <th className="px-4 py-4 whitespace-nowrap text-center">Payment</th>
                 <th className="px-4 py-4 whitespace-nowrap text-center">Invoice</th>
-                <th className="px-4 py-4 whitespace-nowrap text-center">Review</th>
                 <th className="px-4 py-4 whitespace-nowrap text-right">Job Status</th>
+                <th className="px-4 py-4 whitespace-nowrap text-center">Review</th>
               </tr>
             </thead>
             <tbody className="bg-white/20 divide-y divide-gray-50">
@@ -267,8 +267,15 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                       <InvoiceStatusSelect id={row.id} orderId={row.order_id} defaultValue={row.invoice_status} action={updateInvoiceStatus} />
                     </td>
 
+                    {/* Job Status Column */}
+                    <td className="px-4 py-4 whitespace-nowrap text-right">
+                      <div className="inline-block">
+                        <WorkingStatusSelect id={row.id} defaultValue={row.working_status} action={updateWorkingStatus} />
+                      </div>
+                    </td>
+
                     {/* Customer Review Column */}
-                    <td className="px-4 py-4 min-w-[150px] max-w-[200px] text-center">
+                    <td className="px-4 py-4 min-w-[100px] md:min-w-[150px] max-w-[130px] md:max-w-[200px] text-center">
                       {row.rating ? (
                         <div className="inline-flex flex-col items-center space-y-1">
                           <div className="flex items-center space-x-1 bg-amber-50 border border-amber-200 text-amber-900 px-2 py-0.5 rounded-md text-[11px] font-bold">
@@ -289,12 +296,6 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                       ) : (
                         <span className="text-[11px] text-gray-400 italic">—</span>
                       )}
-                    </td>
-
-                    <td className="px-4 py-4 whitespace-nowrap text-right">
-                      <div className="inline-block">
-                        <WorkingStatusSelect id={row.id} defaultValue={row.working_status} action={updateWorkingStatus} />
-                      </div>
                     </td>
                   </tr>
                 ))
