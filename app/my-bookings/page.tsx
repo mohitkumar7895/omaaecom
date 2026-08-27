@@ -13,7 +13,8 @@ import {
   CheckCircle2, 
   FileText, 
   ReceiptText,
-  ShieldCheck 
+  ShieldCheck,
+  Star 
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -47,6 +48,8 @@ interface Booking {
   warranty_end?: string;
   warranty_days_valid?: number;
   warranty_status?: string;
+  rating?: number;
+  review?: string;
 }
 
 export default function MyBookingsPage() {
@@ -87,6 +90,11 @@ export default function MyBookingsPage() {
       }
     };
     fetchBookings();
+
+    window.addEventListener("rating_submitted", fetchBookings);
+    return () => {
+      window.removeEventListener("rating_submitted", fetchBookings);
+    };
   }, []);
 
   const toggleOrderDetails = (orderId: string) => {
@@ -483,17 +491,38 @@ export default function MyBookingsPage() {
 
                       </div>
 
-                      {/* Invoice Link - strictly shown ONLY when Admin marks Invoice as Completed */}
-                      {(booking.invoice_status === "Completed" || booking.invoice_status === "Complete" || booking.invoice_status === "Generated") && (
-                        <div className="flex justify-start pt-1">
+                      {/* Actions: Invoice Link & Rate & Review Button */}
+                      <div className="flex flex-wrap items-center gap-2.5 pt-2 border-t border-gray-100">
+                        {/* Invoice Link - strictly shown ONLY when Admin marks Invoice as Completed */}
+                        {(booking.invoice_status === "Completed" || booking.invoice_status === "Complete" || booking.invoice_status === "Generated") && (
                           <Link href={`/invoice/${booking.order_id}`}>
-                            <button className="flex items-center gap-1.5 bg-[#6366f1] hover:bg-[#4f46e5] text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition shadow-xs">
+                            <button className="flex items-center gap-1.5 bg-[#6366f1] hover:bg-[#4f46e5] text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition shadow-xs cursor-pointer">
                               <FileText className="w-3.5 h-3.5" />
                               Invoice
                             </button>
                           </Link>
-                        </div>
-                      )}
+                        )}
+
+                        {/* Rate & Review Button for Completed Bookings */}
+                        {isComplete && (
+                          booking.rating ? (
+                            <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-800 px-3 py-1.5 rounded-lg text-xs font-bold shadow-2xs">
+                              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                              <span>{booking.rating}/5 Rated</span>
+                            </div>
+                          ) : (
+                            <button 
+                              onClick={() => {
+                                window.dispatchEvent(new CustomEvent("open_rating_modal", { detail: { booking } }));
+                              }}
+                              className="flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold transition shadow-xs cursor-pointer"
+                            >
+                              <Star className="w-3.5 h-3.5 fill-current" />
+                              Rate & Review
+                            </button>
+                          )
+                        )}
+                      </div>
 
                     </div>
                   )}

@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
-import { Star } from "lucide-react";
+import { Star, MessageSquare } from "lucide-react";
+import CategoryReviewsModal from "./CategoryReviewsModal";
 
 export type ServiceItem = {
   id: number;
@@ -23,6 +24,7 @@ type CategoryGridProps = {
 
 export default function CategoryGrid({ title, services }: CategoryGridProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [selectedReviewCategory, setSelectedReviewCategory] = useState<string | null>(null);
 
   if (!services || services.length === 0) return null;
   
@@ -95,16 +97,39 @@ export default function CategoryGrid({ title, services }: CategoryGridProps) {
                   {service.title}
                 </h3>
                 
-                <div className="mt-2 flex items-center space-x-1.5 text-xs text-gray-500 font-medium">
-                  <Star className="w-3.5 h-3.5 text-amber-400 fill-current" />
-                  <span className="text-gray-800 font-bold">{service.rating || "4.8"}</span>
-                  {service.reviews && <span className="text-gray-400 text-[11px]">({service.reviews})</span>}
+                {/* Rating & Review clickable button */}
+                <div className="mt-2.5 pt-2 border-t border-gray-100 flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setSelectedReviewCategory(service.title || title);
+                    }}
+                    className="flex items-center gap-1.5 text-xs bg-amber-50/80 hover:bg-amber-100/90 text-gray-800 px-2 py-1 rounded-lg border border-amber-200/70 transition-all cursor-pointer group/btn"
+                    title="Click to view ratings and customer reviews"
+                  >
+                    <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+                    <span className="font-bold text-gray-900">{service.rating || "4.8"}</span>
+                    <span className="text-[11px] text-indigo-700 font-bold group-hover/btn:underline flex items-center gap-0.5">
+                      Reviews
+                    </span>
+                  </button>
                 </div>
               </div>
             </Link>
           ))}
         </div>
       </div>
+
+      {/* Category Reviews Modal */}
+      {selectedReviewCategory && (
+        <CategoryReviewsModal 
+          categoryTitle={selectedReviewCategory}
+          isOpen={!!selectedReviewCategory}
+          onClose={() => setSelectedReviewCategory(null)}
+        />
+      )}
     </div>
   );
 }

@@ -384,6 +384,7 @@ export default function CategoryView({ category, subcategories, services, rateCa
       {selectedService && (
         <ServiceDetailsModal 
           service={selectedService}
+          categoryName={category?.title}
           quantity={cart.find(c => c.id === selectedService.id)?.quantity || 0}
           onClose={() => setSelectedService(null)}
           onAdd={handleAddService}

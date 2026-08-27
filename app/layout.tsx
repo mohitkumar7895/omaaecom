@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import GlobalLoader from "./components/GlobalLoader";
 import OfferMarquee from "./components/OfferMarquee";
+import RatingReviewModal from "./components/RatingReviewModal";
 import { getSiteSettings } from "./actions/settings";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -31,6 +32,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     >
       <body className="min-h-full flex flex-col bg-[#f8f9fa] text-gray-900">
         <GlobalLoader />
+        <RatingReviewModal />
         {settings.offer_enabled && settings.offer_text && (
           <OfferMarquee text={settings.offer_text} />
         )}

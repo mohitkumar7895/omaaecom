@@ -116,6 +116,7 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                 <th className="px-3 py-4 border-r border-gray-600/30 text-center">Share</th>
                 <th className="px-3 py-4 border-r border-gray-600/30">Payment</th>
                 <th className="px-3 py-4 border-r border-gray-600/30">Payment Status</th>
+                <th className="px-3 py-4 border-r border-gray-600/30">Customer Review</th>
                 <th className="px-3 py-4">Working Status</th>
               </tr>
             </thead>
@@ -138,7 +139,7 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                     </td>
                     
                     <td className="px-3 py-4 border-r border-gray-200 leading-tight">
-                      {row.customer_name}
+                      <div className="font-semibold text-gray-900">{row.customer_name}</div>
                     </td>
 
                     <td className="px-3 py-4 border-r border-gray-200 font-medium text-gray-800">
@@ -146,26 +147,13 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                     </td>
                     
                     <td className="px-3 py-4 border-r border-gray-200 leading-tight max-w-[140px]">
-                      {row.category || '—'}
+                      <span className="bg-blue-50 text-blue-700 border border-blue-200 text-[11px] px-2 py-0.5 rounded font-medium">
+                        {row.category || '—'}
+                      </span>
                     </td>
                     
                     {/* Services — parse JSON array */}
-                    <td className="px-3 py-4 border-r border-gray-200 leading-tight max-w-[220px]">
-                      {Array.isArray(row.services) ? (
-                        <ul className="space-y-1 mb-2">
-                          {row.services.map((s: any, i: number) => (
-                            <li key={i} className="text-[11px] text-gray-700 flex justify-between items-center py-0.5">
-                              <span className="font-semibold">{s.title}</span>
-                              <div className="flex items-center gap-1 ml-1 text-gray-500 font-bold">
-                                {s.price ? <span className="text-gray-900">₹{s.price}</span> : null}
-                                <span>x{s.quantity || 1}</span>
-                              </div>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <div className="text-gray-500 text-[11px] mb-2">{String(row.services || '—')}</div>
-                      )}
+                    <td className="px-3 py-4 border-r border-gray-200 min-w-[280px]">
                       <BookingItemsManager
                         bookingId={row.id}
                         orderId={row.order_id}
@@ -179,8 +167,8 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
 
                     <td className="px-3 py-4 border-r border-gray-200 leading-tight whitespace-nowrap text-[11px]">
                       {row.booking_date 
-                        ? new Date(row.booking_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-') 
-                        : new Date(row.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).replace(/ /g, '-')
+                        ? new Date(row.booking_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                        : new Date(row.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
                       }
                     </td>
                     
@@ -200,14 +188,14 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                             className="border border-gray-300 rounded pl-5 pr-2 py-1 w-20 text-[11px] outline-none focus:border-blue-500"
                           />
                         </div>
-                        <button type="submit" className="border border-blue-400 text-blue-500 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded text-[10px] transition">
+                        <button type="submit" className="border border-blue-400 text-blue-500 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded text-[10px] transition cursor-pointer">
                           Update
                         </button>
                       </form>
                     </td>
 
                     <td className="px-3 py-4 border-r border-gray-200 text-center">
-                      <button className="bg-[#1b6b50] hover:bg-[#15533e] text-white px-2 py-1 rounded shadow-sm text-[11px] transition flex flex-col items-center mx-auto">
+                      <button className="bg-[#1b6b50] hover:bg-[#15533e] text-white px-2 py-1 rounded shadow-sm text-[11px] transition flex flex-col items-center mx-auto cursor-pointer">
                         <MessageCircle className="w-3.5 h-3.5 mb-0.5" />
                         <span>Share</span>
                       </button>
@@ -225,14 +213,38 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                       </span>
                     </td>
 
+                    {/* Customer Rating & Review */}
+                    <td className="px-3 py-4 border-r border-gray-200 min-w-[170px] max-w-[220px]">
+                      {row.rating ? (
+                        <div className="space-y-1">
+                          <div className="flex items-center space-x-1 bg-amber-50 border border-amber-200 text-amber-900 px-2 py-0.5 rounded-md w-max text-[11px] font-bold">
+                            <span className="text-amber-500">★</span>
+                            <span>{row.rating}/5 Stars</span>
+                          </div>
+                          {row.review_tags && (
+                            <div className="text-[10px] text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100 line-clamp-1">
+                              {row.review_tags}
+                            </div>
+                          )}
+                          {row.review && (
+                            <p className="text-[11px] text-gray-700 italic bg-gray-50 p-1.5 rounded border border-gray-100 leading-tight">
+                              &ldquo;{row.review}&rdquo;
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-[11px] text-gray-400 italic">Pending Review</span>
+                      )}
+                    </td>
+
                     <td className="px-3 py-4 text-center">
-<WorkingStatusSelect id={row.id} defaultValue={row.working_status} action={updateWorkingStatus} />
+                      <WorkingStatusSelect id={row.id} defaultValue={row.working_status} action={updateWorkingStatus} />
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan={15} className="px-6 py-12 text-center text-gray-500 bg-gray-50">
+                  <td colSpan={16} className="px-6 py-12 text-center text-gray-500 bg-gray-50">
                     No bookings found.
                   </td>
                 </tr>

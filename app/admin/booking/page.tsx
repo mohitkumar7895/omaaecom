@@ -149,6 +149,7 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                 <th className="px-4 py-4 whitespace-nowrap text-center">Contact</th>
                 <th className="px-4 py-4 whitespace-nowrap text-center">Payment</th>
                 <th className="px-4 py-4 whitespace-nowrap text-center">Invoice</th>
+                <th className="px-4 py-4 whitespace-nowrap text-center">Review</th>
                 <th className="px-4 py-4 whitespace-nowrap text-right">Job Status</th>
               </tr>
             </thead>
@@ -181,7 +182,7 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                         <div className="font-bold text-gray-900 truncate">{row.customer_name}</div>
                         <a 
                           href={`tel:${row.mobile}`} 
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white border border-emerald-200 text-[11px] font-extrabold transition-all shadow-sm shrink-0"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white border border-emerald-200 text-[11px] font-extrabold transition-all shadow-sm shrink-0 cursor-pointer"
                           title={`Click to Call ${row.customer_name}`}
                         >
                           <Phone className="w-3 h-3" />
@@ -261,7 +262,7 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                       <div className="flex items-center justify-center gap-1.5">
                         <a 
                           href={`tel:${row.mobile}`}
-                          className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white hover:shadow-md hover:shadow-emerald-500/20 transition-all"
+                          className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white hover:shadow-md hover:shadow-emerald-500/20 transition-all cursor-pointer"
                           title={`Click to Call ${row.customer_name}`}
                         >
                           <Phone className="w-3.5 h-3.5" />
@@ -274,7 +275,7 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                           )}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white hover:shadow-md hover:shadow-emerald-500/20 transition-all"
+                          className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-500 hover:text-white hover:shadow-md hover:shadow-emerald-500/20 transition-all cursor-pointer"
                           title="Send WhatsApp Message"
                         >
                           <MessageCircle className="w-4 h-4" />
@@ -290,6 +291,30 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                     {/* Dedicated Invoice Status Column */}
                     <td className="px-4 py-4 whitespace-nowrap text-center">
                       <InvoiceStatusSelect id={row.id} orderId={row.order_id} defaultValue={row.invoice_status} action={updateInvoiceStatus} />
+                    </td>
+
+                    {/* Customer Review Column */}
+                    <td className="px-4 py-4 min-w-[150px] max-w-[200px] text-center">
+                      {row.rating ? (
+                        <div className="inline-flex flex-col items-center space-y-1">
+                          <div className="flex items-center space-x-1 bg-amber-50 border border-amber-200 text-amber-900 px-2 py-0.5 rounded-md text-[11px] font-bold">
+                            <span className="text-amber-500">★</span>
+                            <span>{row.rating}/5</span>
+                          </div>
+                          {row.review_tags && (
+                            <div className="text-[10px] text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100 line-clamp-1">
+                              {row.review_tags}
+                            </div>
+                          )}
+                          {row.review && (
+                            <p className="text-[11px] text-gray-700 italic bg-gray-50 p-1.5 rounded border border-gray-100 leading-tight line-clamp-2">
+                              &ldquo;{row.review}&rdquo;
+                            </p>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-[11px] text-gray-400 italic">—</span>
+                      )}
                     </td>
 
                     <td className="px-4 py-4 whitespace-nowrap text-right">
