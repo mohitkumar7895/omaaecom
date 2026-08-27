@@ -12,6 +12,7 @@ function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [cart, setCart] = useState<any[]>([]);
+  const [bookedItems, setBookedItems] = useState<any[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<'online' | 'cash'>('online');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -174,6 +175,27 @@ function CheckoutContent() {
     const newErrors = validate();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      
+      // Auto scroll and focus directly to the first unfilled field
+      const firstKey = Object.keys(newErrors)[0];
+      setTimeout(() => {
+        let target: HTMLElement | null = null;
+        if (firstKey === 'booking_date' || firstKey === 'time_slot') {
+          target = document.getElementById('field-schedule') || document.getElementById('schedule-section');
+        } else {
+          target = document.getElementById(`field-${firstKey}`) || document.querySelector(`[name="${firstKey}"]`);
+        }
+
+        if (target) {
+          const headerOffset = 110;
+          const targetTop = target.getBoundingClientRect().top + window.pageYOffset - headerOffset;
+          window.scrollTo({
+            top: Math.max(0, targetTop),
+            behavior: 'smooth'
+          });
+          target.focus({ preventScroll: true });
+        }
+      }, 50);
       return;
     }
 
@@ -198,6 +220,7 @@ function CheckoutContent() {
 
       if (res.ok) {
         const data = await res.json();
+        setBookedItems([...cart]);
         localStorage.removeItem('omaa_cart');
         setOrderId(data.order_id || '');
         setSuccess(true);
@@ -214,131 +237,125 @@ function CheckoutContent() {
 
   // Success screen
   if (success) {
-    if (requiresSchedule) {
-      return (
-        <div className="min-h-screen bg-white sm:bg-[#fafafa] pb-12 flex flex-col font-sans selection:bg-black selection:text-white">
-          <Navbar />
-          <div className="flex-1 flex items-center justify-center mt-10 px-4">
-            <div className="bg-white sm:shadow-[0_20px_60px_rgba(0,0,0,0.04)] sm:border border-gray-100 rounded-[32px] w-full max-w-[560px] relative overflow-hidden z-10 p-8 sm:p-12">
-              
-              {/* Subtle Success Glow */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-green-400/10 rounded-full blur-[60px] pointer-events-none -z-10"></div>
+    const uniqueCategories = Array.from(new Set(bookedItems.map(item => item.category || item.category_name || (item.category_id === 6 ? 'New Product' : item.category_id === 7 ? 'RO AMC' : 'Home Service')).filter(Boolean)));
+    const categoryHeader = uniqueCategories.length > 0 ? uniqueCategories.join(' & ') : 'Booked Services';
 
-              <div className="text-center mb-10">
-                <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_40px_rgba(34,197,94,0.3)] ring-8 ring-green-50">
-                  <CheckCircle2 className="w-10 h-10 text-white" strokeWidth={2.5} />
-                </div>
-                <h2 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight mb-3">Booking Confirmed</h2>
-                <p className="text-gray-500 text-[15px] font-medium max-w-sm mx-auto">
-                  Your appointment has been successfully scheduled. We've sent the details to your email and mobile.
-                </p>
+    return (
+      <div className="min-h-screen bg-white sm:bg-[#fafafa] pb-12 flex flex-col font-sans selection:bg-black selection:text-white">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center mt-10 px-4">
+          <div className="bg-white sm:shadow-[0_20px_60px_rgba(0,0,0,0.04)] sm:border border-gray-100 rounded-[32px] w-full max-w-[560px] relative overflow-hidden z-10 p-8 sm:p-12">
+            
+            {/* Subtle Success Glow */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-green-400/10 rounded-full blur-[60px] pointer-events-none -z-10"></div>
+
+            <div className="text-center mb-8 sm:mb-10">
+              <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_40px_rgba(34,197,94,0.3)] ring-8 ring-green-50">
+                <CheckCircle2 className="w-10 h-10 text-white" strokeWidth={2.5} />
               </div>
+              <h2 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight mb-3">Booking Confirmed</h2>
+              <p className="text-gray-500 text-[15px] font-medium max-w-sm mx-auto">
+                Your booking has been placed successfully. We've sent the details to your email and mobile.
+              </p>
+            </div>
 
-              <div className="bg-[#fafafa] rounded-2xl p-6 mb-8 border border-gray-100/80">
-                <div className="flex justify-between items-center mb-5 pb-5 border-b border-gray-200/60">
-                  <div>
-                    <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1">Order ID</p>
-                    <p className="text-gray-900 font-extrabold text-base tracking-tight">{orderId}</p>
+            <div className="bg-[#fafafa] rounded-2xl p-5 sm:p-6 mb-8 border border-gray-100/80 space-y-4">
+              {/* 1. Dynamic Category & Service Items Box */}
+              {bookedItems.length > 0 && (
+                <div className="pb-4 border-b border-gray-200/60">
+                  <div className="flex items-center justify-between mb-2.5">
+                    <p className="text-gray-500 text-[12px] font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+                      <span className="text-[#6b62d9] font-black">{categoryHeader}</span>
+                    </p>
+                    <span className="text-[11px] font-bold text-gray-400">
+                      {bookedItems.reduce((acc, curr) => acc + (curr.quantity || 1), 0)} {bookedItems.reduce((acc, curr) => acc + (curr.quantity || 1), 0) === 1 ? 'Item' : 'Items'}
+                    </span>
                   </div>
-                  <div className="text-right">
-                    <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1">Total Amount</p>
-                    <p className="text-gray-900 font-black text-xl">₹{Number(totalAmount)}</p>
+
+                  <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                    {bookedItems.map((item, idx) => {
+                      const catName = item.category || item.category_name || (item.category_id === 6 ? 'New Product' : item.category_id === 7 ? 'RO AMC' : 'Service');
+                      const qty = item.quantity || 1;
+                      return (
+                        <div key={idx} className="flex items-center justify-between bg-white p-3 rounded-xl border border-gray-100 shadow-2xs">
+                          <div className="flex items-center gap-3 min-w-0">
+                            {item.image_url ? (
+                              <img src={item.image_url} alt={item.title} className="w-11 h-11 rounded-lg object-cover bg-gray-50 shrink-0 border border-gray-100" />
+                            ) : (
+                              <div className="w-11 h-11 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 font-bold text-sm">🛠️</div>
+                            )}
+                            <div className="min-w-0">
+                              <p className="text-gray-900 font-bold text-[13.5px] truncate">{item.title}</p>
+                              <p className="text-gray-500 text-[11.5px] font-medium flex items-center gap-1.5 mt-0.5">
+                                <span className="text-[#6b62d9] font-bold bg-[#f4f3ff] px-2 py-0.5 rounded-md">{catName}</span>
+                                <span>•</span>
+                                <span className="text-gray-600 font-semibold">{qty} {qty === 1 ? 'Item' : 'Items'}</span>
+                              </p>
+                            </div>
+                          </div>
+                          <span className="text-gray-900 font-black text-[14px] shrink-0 ml-3">
+                            ₹{Number((item.selling_price || item.price || 0) * qty)}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
+              )}
 
-                <div className="grid grid-cols-2 gap-y-5 gap-x-4">
+              {/* 2. Date & Time (if scheduled) */}
+              {requiresSchedule && form.booking_date && (
+                <div className="grid grid-cols-2 gap-4 pb-4 border-b border-gray-200/60">
                   <div>
                     <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5"/> Date</p>
-                    <p className="text-gray-900 font-bold text-[14px]">{new Date(form.booking_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                    <p className="text-gray-900 font-bold text-[13.5px]">{new Date(form.booking_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                   </div>
                   <div>
                     <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5"><Clock className="w-3.5 h-3.5"/> Time</p>
-                    <p className="text-gray-900 font-bold text-[14px]">{form.time_slot}</p>
+                    <p className="text-gray-900 font-bold text-[13.5px]">{form.time_slot}</p>
                   </div>
-                  <div className="col-span-2">
-                    <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5"/> Address</p>
-                    <p className="text-gray-800 font-semibold text-[13px] leading-relaxed">{form.address}</p>
-                  </div>
-                  <div className="col-span-2">
-                    <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5"><IndianRupee className="w-3.5 h-3.5"/> Payment Method</p>
-                    <span className="inline-block mt-0.5 px-3 py-1 bg-gray-100 text-gray-800 text-[12px] font-bold rounded-lg border border-gray-200/80">
-                      Pay at Site (Cash/UPI)
-                    </span>
-                  </div>
+                </div>
+              )}
+
+              {/* 3. Payment Method */}
+              <div className="pb-4 border-b border-gray-200/60">
+                <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1.5"><IndianRupee className="w-3.5 h-3.5"/> Payment Method</p>
+                <span className="inline-block px-3 py-1 bg-gray-100 text-gray-800 text-[12px] font-bold rounded-lg border border-gray-200/80">
+                  {paymentMethod === 'online' ? 'Online Paid' : 'Pay at Site (Cash/UPI)'}
+                </span>
+              </div>
+
+              {/* 4. Order ID & Total Amount (Address ke Upar) */}
+              <div className="flex justify-between items-center pb-4 border-b border-gray-200/60">
+                <div>
+                  <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1">Order ID</p>
+                  <p className="text-gray-900 font-extrabold text-base tracking-tight">{orderId}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1">Total Amount</p>
+                  <p className="text-gray-900 font-black text-xl">₹{Number(totalAmount)}</p>
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3">
-                <button 
-                  onClick={() => router.push('/')}
-                  className="flex-1 bg-white border-2 border-gray-200 hover:border-black hover:bg-gray-50 text-gray-900 font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 text-[15px]"
-                >
-                  <Home className="w-4 h-4" /> Go Home
-                </button>
+              {/* 5. Address (Sabse Neeche) */}
+              <div>
+                <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5"/> Address</p>
+                <p className="text-gray-800 font-semibold text-[13px] leading-relaxed">{form.address}</p>
               </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button 
+                onClick={() => router.push('/')}
+                className="flex-1 bg-white border-2 border-gray-200 hover:border-black hover:bg-gray-50 text-gray-900 font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 text-[15px] cursor-pointer"
+              >
+                <Home className="w-4 h-4" /> Go Home
+              </button>
             </div>
           </div>
         </div>
-      );
-    } else {
-      return (
-        <div className="min-h-screen bg-white sm:bg-[#fafafa] pb-12 flex flex-col font-sans selection:bg-black selection:text-white">
-          <Navbar />
-          <div className="flex-1 flex items-center justify-center mt-10 px-4">
-            <div className="bg-white sm:shadow-[0_20px_60px_rgba(0,0,0,0.04)] sm:border border-gray-100 rounded-[32px] w-full max-w-[560px] relative overflow-hidden z-10 p-8 sm:p-12">
-              
-              {/* Subtle Success Glow */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-green-400/10 rounded-full blur-[60px] pointer-events-none -z-10"></div>
-
-              <div className="text-center mb-10">
-                <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_40px_rgba(34,197,94,0.3)] ring-8 ring-green-50">
-                  <CheckCircle2 className="w-10 h-10 text-white" strokeWidth={2.5} />
-                </div>
-                <h2 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight mb-3">Order Confirmed</h2>
-                <p className="text-gray-500 text-[15px] font-medium max-w-sm mx-auto">
-                  Your order has been placed successfully. We've sent the receipt to your email and mobile.
-                </p>
-              </div>
-
-              <div className="bg-[#fafafa] rounded-2xl p-6 mb-8 border border-gray-100/80">
-                <div className="flex justify-between items-center mb-5 pb-5 border-b border-gray-200/60">
-                  <div>
-                    <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1">Order ID</p>
-                    <p className="text-gray-900 font-extrabold text-base tracking-tight">{orderId}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1">Total Amount</p>
-                    <p className="text-gray-900 font-black text-xl">₹{Number(totalAmount)}</p>
-                  </div>
-                </div>
-
-                <div className="space-y-5">
-                  <div>
-                    <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5"/> Delivery Address</p>
-                    <p className="text-gray-800 font-semibold text-[13px] leading-relaxed">{form.address}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5"><IndianRupee className="w-3.5 h-3.5"/> Payment Method</p>
-                    <span className="inline-block mt-0.5 px-3 py-1 bg-gray-100 text-gray-800 text-[12px] font-bold rounded-lg border border-gray-200/80">
-                      Pay at Delivery (Cash/UPI)
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-3">
-                <button 
-                  onClick={() => router.push('/')}
-                  className="flex-1 bg-white border-2 border-gray-200 hover:border-black hover:bg-gray-50 text-gray-900 font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 text-[15px]"
-                >
-                  <Home className="w-4 h-4" /> Go Home
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
+      </div>
+    );
   }
 
   return (
@@ -368,10 +385,11 @@ function CheckoutContent() {
 
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div className="space-y-1.5">
+                  <div className="space-y-1.5" id="container-name">
                     <label className="text-[13px] font-bold text-gray-700">Full Name</label>
                     <input 
                       type="text"
+                      id="field-name"
                       name="name"
                       value={form.name}
                       onChange={handleChange}
@@ -380,7 +398,7 @@ function CheckoutContent() {
                     />
                     {errors.name && <p className="text-red-500 text-xs mt-1.5 font-medium flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5"/>{errors.name}</p>}
                   </div>
-                  <div className="space-y-1.5">
+                  <div className="space-y-1.5" id="container-mobile">
                     <label className="text-[13px] font-bold text-gray-700">Mobile Number</label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none border-r border-gray-200 pr-3 my-2">
@@ -388,6 +406,7 @@ function CheckoutContent() {
                       </div>
                       <input 
                         type="tel"
+                        id="field-mobile"
                         name="mobile"
                         value={form.mobile}
                         onChange={handleChange}
@@ -408,6 +427,7 @@ function CheckoutContent() {
                     </div>
                     <input 
                       type="email"
+                      id="field-email"
                       name="email"
                       value={form.email}
                       onChange={handleChange}
@@ -417,12 +437,13 @@ function CheckoutContent() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2" id="container-address">
                   <label className="text-[13px] font-bold text-gray-700 block">Service Address</label>
 
                   {/* 1. Manual Address Textarea (Upar) */}
                   <textarea 
                     rows={3}
+                    id="field-address"
                     name="address"
                     value={form.address}
                     onChange={handleChange}
@@ -484,7 +505,7 @@ function CheckoutContent() {
 
                 {/* Booking Date & Time Slot */}
                 {requiresSchedule && (
-                  <div className="pt-8 mt-8 border-t border-gray-100">
+                  <div id="field-schedule" className="pt-8 mt-8 border-t border-gray-100 scroll-mt-24">
                     <BookingSchedulePicker 
                       selectedDate={form.booking_date}
                       selectedTime={form.time_slot}
