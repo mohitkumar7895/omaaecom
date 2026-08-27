@@ -2,6 +2,7 @@
 
 import pool from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { sendContactEmail } from "@/lib/mail";
 
 // Ensure contacts table exists
 async function ensureContactsTable() {
@@ -48,6 +49,19 @@ export async function submitContactForm(formData: FormData) {
 
     revalidatePath("/admin/contacts");
     revalidatePath("/admin");
+
+    // Trigger email notification safely
+    try {
+      sendContactEmail({
+        name: name.trim(),
+        email: email?.trim() || undefined,
+        phone: phone?.trim() || undefined,
+        subject: subject?.trim() || undefined,
+        message: message.trim(),
+      }).catch((err) => console.error("Contact email error:", err));
+    } catch (e) {
+      console.warn("Could not dispatch contact email:", e);
+    }
 
     return { success: true, message: "Thank you for reaching out! We will get back to you shortly." };
   } catch (error: any) {

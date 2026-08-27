@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import pool from "../../../lib/db";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
+import { sendBookingEmail } from "../../../lib/mail";
 
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_for_development_only";
 
@@ -169,6 +170,25 @@ export async function POST(req: Request) {
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', 'Pendi', NOW())`,
         [orderId, bookingType, name, mobile, address, categoryName, servicesJson, finalBookingDate, finalTimeSlot, total_amount, payment_method === 'online' ? 'cashfree' : 'Cash on Book']
       );
+    }
+
+    // Trigger email notification safely in background
+    try {
+      sendBookingEmail({
+        orderId,
+        name,
+        mobile,
+        address,
+        category: categoryName,
+        services,
+        total: total_amount,
+        paymentMethod: payment_method,
+        bookingDate: finalBookingDate,
+        timeSlot: finalTimeSlot,
+        userEmail: user_email
+      }).catch((mailErr) => console.error("Booking email background error:", mailErr));
+    } catch (mailSyncErr) {
+      console.warn("Could not dispatch booking email:", mailSyncErr);
     }
 
     return NextResponse.json({ success: true, order_id: orderId });

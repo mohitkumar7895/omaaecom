@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   KeyRound, 
   ShieldCheck, 
@@ -9,28 +9,68 @@ import {
   CheckCircle2, 
   AlertCircle, 
   Loader2, 
-  Lock
+  Lock,
+  Mail,
+  Send
 } from "lucide-react";
 
 export default function AdminPasswordSection() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [otp, setOtp] = useState("");
 
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [otpSentMessage, setOtpSentMessage] = useState<string | null>(null);
+  const [cooldown, setCooldown] = useState(0);
+
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Cooldown countdown timer
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (cooldown > 0) {
+      timer = setInterval(() => setCooldown((prev) => prev - 1), 1000);
+    }
+    return () => clearInterval(timer);
+  }, [cooldown]);
+
+  const handleSendOtp = async () => {
+    setErrorMessage(null);
+    setOtpSentMessage(null);
+    setIsSendingOtp(true);
+
+    try {
+      const res = await fetch("/api/admin/send-password-otp", {
+        method: "POST",
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setErrorMessage(data.error || "Failed to send OTP. Please try again.");
+      } else {
+        setOtpSentMessage(data.message || "A 6-digit OTP has been sent to your admin email address.");
+        setCooldown(60); // 60 seconds cooldown
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || "Network error. Could not send OTP.");
+    } finally {
+      setIsSendingOtp(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSuccessMessage(null);
     setErrorMessage(null);
 
-    // Client-side quick checks
+    // Client-side validation checks
     if (!currentPassword.trim()) {
       setErrorMessage("Please enter your current password.");
       return;
@@ -41,6 +81,10 @@ export default function AdminPasswordSection() {
     }
     if (newPassword !== confirmPassword) {
       setErrorMessage("New password and confirm password do not match.");
+      return;
+    }
+    if (!otp.trim() || otp.trim().length !== 6) {
+      setErrorMessage("Please enter the 6-digit OTP sent to your email.");
       return;
     }
 
@@ -54,6 +98,7 @@ export default function AdminPasswordSection() {
           currentPassword,
           newPassword,
           confirmPassword,
+          otp: otp.trim(),
         }),
       });
 
@@ -62,10 +107,12 @@ export default function AdminPasswordSection() {
       if (!res.ok || !data.success) {
         setErrorMessage(data.error || "Failed to update password. Please try again.");
       } else {
-        setSuccessMessage(data.message || "Admin password has been updated successfully!");
+        setSuccessMessage(data.message || "Admin password has been updated successfully with OTP verification!");
         setCurrentPassword("");
         setNewPassword("");
         setConfirmPassword("");
+        setOtp("");
+        setOtpSentMessage(null);
       }
     } catch (err: any) {
       setErrorMessage(err.message || "Network error. Please try again.");
@@ -85,7 +132,7 @@ export default function AdminPasswordSection() {
           <div>
             <h2 className="text-xl font-bold text-gray-900">Admin Security & Password</h2>
             <p className="text-sm text-gray-500 mt-1">
-              Update your administrator login credentials and account security
+              Securely update your admin password with 2-Factor Email OTP verification
             </p>
           </div>
         </div>
@@ -110,6 +157,17 @@ export default function AdminPasswordSection() {
             <div className="flex-1">
               <p className="font-bold">Action Failed</p>
               <p className="mt-0.5">{errorMessage}</p>
+            </div>
+          </div>
+        )}
+
+        {/* OTP Sent Alert */}
+        {otpSentMessage && (
+          <div className="mb-6 p-4 bg-indigo-50 border border-indigo-200 rounded-xl flex items-start gap-3 text-indigo-900 text-sm font-medium animate-in fade-in duration-200">
+            <Mail className="w-5 h-5 text-indigo-600 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-bold">OTP Dispatched</p>
+              <p className="mt-0.5 text-xs text-indigo-700">{otpSentMessage}</p>
             </div>
           </div>
         )}
@@ -199,29 +257,75 @@ export default function AdminPasswordSection() {
             </div>
           </div>
 
+          {/* Email OTP Verification Section */}
+          <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <label className="block text-sm font-bold text-gray-800">
+                  Email Security OTP <span className="text-rose-500">*</span>
+                </label>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Request a 6-digit OTP sent to your registered admin email address
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleSendOtp}
+                disabled={isSendingOtp || cooldown > 0}
+                className="inline-flex items-center justify-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-4 py-2 rounded-xl text-xs border border-indigo-200 transition disabled:opacity-50 disabled:cursor-not-allowed shrink-0 cursor-pointer"
+              >
+                {isSendingOtp ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Sending OTP...</span>
+                  </>
+                ) : cooldown > 0 ? (
+                  <span>Resend in {cooldown}s</span>
+                ) : (
+                  <>
+                    <Send className="w-3.5 h-3.5" />
+                    <span>Get OTP on Email</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            <div className="max-w-xs">
+              <input
+                type="text"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                placeholder="6-Digit OTP (e.g. 123456)"
+                maxLength={6}
+                required
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all font-mono font-bold tracking-widest text-base text-gray-900 bg-white"
+              />
+            </div>
+          </div>
+
           {/* Submit Button */}
           <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
             <button
               type="submit"
-              disabled={isLoading || (confirmPassword.length > 0 && newPassword !== confirmPassword)}
+              disabled={isLoading || (confirmPassword.length > 0 && newPassword !== confirmPassword) || otp.length !== 6}
               className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-md hover:shadow-indigo-500/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Updating Password...</span>
+                  <span>Verifying & Updating...</span>
                 </>
               ) : (
                 <>
                   <ShieldCheck className="w-4 h-4" />
-                  <span>Change Password</span>
+                  <span>Verify OTP & Change Password</span>
                 </>
               )}
             </button>
 
             <div className="hidden sm:flex items-center gap-2 text-xs text-gray-400 font-medium">
               <Lock className="w-3.5 h-3.5 text-gray-400" />
-              <span>Encrypted with Bcrypt hash</span>
+              <span>2FA Protected with Bcrypt</span>
             </div>
           </div>
         </form>

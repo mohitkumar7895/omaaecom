@@ -2,6 +2,7 @@
 
 import pool from "../../lib/db";
 import { revalidatePath } from "next/cache";
+import { sendComplaintEmail } from "../../lib/mail";
 
 export async function submitComplaint(formData: FormData) {
   const name = formData.get("name") as string;
@@ -26,6 +27,19 @@ export async function submitComplaint(formData: FormData) {
     // Revalidate the admin complaints page so the new data shows up instantly
     revalidatePath("/admin/complaints");
     
+    // Trigger email notification safely
+    try {
+      sendComplaintEmail({
+        name: name.trim(),
+        phone: phone.trim(),
+        orderId: orderId?.trim() || undefined,
+        subject: subject.trim(),
+        message: message.trim(),
+      }).catch((err) => console.error("Complaint email error:", err));
+    } catch (e) {
+      console.warn("Could not dispatch complaint email:", e);
+    }
+
     return { success: true };
   } catch (error) {
     console.error("Error saving complaint:", error);

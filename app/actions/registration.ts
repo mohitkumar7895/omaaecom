@@ -3,6 +3,7 @@
 import pool from "../../lib/db";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { sendRegistrationEmail } from "../../lib/mail";
 
 export async function saveRegistration(formData: FormData) {
   const name = formData.get("name") as string;
@@ -97,6 +98,19 @@ export async function submitProfessionalRegistration(data: {
     ]);
 
     revalidatePath("/admin/registration-records");
+
+    // Trigger email notification safely
+    try {
+      sendRegistrationEmail({
+        name: name.trim(),
+        mobile: mobile.trim(),
+        workCompany: work_company.trim(),
+        location: location.trim(),
+        experience: experience.trim(),
+      }).catch((err) => console.error("Registration email error:", err));
+    } catch (e) {
+      console.warn("Could not dispatch registration email:", e);
+    }
 
     return {
       success: true,

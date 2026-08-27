@@ -8,12 +8,26 @@ const JWT_SECRET = process.env.JWT_SECRET || "default_secret_please_change_in_en
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { currentPassword, newPassword, confirmPassword } = body;
+    const { currentPassword, newPassword, confirmPassword, otp } = body;
 
     // 1. Basic validation
-    if (!currentPassword || !newPassword || !confirmPassword) {
+    if (!currentPassword || !currentPassword.trim()) {
       return NextResponse.json(
-        { error: "All password fields are required." },
+        { error: "Current password is required." },
+        { status: 400 }
+      );
+    }
+
+    if (!newPassword || !newPassword.trim()) {
+      return NextResponse.json(
+        { error: "New password is required." },
+        { status: 400 }
+      );
+    }
+
+    if (!otp || !otp.trim()) {
+      return NextResponse.json(
+        { error: "Please enter the 6-digit OTP sent to your email." },
         { status: 400 }
       );
     }
@@ -39,7 +53,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Identify the logged-in admin from token or database
+    // 2. Identify the logged-in admin from token or fallback to active admin
     let adminId: number | null = null;
     const token = req.cookies.get("admin_token")?.value;
 
@@ -54,7 +68,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Fallback: If no token id, retrieve by email from token or the first admin in database
     let admin: any = null;
     if (adminId) {
       const [rows]: any = await pool.query("SELECT * FROM admins WHERE id = ?", [adminId]);
@@ -76,20 +89,41 @@ export async function POST(req: NextRequest) {
     if (!isCurrentValid) {
       return NextResponse.json(
         { error: "Current password is incorrect. Please enter your valid existing password." },
-        { status: 401 }
+        { status: 400 }
       );
     }
 
-    // 4. Hash new password and update
+    // 4. Verify OTP (timezone safe with MySQL NOW())
+    const [otpRows]: any = await pool.query(
+      `SELECT * FROM admin_password_otps 
+       WHERE otp_code = ? AND expires_at > NOW() 
+       ORDER BY id DESC LIMIT 1`,
+      [otp.trim()]
+    );
+
+    if (!otpRows || otpRows.length === 0) {
+      return NextResponse.json(
+        { error: "Invalid or expired OTP. Please click 'Get OTP on Email' to receive a fresh code." },
+        { status: 400 }
+      );
+    }
+
+    // 5. Hash new password and update in database
     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
     await pool.query("UPDATE admins SET password = ? WHERE id = ?", [
       hashedNewPassword,
       admin.id,
     ]);
 
+    // 6. Delete used OTPs
+    await pool.query("DELETE FROM admin_password_otps WHERE admin_id = ? OR otp_code = ?", [
+      admin.id,
+      otp.trim(),
+    ]);
+
     return NextResponse.json({
       success: true,
-      message: "Admin password has been changed successfully!",
+      message: "Admin password has been updated successfully!",
     });
   } catch (error: any) {
     console.error("Change password error:", error);
