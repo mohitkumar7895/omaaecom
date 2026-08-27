@@ -182,3 +182,26 @@ export async function updateInvoiceStatus(formData: FormData) {
     }
   }
 }
+
+export async function updateBookingItems(formData: FormData) {
+  const id = formData.get("id");
+  const servicesJson = formData.get("services");
+  const total = formData.get("total");
+
+  if (id && servicesJson) {
+    try {
+      await pool.query(
+        "UPDATE bookings SET services = ?, total = ? WHERE id = ?",
+        [servicesJson, total, id]
+      );
+      revalidatePath("/admin/booking", 'layout');
+      revalidatePath("/my-bookings", 'layout');
+      revalidatePath("/invoice", 'layout');
+      return { success: true };
+    } catch (error: any) {
+      console.error("Error updating booking items and pricing:", error);
+      return { success: false, error: error.message };
+    }
+  }
+  return { success: false, error: "Missing required parameters." };
+}

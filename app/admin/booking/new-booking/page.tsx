@@ -3,6 +3,7 @@ import { CalendarCheck, MessageCircle } from "lucide-react";
 import ExportButtons from "../../components/ExportButtons";
 import WorkingStatusSelect from "../components/WorkingStatusSelect";
 import PaymentStatusSelect from "../components/PaymentStatusSelect";
+import BookingItemsManager from "../components/BookingItemsManager";
 import { updateWorkingStatus, updatePaymentStatus } from "../actions";
 
 export const dynamic = 'force-dynamic';
@@ -61,19 +62,19 @@ export default async function NewBookingPage() {
 
         {/* Responsive Table Container */}
         <div className="overflow-x-auto">
-          <table id="newBookingTable" className="w-full text-left border-collapse min-w-[1100px]">
+          <table id="newBookingTable" className="w-full text-left border-collapse min-w-[1200px]">
             <thead>
-              <tr className="bg-slate-900 text-white text-[12px] font-semibold uppercase tracking-wider">
-                <th className="px-4 py-3.5">Sr. No</th>
+              <tr className="bg-slate-50 text-[11px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">
+                <th className="px-4 py-3.5">#</th>
                 <th className="px-4 py-3.5">Order ID</th>
                 <th className="px-4 py-3.5">Type</th>
-                <th className="px-4 py-3.5">Customer</th>
-                <th className="px-4 py-3.5">Category & Services</th>
-                <th className="px-4 py-3.5">Date & Slot</th>
-                <th className="px-4 py-3.5">Total Amount</th>
+                <th className="px-4 py-3.5">Customer & Address</th>
+                <th className="px-4 py-3.5">Service Details</th>
+                <th className="px-4 py-3.5">Schedule</th>
+                <th className="px-4 py-3.5">Total</th>
                 <th className="px-4 py-3.5">Payment</th>
-                <th className="px-4 py-3.5">Working Status</th>
-                <th className="px-4 py-3.5 text-center">Share</th>
+                <th className="px-4 py-3.5">Status</th>
+                <th className="px-4 py-3.5 text-center">Chat</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 bg-white">
@@ -104,21 +105,31 @@ export default async function NewBookingPage() {
                       </div>
                     </td>
 
-                    <td className="px-4 py-4">
+                    <td className="px-4 py-4 max-w-[240px]">
                       <div className="inline-block bg-indigo-50 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full mb-1 border border-indigo-100">
                         {row.category || "Service"}
                       </div>
-                      <div className="text-gray-700 text-xs font-medium">
+                      <div className="text-gray-700 text-xs font-medium mb-2">
                         {Array.isArray(row.services) ? (
                           row.services.map((s: any, i: number) => (
-                            <span key={i} className="inline-block mr-2">
-                              • {s.title} {s.quantity > 1 ? `(x${s.quantity})` : ''}
-                            </span>
+                            <div key={i} className="flex justify-between items-center py-0.5 border-b border-gray-50">
+                              <span>• {s.title}</span>
+                              <span className="font-bold text-gray-900">{s.price ? `₹${s.price}` : ''} x{s.quantity || 1}</span>
+                            </div>
                           ))
                         ) : (
                           <span>{row.services}</span>
                         )}
                       </div>
+                      <BookingItemsManager
+                        bookingId={row.id}
+                        orderId={row.order_id}
+                        customerName={row.customer_name}
+                        category={row.category}
+                        bookingType={row.type}
+                        initialServices={row.services}
+                        initialTotal={row.total}
+                      />
                     </td>
 
                     <td className="px-4 py-4">

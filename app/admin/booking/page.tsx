@@ -8,6 +8,7 @@ import InvoiceStatusSelect from "./components/InvoiceStatusSelect";
 import BookingSearchInput from "./components/BookingSearchInput";
 import EditableTotal from "./components/EditableTotal";
 import AddressViewButton from "./components/AddressViewButton";
+import BookingItemsManager from "./components/BookingItemsManager";
 import { updateWorkingStatus, updateTotal, updateCashback, updatePaymentStatus, updateInvoiceStatus } from "./actions";
 
 export const dynamic = 'force-dynamic';
@@ -210,17 +211,29 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                     <td className="px-4 py-4 max-w-[250px]">
                       <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1.5">{row.category || '—'}</div>
                       {Array.isArray(row.services) && row.services.length > 0 ? (
-                        <div className="space-y-1">
+                        <div className="space-y-1 mb-2">
                           {row.services.map((item: any, idx: number) => (
                             <div key={idx} className="flex justify-between items-center text-xs bg-gray-50 px-2 py-1 rounded border border-gray-100">
                               <span className="font-semibold text-gray-800 line-clamp-1">{item.title}</span>
-                              <span className="text-gray-500 font-bold ml-2 shrink-0">x{item.quantity || 1}</span>
+                              <div className="flex items-center gap-1.5 ml-2 shrink-0">
+                                {item.price ? <span className="text-gray-900 font-bold text-[11px]">₹{item.price}</span> : null}
+                                <span className="text-gray-500 font-bold text-[11px]">x{item.quantity || 1}</span>
+                              </div>
                             </div>
                           ))}
                         </div>
                       ) : (
-                        <span className="text-gray-500 text-[11px] italic">{String(row.services || '—')}</span>
+                        <div className="text-gray-500 text-[11px] italic mb-2">{String(row.services || '—')}</div>
                       )}
+                      <BookingItemsManager
+                        bookingId={row.id}
+                        orderId={row.order_id}
+                        customerName={row.customer_name}
+                        category={row.category}
+                        bookingType={row.type}
+                        initialServices={row.services}
+                        initialTotal={row.total}
+                      />
                     </td>
 
                     <td className="px-4 py-4 whitespace-nowrap">

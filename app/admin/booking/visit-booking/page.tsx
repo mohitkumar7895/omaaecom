@@ -2,6 +2,7 @@ import pool from "../../../../lib/db";
 import { CalendarCheck, MessageCircle } from "lucide-react";
 import ExportButtons from "../../components/ExportButtons";
 import PaymentStatusSelect from "../components/PaymentStatusSelect";
+import BookingItemsManager from "../components/BookingItemsManager";
 import { updatePaymentStatus } from "../actions";
 
 export const dynamic = 'force-dynamic';
@@ -96,21 +97,31 @@ export default async function VisitBookingPage() {
                       </div>
                     </td>
 
-                    <td className="px-4 py-4">
+                    <td className="px-4 py-4 max-w-[240px]">
                       <div className="inline-block bg-indigo-50 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full mb-1 border border-indigo-100">
                         {row.category || "Service"}
                       </div>
-                      <div className="text-gray-700 text-xs font-medium">
+                      <div className="text-gray-700 text-xs font-medium mb-2">
                         {Array.isArray(row.services) ? (
                           row.services.map((s: any, i: number) => (
-                            <span key={i} className="inline-block mr-2">
-                              • {s.title} {s.quantity > 1 ? `(x${s.quantity})` : ''}
-                            </span>
+                            <div key={i} className="flex justify-between items-center py-0.5 border-b border-gray-50">
+                              <span>• {s.title}</span>
+                              <span className="font-bold text-gray-900">{s.price ? `₹${s.price}` : ''} x{s.quantity || 1}</span>
+                            </div>
                           ))
                         ) : (
                           <span>{row.services}</span>
                         )}
                       </div>
+                      <BookingItemsManager
+                        bookingId={row.id}
+                        orderId={row.order_id}
+                        customerName={row.customer_name}
+                        category={row.category}
+                        bookingType={row.type}
+                        initialServices={row.services}
+                        initialTotal={row.total}
+                      />
                     </td>
 
                     <td className="px-4 py-4">

@@ -3,6 +3,7 @@ import { Copy, FileSpreadsheet, FileIcon as FilePdf, Printer, MessageCircle } fr
 import Link from "next/link";
 import ExportButtons from "../../components/ExportButtons";
 import WorkingStatusSelect from "../components/WorkingStatusSelect";
+import BookingItemsManager from "../components/BookingItemsManager";
 import { updateWorkingStatus, updateTotal } from "../actions";
 
 export const dynamic = 'force-dynamic';
@@ -149,20 +150,31 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                     </td>
                     
                     {/* Services — parse JSON array */}
-                    <td className="px-3 py-4 border-r border-gray-200 leading-tight max-w-[200px]">
+                    <td className="px-3 py-4 border-r border-gray-200 leading-tight max-w-[220px]">
                       {Array.isArray(row.services) ? (
-                        <ul className="space-y-1">
+                        <ul className="space-y-1 mb-2">
                           {row.services.map((s: any, i: number) => (
-                            <li key={i} className="text-[11px] text-gray-700">
+                            <li key={i} className="text-[11px] text-gray-700 flex justify-between items-center py-0.5">
                               <span className="font-semibold">{s.title}</span>
-                              {s.quantity > 1 && <span className="text-gray-400 ml-1">x{s.quantity}</span>}
-                              <span className="text-gray-500 ml-1">₹{s.price}</span>
+                              <div className="flex items-center gap-1 ml-1 text-gray-500 font-bold">
+                                {s.price ? <span className="text-gray-900">₹{s.price}</span> : null}
+                                <span>x{s.quantity || 1}</span>
+                              </div>
                             </li>
                           ))}
                         </ul>
                       ) : (
-                        <span className="text-gray-500 text-[11px]">{String(row.services || '—')}</span>
+                        <div className="text-gray-500 text-[11px] mb-2">{String(row.services || '—')}</div>
                       )}
+                      <BookingItemsManager
+                        bookingId={row.id}
+                        orderId={row.order_id}
+                        customerName={row.customer_name}
+                        category={row.category}
+                        bookingType={row.type}
+                        initialServices={row.services}
+                        initialTotal={row.total}
+                      />
                     </td>
 
                     <td className="px-3 py-4 border-r border-gray-200 leading-tight whitespace-nowrap text-[11px]">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Check } from "lucide-react";
 
@@ -9,6 +9,10 @@ export default function EditableTotal({ id, defaultValue, action }: { id: string
   const [isPending, startTransition] = useTransition();
   const [saved, setSaved] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    setValue(defaultValue);
+  }, [defaultValue]);
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
