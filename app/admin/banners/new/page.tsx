@@ -25,6 +25,18 @@ export default function AddBannerPage() {
         <form action={handleSubmit} className="p-6">
           <div className="space-y-6">
             
+            {/* Banner Type */}
+            <div className="space-y-2">
+              <label className="text-[13px] font-bold text-gray-800">Banner Type</label>
+              <select 
+                name="banner_type" 
+                className="block w-full text-sm text-gray-700 border border-gray-200 rounded p-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              >
+                <option value="desktop">Desktop Banner</option>
+                <option value="mobile">Mobile Banner</option>
+              </select>
+            </div>
+
             {/* Banner 1 */}
             <div className="space-y-2">
               <label className="text-[13px] font-bold text-gray-800">Banner 1</label>

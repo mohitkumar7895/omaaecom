@@ -45,6 +45,7 @@ export default async function ManageBannersPage() {
             <thead>
               <tr className="bg-[#34495e] text-white text-[12px] font-bold">
                 <th className="px-6 py-3 border-r border-gray-600/30">ID</th>
+                <th className="px-6 py-3 border-r border-gray-600/30 text-center">Type</th>
                 <th className="px-6 py-3 border-r border-gray-600/30 text-center">Banner1</th>
                 <th className="px-6 py-3 border-r border-gray-600/30 text-center">Banner2</th>
                 <th className="px-6 py-3 border-r border-gray-600/30 text-center">Banner3</th>
@@ -57,6 +58,10 @@ export default async function ManageBannersPage() {
                   <tr key={row.id} className="border-b border-gray-100 hover:bg-gray-50 transition align-middle">
                     <td className="px-6 py-4 text-gray-800 font-medium border-r border-gray-100">{row.id}</td>
                     
+                    <td className="px-6 py-4 border-r border-gray-100 text-center font-bold uppercase text-[11px] text-gray-600">
+                      {row.type || 'DESKTOP'}
+                    </td>
+
                     <td className="px-6 py-4 border-r border-gray-100 text-center">
                       {row.banner1_url ? (
                         <div className="inline-block relative w-32 h-16 bg-gray-100 rounded overflow-hidden">
@@ -104,7 +109,7 @@ export default async function ManageBannersPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-500 bg-gray-50/50">
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500 bg-gray-50/50">
                     No banners found. Click "Add Banner" to create one.
                   </td>
                 </tr>

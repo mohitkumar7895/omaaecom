@@ -11,6 +11,7 @@ export async function saveBanners(formData: FormData) {
   const banner1 = formData.get("banner1") as File | null;
   const banner2 = formData.get("banner2") as File | null;
   const banner3 = formData.get("banner3") as File | null;
+  const banner_type = (formData.get("banner_type") as string) || "desktop";
 
   let url1 = null;
   let url2 = null;
@@ -37,11 +38,11 @@ export async function saveBanners(formData: FormData) {
     url3 = await saveFile(banner3);
 
     const query = `
-      INSERT INTO banners (banner1_url, banner2_url, banner3_url)
-      VALUES (?, ?, ?)
+      INSERT INTO banners (banner1_url, banner2_url, banner3_url, type)
+      VALUES (?, ?, ?, ?)
     `;
     
-    await pool.query(query, [url1, url2, url3]);
+    await pool.query(query, [url1, url2, url3, banner_type]);
   } catch (error) {
     console.error("Error saving banners:", error);
     return { error: "Failed to save banners" };

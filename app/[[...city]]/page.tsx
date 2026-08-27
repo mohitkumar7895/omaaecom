@@ -10,7 +10,8 @@ export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   let categories: any[] = [];
-  let banners: any[] = [];
+  let desktopBanners: any[] = [];
+  let mobileBanners: any[] = [];
 
   try {
     // Fetch all live ratings from bookings
@@ -70,14 +71,23 @@ export default async function Home() {
       })
     );
 
-    // Fetch banners
-    const [bannerRows]: any = await pool.query("SELECT * FROM banners ORDER BY created_at DESC");
-    
-    bannerRows.forEach((row: any) => {
-      if (row.banner1_url) banners.push(row.banner1_url);
-      if (row.banner2_url) banners.push(row.banner2_url);
-      if (row.banner3_url) banners.push(row.banner3_url);
-    });
+    // Fetch desktop banners
+    const [desktopRows]: any = await pool.query("SELECT * FROM banners WHERE type = 'desktop' OR type IS NULL ORDER BY created_at DESC LIMIT 1");
+    if (desktopRows && desktopRows.length > 0) {
+      const row = desktopRows[0];
+      if (row.banner1_url) desktopBanners.push(row.banner1_url);
+      if (row.banner2_url) desktopBanners.push(row.banner2_url);
+      if (row.banner3_url) desktopBanners.push(row.banner3_url);
+    }
+
+    // Fetch mobile banners
+    const [mobileRows]: any = await pool.query("SELECT * FROM banners WHERE type = 'mobile' ORDER BY created_at DESC LIMIT 1");
+    if (mobileRows && mobileRows.length > 0) {
+      const row = mobileRows[0];
+      if (row.banner1_url) mobileBanners.push(row.banner1_url);
+      if (row.banner2_url) mobileBanners.push(row.banner2_url);
+      if (row.banner3_url) mobileBanners.push(row.banner3_url);
+    }
 
   } catch (error) {
     console.error("Database connection error on Home page:", error);
@@ -86,7 +96,7 @@ export default async function Home() {
   return (
     <main className="min-h-screen bg-gray-50 flex flex-col font-sans">
       <Navbar />
-      <Hero categories={categories} banners={banners} />
+      <Hero categories={categories} banners={mobileBanners.length > 0 ? mobileBanners : desktopBanners} />
       
       {/* New Products Section above RO AMC */}
       <NewProductsSection />
@@ -94,7 +104,7 @@ export default async function Home() {
       {/* Exact Order: RO AMC -> Banner 1 -> AC Repair -> Refrigerator -> Banner 2 -> Washing Machine -> Microwave -> Banner 3 -> Water Purifier with Zone Filtering */}
       <HomeCategoryStream 
         initialCategories={categories} 
-        banners={banners} 
+        banners={desktopBanners} 
       />
       
       {/* Footer is rendered strictly on the Home Page */}
