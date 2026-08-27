@@ -110,13 +110,51 @@ export default function LiveSearchBar({
 
   return (
     <div ref={wrapperRef} className={`relative w-full ${className}`}>
-      <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none z-10">
+      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
         {isLoading ? (
           <Loader2 className="h-4 w-4 text-[#5c67b8] animate-spin" />
         ) : (
-          <Search className="h-4 w-4 text-[#5c67b8]" />
+          <svg className="w-[19px] h-[19px] shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            {/* Purple / Violet Handle */}
+            <path
+              d="M13.8 13.8L19.5 19.5"
+              stroke="#6b21a8"
+              strokeWidth="3.6"
+              strokeLinecap="round"
+            />
+            <path
+              d="M14 14L19 19"
+              stroke="#a855f7"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+            />
+            {/* Cyan/Blue Glass Lens */}
+            <circle
+              cx="9.5"
+              cy="9.5"
+              r="6.2"
+              fill="url(#searchLensGradient)"
+              stroke="#3b82f6"
+              strokeWidth="1.5"
+            />
+            {/* Specular White Highlight Glint */}
+            <path
+              d="M7 6.8C7.6 6.2 8.5 5.8 9.5 5.8"
+              stroke="#ffffff"
+              strokeWidth="1.4"
+              strokeLinecap="round"
+              opacity="0.9"
+            />
+            <defs>
+              <linearGradient id="searchLensGradient" x1="5.5" y1="5.5" x2="14" y2="14" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#38bdf8" />
+                <stop offset="1" stopColor="#0ea5e9" />
+              </linearGradient>
+            </defs>
+          </svg>
         )}
       </div>
+
       {/* Custom Typewriter Placeholder with Bold Service Name */}
       {!query && (
         <div className="absolute inset-y-0 left-0 pl-9 pr-3.5 flex items-center pointer-events-none text-xs sm:text-sm text-gray-400 font-normal z-5 select-none overflow-hidden whitespace-nowrap">
