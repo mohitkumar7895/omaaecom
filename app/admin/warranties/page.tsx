@@ -14,19 +14,26 @@ export default async function WarrantiesPage({ searchParams }: { searchParams: P
 
   try {
     const [allWarranties]: any = await pool.query(`
-      SELECT w.*, b.category as booking_category, b.type as booking_type
+      SELECT w.*, b.category as booking_category, b.type as booking_type, b.service_opted as cashback_opted
       FROM warranties w
       LEFT JOIN bookings b ON w.order_id = b.order_id
       ORDER BY w.issued_date DESC
     `);
     
-    stats.total = allWarranties.length;
-    stats.active = allWarranties.filter((w: any) => w.status === 'ACTIVE').length;
-    stats.expired = allWarranties.filter((w: any) => w.status === 'EXPIRED').length;
+    const processedWarranties = allWarranties.map((w: any) => {
+      if (w.cashback_opted == 1) {
+        return { ...w, status: 'EXPIRED', cashback_expired: true };
+      }
+      return w;
+    });
 
-    warranties = allWarranties;
-    if (filter === "Active") warranties = allWarranties.filter((w: any) => w.status === 'ACTIVE');
-    if (filter === "Expired") warranties = allWarranties.filter((w: any) => w.status === 'EXPIRED');
+    stats.total = processedWarranties.length;
+    stats.active = processedWarranties.filter((w: any) => w.status === 'ACTIVE').length;
+    stats.expired = processedWarranties.filter((w: any) => w.status === 'EXPIRED').length;
+
+    warranties = processedWarranties;
+    if (filter === "Active") warranties = processedWarranties.filter((w: any) => w.status === 'ACTIVE');
+    if (filter === "Expired") warranties = processedWarranties.filter((w: any) => w.status === 'EXPIRED');
 
   } catch (error) {
     console.error("Database connection failed:", error);
@@ -188,10 +195,17 @@ export default async function WarrantiesPage({ searchParams }: { searchParams: P
                     </td>
                     <td className="px-6 py-4">
                       {row.status === 'EXPIRED' ? (
-                        <div className="inline-flex items-center space-x-1 bg-red-50 text-red-500 text-[10px] font-bold px-2.5 py-1 rounded-full border border-red-100">
-                          <XCircle className="w-3 h-3" />
-                          <span>EXPIRED</span>
-                        </div>
+                        row.cashback_expired ? (
+                          <div className="inline-flex items-center space-x-1 bg-gray-50 text-gray-500 text-[10px] font-bold px-2.5 py-1 rounded-full border border-gray-200" title="Inactive because user claimed cashback">
+                            <XCircle className="w-3 h-3" />
+                            <span>INACTIVE (CASHBACK)</span>
+                          </div>
+                        ) : (
+                          <div className="inline-flex items-center space-x-1 bg-red-50 text-red-500 text-[10px] font-bold px-2.5 py-1 rounded-full border border-red-100">
+                            <XCircle className="w-3 h-3" />
+                            <span>EXPIRED</span>
+                          </div>
+                        )
                       ) : (
                         <div className="inline-flex items-center space-x-1 bg-green-50 text-green-600 text-[10px] font-bold px-2.5 py-1 rounded-full border border-green-100">
                           <CheckCircle2 className="w-3 h-3" />
