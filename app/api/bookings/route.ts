@@ -180,12 +180,12 @@ export async function POST(req: Request) {
         mobile,
         address,
         category: categoryName,
-        services,
+        services: cart_items || [],
         total: total_amount,
         paymentMethod: payment_method,
         bookingDate: finalBookingDate,
         timeSlot: finalTimeSlot,
-        userEmail: user_email
+        userEmail: user_email || email || undefined
       }).catch((mailErr) => console.error("Booking email background error:", mailErr));
     } catch (mailSyncErr) {
       console.warn("Could not dispatch booking email:", mailSyncErr);
