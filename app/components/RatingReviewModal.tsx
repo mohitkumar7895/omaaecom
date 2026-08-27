@@ -153,13 +153,13 @@ export default function RatingReviewModal() {
       : booking.category || "Home Service";
 
   return (
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/65 backdrop-blur-md animate-fade-in">
+    <div className="fixed inset-0 z-[99999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/65 backdrop-blur-md animate-fade-in">
       <div 
-        className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden transform transition-all duration-300 animate-scale-up"
+        className="relative w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border border-gray-100 overflow-hidden transform transition-all duration-300 animate-scale-up max-h-[92dvh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header Gradient Top Bar */}
-        <div className="bg-gradient-to-r from-[#6277db] via-[#8c67c5] to-[#db5285] px-6 pt-6 pb-5 text-white relative">
+        <div className="bg-gradient-to-r from-[#6277db] via-[#8c67c5] to-[#db5285] px-5 sm:px-6 pt-5 sm:pt-6 pb-4 sm:pb-5 text-white relative shrink-0">
           <button
             onClick={handleDismiss}
             className="absolute top-4 right-4 p-1.5 rounded-full bg-white/20 hover:bg-white/30 text-white transition-all cursor-pointer"
@@ -182,7 +182,7 @@ export default function RatingReviewModal() {
         </div>
 
         {/* Modal Body */}
-        <div className="p-5 sm:p-6 space-y-5">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto flex-1 overscroll-contain">
           {isSubmitted ? (
             /* Success State */
             <div className="py-8 flex flex-col items-center justify-center text-center space-y-3 animate-fade-in">
