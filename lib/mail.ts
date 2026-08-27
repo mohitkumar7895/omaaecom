@@ -112,6 +112,10 @@ export async function sendBookingEmail(booking: {
 
   const servicesHtml = Array.isArray(booking.services)
     ? booking.services
+        .filter((s: any) => {
+          const title = (s.title || s.name || "").toLowerCase();
+          return !title.includes("power issue") && !title.includes("check-up") && !title.includes("checkup");
+        })
         .map(
           (s: any) =>
             `<tr>
