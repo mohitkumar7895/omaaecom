@@ -1,5 +1,6 @@
 import pool from "../../lib/db";
 import Link from "next/link";
+import React from "react";
 import { 
   CalendarCheck, 
   ListTree, 
@@ -157,42 +158,44 @@ export default async function AdminDashboard() {
   ];
 
   return (
-    <div className="font-sans relative pb-12 space-y-10">
+    <div className="font-sans relative pb-12 space-y-10 selection:bg-indigo-500/30">
       {/* Decorative Gradient Background */}
-      <div className="absolute top-0 left-0 w-full h-[300px] overflow-hidden -z-10 pointer-events-none">
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute top-12 -left-24 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl"></div>
+      <div className="absolute top-0 left-0 w-full h-[400px] overflow-hidden -z-10 pointer-events-none">
+        <div className="absolute -top-32 -right-24 w-[500px] h-[500px] bg-indigo-400/10 rounded-full blur-[80px]"></div>
+        <div className="absolute top-20 -left-32 w-[400px] h-[400px] bg-emerald-400/10 rounded-full blur-[80px]"></div>
       </div>
 
       {/* Hero Welcome Banner */}
-      <div className="relative overflow-hidden rounded-[24px] bg-white border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 sm:p-8 lg:p-10">
-        <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-indigo-50/70 via-blue-50/30 to-transparent pointer-events-none"></div>
+      <div className="relative overflow-hidden rounded-[24px] bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-900 shadow-2xl p-6 sm:p-8 lg:p-10 text-white border border-indigo-800/50">
+        <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-indigo-500/20 via-blue-500/10 to-transparent pointer-events-none"></div>
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+        
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-100 mb-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 mb-4 backdrop-blur-sm">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
               </span>
-              <span className="text-[11px] font-bold text-emerald-700 uppercase tracking-wide">OMAA Control Center Active</span>
+              <span className="text-[11px] font-bold text-emerald-300 uppercase tracking-wide">OMAA Control Center Active</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight mb-2">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight mb-2">
               Welcome back, Admin! 👋
             </h1>
-            <p className="text-gray-500 text-sm md:text-base max-w-xl leading-relaxed">
+            <p className="text-indigo-200 text-sm md:text-base max-w-xl leading-relaxed">
               Here is your centralized management dashboard. All operations, bookings, catalog items, and security controls are sequenced below.
             </p>
           </div>
           <div className="shrink-0 flex items-center gap-3">
             <Link href="/admin/booking">
-              <button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-3 rounded-xl transition-all shadow-md hover:shadow-indigo-500/25 flex items-center gap-2 text-sm cursor-pointer active:scale-95">
+              <button className="bg-indigo-500 hover:bg-indigo-400 text-white font-bold px-5 py-3 rounded-xl transition-all shadow-[0_0_20px_rgba(99,102,241,0.4)] flex items-center gap-2 text-sm cursor-pointer active:scale-95 border border-indigo-400/50">
                 <CalendarCheck className="w-4 h-4" />
                 View All Bookings
               </button>
             </Link>
             <Link href="/admin/settings">
-              <button className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold px-4 py-3 rounded-xl transition-all flex items-center gap-2 text-sm cursor-pointer active:scale-95">
-                <Settings className="w-4 h-4 text-gray-600" />
+              <button className="bg-white/10 hover:bg-white/20 text-white font-bold px-4 py-3 rounded-xl transition-all flex items-center gap-2 text-sm cursor-pointer active:scale-95 border border-white/10 backdrop-blur-md">
+                <Settings className="w-4 h-4" />
                 Settings
               </button>
             </Link>
@@ -213,17 +216,23 @@ export default async function AdminDashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
           {statsCards.map((stat, index) => (
             <Link href={stat.href} key={index}>
-              <div className="relative bg-white rounded-2xl p-4 sm:p-5 border border-gray-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)] cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-lg group overflow-hidden h-[126px] flex flex-col justify-between">
+              <div className={`relative rounded-[20px] p-5 border border-white/10 shadow-xl cursor-pointer transition-all duration-300 hover:-translate-y-1.5 group overflow-hidden h-[130px] flex flex-col justify-between bg-gradient-to-br ${stat.color} text-white`}>
+                
+                {/* Large Background Icon */}
+                <div className="absolute -right-4 -bottom-4 opacity-20 transform group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-500">
+                  {React.cloneElement(stat.icon as React.ReactElement<{ className?: string }>, { className: "w-24 h-24" })}
+                </div>
+
                 <div className="relative z-10 flex items-start justify-between">
-                  <div className={`p-2.5 rounded-xl bg-gradient-to-br ${stat.color} text-white shadow-md ${stat.shadow} transform group-hover:scale-105 transition-transform duration-200`}>
+                  <div className="p-2.5 rounded-xl bg-white/20 backdrop-blur-md text-white shadow-sm border border-white/20">
                     {stat.icon}
                   </div>
-                  <span className="text-[10px] font-bold text-gray-500 bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100">{stat.badge}</span>
+                  <span className="text-[10px] font-bold text-white bg-black/20 backdrop-blur-sm px-2.5 py-1 rounded-full border border-white/10 shadow-inner">{stat.badge}</span>
                 </div>
                 
                 <div className="relative z-10 mt-auto">
-                  <h3 className="text-2xl font-black text-gray-900 leading-none tracking-tight mb-1">{stat.value}</h3>
-                  <p className="text-[12px] font-semibold text-gray-500 truncate">{stat.label}</p>
+                  <h3 className="text-3xl font-black leading-none tracking-tight mb-1 drop-shadow-md">{stat.value}</h3>
+                  <p className="text-[12px] font-bold text-white/80 truncate uppercase tracking-wider">{stat.label}</p>
                 </div>
               </div>
             </Link>
@@ -232,8 +241,8 @@ export default async function AdminDashboard() {
       </div>
 
       {/* 2. Recent Bookings Activity Panel */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="p-5 sm:p-6 border-b border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-gray-50/50">
+      <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)] overflow-hidden">
+        <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gray-50/30">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
               <CalendarCheck className="w-5 h-5" />
@@ -330,8 +339,9 @@ export default async function AdminDashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {sec.items.map((item, itemIdx) => (
                 <Link href={item.href} key={itemIdx}>
-                  <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-100 shadow-[0_2px_12px_rgb(0,0,0,0.02)] hover:shadow-[0_8px_24px_rgb(0,0,0,0.06)] hover:border-indigo-100 cursor-pointer transition-all duration-300 group flex items-center gap-3.5 h-full">
-                    <div className={`shrink-0 w-11 h-11 rounded-xl ${item.bg} flex items-center justify-center group-hover:scale-105 transition-transform duration-200`}>
+                  <div className="bg-white/80 backdrop-blur-lg p-4 sm:p-5 rounded-2xl border border-white shadow-[0_8px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_15px_30px_rgba(99,102,241,0.1)] hover:border-indigo-200/50 cursor-pointer transition-all duration-300 hover:-translate-y-1 group flex items-center gap-3.5 h-full relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className={`relative shrink-0 w-11 h-11 rounded-xl ${item.bg} flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
                       {item.icon}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -340,7 +350,7 @@ export default async function AdminDashboard() {
                       </h4>
                       <p className="text-[12px] text-gray-400 truncate mt-0.5">{item.desc}</p>
                     </div>
-                    <div className="shrink-0 w-7 h-7 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-all">
+                    <div className="relative shrink-0 w-7 h-7 rounded-full bg-gray-50 border border-gray-200/50 flex items-center justify-center text-gray-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-all duration-300 shadow-sm group-hover:shadow-md">
                       <ArrowUpRight className="w-3.5 h-3.5" />
                     </div>
                   </div>

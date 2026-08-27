@@ -25,7 +25,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="flex h-screen bg-[#f3f4f6] font-sans overflow-hidden">
+    <div className="flex h-screen bg-[#F8FAFC] font-sans overflow-hidden selection:bg-indigo-500/30">
       {/* Mobile Sidebar Overlay */}
       {isMobileMenuOpen && (
         <div 
@@ -40,9 +40,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden w-full">
-        {/* Sleek Top Header */}
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6 shrink-0 z-10 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden w-full relative">
+        {/* Sleek Glass Header */}
+        <header className="h-16 bg-white/70 backdrop-blur-lg border-b border-gray-200/50 flex items-center justify-between px-4 md:px-6 shrink-0 z-40 sticky top-0 shadow-[0_4px_30px_rgba(0,0,0,0.02)]">
           <div className="flex items-center flex-1">
             {/* Hamburger for Mobile */}
             <button 
@@ -80,7 +80,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </header>
         
         {/* Main Scrollable Content */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-slate-50/50 p-2 md:p-6 lg:p-8">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-transparent p-3 md:p-6 lg:p-8">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>

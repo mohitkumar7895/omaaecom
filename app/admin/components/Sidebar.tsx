@@ -42,23 +42,23 @@ export default function Sidebar() {
   const getLinkClass = (href: string, isSubItem = false) => {
     const active = isActive(href);
     if (isSubItem) {
-      return `group flex items-center space-x-3 px-10 py-2.5 text-[13px] font-medium transition-all duration-200 rounded-lg mx-3 mb-0.5 ${
+      return `group flex items-center space-x-3 px-10 py-2.5 text-[13px] font-medium transition-all duration-300 rounded-lg mx-3 mb-0.5 ${
         active 
-          ? "bg-indigo-500/15 text-indigo-400" 
-          : "text-slate-400 hover:text-slate-100 hover:bg-slate-800/50"
+          ? "bg-indigo-500/10 text-indigo-300 border border-indigo-500/10 shadow-[0_0_10px_rgba(99,102,241,0.05)]" 
+          : "text-slate-400 hover:text-slate-100 hover:bg-white/5"
       }`;
     }
-    return `group flex items-center justify-between px-4 py-3 mx-3 mb-1 text-[14px] font-medium transition-all duration-200 rounded-xl ${
+    return `group flex items-center justify-between px-4 py-3 mx-3 mb-1 text-[14px] font-medium transition-all duration-300 rounded-xl ${
       active 
-        ? "bg-gradient-to-r from-indigo-500/20 to-indigo-500/5 text-indigo-400 border border-indigo-500/20 shadow-sm" 
-        : "text-slate-300 hover:bg-slate-800 hover:text-white border border-transparent"
+        ? "bg-gradient-to-r from-indigo-600/20 to-indigo-600/5 text-indigo-300 border border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.1)] backdrop-blur-md" 
+        : "text-slate-400 hover:bg-white/5 hover:text-white border border-transparent"
     }`;
   };
 
   const getIconClass = (href: string, isSubItem = false) => {
     const active = isActive(href);
-    return `transition-colors duration-200 ${
-      active ? "text-indigo-400" : "text-slate-400 group-hover:text-slate-200"
+    return `transition-colors duration-300 ${
+      active ? "text-indigo-400 drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]" : "text-slate-500 group-hover:text-slate-300"
     }`;
   };
 
@@ -90,9 +90,9 @@ export default function Sidebar() {
   ];
 
   return (
-    <div className="w-[260px] bg-[#0B1120] h-full flex flex-col text-slate-300 border-r border-slate-800/60 overflow-y-auto custom-scrollbar">
+    <div className="w-[260px] bg-[#050B14] h-full flex flex-col text-slate-300 border-r border-white/5 overflow-y-auto custom-scrollbar shadow-2xl relative">
       {/* Brand Logo */}
-      <div className="h-16 px-6 bg-[#0B1120]/95 backdrop-blur-md border-b border-slate-800/60 flex items-center justify-start sticky top-0 z-10 shrink-0">
+      <div className="h-16 px-6 bg-[#050B14]/80 backdrop-blur-xl border-b border-white/5 flex items-center justify-start sticky top-0 z-10 shrink-0">
         <div className="flex items-center gap-3">
           <div className="bg-white p-1 rounded-md shadow-sm">
             <img src="/logoomaa.webp" alt="OMAA Logo" className="h-7 w-auto object-contain" />
@@ -288,7 +288,7 @@ export default function Sidebar() {
       </div>
 
       {/* Logout */}
-      <div className="px-6 py-5 mt-auto border-t border-slate-800/60 bg-[#0B1120]/95 backdrop-blur-md sticky bottom-0">
+      <div className="px-6 py-5 mt-auto border-t border-white/5 bg-[#050B14]/80 backdrop-blur-xl sticky bottom-0">
         <button 
           onClick={async () => {
             await fetch("/api/admin/logout", { method: "POST" }).catch(() => {});

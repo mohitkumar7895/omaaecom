@@ -89,10 +89,10 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
 
 
       {/* Data Table Wrapper */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_4px_24px_rgba(0,0,0,0.02)] overflow-hidden">
+      <div className="bg-white/80 backdrop-blur-xl rounded-[24px] border border-white shadow-[0_8px_40px_rgb(0,0,0,0.04)] overflow-hidden">
         
         {/* Table Toolbar */}
-        <div className="p-5 border-b border-gray-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-gray-50/50">
+        <div className="p-5 border-b border-gray-100/80 flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white/40">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <ExportButtons tableId="bookingsTable" filename={`omaa-bookings-${filter}`} />
             <div className="h-6 w-px bg-gray-300 hidden sm:block"></div>
@@ -110,10 +110,10 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
         </div>
 
         {/* The Table */}
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto w-full">
           <table id="bookingsTable" className="w-full text-left border-collapse min-w-[1600px]">
             <thead>
-              <tr className="bg-gray-50/80 text-[11px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200">
+              <tr className="bg-gray-50/50 text-[11px] font-extrabold text-gray-500 uppercase tracking-wider border-b border-gray-100/80">
                 <th className="px-4 py-4 whitespace-nowrap">Order ID</th>
                 <th className="px-4 py-4 whitespace-nowrap">Type</th>
                 <th className="px-4 py-4">Customer Info</th>
@@ -127,10 +127,10 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                 <th className="px-4 py-4 whitespace-nowrap text-right">Job Status</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-100">
+            <tbody className="bg-white/20 divide-y divide-gray-50">
               {bookings.length > 0 ? (
                 bookings.map((row) => (
-                  <tr key={row.id} className="hover:bg-indigo-50/30 transition-colors group">
+                  <tr key={row.id} className="hover:bg-indigo-50/40 transition-colors duration-300 group">
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="font-semibold text-gray-900">{row.order_id}</div>
                       <div className="text-[10px] text-gray-400 mt-0.5">ID: {row.id}</div>
