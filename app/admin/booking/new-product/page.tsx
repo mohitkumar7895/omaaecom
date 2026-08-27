@@ -19,8 +19,7 @@ export default async function NewProductBookingPage() {
     const query = `
       SELECT * FROM bookings 
       WHERE type = 'New Product' 
-         OR category LIKE '%New Product%' 
-         OR services LIKE '%New Product%'
+        AND working_status NOT IN ('Complete', 'Completed', 'Reject', 'Rejected', 'Cancel', 'Cancelled')
       ORDER BY created_at DESC
     `;
     const [rows]: any = await pool.query(query);
@@ -51,29 +50,7 @@ export default async function NewProductBookingPage() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="bg-white p-1.5 rounded-xl border border-gray-200 inline-flex items-center gap-1 mb-6 shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-x-auto max-w-full">
-        <Link href="/admin/booking">
-          <button className="whitespace-nowrap px-4 py-2 rounded-lg text-[13px] font-semibold text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition">
-            All Bookings
-          </button>
-        </Link>
-        <Link href="/admin/booking?filter=Normal Service">
-          <button className="whitespace-nowrap px-4 py-2 rounded-lg text-[13px] font-semibold text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition">
-            Normal Service
-          </button>
-        </Link>
-        <Link href="/admin/booking/new-product">
-          <button className="whitespace-nowrap px-4 py-2 rounded-lg text-[13px] font-semibold bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100">
-            New Product ({bookings.length})
-          </button>
-        </Link>
-        <Link href="/admin/booking/amc">
-          <button className="whitespace-nowrap px-4 py-2 rounded-lg text-[13px] font-semibold text-gray-500 hover:text-gray-900 hover:bg-gray-50 transition">
-            AMC
-          </button>
-        </Link>
-      </div>
+
 
       {/* Main Table Card */}
       <div className="bg-white border border-gray-200/80 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] overflow-hidden">

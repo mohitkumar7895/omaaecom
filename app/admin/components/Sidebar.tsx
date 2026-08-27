@@ -143,9 +143,6 @@ export default function Sidebar() {
                 <Link href="/admin/booking" className={getLinkClass("/admin/booking", true)}>
                   <span>All Bookings</span>
                 </Link>
-                <Link href="/admin/booking/new-booking" className={getLinkClass("/admin/booking/new-booking", true)}>
-                  <span>New Booking</span>
-                </Link>
                 <Link href="/admin/booking/new-product" className={getLinkClass("/admin/booking/new-product", true)}>
                   <span>New Product</span>
                 </Link>

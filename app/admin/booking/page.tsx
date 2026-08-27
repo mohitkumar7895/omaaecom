@@ -24,12 +24,7 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
       await pool.query("ALTER TABLE bookings ADD COLUMN invoice_status VARCHAR(50) DEFAULT 'Pending'");
     } catch (e) {}
 
-    let query = `SELECT * FROM bookings ORDER BY created_at DESC`;
-    if (filter === "Completed") {
-      query = `SELECT * FROM bookings WHERE working_status = 'Complete' ORDER BY created_at DESC`;
-    } else if (filter !== "All") {
-      query = `SELECT * FROM bookings WHERE type = '${filter}' ORDER BY created_at DESC`;
-    }
+    let query = `SELECT * FROM bookings WHERE (type = 'Normal Service' OR type IS NULL) AND working_status NOT IN ('Complete', 'Completed', 'Reject', 'Rejected', 'Cancel', 'Cancelled') ORDER BY created_at DESC`;
     const [rows]: any = await pool.query(query);
     
     // Fetch categories and services to resolve category accurately
@@ -75,13 +70,7 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
     console.error("Failed to fetch bookings:", e);
   }
 
-  const tabs = [
-    { name: "All", id: "All" },
-    { name: "Normal Service", id: "Normal Service" },
-    { name: "New Product", id: "New Product" },
-    { name: "AMC", id: "AMC" },
-    { name: "Completed", id: "Completed" },
-  ];
+
 
   return (
     <div className="font-sans text-[13px] pb-12">
@@ -97,22 +86,7 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
         </div>
       </div>
 
-      {/* Sleek Segmented Control (Tabs) */}
-      <div className="bg-white p-1.5 rounded-xl border border-gray-200 inline-flex items-center gap-1 mb-6 shadow-[0_2px_8px_rgba(0,0,0,0.02)] overflow-x-auto max-w-full custom-scrollbar">
-        {tabs.map(tab => (
-          <Link href={`?filter=${tab.id}`} key={tab.id}>
-            <button className={`whitespace-nowrap px-4 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 ${
-              filter === tab.id 
-                ? tab.id === "Completed" 
-                  ? "bg-emerald-50 text-emerald-700 shadow-sm border border-emerald-100" 
-                  : "bg-indigo-50 text-indigo-700 shadow-sm border border-indigo-100"
-                : "text-gray-500 hover:text-gray-900 hover:bg-gray-50 border border-transparent"
-            }`}>
-              {tab.name}
-            </button>
-          </Link>
-        ))}
-      </div>
+
 
       {/* Data Table Wrapper */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_4px_24px_rgba(0,0,0,0.02)] overflow-hidden">

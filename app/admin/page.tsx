@@ -127,7 +127,6 @@ export default async function AdminDashboard() {
       desc: "Track customer orders, appointments, warranties, and support",
       items: [
         { name: "All Bookings", desc: "Master booking console", href: "/admin/booking", icon: <CalendarCheck className="w-5 h-5 text-indigo-500" />, bg: "bg-indigo-50" },
-        { name: "New Bookings", desc: "Fresh customer requests", href: "/admin/booking/new-booking", icon: <CalendarCheck className="w-5 h-5 text-emerald-500" />, bg: "bg-emerald-50" },
         { name: "New Products", desc: "Appliance product orders", href: "/admin/booking/new-product", icon: <CalendarCheck className="w-5 h-5 text-blue-500" />, bg: "bg-blue-50" },
         { name: "RO AMC Plans", desc: "Maintenance contracts", href: "/admin/booking/amc", icon: <ShieldCheck className="w-5 h-5 text-teal-500" />, bg: "bg-teal-50" },
         { name: "Warranties", desc: "Active service warranties", href: "/admin/warranties", icon: <ShieldCheck className="w-5 h-5 text-cyan-500" />, bg: "bg-cyan-50" },

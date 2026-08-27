@@ -15,10 +15,7 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
   let bookings: any[] = [];
 
   try {
-    let query = `SELECT * FROM bookings WHERE working_status = 'Complete' ORDER BY created_at DESC`;
-    if (filter !== "All") {
-      query = `SELECT * FROM bookings WHERE type = '${filter}' AND working_status = 'Complete' ORDER BY created_at DESC`;
-    }
+    let query = `SELECT * FROM bookings WHERE working_status IN ('Complete', 'Completed') ORDER BY created_at DESC`;
     const [rows]: any = await pool.query(query);
     bookings = rows.map((row: any) => {
       // Parse services JSON if it's a string
@@ -40,37 +37,7 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
       {/* Title */}
       <h1 className="text-[22px] font-bold text-gray-800 tracking-tight mb-4">Completed Bookings</h1>
 
-      {/* Tabs */}
-      <div className="flex items-center space-x-2 mb-6">
-        <Link href="?filter=All">
-          <button className={`px-4 py-1.5 rounded font-medium transition ${
-            filter === "All" ? "bg-[#2962ff] text-white" : "text-[#2962ff] hover:bg-blue-50"
-          }`}>
-            All
-          </button>
-        </Link>
-        <Link href="?filter=Normal Service">
-          <button className={`px-4 py-1.5 rounded font-medium transition ${
-            filter === "Normal Service" ? "bg-[#2962ff] text-white" : "text-[#2962ff] hover:bg-blue-50"
-          }`}>
-            Normal Service
-          </button>
-        </Link>
-        <Link href="?filter=New Product">
-          <button className={`px-4 py-1.5 rounded font-medium transition ${
-            filter === "New Product" ? "bg-[#2962ff] text-white" : "text-[#2962ff] hover:bg-blue-50"
-          }`}>
-            New Product
-          </button>
-        </Link>
-        <Link href="?filter=AMC">
-          <button className={`px-4 py-1.5 rounded font-medium transition ${
-            filter === "AMC" ? "bg-[#2962ff] text-white" : "text-[#2962ff] hover:bg-blue-50"
-          }`}>
-            AMC
-          </button>
-        </Link>
-      </div>
+
 
       {/* Toolbar */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 space-y-4 md:space-y-0">
