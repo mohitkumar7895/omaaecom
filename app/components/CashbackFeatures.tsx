@@ -438,163 +438,81 @@ export default function CashbackFeatures({ orderId, isEligible = true }: Cashbac
 
   return (
     <div className="relative">
-      {/* Sleek Claim Cashback Pill Button (matching user's design) */}
-      <button 
-        type="button"
-        onClick={() => {
-          if (cashbackData?.service_opted) {
-            setShowServiceModal(true);
-          } else if (cashbackData?.ad_watched) {
-            setShowCashbackModal(true);
-          } else {
-            // Open selection toggle modal
-            setShowServiceModal(false);
-            setShowCashbackModal(false);
-            setActiveTab('center');
-            setDragPercent(25);
-            setShowToggleModal(true);
-          }
-        }}
-        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 shadow-sm flex items-center gap-2 ${
-          cashbackData?.service_opted 
-            ? "bg-blue-600 hover:bg-blue-700 text-white"
-            : cashbackData?.ad_watched 
-              ? "bg-amber-500 hover:bg-amber-600 text-white"
-              : "bg-[#00a86b] hover:bg-[#00925d] text-white shadow-emerald-500/20 active:scale-95"
-        }`}
-      >
-        {cashbackData?.service_opted ? (
-          <>
-            <Gift className="w-3.5 h-3.5" />
-            <span>Service Active</span>
-          </>
-        ) : cashbackData?.ad_watched ? (
-          <>
-            <Wallet className="w-3.5 h-3.5" />
-            <span>{timeLeft > 0 ? `Unlocking in ${formatTime(timeLeft)}` : "100% Cashback Ready"}</span>
-          </>
-        ) : (
-          <>
-            <Gift className="w-3.5 h-3.5" />
-            <span>Claim Cashback</span>
-          </>
-        )}
-      </button>
-
-      {/* Main Interactive Selection Modal with Draggable Service vs Cashback Toggle */}
-      {showToggleModal && (
-        <div 
-          className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200"
+      {cashbackData?.service_opted ? (
+        <button 
+          type="button"
+          onClick={() => setShowServiceModal(true)}
+          className="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 flex items-center gap-1.5 shadow-2xs cursor-pointer"
         >
-          <div 
-            className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 text-center relative shadow-2xl border border-gray-100 animate-in zoom-in-95 duration-200"
+          <Gift className="w-3.5 h-3.5 text-blue-600" />
+          <span>1-Yr Service Active</span>
+        </button>
+      ) : cashbackData?.ad_watched ? (
+        <button 
+          type="button"
+          onClick={() => setShowCashbackModal(true)}
+          className="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 flex items-center gap-1.5 shadow-2xs cursor-pointer"
+        >
+          <Wallet className="w-3.5 h-3.5 text-amber-600" />
+          <span>{timeLeft > 0 ? `Claim in ${formatTime(timeLeft)}` : "Claim Cashback"}</span>
+        </button>
+      ) : (
+        /* Direct Embedded Interactive Slider (Elongated & Sleek) */
+        <div className="bg-white/95 border border-gray-200/90 rounded-full px-3 py-1 sm:px-4 sm:py-1.5 shadow-2xs flex items-center gap-2 sm:gap-3.5 select-none transition-all hover:border-gray-300">
+          {/* Service Option */}
+          <button 
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveTab('service');
+              setShowServiceModal(true);
+            }}
+            className={`flex items-center gap-1.5 font-bold text-xs sm:text-[13px] transition-all cursor-pointer ${
+              activeTab === 'service' ? 'text-blue-600 font-black scale-105' : 'text-gray-600 hover:text-blue-600'
+            }`}
           >
-            <button 
-              onClick={() => setShowToggleModal(false)} 
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-800 transition-transform hover:rotate-90 p-1"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <Gift className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500 shrink-0" />
+            <span>Service</span>
+          </button>
 
-            <div className="w-16 h-16 bg-gradient-to-tr from-amber-100 via-emerald-100 to-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner">
-              <Gift className="w-8 h-8 text-[#00a86b]" />
-            </div>
-
-            <h3 className="text-2xl font-black text-gray-900 tracking-tight mb-2">Choose Your Reward</h3>
-            <p className="text-gray-500 text-xs sm:text-sm font-medium mb-6">
-              Swipe the toggle left for <b>Free 1-Year Service</b> or right for <b>100% Daily Cashback</b>!
-            </p>
-
-            {/* The Draggable Toggle Pill */}
-            <div className="flex items-center justify-center gap-4 sm:gap-6 py-4 bg-gray-50/80 rounded-2xl border border-gray-100 mb-6">
-              {/* Service Text */}
-              <button 
-                type="button"
-                onClick={() => {
-                  setActiveTab('service');
-                  setShowToggleModal(false);
-                  setShowServiceModal(true);
-                }}
-                className={`flex items-center gap-1.5 font-bold transition-all ${
-                  activeTab === 'service' ? 'text-blue-600 scale-105' : 'text-gray-500 hover:text-gray-800'
-                }`}
+          {/* Toggle Pill Slider Track (Elongated) */}
+          <div 
+            ref={containerRef}
+            onClick={handleBgClick}
+            className="relative w-20 sm:w-24 h-6 sm:h-7 rounded-full p-0.5 shadow-inner cursor-pointer border border-amber-200/80 bg-[#fef3c7] transition-colors"
+          >
+            <div className="relative w-full h-full">
+              <div
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerCancel={handlePointerUp}
+                className="absolute top-0 bottom-0 w-1/2 rounded-full flex items-center justify-center z-10 touch-none transition-all duration-300 ease-out bg-white shadow-[0_1px_4px_rgba(0,0,0,0.15)] cursor-grab active:cursor-grabbing"
+                style={{ left: `${dragPercent}%`, transform: isDragging ? 'scale(0.95)' : 'scale(1)' }}
               >
-                <Gift className="w-4 h-4 text-blue-500" />
-                <span className="text-sm">Service</span>
-              </button>
-
-              {/* Toggle Pill Container */}
-              <div 
-                ref={containerRef}
-                onClick={handleBgClick}
-                className={`relative w-24 h-10 rounded-full p-1 shadow-inner cursor-pointer border transition-colors duration-300 ${
-                  activeTab === 'service' ? 'bg-[#e0e7ff] border-blue-200' : 'bg-[#fef3c7] border-amber-200'
-                }`}
-              >
-                <div className="relative w-full h-full overflow-visible">
-                  <div
-                    onPointerDown={handlePointerDown}
-                    onPointerMove={handlePointerMove}
-                    onPointerUp={handlePointerUp}
-                    onPointerCancel={handlePointerUp}
-                    className={`absolute top-0 bottom-0 w-1/2 rounded-full flex items-center justify-center z-10 touch-none transition-all duration-300 ease-out ${
-                      activeTab === 'center' ? 'bg-white shadow-[0_2px_8px_rgba(0,0,0,0.15)] cursor-grab active:cursor-grabbing' : 
-                      activeTab === 'service' ? 'bg-blue-500 shadow-[0_2px_10px_rgba(59,130,246,0.4)]' : 
-                      'bg-amber-500 shadow-[0_2px_10px_rgba(245,158,11,0.4)]'
-                    }`}
-                    style={{ left: `${dragPercent}%`, transform: isDragging ? 'scale(0.95)' : 'scale(1)' }}
-                  >
-                    <div className="flex gap-[3px]">
-                      <div className={`w-[3px] h-[12px] rounded-full ${activeTab === 'center' ? 'bg-gray-400' : 'bg-white'}`}></div>
-                      <div className={`w-[3px] h-[12px] rounded-full ${activeTab === 'center' ? 'bg-gray-400' : 'bg-white'}`}></div>
-                    </div>
-                  </div>
+                <div className="flex gap-[2px]">
+                  <div className="w-[2px] h-[8px] sm:h-[10px] rounded-full bg-gray-400"></div>
+                  <div className="w-[2px] h-[8px] sm:h-[10px] rounded-full bg-gray-400"></div>
                 </div>
               </div>
-
-              {/* Cashback Text */}
-              <button 
-                type="button"
-                onClick={() => {
-                  setActiveTab('cashback');
-                  setShowToggleModal(false);
-                  setShowCashbackModal(true);
-                }}
-                className={`flex items-center gap-1.5 font-bold transition-all ${
-                  activeTab === 'cashback' ? 'text-amber-600 scale-105' : 'text-gray-500 hover:text-gray-800'
-                }`}
-              >
-                <span className="text-sm">Cashback</span>
-                <Wallet className="w-4 h-4 text-amber-500" />
-              </button>
             </div>
-
-            <div className="grid grid-cols-2 gap-3 text-left">
-              <div 
-                onClick={() => {
-                  setActiveTab('service');
-                  setShowToggleModal(false);
-                  setShowServiceModal(true);
-                }}
-                className="p-3.5 rounded-xl border border-blue-100 bg-blue-50/50 hover:bg-blue-50 cursor-pointer transition text-xs"
-              >
-                <span className="font-bold text-blue-900 block mb-0.5">Option 1: Free Service</span>
-                <span className="text-blue-700">1-Year maintenance & breakdown coverage</span>
-              </div>
-              <div 
-                onClick={() => {
-                  setActiveTab('cashback');
-                  setShowToggleModal(false);
-                  setShowCashbackModal(true);
-                }}
-                className="p-3.5 rounded-xl border border-amber-100 bg-amber-50/50 hover:bg-amber-50 cursor-pointer transition text-xs"
-              >
-                <span className="font-bold text-amber-900 block mb-0.5">Option 2: 100% Cashback</span>
-                <span className="text-amber-700">Daily wallet credit after 20s ad timer</span>
-              </div>
-            </div>
-
           </div>
+
+          {/* Cashback Option */}
+          <button 
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveTab('cashback');
+              setShowCashbackModal(true);
+            }}
+            className={`flex items-center gap-1.5 font-bold text-xs sm:text-[13px] transition-all cursor-pointer ${
+              activeTab === 'cashback' ? 'text-amber-600 font-black scale-105' : 'text-gray-600 hover:text-amber-600'
+            }`}
+          >
+            <span>Cashback</span>
+            <Wallet className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 shrink-0" />
+          </button>
         </div>
       )}
 
