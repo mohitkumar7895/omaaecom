@@ -174,14 +174,17 @@ export default function Hero({ categories = [], banners = [] }: HeroProps) {
                     -webkit-background-clip: text;
                     -webkit-text-fill-color: transparent;
                     animation: premium-shimmer 4s ease infinite;
+                    display: inline-block;
+                    padding-bottom: 4px;
+                    padding-right: 6px;
                   }
                 `}} />
-                <div className="flex items-center justify-between mb-3.5 gap-2">
-                  <h4 className="omaa-premium-gradient font-black text-[24px] sm:text-[28px] md:text-[32px] tracking-tight leading-none">
+                <div className="flex items-center justify-between mb-3 gap-2 flex-wrap sm:flex-nowrap">
+                  <h4 className="omaa-premium-gradient font-black text-[20px] sm:text-[23px] md:text-[25px] tracking-tight leading-normal">
                     Omaa Premium Package
                   </h4>
-                  <span className="text-[12px] sm:text-[13px] font-black text-rose-600 bg-rose-50 border border-rose-200 px-3.5 py-1.5 rounded-full shadow-2xs flex items-center gap-1.5 shrink-0">
-                    <span className="text-[14px]">✨</span> Premium
+                  <span className="text-[11px] sm:text-[12px] font-black text-rose-600 bg-rose-50 border border-rose-200 px-3 py-1 rounded-full shadow-2xs flex items-center gap-1.5 shrink-0">
+                    <span className="text-[13px]">✨</span> Premium
                   </span>
                 </div>
 
