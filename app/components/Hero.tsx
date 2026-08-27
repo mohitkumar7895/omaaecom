@@ -159,48 +159,73 @@ export default function Hero({ categories = [], banners = [] }: HeroProps) {
               </div>
             </div>
 
-            {/* Bottom Row: New Products & RO AMC (Nichey Side-by-Side) */}
+            {/* Bottom Row: Omaa Premium Package (New Products & RO AMC) */}
             {(newProducts.length > 0 || amcProducts.length > 0) && (
-              <div className="grid grid-cols-3 gap-3 sm:gap-4 text-center justify-items-center w-full">
-                {/* New Products */}
-                {newProducts.length > 0 && (
-                  <Link 
-                    href={`/services/${newProducts[0].id}`} 
-                    className="flex flex-col items-center group w-full cursor-pointer"
-                  >
-                    <div className="w-full h-16 sm:h-18 md:h-19 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
-                      {newProducts[0].image_url && newProducts[0].image_url.length > 5 ? (
-                        /* eslint-disable-next-line @next/next/no-img-element */
-                        <img src={newProducts[0].image_url} alt={newProducts[0].title} className="w-full h-full object-contain" />
-                      ) : (
-                        <span className="text-[28px] sm:text-[32px]">📦</span>
-                      )}
-                    </div>
-                    <span className="text-[12px] sm:text-[13px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-8 sm:h-9 flex items-start justify-center text-center">
-                      {newProducts[0].title || "New Products"}
-                    </span>
-                  </Link>
-                )}
+              <div className="pt-1 w-full">
+                <style dangerouslySetInnerHTML={{__html: `
+                  @keyframes premium-shimmer {
+                    0% { background-position: 0% 50%; }
+                    50% { background-position: 100% 50%; }
+                    100% { background-position: 0% 50%; }
+                  }
+                  .omaa-premium-gradient {
+                    background: linear-gradient(90deg, #1d4ed8, #7c3aed, #06b6d4, #2563eb);
+                    background-size: 250% auto;
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    animation: premium-shimmer 4s ease infinite;
+                  }
+                `}} />
+                <div className="flex items-center justify-between mb-3.5 gap-2">
+                  <h4 className="omaa-premium-gradient font-black text-[24px] sm:text-[28px] md:text-[32px] tracking-tight leading-none">
+                    Omaa Premium Package
+                  </h4>
+                  <span className="text-[12px] sm:text-[13px] font-black text-rose-600 bg-rose-50 border border-rose-200 px-3.5 py-1.5 rounded-full shadow-2xs flex items-center gap-1.5 shrink-0">
+                    <span className="text-[14px]">✨</span> Premium
+                  </span>
+                </div>
 
-                {/* RO AMC */}
-                {amcProducts.length > 0 && (
-                  <Link 
-                    href={`/services/${amcProducts[0].id}`} 
-                    className="flex flex-col items-center group w-full cursor-pointer"
-                  >
-                    <div className="w-full h-16 sm:h-18 md:h-19 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
-                      {amcProducts[0].image_url && amcProducts[0].image_url.length > 5 ? (
-                        /* eslint-disable-next-line @next/next/no-img-element */
-                        <img src={amcProducts[0].image_url} alt={amcProducts[0].title} className="w-full h-full object-contain" />
-                      ) : (
-                        <span className="text-[28px] sm:text-[32px]">🛡️</span>
-                      )}
-                    </div>
-                    <span className="text-[12px] sm:text-[13px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-8 sm:h-9 flex items-start justify-center text-center">
-                      {amcProducts[0].title || "RO AMC"}
-                    </span>
-                  </Link>
-                )}
+                <div className="grid grid-cols-3 gap-3 sm:gap-4 text-center justify-items-center w-full">
+                  {/* New Products */}
+                  {newProducts.length > 0 && (
+                    <Link 
+                      href={`/services/${newProducts[0].id}`} 
+                      className="flex flex-col items-center group w-full cursor-pointer"
+                    >
+                      <div className="w-full h-16 sm:h-18 md:h-19 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
+                        {newProducts[0].image_url && newProducts[0].image_url.length > 5 ? (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img src={newProducts[0].image_url} alt={newProducts[0].title} className="w-full h-full object-contain" />
+                        ) : (
+                          <span className="text-[28px] sm:text-[32px]">📦</span>
+                        )}
+                      </div>
+                      <span className="text-[12px] sm:text-[13px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-8 sm:h-9 flex items-start justify-center text-center">
+                        {newProducts[0].title || "New Products"}
+                      </span>
+                    </Link>
+                  )}
+
+                  {/* RO AMC */}
+                  {amcProducts.length > 0 && (
+                    <Link 
+                      href={`/services/${amcProducts[0].id}`} 
+                      className="flex flex-col items-center group w-full cursor-pointer"
+                    >
+                      <div className="w-full h-16 sm:h-18 md:h-19 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
+                        {amcProducts[0].image_url && amcProducts[0].image_url.length > 5 ? (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img src={amcProducts[0].image_url} alt={amcProducts[0].title} className="w-full h-full object-contain" />
+                        ) : (
+                          <span className="text-[28px] sm:text-[32px]">🛡️</span>
+                        )}
+                      </div>
+                      <span className="text-[12px] sm:text-[13px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-8 sm:h-9 flex items-start justify-center text-center">
+                        {amcProducts[0].title || "RO AMC"}
+                      </span>
+                    </Link>
+                  )}
+                </div>
               </div>
             )}
 
