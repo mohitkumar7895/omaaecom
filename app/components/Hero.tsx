@@ -131,7 +131,7 @@ export default function Hero({ categories = [], banners = [] }: HeroProps) {
                 Home Services
               </h3>
               
-              {/* 3-Column Wide-Tile Grid matching reference screenshot:
+              {/* 3-Column Wide-Tile Grid:
                   Row 1: Ac Repair & Services | Refrigerator Repair | Washing Machine
                   Row 2: Microwave Repair | Water Purifier */}
               <div className="grid grid-cols-3 gap-3 sm:gap-4 text-center justify-items-center w-full">
@@ -150,8 +150,8 @@ export default function Hero({ categories = [], banners = [] }: HeroProps) {
                         <span className="text-[28px] sm:text-[32px]">{getIcon(service.title)}</span>
                       )}
                     </div>
-                    {/* Title Text */}
-                    <span className="text-[11.5px] sm:text-[12.5px] font-semibold text-gray-800 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5">
+                    {/* Title Text (Dark & Bold - Strictly Equal Height) */}
+                    <span className="text-[12px] sm:text-[13px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-8 sm:h-9 flex items-start justify-center text-center">
                       {service.title}
                     </span>
                   </Link>
@@ -159,54 +159,48 @@ export default function Hero({ categories = [], banners = [] }: HeroProps) {
               </div>
             </div>
 
-            {/* Bottom Section: Native Smart Products & AMC */}
+            {/* Bottom Row: New Products & RO AMC (Nichey Side-by-Side) */}
             {(newProducts.length > 0 || amcProducts.length > 0) && (
-              <div>
-                <h3 className="font-bold text-[17px] md:text-[19px] text-gray-900 tracking-tight mb-2.5">
-                  Native Smart Products
-                </h3>
+              <div className="grid grid-cols-3 gap-3 sm:gap-4 text-center justify-items-center w-full">
+                {/* New Products */}
+                {newProducts.length > 0 && (
+                  <Link 
+                    href={`/services/${newProducts[0].id}`} 
+                    className="flex flex-col items-center group w-full cursor-pointer"
+                  >
+                    <div className="w-full h-16 sm:h-18 md:h-19 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
+                      {newProducts[0].image_url && newProducts[0].image_url.length > 5 ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img src={newProducts[0].image_url} alt={newProducts[0].title} className="w-full h-full object-contain" />
+                      ) : (
+                        <span className="text-[28px] sm:text-[32px]">📦</span>
+                      )}
+                    </div>
+                    <span className="text-[12px] sm:text-[13px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-8 sm:h-9 flex items-start justify-center text-center">
+                      {newProducts[0].title || "New Products"}
+                    </span>
+                  </Link>
+                )}
 
-                <div className="grid grid-cols-3 gap-3 sm:gap-4 text-center justify-items-center w-full">
-                  {/* New Products */}
-                  {newProducts.length > 0 && (
-                    <Link 
-                      href={`/services/${newProducts[0].id}`} 
-                      className="flex flex-col items-center group w-full cursor-pointer"
-                    >
-                      <div className="w-full h-16 sm:h-18 md:h-19 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
-                        {newProducts[0].image_url && newProducts[0].image_url.length > 5 ? (
-                          /* eslint-disable-next-line @next/next/no-img-element */
-                          <img src={newProducts[0].image_url} alt={newProducts[0].title} className="w-full h-full object-contain" />
-                        ) : (
-                          <span className="text-[28px] sm:text-[32px]">📦</span>
-                        )}
-                      </div>
-                      <span className="text-[11.5px] sm:text-[12.5px] font-semibold text-gray-800 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5">
-                        {newProducts[0].title || "Native Water Purifier"}
-                      </span>
-                    </Link>
-                  )}
-
-                  {/* RO AMC */}
-                  {amcProducts.length > 0 && (
-                    <Link 
-                      href={`/services/${amcProducts[0].id}`} 
-                      className="flex flex-col items-center group w-full cursor-pointer"
-                    >
-                      <div className="w-full h-16 sm:h-18 md:h-19 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
-                        {amcProducts[0].image_url && amcProducts[0].image_url.length > 5 ? (
-                          /* eslint-disable-next-line @next/next/no-img-element */
-                          <img src={amcProducts[0].image_url} alt={amcProducts[0].title} className="w-full h-full object-contain" />
-                        ) : (
-                          <span className="text-[28px] sm:text-[32px]">🛡️</span>
-                        )}
-                      </div>
-                      <span className="text-[11.5px] sm:text-[12.5px] font-semibold text-gray-800 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5">
-                        {amcProducts[0].title || "RO AMC Plan"}
-                      </span>
-                    </Link>
-                  )}
-                </div>
+                {/* RO AMC */}
+                {amcProducts.length > 0 && (
+                  <Link 
+                    href={`/services/${amcProducts[0].id}`} 
+                    className="flex flex-col items-center group w-full cursor-pointer"
+                  >
+                    <div className="w-full h-16 sm:h-18 md:h-19 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
+                      {amcProducts[0].image_url && amcProducts[0].image_url.length > 5 ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img src={amcProducts[0].image_url} alt={amcProducts[0].title} className="w-full h-full object-contain" />
+                      ) : (
+                        <span className="text-[28px] sm:text-[32px]">🛡️</span>
+                      )}
+                    </div>
+                    <span className="text-[12px] sm:text-[13px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-8 sm:h-9 flex items-start justify-center text-center">
+                      {amcProducts[0].title || "RO AMC"}
+                    </span>
+                  </Link>
+                )}
               </div>
             )}
 
