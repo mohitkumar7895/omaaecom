@@ -184,7 +184,7 @@ export default function BookingSchedulePicker({
                         : "bg-white border-gray-200 text-gray-700 hover:border-[#6b62d9] hover:bg-[#f8f7ff]"
                     }`}
                   >
-                    <span className={`text-[10px] font-bold mb-0.5 ${isSelected ? "text-white/80" : "text-gray-400"}`}>
+                    <span className={`text-[10px] font-black uppercase tracking-wider mb-0.5 ${isSelected ? "text-emerald-200" : "text-emerald-600"}`}>
                       {d.isToday ? "Today" : d.monthStr}
                     </span>
                     <span className="text-[18px] font-black leading-none mb-0.5">{d.dateNum}</span>
