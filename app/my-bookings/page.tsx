@@ -469,7 +469,7 @@ export default function MyBookingsPage() {
                           <div className="flex justify-end mt-1 pr-3 sm:pr-5">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img 
-                              src="/paid.png" 
+                              src="/paid.svg" 
                               alt="PAID THANK YOU" 
                               className="w-16 h-16 sm:w-20 sm:h-20 object-contain select-none hover:scale-110 transition-transform" 
                             />

@@ -1,52 +1,56 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="100%" height="100%">
-  <g transform="rotate(-15 80 80)">
-    <!-- Outer Solid Green Circle (No corner designs/scallops, pure clean circle) -->
-    <circle cx="80" cy="80" r="62" fill="#008a28" />
-    
-    <!-- White Circle Center -->
-    <circle cx="80" cy="80" r="54" fill="#ffffff" />
-    
-    <!-- Middle Solid Green Circular Ring -->
-    <circle cx="80" cy="80" r="48" fill="none" stroke="#008a28" stroke-width="2.5" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+  <!-- Scalloped Stamp Outer Rosette -->
+  <path d="M 100.00,24.00 C 112.15,7.70 135.63,13.99 138.00,34.18 C 156.68,26.14 173.86,43.32 165.82,62.00 C 186.01,64.37 192.30,87.85 176.00,100.00 C 192.30,112.15 186.01,135.63 165.82,138.00 C 173.86,156.68 156.68,173.86 138.00,165.82 C 135.63,186.01 112.15,192.30 100.00,176.00 C 87.85,192.30 64.37,186.01 62.00,165.82 C 43.32,173.86 26.14,156.68 34.18,138.00 C 13.99,135.63 7.70,112.15 24.00,100.00 C 7.70,87.85 13.99,64.37 34.18,62.00 C 26.14,43.32 43.32,26.14 62.00,34.18 C 64.37,13.99 87.85,7.70 100.00,24.00 Z" fill="#008500" />
 
-    <!-- Inner Full 360-Degree Continuous Dotted Circle Ring -->
-    <circle 
-      cx="80" 
-      cy="80" 
-      r="42" 
+  <!-- Inner Solid White Center Disc -->
+  <circle cx="100" cy="100" r="70" fill="#ffffff" />
+
+  <!-- Outer Full Green Circular Border -->
+  <circle cx="100" cy="100" r="62" fill="none" stroke="#008500" stroke-width="3" />
+
+  <!-- Inner Tilted Stamp Content (Rotated -13deg around center) -->
+  <g transform="rotate(-13 100 100)">
+    
+    <!-- Top Arc Line (Concentric curved line above PAID) -->
+    <path 
+      d="M 52,80 A 51,51 0 0,1 148,80" 
       fill="none" 
-      stroke="#008a28" 
-      stroke-width="1.8" 
-      stroke-dasharray="2,3" 
+      stroke="#008500" 
+      stroke-width="3.5" 
       stroke-linecap="round"
     />
 
-    <!-- Bold Green PAID Text -->
+    <!-- Bottom Arc Line (Concentric curved line below THANK YOU) -->
+    <path 
+      d="M 52,120 A 51,51 0 0,0 148,120" 
+      fill="none" 
+      stroke="#008500" 
+      stroke-width="3.5" 
+      stroke-linecap="round"
+    />
+
+    <!-- Main Bold PAID Text -->
     <text 
-      x="80" 
-      y="84" 
+      x="100" 
+      y="98" 
       text-anchor="middle" 
-      fill="#008a28" 
-      font-family="'Impact', 'Arial Black', sans-serif" 
-      font-size="24" 
+      fill="#008500" 
+      font-family="'Arial Black', 'Impact', 'Montserrat Black', sans-serif" 
+      font-size="28" 
+      font-weight="900" 
+      letter-spacing="2"
+    >PAID</text>
+
+    <!-- Subtitle THANK YOU Text -->
+    <text 
+      x="100" 
+      y="113" 
+      text-anchor="middle" 
+      fill="#008500" 
+      font-family="'Arial Black', 'Impact', sans-serif" 
+      font-size="10" 
       font-weight="900" 
       letter-spacing="1.5"
-    >
-      PAID
-    </text>
-
-    <!-- Clean THANK YOU Text at Bottom -->
-    <text 
-      x="80" 
-      y="102" 
-      text-anchor="middle" 
-      fill="#008a28" 
-      font-family="'Arial', sans-serif" 
-      font-size="7.5" 
-      font-weight="800" 
-      letter-spacing="1.8"
-    >
-      THANK YOU
-    </text>
+    >THANK YOU</text>
   </g>
 </svg>
