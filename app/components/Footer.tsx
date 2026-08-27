@@ -43,6 +43,9 @@ export default function Footer() {
             <Link href="/terms-and-conditions" className="text-blue-100 hover:text-white hover:underline transition">
               Terms & Conditions
             </Link>
+            <Link href="/complaint" className="text-blue-100 hover:text-white hover:underline transition">
+              Lodge Complaint
+            </Link>
           </div>
           <div className="pt-2">
             <Link 

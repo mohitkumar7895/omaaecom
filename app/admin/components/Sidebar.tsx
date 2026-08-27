@@ -27,7 +27,8 @@ import {
   Settings,
   Menu,
   ChevronRight,
-  PlaySquare
+  PlaySquare,
+  Mail
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -61,25 +62,35 @@ export default function Sidebar() {
     }`;
   };
 
-  const topItems = [
-    { name: "Dashboard", icon: <LayoutDashboard className="w-[18px] h-[18px]" />, href: "/admin", active: false },
-    { name: "Warranties", icon: <ShieldCheck className="w-[18px] h-[18px]" />, href: "/admin/warranties" },
-    { name: "Settings", icon: <Settings className="w-[18px] h-[18px]" />, href: "/admin/settings" },
+  const overviewItems = [
+    { name: "Dashboard", icon: <LayoutDashboard className="w-[18px] h-[18px]" />, href: "/admin" },
   ];
 
-  const middleItems = [
-    { name: "GST Settings", icon: <FileText className="w-[18px] h-[18px]" />, href: "/admin/gst-settings" },
-    { name: "KYC", icon: <Users className="w-[18px] h-[18px]" />, href: "/admin/kyc" },
-    { name: "Registrations", icon: <ClipboardList className="w-[18px] h-[18px]" />, href: "/admin/registration-records" },
-    { name: "Privacy Policy", icon: <Shield className="w-[18px] h-[18px]" />, href: "/admin/privacy-policy" },
-    { name: "Terms & Conditions", icon: <FileText className="w-[18px] h-[18px]" />, href: "/admin/terms-and-conditions" },
-  ];
-
-  const bottomItems = [
+  const catalogSingleItems = [
     { name: "Brands", icon: <Tag className="w-[18px] h-[18px]" />, href: "/admin/brands" },
+  ];
+
+  const operationsItems = [
+    { name: "Warranties", icon: <ShieldCheck className="w-[18px] h-[18px]" />, href: "/admin/warranties" },
+    { name: "Complaints", icon: <MessageSquare className="w-[18px] h-[18px]" />, href: "/admin/complaints" },
+    { name: "Contacts", icon: <Mail className="w-[18px] h-[18px]" />, href: "/admin/contacts" },
+  ];
+
+  const partnerItems = [
+    { name: "KYC Approvals", icon: <Users className="w-[18px] h-[18px]" />, href: "/admin/kyc" },
+    { name: "Registrations", icon: <ClipboardList className="w-[18px] h-[18px]" />, href: "/admin/registration-records" },
+  ];
+
+  const marketingItems = [
     { name: "Banners", icon: <ImageIcon className="w-[18px] h-[18px]" />, href: "/admin/banners" },
     { name: "Cashback Ads", icon: <PlaySquare className="w-[18px] h-[18px]" />, href: "/admin/cashback-ads" },
-    { name: "Complaints", icon: <MessageSquare className="w-[18px] h-[18px]" />, href: "/admin/complaints" },
+  ];
+
+  const settingsItems = [
+    { name: "System Settings", icon: <Settings className="w-[18px] h-[18px]" />, href: "/admin/settings" },
+    { name: "GST Settings", icon: <FileText className="w-[18px] h-[18px]" />, href: "/admin/gst-settings" },
+    { name: "Privacy Policy", icon: <Shield className="w-[18px] h-[18px]" />, href: "/admin/privacy-policy" },
+    { name: "Terms & Conditions", icon: <FileText className="w-[18px] h-[18px]" />, href: "/admin/terms-and-conditions" },
   ];
 
   return (
@@ -95,14 +106,14 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <div className="flex-1 py-6 overflow-y-auto space-y-6">
+      <div className="flex-1 py-5 overflow-y-auto space-y-6">
         
-        {/* Main Section */}
+        {/* 1. Overview */}
         <div>
-          <div className="px-7 mb-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Overview</div>
-          {topItems.map((item, index) => (
+          <div className="px-7 mb-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Overview</div>
+          {overviewItems.map((item, index) => (
             <Link
-              key={`top-${index}`}
+              key={`overview-${index}`}
               href={item.href}
               className={getLinkClass(item.href)}
             >
@@ -114,9 +125,9 @@ export default function Sidebar() {
           ))}
         </div>
 
-        {/* Management Section */}
+        {/* 2. Catalog & Services */}
         <div>
-          <div className="px-7 mb-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Management</div>
+          <div className="px-7 mb-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Catalog & Services</div>
           
           {/* Categories Dropdown Section */}
           <div className="mb-1">
@@ -146,6 +157,20 @@ export default function Sidebar() {
             </div>
           </div>
 
+          {/* Brands & Zones */}
+          {catalogSingleItems.map((item, index) => (
+            <Link
+              key={`catalog-${index}`}
+              href={item.href}
+              className={getLinkClass(item.href)}
+            >
+              <div className="flex items-center space-x-3">
+                <span className={getIconClass(item.href)}>{item.icon}</span>
+                <span>{item.name}</span>
+              </div>
+            </Link>
+          ))}
+
           {/* Rate Card Dropdown Section */}
           <div className="mb-1">
             <button 
@@ -170,24 +195,11 @@ export default function Sidebar() {
               </div>
             </div>
           </div>
-          
-          {middleItems.map((item, index) => (
-            <Link
-              key={`mid-${index}`}
-              href={item.href}
-              className={getLinkClass(item.href)}
-            >
-              <div className="flex items-center space-x-3">
-                <span className={getIconClass(item.href)}>{item.icon}</span>
-                <span>{item.name}</span>
-              </div>
-            </Link>
-          ))}
         </div>
 
-        {/* Sales & Support Section */}
+        {/* 3. Bookings & Operations */}
         <div>
-          <div className="px-7 mb-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Operations</div>
+          <div className="px-7 mb-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Bookings & Operations</div>
           
           {/* Booking Dropdown Section */}
           <div className="mb-1">
@@ -216,22 +228,22 @@ export default function Sidebar() {
                 <Link href="/admin/booking/amc" className={getLinkClass("/admin/booking/amc", true)}>
                   <span>AMC</span>
                 </Link>
-                <Link href="/admin/booking/reject-booking" className={getLinkClass("/admin/booking/reject-booking", true)}>
-                  <span>Rejected</span>
+                <Link href="/admin/booking/visit-booking" className={getLinkClass("/admin/booking/visit-booking", true)}>
+                  <span>Visit Booking</span>
                 </Link>
                 <Link href="/admin/booking/completed-booking" className={getLinkClass("/admin/booking/completed-booking", true)}>
                   <span>Completed</span>
                 </Link>
-                <Link href="/admin/booking/visit-booking" className={getLinkClass("/admin/booking/visit-booking", true)}>
-                  <span>Visit Booking</span>
+                <Link href="/admin/booking/reject-booking" className={getLinkClass("/admin/booking/reject-booking", true)}>
+                  <span>Rejected</span>
                 </Link>
               </div>
             </div>
           </div>
           
-          {bottomItems.map((item, index) => (
+          {operationsItems.map((item, index) => (
             <Link
-              key={`bottom-${index}`}
+              key={`operations-${index}`}
               href={item.href}
               className={getLinkClass(item.href)}
             >
@@ -242,11 +254,70 @@ export default function Sidebar() {
             </Link>
           ))}
         </div>
+
+        {/* 4. Partners & Vendors */}
+        <div>
+          <div className="px-7 mb-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Partners & Vendors</div>
+          {partnerItems.map((item, index) => (
+            <Link
+              key={`partner-${index}`}
+              href={item.href}
+              className={getLinkClass(item.href)}
+            >
+              <div className="flex items-center space-x-3">
+                <span className={getIconClass(item.href)}>{item.icon}</span>
+                <span>{item.name}</span>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        {/* 5. Marketing & Promotions */}
+        <div>
+          <div className="px-7 mb-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Marketing & Ads</div>
+          {marketingItems.map((item, index) => (
+            <Link
+              key={`marketing-${index}`}
+              href={item.href}
+              className={getLinkClass(item.href)}
+            >
+              <div className="flex items-center space-x-3">
+                <span className={getIconClass(item.href)}>{item.icon}</span>
+                <span>{item.name}</span>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        {/* 6. Settings & Legal */}
+        <div>
+          <div className="px-7 mb-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Settings & Policies</div>
+          {settingsItems.map((item, index) => (
+            <Link
+              key={`settings-${index}`}
+              href={item.href}
+              className={getLinkClass(item.href)}
+            >
+              <div className="flex items-center space-x-3">
+                <span className={getIconClass(item.href)}>{item.icon}</span>
+                <span>{item.name}</span>
+              </div>
+            </Link>
+          ))}
+        </div>
+
       </div>
 
       {/* Logout */}
       <div className="px-6 py-5 mt-auto border-t border-slate-800/60 bg-[#0B1120]/95 backdrop-blur-md sticky bottom-0">
-        <button className="flex items-center space-x-3 w-full text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800 px-4 py-2.5 rounded-xl transition-all">
+        <button 
+          onClick={async () => {
+            await fetch("/api/admin/logout", { method: "POST" }).catch(() => {});
+            document.cookie = "admin_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+            window.location.href = "/admin/login";
+          }}
+          className="flex items-center space-x-3 w-full text-sm font-medium text-slate-400 hover:text-rose-400 hover:bg-slate-800 px-4 py-2.5 rounded-xl transition-all cursor-pointer"
+        >
           <LogOut className="w-[18px] h-[18px]" />
           <span>Logout</span>
         </button>

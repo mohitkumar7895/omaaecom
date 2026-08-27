@@ -1,34 +1,48 @@
 import { getSiteSettings, updateSiteSettings } from "@/app/actions/settings";
-import { Save, BellRing } from "lucide-react";
+import { Save, BellRing, Settings as SettingsIcon } from "lucide-react";
+import AdminPasswordSection from "./AdminPasswordSection";
 
 export default async function SettingsPage() {
   const settings = await getSiteSettings();
 
   return (
-    <div className="p-6 md:p-10 max-w-5xl mx-auto min-h-screen">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+    <div className="p-4 sm:p-6 md:p-10 max-w-5xl mx-auto min-h-screen space-y-8">
+      {/* Page Title */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Site Settings</h1>
-          <p className="text-gray-500 mt-1">Manage global website configuration and offers</p>
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-gray-900 text-white rounded-xl shadow-sm">
+              <SettingsIcon className="w-5 h-5" />
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">System Settings</h1>
+          </div>
+          <p className="text-gray-500 text-sm sm:text-base mt-1 ml-11">
+            Manage global website configuration, announcement banners, and admin security
+          </p>
         </div>
       </div>
 
+      {/* 1. Admin Security & Password Change */}
+      <AdminPasswordSection />
+
+      {/* 2. Announcement Bar / Marquee Settings */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-6 md:p-8 border-b border-gray-100 bg-gray-50/50">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-indigo-100 rounded-lg text-indigo-600">
               <BellRing className="w-5 h-5" />
             </div>
-            <h2 className="text-xl font-bold text-gray-900">Announcement Bar</h2>
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Announcement Bar</h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Display a scrolling offer line at the very top of the website
+              </p>
+            </div>
           </div>
-          <p className="text-sm text-gray-500 mt-2 ml-11">
-            Display a scrolling offer line at the very top of the website.
-          </p>
         </div>
 
         <div className="p-6 md:p-8">
           <form action={updateSiteSettings} className="space-y-6 max-w-2xl">
-            
             {/* Toggle Switch */}
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
               <div>
@@ -62,12 +76,11 @@ export default async function SettingsPage() {
             <div className="pt-4 border-t border-gray-100">
               <button 
                 type="submit"
-                className="flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-md active:scale-95"
+                className="flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-md active:scale-95 cursor-pointer"
               >
                 <Save className="w-4 h-4" /> Save Settings
               </button>
             </div>
-
           </form>
         </div>
       </div>

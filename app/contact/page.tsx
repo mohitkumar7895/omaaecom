@@ -1,6 +1,7 @@
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { MapPin, Phone, Mail } from "lucide-react";
+import ContactForm from "./ContactForm";
 
 export const metadata = {
   title: "Contact Us - OMAA Company",
@@ -86,42 +87,9 @@ export default function ContactPage() {
               </div>
             </div>
 
-            {/* Right Column - Form */}
+            {/* Right Column - Interactive Form */}
             <div className="lg:w-1/2">
-              <h2 className="text-gray-900 text-[22px] font-bold mb-3">Tell us about yourself</h2>
-              <p className="text-gray-500 text-sm mb-8 leading-relaxed max-w-sm">
-                Whether you have questions or you would just like to say hello, contact us.
-              </p>
-
-              <form className="space-y-5">
-                <div className="flex flex-col sm:flex-row gap-5">
-                  <input 
-                    type="text" 
-                    placeholder="Full name" 
-                    className="flex-1 bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
-                  />
-                  <input 
-                    type="email" 
-                    placeholder="Email" 
-                    className="flex-1 bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors"
-                  />
-                </div>
-                
-                <textarea 
-                  placeholder="Message" 
-                  rows={5}
-                  className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors resize-none"
-                ></textarea>
-
-                <div>
-                  <button 
-                    type="button"
-                    className="bg-[#6b46c1] hover:bg-[#5a3aa6] text-white font-medium text-sm px-8 py-3 rounded-md transition shadow-sm"
-                  >
-                    Send Messages &rarr;
-                  </button>
-                </div>
-              </form>
+              <ContactForm />
             </div>
 
           </div>
