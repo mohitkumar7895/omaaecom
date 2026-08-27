@@ -354,18 +354,18 @@ export default function MyBookingsPage() {
                           <span className="text-xs font-black text-gray-900">{formattedDate}</span>
                         </div>
 
-                        {/* Warranty Period or Expired Badge */}
+                        {/* Warranty or Expired Badge */}
                         {isWarrantyExpired ? (
-                          <div className="flex items-center gap-1 text-xs">
-                            <span className="text-[11px] font-bold text-gray-500 uppercase">Warranty:</span>
-                            <span className="px-2 py-0.5 rounded-md text-[11px] font-extrabold bg-rose-50 text-rose-700 border border-rose-200">
+                          <div className="flex items-center gap-1.5 text-xs">
+                            <span className="text-[11px] font-black text-gray-900 uppercase tracking-wide">WARRANTY:</span>
+                            <span className="px-2 py-0.5 rounded-md text-[11px] font-black bg-rose-50 text-rose-700 border border-rose-200">
                               Expired
                             </span>
                           </div>
                         ) : (
                           <div className="flex items-center gap-1.5 text-xs">
-                            <span className="text-[11px] font-bold text-gray-500 uppercase">Warranty Period:</span>
-                            <span className="font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md text-[11px]">
+                            <span className="text-[11px] font-black text-gray-900 uppercase tracking-wide">WARRANTY:</span>
+                            <span className="font-black text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md text-[11px]">
                               {warrantyDays} days
                             </span>
                           </div>
@@ -408,9 +408,9 @@ export default function MyBookingsPage() {
                       
                       {/* Payment Summary Box */}
                       <div className="bg-white rounded-lg p-3 border border-gray-100 shadow-2xs relative">
-                        <div className="flex items-center gap-1.5 mb-2 text-[11px] font-bold uppercase tracking-wider text-gray-500 border-b border-gray-50 pb-1">
-                          <ReceiptText className="w-3.5 h-3.5 text-gray-500" />
-                          <span>Payment Summary</span>
+                        <div className="flex items-center gap-1.5 mb-2 text-xs font-black uppercase tracking-wider text-gray-900 border-b border-gray-100 pb-1.5">
+                          <ReceiptText className="w-4 h-4 text-gray-800" />
+                          <span className="font-black text-gray-900">PAYMENT SUMMARY</span>
                         </div>
 
                         {/* Highlighted Coupon Box inside Payment Summary if available */}
@@ -464,14 +464,14 @@ export default function MyBookingsPage() {
                           </span>
                         </div>
 
-                        {/* Paid Stamp Graphic at Bottom Right */}
+                        {/* Paid Stamp Graphic at Bottom - Shifted slightly towards left & slightly bigger */}
                         {isComplete && (booking.payment_status === "Completed" || booking.payment_status === "Success" || booking.payment_status === "Paid" || Number(booking.total) > 0) && (
-                          <div className="flex justify-end mt-1 pr-3 sm:pr-5">
+                          <div className="flex justify-end mt-2 pr-10 sm:pr-16">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img 
                               src="/paid.svg" 
                               alt="PAID THANK YOU" 
-                              className="w-16 h-16 sm:w-20 sm:h-20 object-contain select-none hover:scale-110 transition-transform" 
+                              className="w-20 h-20 sm:w-24 sm:h-24 object-contain select-none hover:scale-105 transition-transform" 
                             />
                           </div>
                         )}

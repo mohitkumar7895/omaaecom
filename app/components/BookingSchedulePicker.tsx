@@ -212,7 +212,7 @@ export default function BookingSchedulePicker({
             )}
           </div>
           
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
             {timeSlots.map((slot, idx) => {
               const disabled = isSlotDisabled(slot);
               const ongoing = isSlotOngoing(slot);
@@ -224,7 +224,7 @@ export default function BookingSchedulePicker({
                   type="button"
                   disabled={disabled}
                   onClick={() => !disabled && onChange(selectedDate, slot)}
-                  className={`py-3 px-2 rounded-xl text-[11px] sm:text-[12px] font-bold transition-all duration-200 border text-center relative ${
+                  className={`py-2 px-1 sm:px-2 rounded-xl text-[9px] xs:text-[9.5px] sm:text-[10.5px] font-bold tracking-tight transition-all duration-200 border text-center relative whitespace-nowrap overflow-hidden ${
                     disabled 
                       ? "bg-gray-100/70 border-gray-200 text-gray-400 opacity-50 cursor-not-allowed line-through"
                       : isSelected
@@ -234,12 +234,12 @@ export default function BookingSchedulePicker({
                       : "bg-white border-gray-200 text-gray-700 hover:border-[#6b62d9]/50 hover:bg-[#f8f7ff] cursor-pointer"
                   }`}
                 >
-                  {slot}
+                  <span className="block tracking-tight text-[9px] xs:text-[9.5px] sm:text-[10.5px] font-black">{slot}</span>
                   {ongoing && !isSelected && (
-                    <span className="block text-[9px] font-bold text-emerald-600 no-underline not-italic">Active Now</span>
+                    <span className="block text-[8px] sm:text-[8.5px] font-bold text-emerald-600 no-underline not-italic tracking-normal mt-0.5">Active Now</span>
                   )}
                   {disabled && (
-                    <span className="block text-[9px] font-normal text-gray-400 no-underline not-italic">Passed</span>
+                    <span className="block text-[8px] sm:text-[8.5px] font-normal text-gray-400 no-underline not-italic tracking-normal mt-0.5">Passed</span>
                   )}
                 </button>
               );
