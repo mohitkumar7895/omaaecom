@@ -65,7 +65,8 @@ export default async function ManageBannersPage() {
                     <td className="px-6 py-4 border-r border-gray-100 text-center">
                       {row.banner1_url ? (
                         <div className="inline-block relative w-32 h-16 bg-gray-100 rounded overflow-hidden">
-                          <Image src={row.banner1_url} alt="Banner 1" fill className="object-contain" />
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={row.banner1_url} alt="Banner 1" className="w-full h-full object-contain" />
                         </div>
                       ) : (
                         <span className="text-gray-400 text-xs">No image</span>
@@ -75,7 +76,8 @@ export default async function ManageBannersPage() {
                     <td className="px-6 py-4 border-r border-gray-100 text-center">
                       {row.banner2_url ? (
                         <div className="inline-block relative w-32 h-16 bg-gray-100 rounded overflow-hidden">
-                          <Image src={row.banner2_url} alt="Banner 2" fill className="object-contain" />
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={row.banner2_url} alt="Banner 2" className="w-full h-full object-contain" />
                         </div>
                       ) : (
                         <span className="text-gray-400 text-xs">No image</span>
@@ -85,7 +87,8 @@ export default async function ManageBannersPage() {
                     <td className="px-6 py-4 border-r border-gray-100 text-center">
                       {row.banner3_url ? (
                         <div className="inline-block relative w-32 h-16 bg-gray-100 rounded overflow-hidden">
-                          <Image src={row.banner3_url} alt="Banner 3" fill className="object-contain" />
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={row.banner3_url} alt="Banner 3" className="w-full h-full object-contain" />
                         </div>
                       ) : (
                         <span className="text-gray-400 text-xs">No image</span>
@@ -94,9 +97,11 @@ export default async function ManageBannersPage() {
 
                     <td className="px-6 py-4">
                       <div className="flex items-center space-x-2">
-                        <button className="bg-[#ffc107] hover:bg-[#e0a800] text-gray-900 font-bold px-3 py-1 rounded text-[11px] transition">
-                          Edit
-                        </button>
+                        <Link href={`/admin/banners/${row.id}/edit`}>
+                          <button className="bg-[#ffc107] hover:bg-[#e0a800] text-gray-900 font-bold px-3 py-1 rounded text-[11px] transition">
+                            Edit
+                          </button>
+                        </Link>
                         <form action={deleteBanner}>
                           <input type="hidden" name="id" value={row.id} />
                           <button type="submit" className="bg-[#dc3545] hover:bg-[#c82333] text-white font-bold px-3 py-1 rounded text-[11px] transition">
