@@ -140,62 +140,64 @@ export default function CategoryView({ category, subcategories, services, rateCa
   return (
     <div className="max-w-7xl mx-auto w-full bg-white min-h-screen pb-24">
       {/* Header Area */}
-      <div className="pt-8 pb-5 px-6 lg:px-12 border-b border-gray-100 flex flex-wrap items-center justify-between gap-4">
+      <div className="pt-6 sm:pt-8 pb-4 sm:pb-5 px-3.5 sm:px-6 lg:px-12 border-b border-gray-100 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-[#111827] mb-1">{category.title}</h1>
           <p className="text-gray-500 text-xs sm:text-sm">Select a service ....</p>
         </div>
-
       </div>
 
       {/* Main Layout */}
-      <div className="flex flex-col lg:flex-row px-4 lg:px-12 py-4 lg:py-8 gap-6 lg:gap-8 relative">
+      <div className="flex flex-col lg:flex-row px-2 sm:px-4 lg:px-12 py-3 sm:py-4 lg:py-8 gap-4 lg:gap-8 relative">
         
-        {/* Left Sidebar (Sticky) */}
-        <div className="lg:w-[340px] flex-shrink-0 w-full mb-4 lg:mb-0">
-          <div className="sticky top-[70px] lg:top-[100px] bg-white border border-gray-100 rounded-2xl p-4 lg:p-6 shadow-sm overflow-x-auto z-10 hidden-scrollbar">
-            <div className="flex lg:grid lg:grid-cols-3 gap-3 lg:gap-4 min-w-max lg:min-w-0 pb-1 lg:pb-0">
+        {/* Left Sidebar (Sticky Subcategories Card - Flush on Mobile) */}
+        <div className="lg:w-[320px] xl:w-[340px] flex-shrink-0 w-full mb-3 lg:mb-0">
+          <div className="sticky top-[60px] lg:top-[90px] bg-white border border-gray-200/90 rounded-2xl sm:rounded-3xl p-2 sm:p-3 lg:p-4 shadow-xs z-20 w-full">
+            {/* Grid for up to 3 items on Mobile & Desktop, or Horizontal Scroll for > 3 */}
+            <div className={`gap-1.5 sm:gap-2.5 items-start ${
+              subcategories.length <= 3 
+                ? 'grid grid-cols-3 w-full' 
+                : 'flex overflow-x-auto min-w-max pb-1'
+            }`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
               {subcategories.map((sub) => {
                 const subServices = services.filter(s => s.subcategory_id === sub.id);
-                const fallbackImage = subServices.find(s => s.image_url)?.image_url;
+                // Pick real service image from services under this subcategory, or subcategory image
+                const serviceImage = subServices.find(s => s.image_url && s.image_url.length > 5)?.image_url;
+                const displayImg = serviceImage || sub.image_url;
+                const formattedTitle = (sub.title || "").replace(/\//g, ' / ').replace(/-/g, ' - ');
 
                 return (
                   <div 
                     key={sub.id}
                     onClick={() => scrollToSubcategory(sub.id)}
-                    className="flex flex-col items-center gap-1.5 lg:gap-2 cursor-pointer group w-[70px] lg:w-auto"
-                  >
-                    <div className={`w-[60px] h-[60px] lg:w-[72px] lg:h-[72px] rounded-2xl p-1 transition-all duration-300 ease-in-out transform ${
+                    className={`flex flex-col items-center justify-start p-1.5 sm:p-2 rounded-xl cursor-pointer transition-all duration-200 group w-full ${
                       activeSubcat === sub.id 
-                        ? 'border-2 border-[#6069c9] scale-105' 
-                        : 'border-2 border-transparent hover:border-[#6069c9] hover:scale-105 hover:shadow-md'
-                    }`}>
-                      <div className="w-full h-full bg-gray-100 rounded-xl overflow-hidden flex items-center justify-center text-[#2c3e50] font-bold text-xl bg-[#e2e5fc]">
-                        {(sub.image_url || fallbackImage) ? (
-                          <img 
-                            src={sub.image_url || fallbackImage} 
-                            alt={sub.title} 
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" 
-                          />
-                        ) : (
-                          <img 
-                            src={
-                              sub.title.toLowerCase().includes('service') 
-                                ? '/uploads/services/1787316110905-foam-jet-ac.webp'
-                                : sub.title.toLowerCase().includes('repair')
-                                ? '/uploads/services/1787316608900-Ac-repair.webp'
-                                : sub.title.toLowerCase().includes('install')
-                                ? '/uploads/services/1787316910874-Window-Ac-un.webp'
-                                : '/uploads/services/1787316110905-foam-jet-ac.webp'
-                            } 
-                            alt={sub.title} 
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" 
-                          />
-                        )}
-                      </div>
+                        ? 'bg-[#eef1fc] ring-2 ring-[#5c67b8] shadow-xs' 
+                        : 'bg-[#fafafc] hover:bg-[#f0f2fa] border border-transparent'
+                    }`}
+                  >
+                    {/* Distinct Real Photo Tile */}
+                    <div className="w-full aspect-square max-w-[54px] sm:max-w-[64px] lg:max-w-[72px] rounded-lg overflow-hidden bg-white shadow-2xs border border-gray-100 flex items-center justify-center p-1 mb-1">
+                      {displayImg ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img 
+                          src={displayImg} 
+                          alt={sub.title} 
+                          className="w-full h-full object-contain group-hover:scale-105 transition-transform" 
+                        />
+                      ) : (
+                        <span className="text-[20px]">🛠️</span>
+                      )}
                     </div>
-                    <span className={`text-xs text-center font-semibold leading-tight ${activeSubcat === sub.id ? 'text-[#6069c9]' : 'text-gray-600 group-hover:text-[#6069c9]'}`}>
-                      {sub.title}
+
+                    {/* Label with auto-wrap for zero overlap */}
+                    <span 
+                      className={`text-[10px] sm:text-[11px] lg:text-[12px] text-center font-bold leading-tight break-words w-full px-0.5 ${
+                        activeSubcat === sub.id ? 'text-[#5c67b8]' : 'text-gray-700 group-hover:text-[#5c67b8]'
+                      }`}
+                      style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}
+                    >
+                      {formattedTitle}
                     </span>
                   </div>
                 );
