@@ -1,7 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { User as UserIcon, Wallet, CalendarDays, History, Clock, MapPin, Settings, Share2, Info, LogOut, Headset, X } from "lucide-react";
+import { 
+  User as UserIcon, 
+  WalletCards, 
+  ShieldCheck, 
+  CalendarCheck2, 
+  MapPin, 
+  Settings, 
+  Share2, 
+  Building2, 
+  LogOut, 
+  Headset, 
+  X 
+} from "lucide-react";
 
 interface ProfileDropdownProps {
   user: any;
@@ -53,13 +65,13 @@ export default function ProfileDropdown({ user, onLogout, isOpen, onClose }: Pro
 
       {/* Links List */}
       <div className="py-2 flex flex-col max-h-[60vh] overflow-y-auto hidden-scrollbar">
-        <DropdownItem href="/my-bookings" icon={<Clock className="w-4 h-4" />} label="My Bookings" />
-        <DropdownItem href="/my-amc" icon={<CalendarDays className="w-4 h-4" />} label="My AMC Plans" />
-        <DropdownItem href="/wallet" icon={<Wallet className="w-4 h-4" />} label="Wallet" />
-        <DropdownItem href="/manage-address" icon={<MapPin className="w-4 h-4" />} label="Manage Address" />
-        <DropdownItem href="/settings" icon={<Settings className="w-4 h-4" />} label="Settings" />
-        <DropdownItem href="/about" icon={<Info className="w-4 h-4" />} label="About" />
-        <DropdownItem href="/contact" icon={<Headset className="w-4 h-4" />} label="Contact Us" />
+        <DropdownItem href="/my-bookings" icon={<CalendarCheck2 className="w-4 h-4 text-indigo-600" />} label="My Bookings" />
+        <DropdownItem href="/my-amc" icon={<ShieldCheck className="w-4 h-4 text-emerald-600" />} label="My AMC Plans" />
+        <DropdownItem href="/wallet" icon={<WalletCards className="w-4 h-4 text-amber-500" />} label="Wallet" />
+        <DropdownItem href="/manage-address" icon={<MapPin className="w-4 h-4 text-rose-500" />} label="Manage Address" />
+        <DropdownItem href="/settings" icon={<Settings className="w-4 h-4 text-slate-600" />} label="Settings" />
+        <DropdownItem href="/about" icon={<Building2 className="w-4 h-4 text-blue-600" />} label="About" />
+        <DropdownItem href="/contact" icon={<Headset className="w-4 h-4 text-purple-600" />} label="Contact Us" />
         
         {/* Refer & Earn Banner Item */}
         <a href="https://www.omaacompany.in" target="_blank" rel="noopener noreferrer" className="mx-3 my-2 block">
@@ -98,12 +110,12 @@ function DropdownItem({ href, icon, label }: { href: string; icon: React.ReactNo
   return (
     <Link 
       href={href}
-      className="flex items-center gap-3 px-5 py-3 text-gray-700 hover:bg-gray-50 hover:text-[#6069c9] transition-colors group"
+      className="flex items-center gap-3 px-5 py-2.5 text-gray-700 hover:bg-gray-50/80 hover:text-[#6069c9] transition-all group"
     >
-      <div className="text-gray-400 group-hover:text-[#6069c9] transition-colors">
+      <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center group-hover:bg-[#f0effb] group-hover:scale-105 transition-all shrink-0">
         {icon}
       </div>
-      <span className="text-[14px] font-semibold">{label}</span>
+      <span className="text-[14px] font-semibold text-gray-800 group-hover:text-[#6069c9] transition-colors">{label}</span>
     </Link>
   );
 }
