@@ -46,11 +46,11 @@ export default function RatingReviewModal() {
     try {
       // Don't disturb if user dismissed in this browser session
       const dismissedOrder = sessionStorage.getItem("omaa_dismissed_rating_order");
-      
+
       const res = await fetch("/api/bookings/pending-review", { cache: "no-store" });
       if (!res.ok) return;
       const data = await res.json();
-      
+
       if (data.pendingBooking) {
         if (dismissedOrder === data.pendingBooking.order_id) {
           return;
@@ -58,7 +58,7 @@ export default function RatingReviewModal() {
         setBooking(data.pendingBooking);
         setIsOpen(true);
       }
-    } catch (_) {}
+    } catch (_) { }
   };
 
   useEffect(() => {
@@ -124,7 +124,7 @@ export default function RatingReviewModal() {
         setIsSubmitted(true);
         // Clear session dismiss
         sessionStorage.removeItem("omaa_dismissed_rating_order");
-        
+
         // Notify other components (like MyBookings) to refresh
         window.dispatchEvent(new Event("rating_submitted"));
 
@@ -154,7 +154,7 @@ export default function RatingReviewModal() {
 
   return (
     <div className="fixed inset-0 z-[99999] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/65 backdrop-blur-md animate-fade-in">
-      <div 
+      <div
         className="relative w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl border border-gray-100 overflow-hidden transform transition-all duration-300 animate-scale-up max-h-[92dvh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
@@ -234,11 +234,10 @@ export default function RatingReviewModal() {
                       className="p-1 cursor-pointer transition-transform hover:scale-125 active:scale-95 focus:outline-none"
                     >
                       <Star
-                        className={`w-9 h-9 sm:w-10 sm:h-10 transition-colors duration-200 ${
-                          star <= currentDisplayRating
+                        className={`w-9 h-9 sm:w-10 sm:h-10 transition-colors duration-200 ${star <= currentDisplayRating
                             ? "fill-amber-400 text-amber-400 drop-shadow-md"
                             : "fill-gray-100 text-gray-300 hover:text-amber-200"
-                        }`}
+                          }`}
                       />
                     </button>
                   ))}
@@ -266,11 +265,10 @@ export default function RatingReviewModal() {
                         key={tag}
                         type="button"
                         onClick={() => handleTagToggle(tag)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-all duration-200 border ${
-                          isSelected
+                        className={`px-3 py-1.5 rounded-full text-xs font-semibold cursor-pointer transition-all duration-200 border ${isSelected
                             ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-transparent shadow-sm scale-102"
                             : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100 hover:border-gray-300"
-                        }`}
+                          }`}
                       >
                         {tag}
                       </button>

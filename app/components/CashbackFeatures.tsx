@@ -431,7 +431,7 @@ export default function CashbackFeatures({ orderId, isEligible = true }: Cashbac
                           </div>
                           <h3 className="text-2xl font-black text-gray-900 mb-1">Today's Cashback Ready! 🎉</h3>
                           <p className="text-gray-500 font-medium mb-5 text-sm">
-                            Click below to claim <b>₹{cashbackData.cashback_amount || 4}</b> into your Omaa Wallet. You must claim daily to receive your cashback.
+                            Click below to claim <b>₹4</b> into your Omaa Wallet. You must claim daily to receive your cashback.
                           </p>
 
                           <button 
@@ -440,7 +440,7 @@ export default function CashbackFeatures({ orderId, isEligible = true }: Cashbac
                             className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-black text-lg shadow-lg transition active:scale-95 cursor-pointer flex items-center justify-center gap-2"
                           >
                             <Gift className="w-6 h-6" />
-                            <span>{claiming ? "Crediting Wallet..." : `Claim ₹${cashbackData.cashback_amount || 4} to Wallet`}</span>
+                            <span>{claiming ? "Crediting Wallet..." : `Claim ₹4 to Wallet`}</span>
                           </button>
 
                           <div className="mt-4 p-3 bg-amber-50 rounded-xl border border-amber-100 text-xs text-amber-800 font-medium text-left flex items-start gap-2">
@@ -490,7 +490,7 @@ export default function CashbackFeatures({ orderId, isEligible = true }: Cashbac
             className="px-4 py-1.5 rounded-xl text-xs font-black transition-all bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white flex items-center gap-1.5 shadow-md active:scale-95 cursor-pointer animate-pulse"
           >
             <Gift className="w-3.5 h-3.5 text-white" />
-            <span>{claiming ? "Claiming..." : `Claim Cashback (₹${cashbackData.cashback_amount || 4})`}</span>
+            <span>{claiming ? "Claiming..." : `Claim Cashback (₹4)`}</span>
           </button>
         )
       ) : (

@@ -472,8 +472,8 @@ export default function MyAmcPage() {
                           <span className="font-black text-gray-900">PAYMENT SUMMARY</span>
                         </div>
 
-                        {/* Highlighted Coupon Box inside Payment Summary if available */}
-                        {booking.coupon_code && (
+                        {/* Highlighted Coupon Box inside Payment Summary if available and completed */}
+                        {isComplete && booking.coupon_code && (
                           <div className="bg-amber-50/80 border border-amber-200/90 rounded-lg p-2 mb-2 flex items-center justify-between">
                             <div className="flex items-center gap-1.5">
                               <span className="text-amber-700 font-bold text-xs">🎫 Coupon Code</span>
