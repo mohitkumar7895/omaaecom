@@ -2,7 +2,30 @@
 
 import { useEffect, useState, Suspense } from "react";
 import Navbar from "../components/Navbar";
-import { CheckCircle2, Lock, ShieldCheck, Hash, IndianRupee, Calendar, Clock, MapPin, CreditCard, Edit, Home, List, AlertCircle, Mail } from "lucide-react";
+import { 
+  CheckCircle2, 
+  Lock, 
+  ShieldCheck, 
+  Hash, 
+  IndianRupee, 
+  Calendar, 
+  Clock, 
+  MapPin, 
+  CreditCard, 
+  Edit, 
+  Home, 
+  List, 
+  AlertCircle, 
+  Mail, 
+  QrCode, 
+  Copy, 
+  Check, 
+  X, 
+  Smartphone, 
+  Sparkles, 
+  ArrowRight,
+  ShieldCheck as ShieldIcon
+} from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import BookingSchedulePicker from "../components/BookingSchedulePicker";
 import CashbackFeatures from "../components/CashbackFeatures";
@@ -19,6 +42,10 @@ function CheckoutContent() {
   const [orderId, setOrderId] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [gstSettings, setGstSettings] = useState<any>(null);
+  
+  // QR Payment Modal State
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [copiedUpi, setCopiedUpi] = useState(false);
 
   const [form, setForm] = useState({
     name: '',
@@ -171,7 +198,15 @@ function CheckoutContent() {
     return newErrors;
   };
 
-  const handleSubmit = async () => {
+  const handleCopyUpi = () => {
+    navigator.clipboard.writeText("omacr8ewa@idfcbank");
+    setCopiedUpi(true);
+    setTimeout(() => {
+      setCopiedUpi(false);
+    }, 2500);
+  };
+
+  const handleProceed = () => {
     const newErrors = validate();
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -199,6 +234,15 @@ function CheckoutContent() {
       return;
     }
 
+    // If online payment is selected, show the QR scanner popup modal
+    if (paymentMethod === 'online') {
+      setShowQrModal(true);
+    } else {
+      handleSubmit();
+    }
+  };
+
+  const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
       const res = await fetch('/api/bookings', {
@@ -223,6 +267,7 @@ function CheckoutContent() {
         setBookedItems([...cart]);
         localStorage.removeItem('omaa_cart');
         setOrderId(data.order_id || '');
+        setShowQrModal(false);
         setSuccess(true);
       } else {
         const err = await res.json();
@@ -320,12 +365,19 @@ function CheckoutContent() {
               {/* 3. Payment Method */}
               <div className="pb-4 border-b border-gray-200/60">
                 <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1.5"><IndianRupee className="w-3.5 h-3.5"/> Payment Method</p>
-                <span className="inline-block px-3 py-1 bg-gray-100 text-gray-800 text-[12px] font-bold rounded-lg border border-gray-200/80">
-                  {paymentMethod === 'online' ? 'Online Paid' : 'Pay at Site (Cash/UPI)'}
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-[12px] font-bold rounded-lg border ${paymentMethod === 'online' ? 'bg-indigo-50 text-[#6b62d9] border-indigo-200' : 'bg-gray-100 text-gray-800 border-gray-200'}`}>
+                  {paymentMethod === 'online' ? (
+                    <>
+                      <QrCode className="w-3.5 h-3.5" />
+                      <span>Online Paid (UPI / QR)</span>
+                    </>
+                  ) : (
+                    'Pay at Site (Cash/UPI)'
+                  )}
                 </span>
               </div>
 
-              {/* 4. Order ID & Total Amount (Address ke Upar) */}
+              {/* 4. Order ID & Total Amount */}
               <div className="flex justify-between items-center pb-4 border-b border-gray-200/60">
                 <div>
                   <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1">Order ID</p>
@@ -337,7 +389,7 @@ function CheckoutContent() {
                 </div>
               </div>
 
-              {/* 5. Address (Sabse Neeche) */}
+              {/* 5. Address */}
               <div>
                 <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5"/> Address</p>
                 <p className="text-gray-800 font-semibold text-[13px] leading-relaxed">{form.address}</p>
@@ -440,7 +492,7 @@ function CheckoutContent() {
                 <div className="space-y-2" id="container-address">
                   <label className="text-[13px] font-bold text-gray-700 block">Service Address</label>
 
-                  {/* 1. Manual Address Textarea (Upar) */}
+                  {/* 1. Manual Address Textarea */}
                   <textarea 
                     rows={3}
                     id="field-address"
@@ -452,7 +504,7 @@ function CheckoutContent() {
                   ></textarea>
                   {errors.address && <p className="text-red-500 text-xs font-medium flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5"/>{errors.address}</p>}
 
-                  {/* 2. Compact Search Address Bar + Use GPS Button side-by-side (Neeche) */}
+                  {/* 2. Compact Search Address Bar + Use GPS Button side-by-side */}
                   <div className="flex items-center gap-2 pt-0.5">
                     <div className="relative flex-1">
                       <input
@@ -477,7 +529,7 @@ function CheckoutContent() {
                       )}
                     </div>
 
-                    {/* Use GPS Button right next to search input */}
+                    {/* Use GPS Button */}
                     <button
                       type="button"
                       onClick={async () => {
@@ -600,48 +652,91 @@ function CheckoutContent() {
                 </div>
               </div>
 
-              <div className="mb-8">
-                <p className="text-[12px] font-black text-gray-400 tracking-widest mb-4 uppercase">Select Payment Method</p>
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <label className={`flex-1 border-2 rounded-2xl p-5 cursor-pointer flex flex-col items-start transition-all duration-300 relative overflow-hidden group ${paymentMethod === 'online' ? 'border-[#6b62d9] bg-[#f8f7ff] shadow-[0_4px_20px_rgba(107,98,217,0.15)] ring-1 ring-[#6b62d9]' : 'border-gray-200 hover:border-[#6b62d9]/50 hover:bg-gray-50 bg-white'}`}>
-                    <input type="radio" name="payment_method" value="online" checked={paymentMethod === 'online'} onChange={() => setPaymentMethod('online')} className="hidden" />
-                    {paymentMethod === 'online' && <div className="absolute top-3 right-3 text-[#6b62d9]"><CheckCircle2 className="w-5 h-5 fill-[#6b62d9]/20" /></div>}
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-3 transition-colors ${paymentMethod === 'online' ? 'bg-[#6b62d9] text-white' : 'bg-gray-100 text-gray-400 group-hover:bg-[#6b62d9]/10 group-hover:text-[#6b62d9]'}`}>
-                      <CreditCard className="w-5 h-5" />
+              {/* Payment Method Selector */}
+              <div className="mb-6">
+                <p className="text-[12px] font-black text-gray-400 tracking-widest mb-3 uppercase">Select Payment Method</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  
+                  {/* Pay Online with QR (1-Click Opens Scanner) */}
+                  <div 
+                    onClick={() => {
+                      setPaymentMethod('online');
+                      setShowQrModal(true);
+                    }}
+                    className={`border-2 rounded-2xl p-4 sm:p-5 cursor-pointer flex flex-col items-start transition-all duration-300 relative overflow-hidden group select-none ${
+                      paymentMethod === 'online' 
+                        ? 'border-[#6b62d9] bg-[#f8f7ff] shadow-[0_4px_20px_rgba(107,98,217,0.15)] ring-1 ring-[#6b62d9]' 
+                        : 'border-gray-200 hover:border-[#6b62d9]/60 hover:bg-gray-50 bg-white'
+                    }`}
+                  >
+                    <input type="radio" name="payment_method" value="online" checked={paymentMethod === 'online'} readOnly className="hidden" />
+                    
+                    <div className="flex items-center justify-between w-full mb-2.5">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${paymentMethod === 'online' ? 'bg-[#6b62d9] text-white shadow-sm' : 'bg-gray-100 text-gray-400 group-hover:bg-[#6b62d9]/10 group-hover:text-[#6b62d9]'}`}>
+                        <QrCode className="w-4 h-4" />
+                      </div>
+                      <span className="bg-[#6b62d9]/10 text-[#6b62d9] text-[10.5px] font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1 group-hover:bg-[#6b62d9] group-hover:text-white transition-colors">
+                        <Sparkles className="w-2.5 h-2.5" /> Scan QR
+                      </span>
                     </div>
-                    <p className={`font-bold text-[15px] ${paymentMethod === 'online' ? 'text-[#6b62d9]' : 'text-gray-900'}`}>Pay Online</p>
-                    <p className={`text-[12px] mt-1 font-medium ${paymentMethod === 'online' ? 'text-[#6b62d9]/70' : 'text-gray-500'}`}>UPI, Cards, Wallets</p>
-                  </label>
 
-                  <label className={`flex-1 border-2 rounded-2xl p-5 cursor-pointer flex flex-col items-start transition-all duration-300 relative overflow-hidden group ${paymentMethod === 'cash' ? 'border-[#328e3b] bg-[#f0f9f2] shadow-[0_4px_20px_rgba(50,142,59,0.15)] ring-1 ring-[#328e3b]' : 'border-gray-200 hover:border-[#328e3b]/50 hover:bg-gray-50 bg-white'}`}>
-                    <input type="radio" name="payment_method" value="cash" checked={paymentMethod === 'cash'} onChange={() => setPaymentMethod('cash')} className="hidden" />
-                    {paymentMethod === 'cash' && <div className="absolute top-3 right-3 text-[#328e3b]"><CheckCircle2 className="w-5 h-5 fill-[#328e3b]/20" /></div>}
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-3 transition-colors ${paymentMethod === 'cash' ? 'bg-[#328e3b] text-white' : 'bg-gray-100 text-gray-400 group-hover:bg-[#328e3b]/10 group-hover:text-[#328e3b]'}`}>
-                      <IndianRupee className="w-5 h-5" />
+                    <div className="flex items-center gap-1.5">
+                      <p className={`font-extrabold text-[15px] ${paymentMethod === 'online' ? 'text-[#6b62d9]' : 'text-gray-900'}`}>Pay Online</p>
                     </div>
-                    <p className={`font-bold text-[15px] ${paymentMethod === 'cash' ? 'text-[#328e3b]' : 'text-gray-900'}`}>Pay Cash</p>
-                    <p className={`text-[12px] mt-1 font-medium ${paymentMethod === 'cash' ? 'text-[#328e3b]/70' : 'text-gray-500'}`}>After service</p>
-                  </label>
+                    <p className={`text-[11.5px] mt-0.5 font-medium ${paymentMethod === 'online' ? 'text-[#6b62d9]/80' : 'text-gray-500'}`}>
+                      GPay, PhonePe, Paytm & Cards
+                    </p>
+                  </div>
+
+                  {/* Pay Cash */}
+                  <div 
+                    onClick={() => setPaymentMethod('cash')}
+                    className={`border-2 rounded-2xl p-4 sm:p-5 cursor-pointer flex flex-col items-start transition-all duration-300 relative overflow-hidden group select-none ${
+                      paymentMethod === 'cash' 
+                        ? 'border-[#328e3b] bg-[#f0f9f2] shadow-[0_4px_20px_rgba(50,142,59,0.15)] ring-1 ring-[#328e3b]' 
+                        : 'border-gray-200 hover:border-[#328e3b]/60 hover:bg-gray-50 bg-white'
+                    }`}
+                  >
+                    <input type="radio" name="payment_method" value="cash" checked={paymentMethod === 'cash'} readOnly className="hidden" />
+                    
+                    <div className="flex items-center justify-between w-full mb-2.5">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${paymentMethod === 'cash' ? 'bg-[#328e3b] text-white shadow-sm' : 'bg-gray-100 text-gray-400 group-hover:bg-[#328e3b]/10 group-hover:text-[#328e3b]'}`}>
+                        <IndianRupee className="w-4 h-4" />
+                      </div>
+                      {paymentMethod === 'cash' && (
+                        <div className="text-[#328e3b]">
+                          <CheckCircle2 className="w-4 h-4 fill-[#328e3b]/20" />
+                        </div>
+                      )}
+                    </div>
+
+                    <p className={`font-extrabold text-[15px] ${paymentMethod === 'cash' ? 'text-[#328e3b]' : 'text-gray-900'}`}>Pay Cash</p>
+                    <p className={`text-[11.5px] mt-0.5 font-medium ${paymentMethod === 'cash' ? 'text-[#328e3b]/80' : 'text-gray-500'}`}>
+                      Pay after service
+                    </p>
+                  </div>
+
                 </div>
               </div>
 
+              {/* Main Submit / Proceed Button */}
               <button 
-                onClick={handleSubmit}
+                onClick={handleProceed}
                 disabled={isSubmitting || cart.length === 0}
-                className="w-full bg-[#6b62d9] hover:bg-[#5b52c9] hover:scale-[1.01] active:scale-95 disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed text-white font-extrabold text-lg py-5 rounded-2xl transition-all duration-300 shadow-[0_8px_25px_rgba(107,98,217,0.35)] flex justify-center items-center gap-3 mb-5 group"
+                className="w-full bg-[#6b62d9] hover:bg-[#5b52c9] hover:scale-[1.01] active:scale-95 disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed text-white font-extrabold text-base sm:text-lg py-4 sm:py-5 rounded-2xl transition-all duration-300 shadow-[0_8px_25px_rgba(107,98,217,0.35)] flex justify-center items-center gap-3 mb-5 group cursor-pointer"
               >
                 {isSubmitting ? (
                   <span className="flex items-center gap-3"><div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Processing...</span>
                 ) : (
                   <>
-                    {paymentMethod === 'online' ? 'Proceed to Secure Pay' : 'Confirm Cash Booking'}
-                    <span className="font-normal opacity-80 text-base">| ₹{Math.round(totalAmount).toLocaleString()}</span>
+                    {paymentMethod === 'online' ? 'Proceed to Pay Online' : 'Confirm Cash Booking'}
+                    <span className="font-normal opacity-80 text-sm sm:text-base">| ₹{Math.round(totalAmount).toLocaleString()}</span>
                     <Lock className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
                   </>
                 )}
               </button>
 
-              <div className="flex items-center justify-center gap-2 text-gray-400 text-[13px] font-semibold bg-gray-50 py-3 rounded-xl border border-gray-100">
+              <div className="flex items-center justify-center gap-2 text-gray-400 text-[12.5px] font-semibold bg-gray-50 py-3 rounded-xl border border-gray-100">
                 <ShieldCheck className="w-4 h-4 text-[#328e3b]" /> SSL Encrypted & Secure Checkout
               </div>
 
@@ -650,6 +745,153 @@ function CheckoutContent() {
 
         </div>
       </div>
+
+      {/* ========================================================================= */}
+      {/* 🚀 COMPACT, RESPONSIVE & SLEEK UPI QR MODAL */}
+      {/* ========================================================================= */}
+      {showQrModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200"
+          onClick={() => setShowQrModal(false)}
+        >
+          <div 
+            className="bg-white rounded-[28px] w-full max-w-[390px] shadow-[0_25px_70px_rgba(0,0,0,0.4)] border border-gray-100 overflow-hidden relative my-auto animate-in zoom-in-95 duration-200"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-[#584ec6] via-[#6b62d9] to-[#7f74e6] text-white px-5 py-4 relative">
+              <button 
+                onClick={() => setShowQrModal(false)}
+                className="absolute top-3.5 right-3.5 w-8 h-8 rounded-full bg-white/15 hover:bg-white/30 flex items-center justify-center text-white transition active:scale-95 cursor-pointer"
+                title="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="flex items-center justify-between pr-8">
+                <div>
+                  <div className="flex items-center gap-1.5 text-[10.5px] font-extrabold uppercase tracking-wider text-indigo-100">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
+                    <span>Verified Merchant</span>
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-black text-white tracking-tight mt-0.5">Scan & Pay via UPI</h3>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] font-bold text-indigo-200 block uppercase">Payable</span>
+                  <span className="text-lg font-black text-white">₹{Math.round(totalAmount).toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-4 sm:p-5 space-y-3.5">
+              
+              {/* QR Image Card */}
+              <div className="bg-white rounded-2xl p-2.5 sm:p-3 border-2 border-indigo-100/90 shadow-2xs text-center relative group">
+                
+                {/* Decorative corner accents */}
+                <div className="absolute top-1.5 left-1.5 w-3.5 h-3.5 border-t-2 border-l-2 border-[#6b62d9] rounded-tl pointer-events-none"></div>
+                <div className="absolute top-1.5 right-1.5 w-3.5 h-3.5 border-t-2 border-r-2 border-[#6b62d9] rounded-tr pointer-events-none"></div>
+                <div className="absolute bottom-1.5 left-1.5 w-3.5 h-3.5 border-b-2 border-l-2 border-[#6b62d9] rounded-bl pointer-events-none"></div>
+                <div className="absolute bottom-1.5 right-1.5 w-3.5 h-3.5 border-b-2 border-r-2 border-[#6b62d9] rounded-br pointer-events-none"></div>
+
+                <img 
+                  src="/scanner.jpeg" 
+                  alt="IDFC Bank UPI QR Scanner" 
+                  className="w-44 sm:w-48 h-auto max-h-[220px] object-contain rounded-lg mx-auto shadow-2xs"
+                />
+                
+                <p className="text-[11px] text-gray-500 font-semibold mt-2 flex items-center justify-center gap-1.5">
+                  <Smartphone className="w-3.5 h-3.5 text-[#6b62d9]" />
+                  Scan with GPay, PhonePe, Paytm or Any UPI App
+                </p>
+              </div>
+
+              {/* UPI ID Box with 1-Click Copy */}
+              <div className="bg-gray-50/90 rounded-xl p-2.5 sm:p-3 border border-gray-200 flex items-center justify-between gap-2">
+                <div className="min-w-0 flex-1 pl-1">
+                  <p className="text-[9.5px] font-extrabold text-gray-400 uppercase tracking-wider">UPI ID</p>
+                  <p className="font-mono font-bold text-gray-900 text-xs sm:text-[13.5px] truncate select-all">
+                    omacr8ewa@idfcbank
+                  </p>
+                </div>
+                
+                <button
+                  type="button"
+                  onClick={handleCopyUpi}
+                  className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-2xs ${
+                    copiedUpi 
+                      ? 'bg-emerald-600 text-white' 
+                      : 'bg-[#6b62d9] hover:bg-[#5b52c9] text-white'
+                  }`}
+                >
+                  {copiedUpi ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      <span>Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Copy UPI</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Direct UPI Intent Link (For Mobile Phones) */}
+              <a
+                href={`upi://pay?pa=omacr8ewa@idfcbank&pn=OMAA%20CURRENTSEWA%20INDIA%20PVT%20LTD&am=${Math.round(totalAmount)}&cu=INR&tn=OMAA%20Service%20Booking`}
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 transition active:scale-95 shadow-2xs sm:hidden"
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+                <span>Tap to Pay with Installed UPI App</span>
+              </a>
+
+              {/* Supported UPI Apps Badges */}
+              <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold text-gray-600 flex-wrap">
+                <span className="bg-gray-100 px-2 py-0.5 rounded-md">Google Pay</span>
+                <span className="bg-gray-100 px-2 py-0.5 rounded-md">PhonePe</span>
+                <span className="bg-gray-100 px-2 py-0.5 rounded-md">Paytm</span>
+                <span className="bg-gray-100 px-2 py-0.5 rounded-md">BHIM</span>
+                <span className="bg-gray-100 px-2 py-0.5 rounded-md">Cred</span>
+              </div>
+
+              {/* Payment Confirmation Action */}
+              <div className="pt-1 space-y-2">
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className="w-full bg-[#6b62d9] hover:bg-[#5b52c9] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white font-extrabold text-sm sm:text-base py-3.5 rounded-xl transition-all shadow-[0_4px_18px_rgba(107,98,217,0.35)] flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {isSubmitting ? (
+                    <span className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Confirming Booking...</span>
+                    </span>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+                      <span>I Have Paid • Confirm Booking</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowQrModal(false)}
+                  disabled={isSubmitting}
+                  className="w-full text-gray-400 hover:text-gray-700 font-bold text-[11px] py-1 text-center transition cursor-pointer"
+                >
+                  Cancel / Edit Details
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
       
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
@@ -678,4 +920,6 @@ export default function CheckoutPage() {
     </Suspense>
   );
 }
+
+
 
