@@ -75,7 +75,12 @@ export default function EditCategoryForm({ category }: { category: any }) {
             </div>
 
             <div className="space-y-2 md:col-span-2 mt-2">
-              <label className="text-[13px] font-bold text-gray-800">New Image (optional)</label>
+              <div className="flex items-center justify-between">
+                <label className="text-[13px] font-bold text-gray-800">New Image (optional)</label>
+                <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                  Recommended: 500 × 500 px (Square 1:1)
+                </span>
+              </div>
               <input 
                 type="file" 
                 name="image"

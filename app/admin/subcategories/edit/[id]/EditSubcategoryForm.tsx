@@ -92,9 +92,14 @@ export default function EditSubcategoryForm({ subcategory, categories }: { subca
 
             {/* Upload New Image */}
             <div>
-              <label className="block text-[#2c3e50] text-[15px] font-bold mb-2">
-                Upload New Image <span className="text-gray-400 font-normal text-xs ml-2">(Optional)</span>
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-[#2c3e50] text-[15px] font-bold">
+                  Upload New Image <span className="text-gray-400 font-normal text-xs ml-2">(Optional)</span>
+                </label>
+                <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                  Recommended: 500 × 500 px (Square 1:1)
+                </span>
+              </div>
               <input 
                 type="file" 
                 name="image"

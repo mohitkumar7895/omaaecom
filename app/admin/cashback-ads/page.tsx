@@ -352,6 +352,12 @@ export default function CashbackAdsAdmin() {
               </div>
             ) : (
               <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">Ad Images</span>
+                  <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                    Recommended: 800 × 400 px (2:1) or 600 × 450 px (4:3)
+                  </span>
+                </div>
                 <input
                   type="file"
                   accept="image/png,image/jpeg,image/webp"

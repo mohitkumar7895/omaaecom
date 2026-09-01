@@ -150,9 +150,14 @@ export default function AddServiceForm({ categories, subcategories }: { categori
 
             {/* Upload Image */}
             <div>
-              <label className="block text-[#2c3e50] text-[15px] font-bold mb-2">
-                Service Image
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-[#2c3e50] text-[15px] font-bold">
+                  Service Image
+                </label>
+                <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                  Recommended: 600 × 400 px (3:2) / 500 × 500 px (1:1)
+                </span>
+              </div>
               <input 
                 type="file" 
                 name="image"

@@ -55,7 +55,12 @@ export default function AddBrandForm({ categories }: { categories: any[] }) {
 
             {/* Brand Logo */}
             <div className="space-y-1.5">
-              <label className="text-[14px] font-bold text-gray-800">Brand Logo</label>
+              <div className="flex items-center justify-between">
+                <label className="text-[14px] font-bold text-gray-800">Brand Logo</label>
+                <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                  Recommended: 300 × 300 px (Square 1:1) / PNG
+                </span>
+              </div>
               <div className="flex">
                 <input 
                   type="file" 
@@ -71,7 +76,7 @@ export default function AddBrandForm({ categories }: { categories: any[] }) {
                     border border-gray-200 rounded bg-white transition"
                 />
               </div>
-              <p className="text-xs text-gray-400 mt-1">Recommended: Square image, transparent background PNG.</p>
+              <p className="text-xs text-gray-400 mt-1">Recommended size: 300 × 300 px (1:1 ratio), transparent PNG for best display.</p>
             </div>
 
             {/* Status */}

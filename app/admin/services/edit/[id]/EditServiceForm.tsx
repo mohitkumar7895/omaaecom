@@ -165,9 +165,14 @@ export default function EditServiceForm({ service, categories, subcategories }: 
 
             {/* Upload New Image */}
             <div>
-              <label className="block text-gray-700 text-sm mb-1">
-                New Image (optional)
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-gray-700 text-sm font-semibold">
+                  New Image (optional)
+                </label>
+                <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                  Recommended: 600 × 400 px (3:2) / 500 × 500 px (1:1)
+                </span>
+              </div>
               <input 
                 type="file" 
                 name="image"

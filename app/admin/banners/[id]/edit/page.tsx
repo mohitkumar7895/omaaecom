@@ -76,7 +76,12 @@ export default function EditBannerPage() {
 
             {/* Banner 1 */}
             <div className="space-y-2">
-              <label className="text-[13px] font-bold text-gray-800">Banner 1 (Leave empty to keep current)</label>
+              <div className="flex items-center justify-between">
+                <label className="text-[13px] font-bold text-gray-800">Banner 1 (Leave empty to keep current)</label>
+                <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                  Recommended: 1200 × 400 px (Desktop) / 600 × 600 px (Mobile)
+                </span>
+              </div>
               <div className="flex flex-col space-y-2">
                 {banner.banner1_url && (
                   <div className="h-16 w-32 bg-gray-100 rounded overflow-hidden relative shadow-sm border">
@@ -101,7 +106,12 @@ export default function EditBannerPage() {
 
             {/* Banner 2 */}
             <div className="space-y-2">
-              <label className="text-[13px] font-bold text-gray-800">Banner 2 (Leave empty to keep current)</label>
+              <div className="flex items-center justify-between">
+                <label className="text-[13px] font-bold text-gray-800">Banner 2 (Leave empty to keep current)</label>
+                <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                  Recommended: 1200 × 400 px (Desktop) / 600 × 600 px (Mobile)
+                </span>
+              </div>
               <div className="flex flex-col space-y-2">
                 {banner.banner2_url && (
                   <div className="h-16 w-32 bg-gray-100 rounded overflow-hidden relative shadow-sm border">
@@ -126,7 +136,12 @@ export default function EditBannerPage() {
 
             {/* Banner 3 */}
             <div className="space-y-2">
-              <label className="text-[13px] font-bold text-gray-800">Banner 3 (Leave empty to keep current)</label>
+              <div className="flex items-center justify-between">
+                <label className="text-[13px] font-bold text-gray-800">Banner 3 (Leave empty to keep current)</label>
+                <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                  Recommended: 1200 × 400 px (Desktop) / 600 × 600 px (Mobile)
+                </span>
+              </div>
               <div className="flex flex-col space-y-2">
                 {banner.banner3_url && (
                   <div className="h-16 w-32 bg-gray-100 rounded overflow-hidden relative shadow-sm border">

@@ -72,9 +72,14 @@ export default function AddSubcategoryForm({ categories }: { categories: any[] }
 
             {/* Upload Image */}
             <div>
-              <label className="block text-[#2c3e50] text-[15px] font-bold mb-2">
-                Upload Image
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-[#2c3e50] text-[15px] font-bold">
+                  Upload Image
+                </label>
+                <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                  Recommended: 500 × 500 px (Square 1:1)
+                </span>
+              </div>
               <input 
                 type="file" 
                 name="image"
