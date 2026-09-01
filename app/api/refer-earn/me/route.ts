@@ -10,28 +10,84 @@ export async function GET(req: Request) {
     const cookieStore = await cookies();
     const token = cookieStore.get("omaa_auth_token")?.value;
     
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    let userEmail = "";
+    let userMobile = "";
+    let userName = "Valued Customer";
+
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET) as any;
+        userEmail = decoded.email || "";
+        userMobile = decoded.mobile || "";
+        userName = decoded.name || "Valued Customer";
+      } catch (e) {}
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
-    const userEmail = decoded.email;
+    let couponCode = "";
 
-    const [rows]: any = await pool.query(
-      "SELECT referral_member_id, referral_user_name, name, email FROM referral_registrations WHERE email = ?",
-      [userEmail]
-    );
+    // 1. Check bookings table for user's latest coupon code
+    if (userEmail || userMobile) {
+      const [bookingRows]: any = await pool.query(
+        "SELECT coupon_code, customer_name FROM bookings WHERE (user_email = ? OR mobile = ?) AND coupon_code IS NOT NULL AND coupon_code != '' ORDER BY id DESC LIMIT 1",
+        [userEmail || "", userMobile || ""]
+      );
 
-    if (rows.length === 0) {
-      return NextResponse.json({ isReferralMember: false });
+      if (bookingRows && bookingRows.length > 0 && bookingRows[0].coupon_code) {
+        couponCode = bookingRows[0].coupon_code;
+        userName = bookingRows[0].customer_name || userName;
+      }
+    }
+
+    // 2. Check coupons table
+    if (!couponCode && userMobile) {
+      const [couponRows]: any = await pool.query(
+        "SELECT code FROM coupons WHERE mobile = ? LIMIT 1",
+        [userMobile]
+      );
+      if (couponRows && couponRows.length > 0 && couponRows[0].code) {
+        couponCode = couponRows[0].code;
+      }
+    }
+
+    // 3. Fallback: generate dynamic OC + 6-digit code
+    if (!couponCode) {
+      const randomNum = Math.floor(100000 + Math.random() * 900000);
+      couponCode = `OC${randomNum}`;
+    }
+
+    const referralLink = `https://omaacompany.in/?ref=${couponCode}`;
+
+    // Get total referral earnings
+    let totalEarnings = 0;
+    if (userEmail) {
+      try {
+        const [walletTxs]: any = await pool.query(
+          "SELECT SUM(amount) as totalEarnings FROM wallet_transactions WHERE user_email = ? AND type = 'Credit' AND description LIKE '%Referral%'",
+          [userEmail]
+        );
+        totalEarnings = Number(walletTxs[0]?.totalEarnings || 0);
+      } catch(e) {}
     }
 
     return NextResponse.json({ 
-      isReferralMember: true, 
-      referralData: rows[0] 
+      authenticated: Boolean(token),
+      couponCode,
+      referralLink,
+      user: {
+        email: userEmail,
+        name: userName
+      },
+      totalEarnings
     });
   } catch (error: any) {
     console.error("Fetch referral user error:", error);
-    return NextResponse.json({ error: "Failed to fetch user" }, { status: 500 });
+    const randomNum = Math.floor(100000 + Math.random() * 900000);
+    const fallbackCode = `OC${randomNum}`;
+    return NextResponse.json({ 
+      authenticated: false,
+      couponCode: fallbackCode,
+      referralLink: `https://omaacompany.in/?ref=${fallbackCode}`,
+      totalEarnings: 0
+    });
   }
 }

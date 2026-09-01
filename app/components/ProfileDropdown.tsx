@@ -74,7 +74,13 @@ export default function ProfileDropdown({ user, onLogout, isOpen, onClose }: Pro
         <DropdownItem href="/contact" icon={<Headset className="w-4 h-4 text-purple-600" />} label="Contact Us" />
         
         {/* Refer & Earn Banner Item */}
-        <a href="https://www.omaacompany.in" target="_blank" rel="noopener noreferrer" className="mx-3 my-2 block">
+        <a 
+          href="/refer-earn" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          onClick={onClose} 
+          className="mx-3 my-2 block cursor-pointer"
+        >
           <div className="bg-gradient-to-r from-[#6069c9] to-[#8088db] rounded-xl p-4 text-white relative overflow-hidden group transition-transform hover:scale-[1.02]">
             <div className="absolute -right-4 -top-4 w-16 h-16 bg-white/20 rounded-full blur-xl group-hover:scale-150 transition-transform"></div>
             <div className="flex items-center gap-2 mb-1">
@@ -82,7 +88,7 @@ export default function ProfileDropdown({ user, onLogout, isOpen, onClose }: Pro
               <span className="font-bold text-sm">Refer & Earn</span>
             </div>
             <p className="text-[11px] text-white/90 leading-tight mb-2">
-              Refer & earn ₹100 to ₹32Cr. Get when your friend completes their first booking.
+              Refer & earn ₹100 reward! Give friends 10% discount on their booking.
             </p>
             <span className="text-xs font-bold bg-white text-[#6069c9] px-2.5 py-1 rounded-md inline-block">
               Refer now
