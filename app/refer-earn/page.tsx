@@ -19,8 +19,21 @@ export default async function ReferEarnPage() {
       const userEmail = decoded?.email;
       const userMobile = decoded?.mobile || "";
 
-      // 1. Check latest booking with coupon_code
-      if (userEmail || userMobile) {
+      // 1. Check users table for user's permanent referral_code
+      if (userEmail) {
+        try {
+          const [userRows]: any = await pool.query(
+            "SELECT referral_code FROM users WHERE email = ? LIMIT 1",
+            [userEmail]
+          );
+          if (userRows && userRows.length > 0 && userRows[0].referral_code) {
+            couponCode = userRows[0].referral_code;
+          }
+        } catch (e) {}
+      }
+
+      // 2. Check latest booking with coupon_code
+      if (!couponCode && (userEmail || userMobile)) {
         const [bookingRows]: any = await pool.query(
           "SELECT coupon_code FROM bookings WHERE (user_email = ? OR mobile = ?) AND coupon_code IS NOT NULL AND coupon_code != '' ORDER BY id DESC LIMIT 1",
           [userEmail || "", userMobile || ""]
@@ -31,7 +44,7 @@ export default async function ReferEarnPage() {
         }
       }
 
-      // 2. Check coupons table
+      // 3. Check coupons table
       if (!couponCode && userMobile) {
         const [cRows]: any = await pool.query(
           "SELECT code FROM coupons WHERE mobile = ? LIMIT 1",
@@ -40,6 +53,18 @@ export default async function ReferEarnPage() {
         if (cRows.length > 0 && cRows[0]?.code) {
           couponCode = cRows[0].code;
         }
+      }
+
+      // If logged in but doesn't have a referral_code, create and save one
+      if (!couponCode && userEmail) {
+        const randomNum = Math.floor(100000 + Math.random() * 900000);
+        couponCode = `OC${randomNum}`;
+        try {
+          await pool.query(
+            "UPDATE users SET referral_code = ? WHERE email = ?",
+            [couponCode, userEmail]
+          );
+        } catch (e) {}
       }
     }
   } catch (err) {
