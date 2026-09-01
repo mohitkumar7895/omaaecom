@@ -112,18 +112,18 @@ export async function sendBookingEmail(booking: {
 
   const servicesHtml = Array.isArray(booking.services)
     ? booking.services
-        .filter((s: any) => {
-          const title = (s.title || s.name || "").toLowerCase();
-          return !title.includes("power issue") && !title.includes("check-up") && !title.includes("checkup");
-        })
-        .map(
-          (s: any) =>
-            `<tr>
+      .filter((s: any) => {
+        const title = (s.title || s.name || "").toLowerCase();
+        return !title.includes("power issue") && !title.includes("check-up") && !title.includes("checkup");
+      })
+      .map(
+        (s: any) =>
+          `<tr>
               <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; font-size: 14px; color: #1f2937;">${s.title || s.name || "Service Item"}</td>
               <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; font-size: 14px; text-align: right; font-weight: bold; color: #111827;">₹${s.price || s.final_price || 0}</td>
             </tr>`
-        )
-        .join("")
+      )
+      .join("")
     : `<tr><td colspan="2" style="padding: 8px 12px; font-size: 14px;">${booking.category}</td></tr>`;
 
   const emailHtml = `
@@ -289,30 +289,27 @@ export async function sendContactEmail(contact: {
             <td style="padding: 6px 0; font-size: 13px; color: #64748b; width: 130px; font-weight: bold;">Sender Name:</td>
             <td style="padding: 6px 0; font-size: 14px; color: #1e293b; font-weight: bold;">${contact.name}</td>
           </tr>
-          ${
-            contact.phone
-              ? `<tr>
+          ${contact.phone
+      ? `<tr>
                   <td style="padding: 6px 0; font-size: 13px; color: #64748b; font-weight: bold;">Phone:</td>
                   <td style="padding: 6px 0; font-size: 14px; color: #1e293b;"><a href="tel:${contact.phone}" style="color: #6366f1; text-decoration: none; font-weight: bold;">+91 ${contact.phone}</a></td>
                 </tr>`
-              : ""
-          }
-          ${
-            contact.email
-              ? `<tr>
+      : ""
+    }
+          ${contact.email
+      ? `<tr>
                   <td style="padding: 6px 0; font-size: 13px; color: #64748b; font-weight: bold;">Email:</td>
                   <td style="padding: 6px 0; font-size: 14px; color: #1e293b;"><a href="mailto:${contact.email}" style="color: #6366f1; text-decoration: none;">${contact.email}</a></td>
                 </tr>`
-              : ""
-          }
-          ${
-            contact.subject
-              ? `<tr>
+      : ""
+    }
+          ${contact.subject
+      ? `<tr>
                   <td style="padding: 6px 0; font-size: 13px; color: #64748b; font-weight: bold;">Subject:</td>
                   <td style="padding: 6px 0; font-size: 14px; color: #1e293b; font-weight: bold;">${contact.subject}</td>
                 </tr>`
-              : ""
-          }
+      : ""
+    }
         </table>
 
         <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; margin-top: 10px;">
@@ -363,14 +360,13 @@ export async function sendComplaintEmail(complaint: {
             <td style="padding: 6px 0; font-size: 13px; color: #64748b; font-weight: bold;">Mobile:</td>
             <td style="padding: 6px 0; font-size: 14px; color: #1e293b;"><a href="tel:${complaint.phone}" style="color: #ef4444; text-decoration: none; font-weight: bold;">+91 ${complaint.phone}</a></td>
           </tr>
-          ${
-            complaint.orderId
-              ? `<tr>
+          ${complaint.orderId
+      ? `<tr>
                   <td style="padding: 6px 0; font-size: 13px; color: #64748b; font-weight: bold;">Order ID:</td>
                   <td style="padding: 6px 0; font-size: 14px; color: #1e293b; font-family: monospace; font-weight: bold;">${complaint.orderId}</td>
                 </tr>`
-              : ""
-          }
+      : ""
+    }
           <tr>
             <td style="padding: 6px 0; font-size: 13px; color: #64748b; font-weight: bold;">Subject:</td>
             <td style="padding: 6px 0; font-size: 14px; color: #1e293b; font-weight: bold;">${complaint.subject}</td>
