@@ -168,9 +168,9 @@ export async function POST(req: Request) {
       );
     }
 
-    // Trigger email notification safely in background
+    // Trigger email notification immediately to Admin and Customer
     try {
-      sendBookingEmail({
+      await sendBookingEmail({
         orderId,
         name,
         mobile,
@@ -182,7 +182,7 @@ export async function POST(req: Request) {
         bookingDate: finalBookingDate,
         timeSlot: finalTimeSlot,
         userEmail: user_email || email || undefined
-      }).catch((mailErr) => console.error("Booking email background error:", mailErr));
+      });
     } catch (mailSyncErr) {
       console.warn("Could not dispatch booking email:", mailSyncErr);
     }

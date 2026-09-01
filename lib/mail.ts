@@ -9,12 +9,14 @@ const SMTP_PASS = process.env.SMTP_PASSWORD || process.env.SMTP_PASS || "vkrdsip
 const DEFAULT_RECIPIENT_EMAIL = process.env.RECIPIENT_EMAILS || process.env.ADMIN_EMAIL || "prtmohit.provisioningtech.com@gmail.com";
 
 function getSmtpTransporter() {
-  if (!SMTP_USER || !SMTP_PASS) return null;
+  const user = process.env.SMTP_EMAIL || process.env.SMTP_USER || "mail.omaacompany@gmail.com";
+  const pass = process.env.SMTP_PASSWORD || process.env.SMTP_PASS || "mbsthjivpawpyics";
+  if (!user || !pass) return null;
   return nodemailer.createTransport({
     service: "gmail",
     auth: {
-      user: SMTP_USER,
-      pass: SMTP_PASS,
+      user,
+      pass,
     },
   });
 }
@@ -26,11 +28,11 @@ function getResendClient(): Resend | null {
 }
 
 export async function getAdminNotificationEmail(): Promise<string> {
-  const envRecipients = process.env.RECIPIENT_EMAILS || process.env.ADMIN_EMAIL;
+  const envRecipients = process.env.RECIPIENT_EMAILS || process.env.ADMIN_EMAIL || process.env.SMTP_EMAIL;
   if (envRecipients && envRecipients.trim() !== "") {
     return envRecipients.trim();
   }
-  return DEFAULT_RECIPIENT_EMAIL;
+  return "mail.omaacompany@gmail.com";
 }
 
 export async function sendEmail({
@@ -45,9 +47,32 @@ export async function sendEmail({
   const recipients: string[] = Array.isArray(to)
     ? to
     : to.split(",").map((s) => s.trim()).filter((s) => s.length > 0 && s.includes("@"));
-  let resendSuccess = false;
 
-  // 1. Try sending via Resend if API Key is configured
+  if (recipients.length === 0) {
+    console.warn("⚠️ No valid recipient email provided for sending email.");
+    return { success: false, error: "No recipients" };
+  }
+
+  const senderUser = process.env.SMTP_EMAIL || process.env.SMTP_USER || "mail.omaacompany@gmail.com";
+
+  // 1. Primary: Send via Gmail SMTP (Nodemailer) — works for all domains
+  const transporter = getSmtpTransporter();
+  if (transporter) {
+    try {
+      const info = await transporter.sendMail({
+        from: `"OMAA Company" <${senderUser}>`,
+        to: recipients.join(", "),
+        subject,
+        html,
+      });
+      console.log("✅ Email sent via Gmail SMTP:", info.messageId, "To:", recipients);
+      return { success: true, provider: "smtp", data: info };
+    } catch (smtpErr: any) {
+      console.error("⚠️ Gmail SMTP sending error, trying fallback:", smtpErr?.message);
+    }
+  }
+
+  // 2. Fallback: Try sending via Resend
   const resend = getResendClient();
   if (resend) {
     try {
@@ -60,31 +85,12 @@ export async function sendEmail({
 
       if (!error && data) {
         console.log("✅ Email sent via Resend:", data.id);
-        resendSuccess = true;
         return { success: true, provider: "resend", data };
       } else if (error) {
-        console.warn("⚠️ Resend API returned error, falling back to Gmail SMTP:", error.message);
+        console.warn("⚠️ Resend error:", error.message);
       }
     } catch (resendErr: any) {
-      console.warn("⚠️ Resend sending failed, falling back to Gmail SMTP:", resendErr?.message);
-    }
-  }
-
-  // 2. Fallback to Gmail SMTP (Nodemailer)
-  const transporter = getSmtpTransporter();
-  if (transporter) {
-    try {
-      const info = await transporter.sendMail({
-        from: `"OMAA Company" <${SMTP_USER}>`,
-        to: recipients.join(", "),
-        subject,
-        html,
-      });
-      console.log("✅ Email sent via Gmail SMTP:", info.messageId);
-      return { success: true, provider: "smtp", data: info };
-    } catch (smtpErr: any) {
-      console.error("❌ SMTP sending failed:", smtpErr?.message);
-      return { success: false, error: smtpErr?.message };
+      console.warn("⚠️ Resend sending failed:", resendErr?.message);
     }
   }
 
