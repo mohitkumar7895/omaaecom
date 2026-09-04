@@ -442,3 +442,59 @@ export async function sendPasswordOtpEmail({
     html: emailHtml,
   });
 }
+
+// -------------------------------------------------------------
+// 6. ADMIN LOGIN 2-FACTOR OTP EMAIL
+// -------------------------------------------------------------
+export async function sendAdminLoginOtpEmail({
+  to,
+  otp,
+  adminName = "Administrator",
+}: {
+  to: string;
+  otp: string;
+  adminName?: string;
+}) {
+  const emailHtml = `
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 520px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
+      <div style="background: linear-gradient(135deg, #050B14, #1e293b); padding: 28px 24px; color: #ffffff; text-align: center;">
+        <div style="display: inline-block; background: #ffffff; padding: 6px 14px; border-radius: 8px; margin-bottom: 12px;">
+          <span style="color: #0f172a; font-size: 16px; font-weight: 900; letter-spacing: 1px;">OMAA COMPANY</span>
+        </div>
+        <h2 style="margin: 0; font-size: 20px; font-weight: 800; letter-spacing: 0.5px; color: #ffffff;">Admin Security Verification</h2>
+        <p style="margin: 6px 0 0 0; font-size: 13px; color: #94a3b8;">Two-Factor Authentication (2FA) Login</p>
+      </div>
+
+      <div style="padding: 32px 28px; text-align: center;">
+        <h3 style="margin: 0 0 10px 0; font-size: 18px; color: #0f172a; font-weight: 700;">Hello, ${adminName} 👋</h3>
+        <p style="margin: 0 0 24px 0; font-size: 14px; color: #64748b; line-height: 1.6;">
+          An admin login attempt was initiated for your OMAA Company portal. Please use the 6-digit One-Time Password (OTP) below to authenticate your session:
+        </p>
+
+        <div style="background: linear-gradient(135deg, #f8fafc, #eef2ff); border: 2px dashed #6366f1; border-radius: 14px; padding: 20px 28px; display: inline-block; margin-bottom: 24px;">
+          <span style="font-family: 'Courier New', Courier, monospace; font-size: 36px; font-weight: 900; letter-spacing: 10px; color: #4338ca;">${otp}</span>
+        </div>
+
+        <div style="background-color: #fef3c7; border: 1px solid #fde68a; border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; text-align: left;">
+          <p style="margin: 0; font-size: 12px; color: #92400e; line-height: 1.5;">
+            ⏳ <strong>Security Notice:</strong> This OTP is valid for <strong>10 minutes</strong> only. Do not share this code with anyone.
+          </p>
+        </div>
+
+        <p style="margin: 0; font-size: 12px; color: #94a3b8;">
+          If you did not request this login, someone may be attempting to access your panel. Please secure your account immediately.
+        </p>
+      </div>
+
+      <div style="background-color: #f8fafc; padding: 16px; text-align: center; border-top: 1px solid #e2e8f0; font-size: 12px; color: #94a3b8;">
+        © 2026 OMAA Company • Central Admin Security System
+      </div>
+    </div>
+  `;
+
+  return await sendEmail({
+    to,
+    subject: `🔐 Your OMAA Admin Login OTP: ${otp}`,
+    html: emailHtml,
+  });
+}

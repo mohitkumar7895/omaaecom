@@ -186,3 +186,15 @@ CREATE TABLE IF NOT EXISTS service_zones (
   status ENUM('Active', 'Inactive') DEFAULT 'Active',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS admin_login_otps (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  admin_id INT NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  otp_code VARCHAR(10) NOT NULL,
+  temp_token VARCHAR(255) NOT NULL UNIQUE,
+  expires_at DATETIME NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_temp_token (temp_token),
+  INDEX idx_admin_id (admin_id)
+);

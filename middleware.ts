@@ -7,10 +7,24 @@ const JWT_SECRET = process.env.JWT_SECRET || "default_secret_please_change_in_en
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Protect all /admin routes except /admin/login and /admin/register
-  if (pathname.startsWith("/admin") && !pathname.startsWith("/admin/login") && !pathname.startsWith("/admin/register")) {
-    const token = req.cookies.get("admin_token")?.value;
+  const token = req.cookies.get("admin_token")?.value;
 
+  // If already logged in and visiting /admin/login or /admin/register, redirect directly to /admin dashboard
+  if (pathname === "/admin/login" || pathname === "/admin/register") {
+    if (token) {
+      try {
+        const secret = new TextEncoder().encode(JWT_SECRET);
+        await jwtVerify(token, secret);
+        return NextResponse.redirect(new URL("/admin", req.url));
+      } catch (e) {
+        // Token is invalid/expired, allow them to view login page
+      }
+    }
+    return NextResponse.next();
+  }
+
+  // Protect all other /admin routes
+  if (pathname.startsWith("/admin")) {
     if (!token) {
       return NextResponse.redirect(new URL("/admin/login", req.url));
     }
