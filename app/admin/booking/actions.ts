@@ -17,7 +17,7 @@ export async function updateWorkingStatus(formData: FormData) {
       // Check if status is Complete
       if (status === 'Complete') {
         try {
-          await pool.query("ALTER TABLE bookings ADD COLUMN coupon_code VARCHAR(50) DEFAULT NULL");
+          await pool.query("ALTER TABLE bookings ADD COLUMN amc_coupon_code VARCHAR(50) DEFAULT NULL");
         } catch(e) {}
         try {
           await pool.query("ALTER TABLE bookings ADD COLUMN referred_by VARCHAR(50) DEFAULT NULL");
@@ -66,7 +66,7 @@ export async function updateWorkingStatus(formData: FormData) {
           }
 
           // 2. Generate coupon only if type matches and coupon hasn't been generated yet
-          if ((booking.type === 'AMC' || booking.type === 'New Product') && !booking.coupon_code) {
+          if ((booking.type === 'AMC' || booking.type === 'New Product') && !booking.amc_coupon_code && !booking.coupon_code) {
             const couponCode = generateCouponCode();
             
             // Insert into coupons table (10% standard discount)
@@ -75,9 +75,9 @@ export async function updateWorkingStatus(formData: FormData) {
               [couponCode, booking.mobile]
             );
             
-            // Update booking with status and coupon_code
+            // Update booking with status and amc_coupon_code
             await pool.query(
-              "UPDATE bookings SET working_status = ?, coupon_code = ? WHERE id = ?", 
+              "UPDATE bookings SET working_status = ?, amc_coupon_code = ? WHERE id = ?", 
               [status, couponCode, id]
             );
             revalidatePath("/admin/booking", 'layout');

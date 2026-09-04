@@ -243,8 +243,8 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
                         </a>
                         <a 
                           href={`https://wa.me/91${row.mobile}?text=${encodeURIComponent(
-                            row.coupon_code 
-                              ? `Hello ${row.customer_name},\n\nYour ${row.type} service is Complete!\nAs a thank you, here is a special coupon code for 10% OFF your next booking: *${row.coupon_code}*.\n\nThank you for choosing OMAA Company.`
+                            (row.amc_coupon_code || row.coupon_code)
+                              ? `Hello ${row.customer_name},\n\nYour ${row.type} service is Complete!\nAs a thank you, here is a special coupon code for 10% OFF your next booking: *${row.amc_coupon_code || row.coupon_code}*.\n\nThank you for choosing OMAA Company.`
                               : `Hello ${row.customer_name},\n\nYour ${row.type || 'Service'} booking is being processed.\n\nThank you for choosing OMAA Company.`
                           )}`}
                           target="_blank"

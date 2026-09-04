@@ -27,14 +27,14 @@ async function run() {
       }
     }
 
-    // Add coupon_code column if it doesn't exist
+    // Add amc_coupon_code column if it doesn't exist
     try {
-      console.log("Adding coupon_code column to bookings table...");
-      await pool.query("ALTER TABLE bookings ADD COLUMN coupon_code VARCHAR(100) DEFAULT NULL");
-      console.log("✅ Added coupon_code column\n");
+      console.log("Adding amc_coupon_code column to bookings table...");
+      await pool.query("ALTER TABLE bookings ADD COLUMN amc_coupon_code VARCHAR(100) DEFAULT NULL");
+      console.log("✅ Added amc_coupon_code column\n");
     } catch (err) {
       if (err.code === 'ER_DUP_FIELDNAME') {
-        console.log("ℹ️  coupon_code column already exists\n");
+        console.log("ℹ️  amc_coupon_code column already exists\n");
       } else {
         throw err;
       }

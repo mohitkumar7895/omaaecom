@@ -94,6 +94,7 @@ CREATE TABLE IF NOT EXISTS bookings (
   type VARCHAR(50) DEFAULT 'Normal Service',
   customer_name VARCHAR(255) NOT NULL,
   mobile VARCHAR(20) NOT NULL,
+  address TEXT DEFAULT NULL,
   category VARCHAR(255) NOT NULL,
   services TEXT NOT NULL,
   booking_date DATE NOT NULL,
@@ -102,7 +103,10 @@ CREATE TABLE IF NOT EXISTS bookings (
   payment_method VARCHAR(50) DEFAULT 'cashfree',
   payment_status ENUM('Completed', 'Pending') DEFAULT 'Pending',
   working_status ENUM('Completed', 'Reject', 'Pendi') DEFAULT 'Pendi',
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  user_email VARCHAR(255) DEFAULT NULL,
+  amc_coupon_code VARCHAR(100) DEFAULT NULL,
+  referred_by VARCHAR(50) DEFAULT NULL
 );
 
 CREATE TABLE IF NOT EXISTS gst_settings (

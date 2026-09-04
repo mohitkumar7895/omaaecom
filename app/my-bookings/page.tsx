@@ -39,6 +39,7 @@ interface Booking {
   booking_date?: string | Date;
   time_slot?: string;
   address?: string;
+  amc_coupon_code?: string;
   coupon_code?: string;
   coupon_status?: string;
   payment_status?: string;
@@ -453,13 +454,13 @@ export default function MyBookingsPage() {
                         </div>
 
                         {/* Highlighted Coupon Box inside Payment Summary if available and completed */}
-                        {isComplete && booking.coupon_code && (
+                        {isComplete && (booking.amc_coupon_code || booking.coupon_code) && (
                           <div className="bg-amber-50/80 border border-amber-200/90 rounded-lg p-2 mb-2 flex items-center justify-between">
                             <div className="flex items-center gap-1.5">
                               <span className="text-amber-700 font-bold text-xs">🎫 Coupon Code</span>
                             </div>
                             <span className="font-mono font-extrabold text-amber-900 text-xs tracking-wider">
-                              {booking.coupon_code}
+                              {booking.amc_coupon_code || booking.coupon_code}
                             </span>
                           </div>
                         )}

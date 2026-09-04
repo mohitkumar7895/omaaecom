@@ -130,7 +130,7 @@ export async function POST(req: Request) {
       await pool.query("ALTER TABLE bookings ADD COLUMN user_email VARCHAR(255) DEFAULT NULL");
     } catch (e) {}
     try {
-      await pool.query("ALTER TABLE bookings ADD COLUMN coupon_code VARCHAR(50) DEFAULT NULL");
+      await pool.query("ALTER TABLE bookings ADD COLUMN amc_coupon_code VARCHAR(50) DEFAULT NULL");
     } catch (e) {}
     try {
       await pool.query("ALTER TABLE bookings ADD COLUMN referred_by VARCHAR(50) DEFAULT NULL");
@@ -154,7 +154,7 @@ export async function POST(req: Request) {
 
     try {
       await pool.query(
-        `INSERT INTO bookings (order_id, type, customer_name, mobile, address, category, services, booking_date, time_slot, total, payment_method, payment_status, working_status, created_at, user_email, coupon_code, referred_by)
+        `INSERT INTO bookings (order_id, type, customer_name, mobile, address, category, services, booking_date, time_slot, total, payment_method, payment_status, working_status, created_at, user_email, amc_coupon_code, referred_by)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', 'Pendi', NOW(), ?, ?, ?)`,
         [orderId, bookingType, name, mobile, address, categoryName, servicesJson, finalBookingDate, finalTimeSlot, total_amount, payment_method === 'online' ? 'cashfree' : 'Cash on Book', user_email, couponCode, referred_by || null]
       );

@@ -59,14 +59,14 @@ async function runMigration() {
       }
     }
 
-    // Migration 2: Add coupon_code column to bookings
+    // Migration 2: Add amc_coupon_code column to bookings
     try {
-      console.log("📝 Migration 2: Adding coupon_code column to bookings...");
-      await connection.query("ALTER TABLE bookings ADD COLUMN coupon_code VARCHAR(100) DEFAULT NULL");
-      console.log("   ✅ coupon_code column added\n");
+      console.log("📝 Migration 2: Adding amc_coupon_code column to bookings...");
+      await connection.query("ALTER TABLE bookings ADD COLUMN amc_coupon_code VARCHAR(100) DEFAULT NULL");
+      console.log("   ✅ amc_coupon_code column added\n");
     } catch (err) {
       if (err.code === 'ER_DUP_FIELDNAME') {
-        console.log("   ℹ️  coupon_code column already exists\n");
+        console.log("   ℹ️  amc_coupon_code column already exists\n");
       } else {
         throw err;
       }
@@ -122,7 +122,7 @@ async function runMigration() {
       [dbName]
     );
     
-    const requiredColumns = ['user_email', 'coupon_code'];
+    const requiredColumns = ['user_email', 'amc_coupon_code'];
     const existingColumns = columns.map(col => col.COLUMN_NAME);
     
     console.log("   Current bookings columns:", existingColumns.join(", "));

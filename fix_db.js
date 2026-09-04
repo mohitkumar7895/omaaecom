@@ -29,11 +29,11 @@ async function run() {
       }
 
       try {
-        await pool.query("ALTER TABLE bookings ADD COLUMN coupon_code VARCHAR(100) DEFAULT NULL");
-        console.log("Added coupon_code to bookings");
+        await pool.query("ALTER TABLE bookings ADD COLUMN amc_coupon_code VARCHAR(100) DEFAULT NULL");
+        console.log("Added amc_coupon_code to bookings");
       } catch (err) {
         if (err.code === 'ER_DUP_FIELDNAME') {
-          console.log("coupon_code already exists");
+          console.log("amc_coupon_code already exists");
         } else {
           throw err;
         }

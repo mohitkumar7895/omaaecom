@@ -16,15 +16,15 @@ export async function GET() {
       )
     `);
 
-    console.log("Adding coupon_code column to bookings...");
+    console.log("Adding amc_coupon_code column to bookings...");
     try {
       await pool.query(`
-        ALTER TABLE bookings ADD COLUMN coupon_code VARCHAR(50) DEFAULT NULL
+        ALTER TABLE bookings ADD COLUMN amc_coupon_code VARCHAR(100) DEFAULT NULL
       `);
-      console.log("Column added.");
+      console.log("Column amc_coupon_code added.");
     } catch (e: any) {
       if (e.code === 'ER_DUP_FIELDNAME') {
-        console.log("Column coupon_code already exists.");
+        console.log("Column amc_coupon_code already exists.");
       } else {
         throw e;
       }

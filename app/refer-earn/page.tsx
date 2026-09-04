@@ -32,15 +32,27 @@ export default async function ReferEarnPage() {
         } catch (e) {}
       }
 
-      // 2. Check latest booking with coupon_code
+      // 2. Check latest booking with amc_coupon_code
       if (!couponCode && (userEmail || userMobile)) {
-        const [bookingRows]: any = await pool.query(
-          "SELECT coupon_code FROM bookings WHERE (user_email = ? OR mobile = ?) AND coupon_code IS NOT NULL AND coupon_code != '' ORDER BY id DESC LIMIT 1",
-          [userEmail || "", userMobile || ""]
-        );
+        try {
+          const [bookingRows]: any = await pool.query(
+            "SELECT amc_coupon_code FROM bookings WHERE (user_email = ? OR mobile = ?) AND amc_coupon_code IS NOT NULL AND amc_coupon_code != '' ORDER BY id DESC LIMIT 1",
+            [userEmail || "", userMobile || ""]
+          );
 
-        if (bookingRows.length > 0 && bookingRows[0]?.coupon_code) {
-          couponCode = bookingRows[0].coupon_code;
+          if (bookingRows.length > 0 && bookingRows[0]?.amc_coupon_code) {
+            couponCode = bookingRows[0].amc_coupon_code;
+          }
+        } catch (bErr) {
+          try {
+            const [bookingRows]: any = await pool.query(
+              "SELECT coupon_code FROM bookings WHERE (user_email = ? OR mobile = ?) AND coupon_code IS NOT NULL AND coupon_code != '' ORDER BY id DESC LIMIT 1",
+              [userEmail || "", userMobile || ""]
+            );
+            if (bookingRows.length > 0 && bookingRows[0]?.coupon_code) {
+              couponCode = bookingRows[0].coupon_code;
+            }
+          } catch (e) {}
         }
       }
 
