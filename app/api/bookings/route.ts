@@ -32,6 +32,15 @@ export async function POST(req: Request) {
       } catch (e) {}
     }
 
+    if (!user_email && email) {
+      user_email = email;
+    }
+
+    // Require customer authentication to confirm booking
+    if (!user_email && !token) {
+      return NextResponse.json({ error: "Please log in with your email/account to confirm your booking." }, { status: 401 });
+    }
+
     if (!name || !mobile || !address) {
       return NextResponse.json({ error: "Name, mobile and address are required" }, { status: 400 });
     }

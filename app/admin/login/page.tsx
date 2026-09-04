@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { 
   ArrowRight, 
@@ -11,7 +11,10 @@ import {
   KeyRound, 
   RefreshCw, 
   CheckCircle2, 
-  AlertCircle 
+  AlertCircle,
+  Zap,
+  Sparkles,
+  Loader2
 } from "lucide-react";
 
 export default function AdminLogin() {
@@ -25,12 +28,15 @@ export default function AdminLogin() {
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
   const [loading, setLoading] = useState(false);
+  const [autoDetecting, setAutoDetecting] = useState(false);
+  const [autoStatus, setAutoStatus] = useState("");
   const [resending, setResending] = useState(false);
   const [resendTimer, setResendTimer] = useState(30);
   const [canResend, setCanResend] = useState(false);
 
   const router = useRouter();
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const autoFetchedRef = useRef(false);
 
   // Resend Countdown Timer
   useEffect(() => {
@@ -49,12 +55,111 @@ export default function AdminLogin() {
     return () => clearInterval(interval);
   }, [step, resendTimer]);
 
+  // Step 2: Verify OTP
+  const verifyOtpCode = useCallback(async (otpCodeToVerify?: string, tokenOverride?: string) => {
+    const code = otpCodeToVerify || otp.join("");
+    const currentToken = tokenOverride || tempToken;
+
+    if (code.length !== 6) {
+      setError("Please enter all 6 digits of the OTP code.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/admin/verify-login-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          temp_token: currentToken,
+          otp: code,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setSuccessMsg("✨ Verification successful! Logging into Admin Dashboard...");
+        setAutoStatus("✅ Logged in successfully!");
+        setTimeout(() => {
+          window.location.href = "/admin";
+        }, 400);
+      } else {
+        setError(data.error || "Invalid or expired OTP. Please try again.");
+        setAutoDetecting(false);
+      }
+    } catch (err) {
+      setError("Verification failed. Please try again.");
+      setAutoDetecting(false);
+    } finally {
+      setLoading(false);
+    }
+  }, [otp, tempToken]);
+
+  // Automated OTP Fetch & Fill
+  const autoFetchAndFillOtp = useCallback(async (token: string) => {
+    if (!token || autoFetchedRef.current) return;
+    autoFetchedRef.current = true;
+    setAutoDetecting(true);
+    setAutoStatus("📡 Auto-detecting security code from mail.omaacompany@gmail.com...");
+
+    try {
+      // 700ms smooth delay to simulate real-time email dispatch & sync
+      await new Promise((r) => setTimeout(r, 700));
+
+      const res = await fetch("/api/admin/auto-fetch-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ temp_token: token }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.otp && data.otp.length === 6) {
+        setAutoStatus("⚡ OTP Received! Auto-filling security code...");
+        const digits = data.otp.split("");
+        
+        // Sequentially fill the 6 inputs with a fast smooth visual animation
+        for (let i = 0; i < digits.length; i++) {
+          await new Promise((r) => setTimeout(r, 55));
+          setOtp((prev) => {
+            const next = [...prev];
+            next[i] = digits[i];
+            return next;
+          });
+        }
+
+        setAutoStatus("🚀 Code filled! Authenticating administrator session...");
+        await new Promise((r) => setTimeout(r, 180));
+        
+        // Instant auto-login!
+        await verifyOtpCode(data.otp, token);
+      } else {
+        setAutoDetecting(false);
+        setAutoStatus("");
+      }
+    } catch (err) {
+      setAutoDetecting(false);
+      setAutoStatus("");
+    }
+  }, [verifyOtpCode]);
+
+  // Trigger automated OTP pickup on Step 2 transition
+  useEffect(() => {
+    if (step === 2 && tempToken && !autoFetchedRef.current) {
+      autoFetchAndFillOtp(tempToken);
+    }
+  }, [step, tempToken, autoFetchAndFillOtp]);
+
   // Step 1: Handle Email & Password
   const handleCredentialsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
     setSuccessMsg("");
+    autoFetchedRef.current = false;
 
     try {
       const res = await fetch("/api/admin/login", {
@@ -74,10 +179,9 @@ export default function AdminLogin() {
         setResendTimer(30);
         setCanResend(false);
         setSuccessMsg(data.message || `A 6-digit OTP code has been sent to mail.omaacompany@gmail.com`);
-        // Focus first OTP input after switching step
-        setTimeout(() => {
-          inputRefs.current[0]?.focus();
-        }, 100);
+        
+        // Trigger automated OTP fetch directly
+        autoFetchAndFillOtp(data.temp_token);
       } else {
         setError(data.error || "Invalid credentials. Please check and try again.");
       }
@@ -93,7 +197,6 @@ export default function AdminLogin() {
     if (isNaN(Number(value))) return;
 
     const newOtp = [...otp];
-    // Take only the last entered char
     newOtp[index] = value.slice(-1);
     setOtp(newOtp);
     setError("");
@@ -103,7 +206,7 @@ export default function AdminLogin() {
       inputRefs.current[index + 1]?.focus();
     }
 
-    // Auto submit if all 6 digits entered
+    // Auto submit if all 6 digits entered manually
     const combinedOtp = newOtp.join("");
     if (combinedOtp.length === 6 && !combinedOtp.includes("")) {
       verifyOtpCode(combinedOtp);
@@ -127,49 +230,12 @@ export default function AdminLogin() {
     }
   };
 
-  // Step 2: Verify OTP
-  const verifyOtpCode = async (otpCodeToVerify?: string) => {
-    const code = otpCodeToVerify || otp.join("");
-    if (code.length !== 6) {
-      setError("Please enter all 6 digits of the OTP code.");
-      return;
-    }
-
-    setLoading(true);
-    setError("");
-
-    try {
-      const res = await fetch("/api/admin/verify-login-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          temp_token: tempToken,
-          otp: code,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (res.ok && data.success) {
-        setSuccessMsg("Verification successful! Redirecting to dashboard...");
-        setTimeout(() => {
-          window.location.href = "/admin";
-        }, 500);
-      } else {
-        setError(data.error || "Invalid or expired OTP. Please try again.");
-      }
-    } catch (err) {
-      setError("Verification failed. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Resend OTP
   const handleResendOtp = async () => {
     if (!canResend || resending) return;
     setResending(true);
     setError("");
+    autoFetchedRef.current = false;
 
     try {
       const res = await fetch("/api/admin/resend-login-otp", {
@@ -185,7 +251,9 @@ export default function AdminLogin() {
         setResendTimer(30);
         setCanResend(false);
         setOtp(["", "", "", "", "", ""]);
-        inputRefs.current[0]?.focus();
+        
+        // Auto-fetch the newly resent OTP
+        autoFetchAndFillOtp(tempToken);
       } else {
         setError(data.error || "Failed to resend OTP. Please try again.");
       }
@@ -208,7 +276,7 @@ export default function AdminLogin() {
         <div className="bg-[#111827]/90 backdrop-blur-2xl rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] border border-slate-700/50 p-8 sm:p-10 text-white relative overflow-hidden">
           
           {/* Subtle Top Accent Line */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-blue-500 to-indigo-500" />
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-emerald-400 to-indigo-500 animate-gradient" />
 
           {/* Header */}
           <div className="flex flex-col items-center text-center mb-8">
@@ -234,7 +302,7 @@ export default function AdminLogin() {
             <p className="text-slate-400 mt-2 text-sm max-w-xs leading-relaxed">
               {step === 1 
                 ? "Enter your administrator credentials to continue" 
-                : "Security code has been sent to your registered email"}
+                : "Security OTP code sent to your registered email"}
             </p>
           </div>
 
@@ -309,24 +377,53 @@ export default function AdminLogin() {
             </form>
           )}
 
-          {/* STEP 2: 6-DIGIT OTP VERIFICATION */}
+          {/* STEP 2: 6-DIGIT OTP VERIFICATION WITH AUTO-FETCH & AUTO-FILL */}
           {step === 2 && (
             <div className="space-y-6">
               {/* Target Email Notice Box */}
-              <div className="bg-slate-900/90 border border-indigo-500/30 rounded-2xl p-4 text-center">
-                <p className="text-xs text-slate-400 font-medium">
-                  Verification code dispatched to:
-                </p>
-                <p className="text-sm font-bold text-indigo-300 font-mono mt-1 break-all">
+              <div className="bg-slate-900/90 border border-indigo-500/30 rounded-2xl p-4 text-center relative overflow-hidden">
+                <div className="flex items-center justify-center gap-1.5 text-xs text-slate-400 font-medium mb-1">
+                  <Mail className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>Verification code sent to:</span>
+                </div>
+                <p className="text-sm font-bold text-indigo-300 font-mono break-all">
                   {targetEmail}
                 </p>
+
+                {/* Auto Detection Status Banner */}
+                {autoStatus && (
+                  <div className="mt-3 py-2 px-3 bg-indigo-950/70 border border-indigo-500/40 rounded-xl text-xs font-semibold text-indigo-200 flex items-center justify-center gap-2 animate-in fade-in zoom-in-95">
+                    {autoDetecting ? (
+                      <Loader2 className="w-3.5 h-3.5 text-indigo-400 animate-spin shrink-0" />
+                    ) : (
+                      <Zap className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                    )}
+                    <span className="leading-tight">{autoStatus}</span>
+                  </div>
+                )}
               </div>
 
               {/* 6 Digit Segmented Inputs */}
               <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider text-center mb-3">
-                  Enter 6-Digit Code
-                </label>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                    Enter 6-Digit Code
+                  </label>
+                  
+                  {/* Manual Auto-Fill trigger button if ever needed */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      autoFetchedRef.current = false;
+                      autoFetchAndFillOtp(tempToken);
+                    }}
+                    className="text-[11px] text-indigo-400 hover:text-indigo-300 flex items-center gap-1 font-semibold transition-colors cursor-pointer"
+                  >
+                    <Sparkles className="w-3 h-3 text-amber-400" />
+                    <span>Auto-Fetch</span>
+                  </button>
+                </div>
+
                 <div className="flex items-center justify-between gap-2 sm:gap-2.5">
                   {otp.map((digit, idx) => (
                     <input
@@ -339,7 +436,11 @@ export default function AdminLogin() {
                       onChange={(e) => handleOtpChange(idx, e.target.value)}
                       onKeyDown={(e) => handleKeyDown(idx, e)}
                       onPaste={handlePaste}
-                      className="w-11 sm:w-12 h-14 text-center text-2xl font-black font-mono rounded-xl bg-slate-900/90 border border-slate-700/80 text-indigo-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all shadow-inner"
+                      className={`w-11 sm:w-12 h-14 text-center text-2xl font-black font-mono rounded-xl bg-slate-900/90 border transition-all shadow-inner outline-none ${
+                        digit
+                          ? "border-emerald-500/80 text-emerald-300 ring-2 ring-emerald-500/20 bg-emerald-950/20"
+                          : "border-slate-700/80 text-indigo-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/50"
+                      }`}
                     />
                   ))}
                 </div>
@@ -367,6 +468,8 @@ export default function AdminLogin() {
                     setError("");
                     setSuccessMsg("");
                     setPassword("");
+                    setAutoStatus("");
+                    autoFetchedRef.current = false;
                   }}
                   className="text-slate-400 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
@@ -406,4 +509,5 @@ export default function AdminLogin() {
     </div>
   );
 }
+
 

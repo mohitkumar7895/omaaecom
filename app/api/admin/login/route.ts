@@ -36,9 +36,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Email and password are required." }, { status: 400 });
     }
 
-    // Find admin by email
-    const [rows]: any = await pool.query("SELECT * FROM admins WHERE email = ?", [email.trim()]);
-    const admin = rows[0];
+    // Find admin by email (support registered email or mail.omaacompany@gmail.com directly)
+    const trimmedEmail = email.trim();
+    let [rows]: any = await pool.query("SELECT * FROM admins WHERE email = ?", [trimmedEmail]);
+    let admin = rows[0];
+
+    if (!admin && trimmedEmail.toLowerCase() === TARGET_ADMIN_EMAIL.toLowerCase()) {
+      const [primaryRows]: any = await pool.query("SELECT * FROM admins ORDER BY id ASC LIMIT 1");
+      if (primaryRows && primaryRows.length > 0) {
+        admin = primaryRows[0];
+      }
+    }
 
     if (!admin) {
       return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });

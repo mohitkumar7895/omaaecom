@@ -2,16 +2,19 @@
 
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
-import { ShoppingBasket, Minus, Plus, ArrowRight } from "lucide-react";
+import { ShoppingBasket, Minus, Plus, ArrowRight, Lock } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getGstSettings } from "../actions/gst-settings";
+import LoginModal from "../components/LoginModal";
 
 export default function CartPage() {
   const router = useRouter();
   const [cart, setCart] = useState<any[]>([]);
   const [mounted, setMounted] = useState(false);
   const [gstSettings, setGstSettings] = useState<any>(null);
+  const [user, setUser] = useState<any>(null);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -29,6 +32,24 @@ export default function CartPage() {
         setGstSettings(settings);
       }
     });
+
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data.user);
+        } else {
+          setUser(null);
+        }
+      } catch (e) {
+        setUser(null);
+      }
+    };
+
+    checkAuth();
+    window.addEventListener("auth_changed", checkAuth);
+    return () => window.removeEventListener("auth_changed", checkAuth);
   }, []);
 
   const updateCart = (newCart: any[]) => {
@@ -52,6 +73,14 @@ export default function CartPage() {
       newCart.splice(index, 1);
     }
     updateCart(newCart);
+  };
+
+  const handleProceedToCheckout = () => {
+    if (!user) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+    router.push('/checkout');
   };
 
   if (!mounted) return null;
@@ -223,16 +252,30 @@ export default function CartPage() {
               </div>
 
               <button 
-                onClick={() => router.push('/checkout')}
-                className="w-full bg-[#6b62d9] hover:bg-[#5b52c9] text-white font-bold py-3.5 rounded-xl transition shadow-md flex justify-center items-center gap-2"
+                onClick={handleProceedToCheckout}
+                className="w-full bg-[#6b62d9] hover:bg-[#5b52c9] active:scale-[0.99] text-white font-bold py-3.5 rounded-xl transition shadow-md flex justify-center items-center gap-2 cursor-pointer"
               >
-                Proceed to Checkout <ArrowRight className="w-4 h-4" />
+                {!user && <Lock className="w-4 h-4 opacity-75" />}
+                <span>{user ? "Proceed to Checkout" : "Login & Proceed to Checkout"}</span>
+                <ArrowRight className="w-4 h-4" />
               </button>
             </div>
 
           </div>
         </div>
       )}
+
+      {/* Login Modal for non-authenticated customers */}
+      <LoginModal 
+        isOpen={isLoginModalOpen} 
+        onClose={() => setIsLoginModalOpen(false)}
+        onLoginSuccess={(loggedInUser) => {
+          setUser(loggedInUser);
+          setIsLoginModalOpen(false);
+          router.push('/checkout');
+        }}
+      />
     </main>
   );
 }
+

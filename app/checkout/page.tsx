@@ -24,12 +24,15 @@ import {
   Smartphone, 
   Sparkles, 
   ArrowRight,
-  ShieldCheck as ShieldIcon
+  ShieldCheck as ShieldIcon,
+  UserCheck,
+  LogIn
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import BookingSchedulePicker from "../components/BookingSchedulePicker";
 import CashbackFeatures from "../components/CashbackFeatures";
 import { getGstSettings } from "../actions/gst-settings";
+import LoginModal from "../components/LoginModal";
 
 function CheckoutContent() {
   const router = useRouter();
@@ -42,6 +45,10 @@ function CheckoutContent() {
   const [orderId, setOrderId] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [gstSettings, setGstSettings] = useState<any>(null);
+  
+  // Customer Auth State
+  const [user, setUser] = useState<any>(null);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   
   // QR Payment Modal State
   const [showQrModal, setShowQrModal] = useState(false);
@@ -106,6 +113,32 @@ function CheckoutContent() {
         setGstSettings(settings);
       }
     });
+
+    // Check Customer Authentication
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data.user);
+          if (data.user) {
+            setForm(prev => ({
+              ...prev,
+              email: prev.email || data.user.email || '',
+              name: prev.name || data.user.name || '',
+            }));
+          }
+        } else {
+          setUser(null);
+        }
+      } catch (e) {
+        setUser(null);
+      }
+    };
+
+    checkAuth();
+    window.addEventListener("auth_changed", checkAuth);
+    return () => window.removeEventListener("auth_changed", checkAuth);
   }, []);
 
   const isGstItem = (item: any) => {
@@ -234,6 +267,12 @@ function CheckoutContent() {
       return;
     }
 
+    // AUTHENTICATION CHECK: Customer MUST be logged in to book / make payment
+    if (!user) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
     // If online payment is selected, show the QR scanner popup modal
     if (paymentMethod === 'online') {
       setShowQrModal(true);
@@ -242,16 +281,22 @@ function CheckoutContent() {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (userOverride?: any) => {
+    const currentUser = userOverride || user;
+    if (!currentUser) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const res = await fetch('/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: form.name,
+          name: form.name || currentUser.name,
           mobile: form.mobile,
-          email: form.email,
+          email: form.email || currentUser.email,
           address: form.address,
           booking_date: requiresSchedule ? form.booking_date : new Date().toISOString().slice(0, 10),
           time_slot: requiresSchedule ? form.time_slot : 'Instant',
@@ -271,7 +316,11 @@ function CheckoutContent() {
         setSuccess(true);
       } else {
         const err = await res.json();
-        alert(err.error || 'Something went wrong. Please try again.');
+        if (res.status === 401) {
+          setIsLoginModalOpen(true);
+        } else {
+          alert(err.error || 'Something went wrong. Please try again.');
+        }
       }
     } catch (err) {
       alert('Error submitting booking. Please try again.');
@@ -426,6 +475,52 @@ function CheckoutContent() {
           {/* Left Column - Booking Details */}
           <div className="flex-1 w-full">
             <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 p-6 sm:p-8 md:p-10 relative">
+
+              {/* Customer Authentication Status Card */}
+              {user ? (
+                <div className="mb-8 p-4 sm:p-5 rounded-2xl bg-emerald-50/80 border border-emerald-200/80 flex items-center justify-between gap-4 animate-in fade-in">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+                      <UserCheck className="w-5 h-5 stroke-[2.5]" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-[11px] font-extrabold text-emerald-800 uppercase tracking-wider">Logged In Customer</p>
+                        <span className="text-[10px] bg-emerald-200/70 text-emerald-900 font-bold px-2 py-0.5 rounded-full">
+                          Verified
+                        </span>
+                      </div>
+                      <p className="text-sm font-extrabold text-gray-900 mt-0.5">{user.email || user.name}</p>
+                    </div>
+                  </div>
+                  <div className="hidden sm:flex items-center gap-1.5 text-xs text-emerald-700 font-bold bg-white/80 px-3 py-1.5 rounded-xl border border-emerald-200">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Booking Linked</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="mb-8 p-4 sm:p-5 rounded-2xl bg-amber-50/80 border border-amber-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 animate-in fade-in">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+                      <Lock className="w-5 h-5 stroke-[2.5]" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-extrabold text-amber-900 uppercase tracking-wider">Customer Login Required</p>
+                      <p className="text-xs sm:text-[13px] font-medium text-amber-800 mt-0.5">
+                        Please verify your email/account to confirm your booking and secure warranty.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsLoginModalOpen(true)}
+                    className="shrink-0 bg-[#6b62d9] hover:bg-[#5b52c9] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-xs cursor-pointer active:scale-95 flex items-center gap-1.5"
+                  >
+                    <LogIn className="w-3.5 h-3.5" />
+                    <span>Login / Sign Up</span>
+                  </button>
+                </div>
+              )}
 
               <div className="flex items-center gap-4 mb-8">
                 <div className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center font-bold text-lg shadow-md">1</div>
@@ -729,9 +824,14 @@ function CheckoutContent() {
                   <span className="flex items-center gap-3"><div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Processing...</span>
                 ) : (
                   <>
-                    {paymentMethod === 'online' ? 'Proceed to Pay Online' : 'Confirm Cash Booking'}
+                    {!user && <Lock className="w-4 h-4 text-amber-300 stroke-[2.5]" />}
+                    <span>
+                      {user 
+                        ? (paymentMethod === 'online' ? 'Proceed to Pay Online' : 'Confirm Cash Booking')
+                        : (paymentMethod === 'online' ? 'Login & Proceed to Pay' : 'Login & Confirm Booking')}
+                    </span>
                     <span className="font-normal opacity-80 text-sm sm:text-base">| ₹{Math.round(totalAmount).toLocaleString()}</span>
-                    <Lock className="w-4 h-4 opacity-50 group-hover:opacity-100 transition-opacity" />
+                    <ArrowRight className="w-4 h-4 opacity-75 group-hover:translate-x-1 transition-transform" />
                   </>
                 )}
               </button>
@@ -893,6 +993,28 @@ function CheckoutContent() {
         </div>
       )}
       
+      {/* Customer Authentication Modal */}
+      <LoginModal 
+        isOpen={isLoginModalOpen} 
+        onClose={() => setIsLoginModalOpen(false)}
+        onLoginSuccess={(loggedInUser) => {
+          setUser(loggedInUser);
+          setIsLoginModalOpen(false);
+          setForm(prev => ({
+            ...prev,
+            email: prev.email || loggedInUser.email || '',
+            name: prev.name || loggedInUser.name || prev.name,
+          }));
+          if (paymentMethod === 'online') {
+            setShowQrModal(true);
+          } else {
+            setTimeout(() => {
+              handleSubmit(loggedInUser);
+            }, 300);
+          }
+        }}
+      />
+
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 6px;
