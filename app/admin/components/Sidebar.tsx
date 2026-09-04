@@ -74,7 +74,6 @@ export default function Sidebar() {
 
   const partnerItems = [
     { name: "KYC Approvals", icon: <Users className="w-[18px] h-[18px]" />, href: "/admin/kyc" },
-    { name: "Registrations", icon: <ClipboardList className="w-[18px] h-[18px]" />, href: "/admin/registration-records" },
   ];
 
   const marketingItems = [

@@ -62,7 +62,7 @@ export default async function AdminDashboard() {
     console.error("Dashboard database queries error:", error);
   }
 
-  // 1. Top Stats Cards - Sequence: Bookings -> Services -> Categories -> Registrations -> Brands -> Banners
+  // 1. Top Stats Cards - Sequence: Bookings -> Services -> Categories -> Banners
   const statsCards = [
     {
       label: "Total Bookings",
@@ -90,15 +90,6 @@ export default async function AdminDashboard() {
       shadow: "shadow-purple-500/20",
       href: "/admin/categories",
       badge: "Main Groups"
-    },
-    {
-      label: "Partner Registrations",
-      value: registrationCount.toString(),
-      icon: <Users className="w-5 h-5" />,
-      color: "from-amber-500 to-orange-500",
-      shadow: "shadow-amber-500/20",
-      href: "/admin/registration-records",
-      badge: "Technicians"
     },
     {
       label: "Live Banners",
@@ -140,7 +131,6 @@ export default async function AdminDashboard() {
       desc: "Review vendor onboardings, ads, and promotional banners",
       items: [
         { name: "KYC Approvals", desc: "Verify technician identities", href: "/admin/kyc", icon: <Users className="w-5 h-5 text-amber-500" />, bg: "bg-amber-50" },
-        { name: "Registrations", desc: "Technician application records", href: "/admin/registration-records", icon: <ClipboardList className="w-5 h-5 text-indigo-500" />, bg: "bg-indigo-50" },
         { name: "Homepage Banners", desc: "Hero sliders & promo images", href: "/admin/banners", icon: <ImageIcon className="w-5 h-5 text-purple-500" />, bg: "bg-purple-50" },
         { name: "Cashback Ads", desc: "Video & interactive promos", href: "/admin/cashback-ads", icon: <Sparkles className="w-5 h-5 text-pink-500" />, bg: "bg-pink-50" },
       ]

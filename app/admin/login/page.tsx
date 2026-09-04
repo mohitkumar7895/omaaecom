@@ -112,15 +112,6 @@ export default function AdminLogin() {
           </form>
 
         </div>
-
-        <div className="text-center mt-6">
-          <p className="text-sm text-slate-500">
-            Don't have an account?{" "}
-            <Link href="/admin/register" className="font-semibold text-blue-600 hover:text-blue-700 transition-colors">
-              Register here
-            </Link>
-          </p>
-        </div>
       </div>
     </div>
   );
