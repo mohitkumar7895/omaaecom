@@ -77,8 +77,20 @@ export default function Footer() {
       </div>
 
       {/* Copyright */}
-      <div className="mt-10 text-center text-xs sm:text-sm text-blue-200 border-t border-blue-400/30 pt-6 px-4">
-        © 2026 Powered by OMAA Company • CURRENTSEWA INDIA PRIVATE LIMITED
+      <div className="mt-10 text-center text-xs sm:text-sm text-blue-200 border-t border-blue-400/30 pt-6 px-4 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2">
+        <span>© 2026 Powered by OMAA Company</span>
+        <span className="hidden sm:inline">•</span>
+        <span>
+          Developed by{" "}
+          <a
+            href="https://provisioningtech.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-white hover:text-blue-100 underline underline-offset-4 font-semibold transition"
+          >
+            Provisioning Tech PVT LTD
+          </a>
+        </span>
       </div>
     </footer>
   );
