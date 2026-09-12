@@ -20,6 +20,9 @@ export const metadata: Metadata = {
     shortcut: '/favicon.svg',
     apple: '/favicon.svg',
   },
+  verification: {
+    google: "6chr3KOkEHLF43tQxoATLMWdqqMjuPAQYsldOANyayQ",
+  },
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

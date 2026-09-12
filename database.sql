@@ -198,3 +198,23 @@ CREATE TABLE IF NOT EXISTS admin_login_otps (
   INDEX idx_temp_token (temp_token),
   INDEX idx_admin_id (admin_id)
 );
+
+CREATE TABLE IF NOT EXISTS sitemap_links (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  url VARCHAR(500) NOT NULL UNIQUE,
+  group_name VARCHAR(100) DEFAULT 'General',
+  city VARCHAR(100) DEFAULT NULL,
+  area VARCHAR(150) DEFAULT NULL,
+  category_id INT DEFAULT NULL,
+  priority DECIMAL(2, 1) DEFAULT 0.8,
+  changefreq VARCHAR(20) DEFAULT 'weekly',
+  is_active BOOLEAN DEFAULT TRUE,
+  is_system BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_group (group_name),
+  INDEX idx_active (is_active),
+  INDEX idx_city (city)
+);
+

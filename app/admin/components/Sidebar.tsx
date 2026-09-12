@@ -28,7 +28,8 @@ import {
   Menu,
   ChevronRight,
   PlaySquare,
-  Mail
+  Mail,
+  Globe
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -83,6 +84,7 @@ export default function Sidebar() {
 
   const settingsItems = [
     { name: "System Settings", icon: <Settings className="w-[18px] h-[18px]" />, href: "/admin/settings" },
+    { name: "Sitemap & SEO", icon: <Globe className="w-[18px] h-[18px]" />, href: "/admin/sitemap" },
     { name: "GST Settings", icon: <FileText className="w-[18px] h-[18px]" />, href: "/admin/gst-settings" },
     { name: "Privacy Policy", icon: <Shield className="w-[18px] h-[18px]" />, href: "/admin/privacy-policy" },
     { name: "Terms & Conditions", icon: <FileText className="w-[18px] h-[18px]" />, href: "/admin/terms-and-conditions" },
