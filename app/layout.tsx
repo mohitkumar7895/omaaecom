@@ -33,6 +33,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       lang="en"
       className={`${plusJakartaSans.variable} font-sans h-full antialiased`}
     >
+      <head>
+        <meta name="google-site-verification" content="6chr3KOkEHLF43tQxoATLMWdqqMjuPAQYsldOANyayQ" />
+      </head>
       <body className="min-h-full flex flex-col bg-[#f8f9fa] text-gray-900">
         <GlobalLoader />
         <RatingReviewModal />
