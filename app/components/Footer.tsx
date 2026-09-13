@@ -28,8 +28,8 @@ export default function Footer() {
             <Link href="/about" className="text-blue-100 hover:text-white hover:underline transition">
               About Us
             </Link>
-            <Link href="/#services" className="text-blue-100 hover:text-white hover:underline transition">
-              Service
+            <Link href="/services" className="text-blue-100 hover:text-white hover:underline transition font-semibold">
+              Services
             </Link>
             <Link href="/contact" className="text-blue-100 hover:text-white hover:underline transition">
               Contact Us

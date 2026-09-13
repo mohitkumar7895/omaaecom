@@ -258,7 +258,7 @@ export async function sendRegistrationEmail(reg: {
       </div>
 
       <div style="background-color: #f8fafc; padding: 14px; text-align: center; font-size: 12px; color: #64748b;">
-        Review in Admin Panel: <a href="https://omaacompany.com/admin/registration-records" style="color: #6366f1;">/admin/registration-records</a>
+        Review in Admin Panel: <a href="https://www.omaacompany.com/admin/registration-records" style="color: #6366f1;">/admin/registration-records</a>
       </div>
     </div>
   `;
@@ -325,7 +325,7 @@ export async function sendContactEmail(contact: {
       </div>
 
       <div style="background-color: #f8fafc; padding: 14px; text-align: center; font-size: 12px; color: #64748b;">
-        Manage Inquiries: <a href="https://omaacompany.com/admin/contacts" style="color: #6366f1;">/admin/contacts</a>
+        Manage Inquiries: <a href="https://www.omaacompany.com/admin/contacts" style="color: #6366f1;">/admin/contacts</a>
       </div>
     </div>
   `;
@@ -386,7 +386,7 @@ export async function sendComplaintEmail(complaint: {
       </div>
 
       <div style="background-color: #f8fafc; padding: 14px; text-align: center; font-size: 12px; color: #64748b;">
-        Resolve Complaint: <a href="https://omaacompany.com/admin/complaints" style="color: #ef4444;">/admin/complaints</a>
+        Resolve Complaint: <a href="https://www.omaacompany.com/admin/complaints" style="color: #ef4444;">/admin/complaints</a>
       </div>
     </div>
   `;

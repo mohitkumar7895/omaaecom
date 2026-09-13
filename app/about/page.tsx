@@ -1,13 +1,80 @@
+import type { Metadata } from "next";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Snowflake, Droplet, Flame, Microwave, RefreshCw, Check } from "lucide-react";
 
-export const metadata = {
-  title: "About Us - OMAA Company",
-  description: "Your Trusted Home Service Partner",
+const rawBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.omaacompany.com";
+const siteUrl = rawBaseUrl.endsWith("/") ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
+
+export const metadata: Metadata = {
+  title: "About Us - OMAA Company | Doorstep Appliance Repair Specialists",
+  description:
+    "Learn about OMAA Company, Delhi NCR's trusted home appliance service partner. Certified technicians specializing in RO water purifiers, refrigerator repair, washing machines, and AC servicing.",
+  alternates: {
+    canonical: `${siteUrl}/about`,
+  },
+  openGraph: {
+    title: "About Us - OMAA Company | Doorstep Appliance Repair Specialists",
+    description:
+      "OMAA Company delivers dependable, affordable doorstep home appliance repairs across Noida, Greater Noida, Delhi, Ghaziabad & Gurgaon.",
+    url: `${siteUrl}/about`,
+    type: "website",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "About OMAA Company",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "About OMAA Company - Home Appliance Care",
+    description:
+      "Certified technicians specializing in RO, refrigerator, and washing machine repair in Delhi NCR.",
+    images: ["/og-image.jpg"],
+  },
 };
 
 export default function AboutPage() {
+  const aboutSchema = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": siteUrl,
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "About Us",
+            "item": `${siteUrl}/about`,
+          },
+        ],
+      },
+      {
+        "@type": "AboutPage",
+        "@id": `${siteUrl}/about/#webpage`,
+        "url": `${siteUrl}/about`,
+        "name": "About OMAA Company",
+        "description":
+          "OMAA Company is a premier doorstep home appliance repair and maintenance provider in Delhi NCR.",
+        "publisher": {
+          "@type": "Organization",
+          "name": "OMAA Company",
+          "url": siteUrl,
+          "logo": `${siteUrl}/logo.png`,
+        },
+      },
+    ],
+  };
+
   const services = [
     { icon: <Snowflake className="w-8 h-8 text-[#6b46c1] mb-3" strokeWidth={1.5} />, title: "AC Repairing" },
     { icon: <Droplet className="w-8 h-8 text-[#6b46c1] mb-3" strokeWidth={1.5} />, title: "RO Water Purifier" },
@@ -26,6 +93,10 @@ export default function AboutPage() {
 
   return (
     <main className="min-h-screen bg-gray-50 flex flex-col font-sans">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutSchema) }}
+      />
       <Navbar />
       
       {/* Banner Section */}

@@ -1,16 +1,94 @@
+import type { Metadata } from "next";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { MapPin, Phone, Mail } from "lucide-react";
 import ContactForm from "./ContactForm";
 
-export const metadata = {
-  title: "Contact Us - OMAA Company",
-  description: "Get in touch with OMAA Company for any queries or support.",
+const rawBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.omaacompany.com";
+const siteUrl = rawBaseUrl.endsWith("/") ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
+
+export const metadata: Metadata = {
+  title: "Contact Us & Support | OMAA Company Doorstep Services",
+  description:
+    "Contact OMAA Company for fast appliance repair support in Delhi NCR. Call +91 9999251966 or reach our Gaur City 2 hub for RO, refrigerator, and washing machine services.",
+  alternates: {
+    canonical: `${siteUrl}/contact`,
+  },
+  openGraph: {
+    title: "Contact Us & Support | OMAA Company Doorstep Services",
+    description:
+      "Need appliance repair in Noida, Greater Noida, Ghaziabad, or Delhi? Contact OMAA Company anytime for fast doorstep assistance.",
+    url: `${siteUrl}/contact`,
+    type: "website",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Contact OMAA Company",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Contact OMAA Company - Customer Support",
+    description:
+      "Call +91 9999251966 for doorstep appliance repair in Delhi NCR.",
+    images: ["/og-image.jpg"],
+  },
 };
 
 export default function ContactPage() {
+  const contactSchema = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": siteUrl,
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Contact Us",
+            "item": `${siteUrl}/contact`,
+          },
+        ],
+      },
+      {
+        "@type": "ContactPage",
+        "@id": `${siteUrl}/contact/#webpage`,
+        "url": `${siteUrl}/contact`,
+        "name": "Contact OMAA Company",
+        "description": "Customer support and booking assistance for OMAA Company home appliance repair.",
+        "mainEntity": {
+          "@type": "LocalBusiness",
+          "name": "OMAA Company",
+          "telephone": "+919999251966",
+          "email": "support@omaacompany.com",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Plot No.197, Office No.2, Gaur City - 2 (Opp. Mahagun My Wood)",
+            "addressLocality": "Noida Extension, Greater Noida West",
+            "addressRegion": "Uttar Pradesh",
+            "postalCode": "201009",
+            "addressCountry": "IN",
+          },
+        },
+      },
+    ],
+  };
+
   return (
     <main className="min-h-screen bg-[#f8f9fa] flex flex-col font-sans">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(contactSchema) }}
+      />
       <Navbar />
       
       {/* Banner Section */}
