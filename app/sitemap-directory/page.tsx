@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import pool from "@/lib/db";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import SitemapClient from "@/app/sitemap/SitemapClient";
+import SitemapClient from "@/app/sitemap-directory/SitemapClient";
 
 export const dynamic = "force-dynamic";
 
