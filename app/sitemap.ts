@@ -26,6 +26,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/greater-noida`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
     { url: `${baseUrl}/ghaziabad`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
     { url: `${baseUrl}/gurgaon`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
+<<<<<<< HEAD
     { url: `${baseUrl}/gaur-city-2-10th-avenue`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
     { url: `${baseUrl}/gaur-city-2-11th-avenue`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
     { url: `${baseUrl}/gaur-city-2-12th-avenue`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
@@ -33,6 +34,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/gaur-city-2-14th-avenue-phase-1`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
     { url: `${baseUrl}/gaur-city-2-14th-avenue-phase-2`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
     { url: `${baseUrl}/gaur-city-2-16th-avenue`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
+=======
+>>>>>>> e1188c7b0ff9a791f56bae097d046e40ba9efaff
   ];
 
   try {
@@ -54,11 +57,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         fullUrl = `${baseUrl}${fullUrl.startsWith("/") ? "" : "/"}${fullUrl}`;
       }
 
+<<<<<<< HEAD
       // Normalize trailing slash for deduplication
       const normalizedUrl = fullUrl.endsWith("/") ? fullUrl.slice(0, -1) : fullUrl;
 
       if (seenUrls.has(normalizedUrl)) continue;
       seenUrls.add(normalizedUrl);
+=======
+      if (seenUrls.has(fullUrl)) continue;
+      seenUrls.add(fullUrl);
+>>>>>>> e1188c7b0ff9a791f56bae097d046e40ba9efaff
 
       const validFreqs = ["always", "hourly", "daily", "weekly", "monthly", "yearly", "never"];
       const freq = validFreqs.includes(row.changefreq?.toLowerCase())
@@ -66,7 +74,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         : "weekly";
 
       dbSitemap.push({
+<<<<<<< HEAD
         url: normalizedUrl,
+=======
+        url: fullUrl,
+>>>>>>> e1188c7b0ff9a791f56bae097d046e40ba9efaff
         lastModified: row.updated_at ? new Date(row.updated_at) : new Date(),
         changeFrequency: freq as any,
         priority: typeof row.priority === "number" ? row.priority : parseFloat(row.priority) || 0.8,

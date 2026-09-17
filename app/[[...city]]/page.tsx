@@ -69,6 +69,7 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   const locationTitle = formattedArea ? `${formattedArea}, ${formattedCity}` : formattedCity;
   const pagePath = areaSlug ? `/${citySlug}?area=${encodeURIComponent(areaSlug)}` : `/${citySlug}`;
 
+<<<<<<< HEAD
   // Hyper-optimized SEO specific for Gaur City 2 target keywords
   if (citySlug.startsWith("gaur-city-2")) {
     return {
@@ -94,6 +95,8 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   }
 
   // Default SEO for all other locations
+=======
+>>>>>>> e1188c7b0ff9a791f56bae097d046e40ba9efaff
   return {
     title: `Appliance Repair in ${locationTitle} | RO, Refrigerator, Washing Machine - OMAA Company`,
     description: `Expert doorstep RO repair, refrigerator servicing, and washing machine repair in ${locationTitle}. Verified local technicians, instant booking, and 30-day service warranty.`,
