@@ -122,79 +122,101 @@ export default async function Home({ params, searchParams }: PageProps) {
   let mobileBanners: any[] = [];
 
   try {
-    // Fetch all live ratings from bookings
+    // Fetch all required data in parallel to massively improve page load speed
+    const [
+      bResult,
+      catResult,
+      servicesResult,
+      desktopResult,
+      mobileResult
+    ] = await Promise.allSettled([
+      pool.query("SELECT category, services, rating FROM bookings WHERE rating IS NOT NULL AND rating > 0"),
+      pool.query("SELECT * FROM categories WHERE status = 'Active'"),
+      pool.query("SELECT * FROM services"),
+      pool.query("SELECT * FROM banners WHERE type = 'desktop' OR type IS NULL ORDER BY created_at DESC LIMIT 1"),
+      pool.query("SELECT * FROM banners WHERE type = 'mobile' ORDER BY created_at DESC LIMIT 1")
+    ]);
+
     let bookingRatings: any[] = [];
-    try {
-      const [bRows]: any = await pool.query(
-        "SELECT category, services, rating FROM bookings WHERE rating IS NOT NULL AND rating > 0"
-      );
+    if (bResult.status === 'fulfilled') {
+      const [bRows]: any = bResult.value;
       bookingRatings = bRows || [];
-    } catch (bErr) {
-      console.warn("Could not query booking ratings:", bErr);
     }
 
-    // Fetch categories and their associated services
-    const [catRows]: any = await pool.query("SELECT * FROM categories WHERE status = 'Active'");
+    let catRows: any[] = [];
+    if (catResult.status === 'fulfilled') {
+      const [rows]: any = catResult.value;
+      catRows = rows || [];
+    }
+
+    let allServices: any[] = [];
+    if (servicesResult.status === 'fulfilled') {
+      const [rows]: any = servicesResult.value;
+      allServices = rows || [];
+    }
     
-    // For each category, fetch its services and calculate live rating
-    categories = await Promise.all(
-      catRows.map(async (cat: any) => {
-        const [services]: any = await pool.query("SELECT * FROM services WHERE category_id = ?", [cat.id]);
-        
-        const enhancedServices = (services || []).map((srv: any) => {
-          // Find matching booking reviews for this service / category
-          const matching = bookingRatings.filter((b) => {
-            const matchesCategory = b.category && cat.title && b.category.toLowerCase().includes(cat.title.toLowerCase());
-            let matchesService = false;
-            try {
-              if (b.services) {
-                const srvStr = typeof b.services === 'string' ? b.services : JSON.stringify(b.services);
-                matchesService = srvStr.toLowerCase().includes(srv.title.toLowerCase());
-              }
-            } catch {}
-            return matchesService || matchesCategory;
-          });
-
-          if (matching.length > 0) {
-            const sum = matching.reduce((acc, curr) => acc + Number(curr.rating || 0), 0);
-            const liveAvg = (sum / matching.length).toFixed(1);
-            return {
-              ...srv,
-              rating: liveAvg,
-              reviews: `${matching.length}+`,
-            };
-          }
-
-          return {
-            ...srv,
-            rating: srv.rating || "4.8",
-            reviews: srv.reviews || "120+",
-          };
+    // Process categories and their associated services
+    categories = catRows.map((cat: any) => {
+      // Filter services for this category from the pre-fetched list
+      const services = allServices.filter((s: any) => s.category_id === cat.id);
+      
+      const enhancedServices = services.map((srv: any) => {
+        // Find matching booking reviews for this service / category
+        const matching = bookingRatings.filter((b) => {
+          const matchesCategory = b.category && cat.title && b.category.toLowerCase().includes(cat.title.toLowerCase());
+          let matchesService = false;
+          try {
+            if (b.services) {
+              const srvStr = typeof b.services === 'string' ? b.services : JSON.stringify(b.services);
+              matchesService = srvStr.toLowerCase().includes(srv.title.toLowerCase());
+            }
+          } catch {}
+          return matchesService || matchesCategory;
         });
 
+        if (matching.length > 0) {
+          const sum = matching.reduce((acc, curr) => acc + Number(curr.rating || 0), 0);
+          const liveAvg = (sum / matching.length).toFixed(1);
+          return {
+            ...srv,
+            rating: liveAvg,
+            reviews: `${matching.length}+`,
+          };
+        }
+
         return {
-          ...cat,
-          services: enhancedServices,
+          ...srv,
+          rating: srv.rating || "4.8",
+          reviews: srv.reviews || "120+",
         };
-      })
-    );
+      });
+
+      return {
+        ...cat,
+        services: enhancedServices,
+      };
+    });
 
     // Fetch desktop banners
-    const [desktopRows]: any = await pool.query("SELECT * FROM banners WHERE type = 'desktop' OR type IS NULL ORDER BY created_at DESC LIMIT 1");
-    if (desktopRows && desktopRows.length > 0) {
-      const row = desktopRows[0];
-      if (row.banner1_url) desktopBanners.push(row.banner1_url);
-      if (row.banner2_url) desktopBanners.push(row.banner2_url);
-      if (row.banner3_url) desktopBanners.push(row.banner3_url);
+    if (desktopResult.status === 'fulfilled') {
+      const [desktopRows]: any = desktopResult.value;
+      if (desktopRows && desktopRows.length > 0) {
+        const row = desktopRows[0];
+        if (row.banner1_url) desktopBanners.push(row.banner1_url);
+        if (row.banner2_url) desktopBanners.push(row.banner2_url);
+        if (row.banner3_url) desktopBanners.push(row.banner3_url);
+      }
     }
 
     // Fetch mobile banners
-    const [mobileRows]: any = await pool.query("SELECT * FROM banners WHERE type = 'mobile' ORDER BY created_at DESC LIMIT 1");
-    if (mobileRows && mobileRows.length > 0) {
-      const row = mobileRows[0];
-      if (row.banner1_url) mobileBanners.push(row.banner1_url);
-      if (row.banner2_url) mobileBanners.push(row.banner2_url);
-      if (row.banner3_url) mobileBanners.push(row.banner3_url);
+    if (mobileResult.status === 'fulfilled') {
+      const [mobileRows]: any = mobileResult.value;
+      if (mobileRows && mobileRows.length > 0) {
+        const row = mobileRows[0];
+        if (row.banner1_url) mobileBanners.push(row.banner1_url);
+        if (row.banner2_url) mobileBanners.push(row.banner2_url);
+        if (row.banner3_url) mobileBanners.push(row.banner3_url);
+      }
     }
 
   } catch (error) {

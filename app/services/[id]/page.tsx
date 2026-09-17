@@ -71,32 +71,35 @@ export default async function CategoryPage({ params }: { params: Promise<{ id: s
   }
 
   try {
-    // Fetch Category
-    const [catRows]: any = await pool.query("SELECT * FROM categories WHERE id = ?", [categoryId]);
-    if (catRows.length === 0) {
+    // Fetch all required data in parallel
+    const [
+      [catRows],
+      [subcats],
+      [servicesRows],
+      [rateCards]
+    ] = (await Promise.all([
+      pool.query("SELECT * FROM categories WHERE id = ?", [categoryId]),
+      pool.query("SELECT * FROM subcategories WHERE category_id = ?", [categoryId]),
+      pool.query("SELECT * FROM services WHERE category_id = ?", [categoryId]),
+      pool.query(`
+        SELECT rc.*, h.title as heading_title 
+        FROM rate_cards rc
+        LEFT JOIN rate_headings h ON rc.heading_id = h.id
+        WHERE rc.category_id = ?
+        ORDER BY rc.id ASC
+      `, [categoryId])
+    ])) as any[];
+
+    if (!catRows || catRows.length === 0) {
       return notFound();
     }
     const category = catRows[0];
 
-    // Fetch Subcategories
-    const [subcats]: any = await pool.query("SELECT * FROM subcategories WHERE category_id = ?", [categoryId]);
-    
-    // Fetch Services
-    const [servicesRows]: any = await pool.query("SELECT * FROM services WHERE category_id = ?", [categoryId]);
     const services = servicesRows.map((s: any) => ({
       ...s,
       short_description: category.short_description,
       warranty_days: category.warranty_days,
     }));
-
-    // Fetch Rate Cards added by Admin for this Category
-    const [rateCards]: any = await pool.query(`
-      SELECT rc.*, h.title as heading_title 
-      FROM rate_cards rc
-      LEFT JOIN rate_headings h ON rc.heading_id = h.id
-      WHERE rc.category_id = ?
-      ORDER BY rc.id ASC
-    `, [categoryId]);
 
     const rawBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.omaacompany.com";
     const siteUrl = rawBaseUrl.endsWith("/") ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
