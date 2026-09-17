@@ -1,0 +1,216 @@
+import { NextResponse } from "next/server";
+import pool from "../../../lib/db";
+import jwt from "jsonwebtoken";
+import { cookies } from "next/headers";
+import { sendBookingEmail } from "../../../lib/mail";
+
+const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_for_development_only";
+
+function generateOrderId(): string {
+  // Generate a random 4-digit number (1000 - 9999)
+  const random = Math.floor(Math.random() * 9000 + 1000);
+  return random.toString();
+}
+
+function generateCouponCode(): string {
+  const randomNum = Math.floor(100000 + Math.random() * 900000);
+  return `OC${randomNum}`;
+}
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    const { name, mobile, email, address, payment_method, total_amount, cart_items, booking_date, time_slot, referred_by } = body;
+
+    let user_email = null;
+    const cookieStore = await cookies();
+    const token = cookieStore.get("omaa_auth_token")?.value;
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET) as any;
+        user_email = decoded.email;
+      } catch (e) {}
+    }
+
+    if (!user_email && email) {
+      user_email = email;
+    }
+
+    // Require customer authentication to confirm booking
+    if (!user_email && !token) {
+      return NextResponse.json({ error: "Please log in with your email/account to confirm your booking." }, { status: 401 });
+    }
+
+    if (!name || !mobile || !address) {
+      return NextResponse.json({ error: "Name, mobile and address are required" }, { status: 400 });
+    }
+    if (String(mobile).length !== 10) {
+      return NextResponse.json({ error: "Mobile must be 10 digits" }, { status: 400 });
+    }
+
+    // Check if the order requires a schedule
+    const requiresSchedule = cart_items.some((item: any) => {
+      const title = (item.title || "").toLowerCase();
+      const catId = Number(item.category_id);
+      const category = (item.category || item.type || "").toLowerCase();
+      
+      // Category 6 is New Products, Category 7 is RO AMC
+      if (catId === 6 || catId === 7) return false;
+      
+      if (
+        title.includes("new product") || 
+        title.includes("amc") || 
+        title.includes("plan") ||
+        category.includes("new product") || 
+        category.includes("amc") ||
+        category.includes("product")
+      ) {
+        return false;
+      }
+      
+      return true;
+    });
+
+    if (requiresSchedule) {
+      if (!booking_date) {
+        return NextResponse.json({ error: "Please select a booking date" }, { status: 400 });
+      }
+      if (!time_slot) {
+        return NextResponse.json({ error: "Please select a time slot" }, { status: 400 });
+      }
+    }
+
+    const orderId = generateOrderId();
+
+    const servicesJson = JSON.stringify(cart_items.map((item: any) => ({
+      id: item.id,
+      title: item.title,
+      quantity: item.quantity,
+      price: item.selling_price,
+      category_id: item.category_id,
+    })));
+
+    let categoryName = cart_items[0]?.category_title || cart_items[0]?.category || '';
+    if (!categoryName || categoryName.toLowerCase() === 'service') {
+      try {
+        const firstItem = cart_items[0];
+        const catId = firstItem?.category_id;
+        const svcId = firstItem?.id;
+        if (catId) {
+          const [catRows]: any = await pool.query(`SELECT title FROM categories WHERE id = ?`, [catId]);
+          if (catRows.length > 0) categoryName = catRows[0].title;
+        } else if (svcId) {
+          const [catRows]: any = await pool.query(
+            `SELECT c.title FROM services s JOIN categories c ON s.category_id = c.id WHERE s.id = ?`,
+            [svcId]
+          );
+          if (catRows.length > 0) categoryName = catRows[0].title;
+        }
+      } catch (e) {}
+    }
+    if (!categoryName) categoryName = 'Service';
+
+    // Determine type (AMC vs New Product vs Normal Service)
+    let bookingType = 'Normal Service';
+    const isAMC = cart_items.some((item: any) => {
+      const catId = Number(item.category_id);
+      const categoryStr = (item.category || item.type || "").toLowerCase();
+      const titleStr = (item.title || "").toLowerCase();
+      return catId === 7 || categoryStr.includes("amc") || titleStr.includes("amc");
+    });
+    
+    const isNewProduct = cart_items.some((item: any) => {
+      const catId = Number(item.category_id);
+      const categoryStr = (item.category || item.type || "").toLowerCase();
+      const titleStr = (item.title || "").toLowerCase();
+      return catId === 6 || categoryStr.includes("new product") || titleStr.includes("new product");
+    });
+    
+    if (isAMC) {
+      bookingType = 'AMC';
+    } else if (isNewProduct) {
+      bookingType = 'New Product';
+    }
+
+    let couponCode: string | null = null;
+
+    // Ensure essential columns exist dynamically on production without crashing
+    try {
+      await pool.query("ALTER TABLE bookings ADD COLUMN user_email VARCHAR(255) DEFAULT NULL");
+    } catch (e) {}
+    try {
+      await pool.query("ALTER TABLE bookings ADD COLUMN amc_coupon_code VARCHAR(50) DEFAULT NULL");
+    } catch (e) {}
+    try {
+      await pool.query("ALTER TABLE bookings ADD COLUMN referred_by VARCHAR(50) DEFAULT NULL");
+    } catch (e) {}
+
+    // Auto-generate coupon immediately for online AMC & New Product bookings
+    if ((isAMC || isNewProduct) && payment_method === 'online') {
+      try {
+        couponCode = generateCouponCode();
+        await pool.query(
+          "INSERT INTO coupons (code, discount_type, discount_value, mobile) VALUES (?, 'percentage', 10.00, ?)",
+          [couponCode, mobile]
+        );
+      } catch (couponErr) {
+        console.warn("Notice: coupon insert skipped:", couponErr);
+      }
+    }
+
+    const finalBookingDate = requiresSchedule ? booking_date : (booking_date || new Date().toISOString().slice(0, 10));
+    const finalTimeSlot = requiresSchedule ? time_slot : (time_slot || 'Instant');
+
+    try {
+      await pool.query(
+        `INSERT INTO bookings (order_id, type, customer_name, mobile, address, category, services, booking_date, time_slot, total, payment_method, payment_status, working_status, created_at, user_email, amc_coupon_code, referred_by)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', 'Pendi', NOW(), ?, ?, ?)`,
+        [orderId, bookingType, name, mobile, address, categoryName, servicesJson, finalBookingDate, finalTimeSlot, total_amount, payment_method === 'online' ? 'cashfree' : 'Cash on Book', user_email, couponCode, referred_by || null]
+      );
+    } catch (insertErr: any) {
+      console.warn("Standard insert failed, trying compatible fallback insert:", insertErr?.message);
+      // Fallback in case production DB has different columns
+      await pool.query(
+        `INSERT INTO bookings (order_id, type, customer_name, mobile, address, category, services, booking_date, time_slot, total, payment_method, payment_status, working_status, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', 'Pendi', NOW())`,
+        [orderId, bookingType, name, mobile, address, categoryName, servicesJson, finalBookingDate, finalTimeSlot, total_amount, payment_method === 'online' ? 'cashfree' : 'Cash on Book']
+      );
+    }
+
+    // Trigger email notification immediately to Admin and Customer
+    try {
+      await sendBookingEmail({
+        orderId,
+        name,
+        mobile,
+        address,
+        category: categoryName,
+        services: cart_items || [],
+        total: total_amount,
+        paymentMethod: payment_method,
+        bookingDate: finalBookingDate,
+        timeSlot: finalTimeSlot,
+        userEmail: user_email || email || undefined
+      });
+    } catch (mailSyncErr) {
+      console.warn("Could not dispatch booking email:", mailSyncErr);
+    }
+
+    return NextResponse.json({ success: true, order_id: orderId });
+  } catch (error: any) {
+    console.error("====== DATABASE / BOOKING ERROR ======");
+    console.error("Error Message:", error.message);
+    console.error("Error Code:", error.code);
+    console.error("Full Error:", error);
+    return NextResponse.json({ error: "Failed to create booking: " + error.message }, { status: 500 });
+  }
+}
+
+export async function GET() {
+  try {
+    const [rows] = await pool.query(`SELECT * FROM bookings ORDER BY created_at DESC`);
+    return NextResponse.json(rows);
+  } catch (error) {
+    return NextResponse.json({ error: "Failed to fetch bookings" }, { status: 500 });
+  }
+}

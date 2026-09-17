@@ -1,0 +1,1047 @@
+"use client";
+
+import { useEffect, useState, Suspense } from "react";
+import Navbar from "../components/Navbar";
+import { 
+  CheckCircle2, 
+  Lock, 
+  ShieldCheck, 
+  Hash, 
+  IndianRupee, 
+  Calendar, 
+  Clock, 
+  MapPin, 
+  CreditCard, 
+  Edit, 
+  Home, 
+  List, 
+  AlertCircle, 
+  Mail, 
+  QrCode, 
+  Copy, 
+  Check, 
+  X, 
+  Smartphone, 
+  Sparkles, 
+  ArrowRight,
+  ShieldCheck as ShieldIcon,
+  UserCheck,
+  LogIn
+} from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import BookingSchedulePicker from "../components/BookingSchedulePicker";
+import CashbackFeatures from "../components/CashbackFeatures";
+import { getGstSettings } from "../actions/gst-settings";
+import LoginModal from "../components/LoginModal";
+
+function CheckoutContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [cart, setCart] = useState<any[]>([]);
+  const [bookedItems, setBookedItems] = useState<any[]>([]);
+  const [paymentMethod, setPaymentMethod] = useState<'online' | 'cash'>('online');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [orderId, setOrderId] = useState('');
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [gstSettings, setGstSettings] = useState<any>(null);
+  
+  // Customer Auth State
+  const [user, setUser] = useState<any>(null);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  
+  // QR Payment Modal State
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [copiedUpi, setCopiedUpi] = useState(false);
+
+  const [form, setForm] = useState({
+    name: '',
+    mobile: '',
+    email: '',
+    address: '',
+    booking_date: '',
+    time_slot: '',
+    referred_by: searchParams.get('ref') || '',
+  });
+
+  // Address search
+  const [addrQuery, setAddrQuery] = useState('');
+  const [addrResults, setAddrResults] = useState<{label:string}[]>([]);
+
+  useEffect(() => {
+    if (!addrQuery.trim()) { setAddrResults([]); return; }
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/location/search?q=${encodeURIComponent(addrQuery)}`);
+        const data = await res.json();
+        const list = (data.results || data.data || []) as any[];
+        setAddrResults(list.map((r:any) => ({ label: r.display_name || r.address || '' })).filter((r:any) => r.label));
+      } catch {}
+    }, 500);
+    return () => clearTimeout(t);
+  }, [addrQuery]);
+
+  const selectAddr = (label: string) => {
+    setForm(prev => ({ ...prev, address: label }));
+    setErrors(prev => ({ ...prev, address: '' }));
+    setAddrQuery('');
+    setAddrResults([]);
+  };
+
+  useEffect(() => {
+    const savedCart = localStorage.getItem("omaa_cart");
+    if (savedCart) {
+      setCart(JSON.parse(savedCart));
+    }
+
+    // Auto-fill booking address from detected/saved user location
+    const savedLoc = localStorage.getItem("user_location");
+    if (savedLoc) {
+      try {
+        const parsedLoc = JSON.parse(savedLoc);
+        if (parsedLoc.address) {
+          setForm(prev => ({
+            ...prev,
+            address: prev.address || parsedLoc.address,
+          }));
+        }
+      } catch (e) {}
+    }
+
+    getGstSettings().then((settings) => {
+      if (settings) {
+        setGstSettings(settings);
+      }
+    });
+
+    // Check Customer Authentication
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data.user);
+          if (data.user) {
+            setForm(prev => ({
+              ...prev,
+              email: prev.email || data.user.email || '',
+              name: prev.name || data.user.name || '',
+            }));
+          }
+        } else {
+          setUser(null);
+        }
+      } catch (e) {
+        setUser(null);
+      }
+    };
+
+    checkAuth();
+    window.addEventListener("auth_changed", checkAuth);
+    return () => window.removeEventListener("auth_changed", checkAuth);
+  }, []);
+
+  const isGstItem = (item: any) => {
+    const title = (item.title || item.name || "").toLowerCase();
+    const catId = Number(item.category_id);
+    const category = (item.category || item.type || item.category_title || "").toLowerCase();
+    
+    // Category 6 is New Products, Category 7 is RO AMC
+    if (catId === 6 || catId === 7) return true;
+    
+    // Exact strict matching: ONLY RO AMC and New Products
+    if (
+      title.includes("ro amc") || 
+      title.includes("amc plan") || 
+      title.includes("amc package") ||
+      title.includes("new product") ||
+      category.includes("ro amc") ||
+      category.includes("new product") ||
+      category === "amc" ||
+      category === "new products"
+    ) {
+      return true;
+    }
+    return false;
+  };
+
+  const itemTotals = cart.reduce((total, item) => total + (Number(item.selling_price) * item.quantity || 0), 0);
+
+  // Apply GST on checkout strictly if master GST toggle is enabled
+  const gstRate = Number(gstSettings?.gst_rate || 0);
+  const gstEnabled = Boolean(gstSettings && (Number(gstSettings.online_gst_enabled) === 1 || Number(gstSettings.cash_gst_enabled) === 1));
+  const applyGst = cart.some(isGstItem) && gstEnabled && gstRate > 0;
+  const gstItemsTotal = cart.filter(isGstItem).reduce((sum, item) => sum + (Number(item.selling_price) * item.quantity || 0), 0);
+  const gstAmount = applyGst ? (gstItemsTotal * (gstRate / 100)) : 0;
+
+  // Convenience fee: waived for RO AMC and New Product carts
+  const hasGstItems = cart.some(isGstItem);
+  const convenienceFee = (cart.length > 0 && !hasGstItems) ? 49 : 0;
+  const totalAmount = itemTotals + gstAmount + convenienceFee;
+
+  // Check if ANY cart item requires a schedule (i.e. is NOT an AMC or New Product)
+  const requiresSchedule = cart.some(item => {
+    const title = (item.title || item.name || "").toLowerCase();
+    const catId = Number(item.category_id);
+    const category = (item.category || item.type || "").toLowerCase();
+    
+    // Category 6 is New Products, Category 7 is RO AMC in standard setup
+    if (catId === 6 || catId === 7) return false;
+    
+    // Fallback checks by name/type
+    if (
+      title.includes("new product") || 
+      title.includes("amc") || 
+      title.includes("plan") ||
+      category.includes("new product") || 
+      category.includes("amc") ||
+      category.includes("product")
+    ) {
+      return false;
+    }
+    
+    // If it didn't match AMC/Product criteria, it's a regular service and needs scheduling
+    return true;
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    // Restrict mobile to digits only, max 10
+    if (name === 'mobile') {
+      const digits = value.replace(/\D/g, '').slice(0, 10);
+      setForm(prev => ({ ...prev, mobile: digits }));
+    } else {
+      setForm(prev => ({ ...prev, [name]: value }));
+    }
+    // Clear error on change
+    setErrors(prev => ({ ...prev, [name]: '' }));
+  };
+
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    if (!form.name.trim()) newErrors.name = 'Full name is required';
+    if (!form.mobile || form.mobile.length !== 10) newErrors.mobile = 'Enter a valid 10-digit mobile number';
+    if (!form.address.trim()) newErrors.address = 'Address is required';
+    
+    if (requiresSchedule) {
+      if (!form.booking_date) newErrors.booking_date = 'Please select a booking date';
+      if (!form.time_slot) newErrors.time_slot = 'Please select a time slot';
+    }
+    
+    return newErrors;
+  };
+
+  const handleCopyUpi = () => {
+    navigator.clipboard.writeText("omacr8ewa@idfcbank");
+    setCopiedUpi(true);
+    setTimeout(() => {
+      setCopiedUpi(false);
+    }, 2500);
+  };
+
+  const handleProceed = () => {
+    const newErrors = validate();
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      
+      // Auto scroll and focus directly to the first unfilled field
+      const firstKey = Object.keys(newErrors)[0];
+      setTimeout(() => {
+        let target: HTMLElement | null = null;
+        if (firstKey === 'booking_date' || firstKey === 'time_slot') {
+          target = document.getElementById('field-schedule') || document.getElementById('schedule-section');
+        } else {
+          target = document.getElementById(`field-${firstKey}`) || document.querySelector(`[name="${firstKey}"]`);
+        }
+
+        if (target) {
+          const headerOffset = 110;
+          const targetTop = target.getBoundingClientRect().top + window.pageYOffset - headerOffset;
+          window.scrollTo({
+            top: Math.max(0, targetTop),
+            behavior: 'smooth'
+          });
+          target.focus({ preventScroll: true });
+        }
+      }, 50);
+      return;
+    }
+
+    // AUTHENTICATION CHECK: Customer MUST be logged in to book / make payment
+    if (!user) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
+    // If online payment is selected, show the QR scanner popup modal
+    if (paymentMethod === 'online') {
+      setShowQrModal(true);
+    } else {
+      handleSubmit();
+    }
+  };
+
+  const handleSubmit = async (userOverride?: any) => {
+    const currentUser = userOverride || user;
+    if (!currentUser) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const res = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name || currentUser.name,
+          mobile: form.mobile,
+          email: form.email || currentUser.email,
+          address: form.address,
+          booking_date: requiresSchedule ? form.booking_date : new Date().toISOString().slice(0, 10),
+          time_slot: requiresSchedule ? form.time_slot : 'Instant',
+          payment_method: paymentMethod,
+          total_amount: totalAmount,
+          cart_items: cart,
+          referred_by: form.referred_by,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setBookedItems([...cart]);
+        localStorage.removeItem('omaa_cart');
+        setOrderId(data.order_id || '');
+        setShowQrModal(false);
+        setSuccess(true);
+      } else {
+        const err = await res.json();
+        if (res.status === 401) {
+          setIsLoginModalOpen(true);
+        } else {
+          alert(err.error || 'Something went wrong. Please try again.');
+        }
+      }
+    } catch (err) {
+      alert('Error submitting booking. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Success screen
+  if (success) {
+    const uniqueCategories = Array.from(new Set(bookedItems.map(item => item.category || item.category_name || (item.category_id === 6 ? 'New Product' : item.category_id === 7 ? 'RO AMC' : 'Home Service')).filter(Boolean)));
+    const categoryHeader = uniqueCategories.length > 0 ? uniqueCategories.join(' & ') : 'Booked Services';
+
+    return (
+      <div className="min-h-screen bg-white sm:bg-[#fafafa] pb-12 flex flex-col font-sans selection:bg-black selection:text-white">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center mt-10 px-4">
+          <div className="bg-white sm:shadow-[0_20px_60px_rgba(0,0,0,0.04)] sm:border border-gray-100 rounded-[32px] w-full max-w-[560px] relative overflow-hidden z-10 p-8 sm:p-12">
+            
+            {/* Subtle Success Glow */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-green-400/10 rounded-full blur-[60px] pointer-events-none -z-10"></div>
+
+            <div className="text-center mb-8 sm:mb-10">
+              <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_40px_rgba(34,197,94,0.3)] ring-8 ring-green-50">
+                <CheckCircle2 className="w-10 h-10 text-white" strokeWidth={2.5} />
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight mb-3">Booking Confirmed</h2>
+              <p className="text-gray-500 text-[15px] font-medium max-w-sm mx-auto">
+                Your booking has been placed successfully. We've sent the details to your email and mobile.
+              </p>
+            </div>
+
+            <div className="bg-[#fafafa] rounded-2xl p-5 sm:p-6 mb-8 border border-gray-100/80 space-y-4">
+              {/* 1. Dynamic Category & Service Items Box */}
+              {bookedItems.length > 0 && (
+                <div className="pb-4 border-b border-gray-200/60">
+                  <div className="flex items-center justify-between mb-2.5">
+                    <p className="text-gray-500 text-[12px] font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+                      <span className="text-[#6b62d9] font-black">{categoryHeader}</span>
+                    </p>
+                    <span className="text-[11px] font-bold text-gray-400">
+                      {bookedItems.reduce((acc, curr) => acc + (curr.quantity || 1), 0)} {bookedItems.reduce((acc, curr) => acc + (curr.quantity || 1), 0) === 1 ? 'Item' : 'Items'}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                    {bookedItems.map((item, idx) => {
+                      const catName = item.category || item.category_name || (item.category_id === 6 ? 'New Product' : item.category_id === 7 ? 'RO AMC' : 'Service');
+                      const qty = item.quantity || 1;
+                      return (
+                        <div key={idx} className="flex items-center justify-between bg-white p-3 rounded-xl border border-gray-100 shadow-2xs">
+                          <div className="flex items-center gap-3 min-w-0">
+                            {item.image_url ? (
+                              <img src={item.image_url} alt={item.title} className="w-11 h-11 rounded-lg object-cover bg-gray-50 shrink-0 border border-gray-100" />
+                            ) : (
+                              <div className="w-11 h-11 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 font-bold text-sm">🛠️</div>
+                            )}
+                            <div className="min-w-0">
+                              <p className="text-gray-900 font-bold text-[13.5px] truncate">{item.title}</p>
+                              <p className="text-gray-500 text-[11.5px] font-medium flex items-center gap-1.5 mt-0.5">
+                                <span className="text-[#6b62d9] font-bold bg-[#f4f3ff] px-2 py-0.5 rounded-md">{catName}</span>
+                                <span>•</span>
+                                <span className="text-gray-600 font-semibold">{qty} {qty === 1 ? 'Item' : 'Items'}</span>
+                              </p>
+                            </div>
+                          </div>
+                          <span className="text-gray-900 font-black text-[14px] shrink-0 ml-3">
+                            ₹{Number((item.selling_price || item.price || 0) * qty)}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* 2. Date & Time (if scheduled) */}
+              {requiresSchedule && form.booking_date && (
+                <div className="grid grid-cols-2 gap-4 pb-4 border-b border-gray-200/60">
+                  <div>
+                    <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5"/> Date</p>
+                    <p className="text-gray-900 font-bold text-[13.5px]">{new Date(form.booking_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5"><Clock className="w-3.5 h-3.5"/> Time</p>
+                    <p className="text-gray-900 font-bold text-[13.5px]">{form.time_slot}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* 3. Payment Method */}
+              <div className="pb-4 border-b border-gray-200/60">
+                <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1.5"><IndianRupee className="w-3.5 h-3.5"/> Payment Method</p>
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-[12px] font-bold rounded-lg border ${paymentMethod === 'online' ? 'bg-indigo-50 text-[#6b62d9] border-indigo-200' : 'bg-gray-100 text-gray-800 border-gray-200'}`}>
+                  {paymentMethod === 'online' ? (
+                    <>
+                      <QrCode className="w-3.5 h-3.5" />
+                      <span>Online Paid (UPI / QR)</span>
+                    </>
+                  ) : (
+                    'Pay at Site (Cash/UPI)'
+                  )}
+                </span>
+              </div>
+
+              {/* 4. Order ID & Total Amount */}
+              <div className="flex justify-between items-center pb-4 border-b border-gray-200/60">
+                <div>
+                  <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1">Order ID</p>
+                  <p className="text-gray-900 font-extrabold text-base tracking-tight">{orderId}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1">Total Amount</p>
+                  <p className="text-gray-900 font-black text-xl">₹{Number(totalAmount)}</p>
+                </div>
+              </div>
+
+              {/* 5. Address */}
+              <div>
+                <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5"/> Address</p>
+                <p className="text-gray-800 font-semibold text-[13px] leading-relaxed">{form.address}</p>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button 
+                onClick={() => router.push('/')}
+                className="flex-1 bg-white border-2 border-gray-200 hover:border-black hover:bg-gray-50 text-gray-900 font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 text-[15px] cursor-pointer"
+              >
+                <Home className="w-4 h-4" /> Go Home
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#f8f9fa] pb-24 font-sans selection:bg-[#6b62d9] selection:text-white">
+      <Navbar />
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 mt-4 sm:mt-8">
+        {/* Page Header */}
+        <div className="mb-8 md:mb-10 max-w-3xl">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 tracking-tight mb-3">Secure Checkout</h1>
+          <p className="text-gray-500 text-sm sm:text-base font-medium">Please fill in your details to complete your booking.</p>
+        </div>
+
+        <div className="flex flex-col xl:flex-row gap-8 xl:gap-12">
+          
+          {/* Left Column - Booking Details */}
+          <div className="flex-1 w-full">
+            <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 p-6 sm:p-8 md:p-10 relative">
+
+              {/* Customer Authentication Status Card */}
+              {user ? (
+                <div className="mb-8 p-4 sm:p-5 rounded-2xl bg-emerald-50/80 border border-emerald-200/80 flex items-center justify-between gap-4 animate-in fade-in">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+                      <UserCheck className="w-5 h-5 stroke-[2.5]" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-[11px] font-extrabold text-emerald-800 uppercase tracking-wider">Logged In Customer</p>
+                        <span className="text-[10px] bg-emerald-200/70 text-emerald-900 font-bold px-2 py-0.5 rounded-full">
+                          Verified
+                        </span>
+                      </div>
+                      <p className="text-sm font-extrabold text-gray-900 mt-0.5">{user.email || user.name}</p>
+                    </div>
+                  </div>
+                  <div className="hidden sm:flex items-center gap-1.5 text-xs text-emerald-700 font-bold bg-white/80 px-3 py-1.5 rounded-xl border border-emerald-200">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Booking Linked</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="mb-8 p-4 sm:p-5 rounded-2xl bg-amber-50/80 border border-amber-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 animate-in fade-in">
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+                      <Lock className="w-5 h-5 stroke-[2.5]" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-extrabold text-amber-900 uppercase tracking-wider">Customer Login Required</p>
+                      <p className="text-xs sm:text-[13px] font-medium text-amber-800 mt-0.5">
+                        Please verify your email/account to confirm your booking and secure warranty.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsLoginModalOpen(true)}
+                    className="shrink-0 bg-[#6b62d9] hover:bg-[#5b52c9] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-xs cursor-pointer active:scale-95 flex items-center gap-1.5"
+                  >
+                    <LogIn className="w-3.5 h-3.5" />
+                    <span>Login / Sign Up</span>
+                  </button>
+                </div>
+              )}
+
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center font-bold text-lg shadow-md">1</div>
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Your Information</h2>
+                  <p className="text-sm text-gray-500 font-medium mt-0.5">Where should we provide the service?</p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="space-y-1.5" id="container-name">
+                    <label className="text-[13px] font-bold text-gray-700">Full Name</label>
+                    <input 
+                      type="text"
+                      id="field-name"
+                      name="name"
+                      value={form.name}
+                      onChange={handleChange}
+                      placeholder="John Doe" 
+                      className={`w-full bg-white border rounded-xl px-4 py-3.5 outline-none transition-all text-gray-900 font-medium placeholder:text-gray-300 ${errors.name ? 'border-red-400 focus:ring-4 focus:ring-red-100' : 'border-gray-200 focus:border-black focus:ring-4 focus:ring-black/5 hover:border-gray-300'}`}
+                    />
+                    {errors.name && <p className="text-red-500 text-xs mt-1.5 font-medium flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5"/>{errors.name}</p>}
+                  </div>
+                  <div className="space-y-1.5" id="container-mobile">
+                    <label className="text-[13px] font-bold text-gray-700">Mobile Number</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none border-r border-gray-200 pr-3 my-2">
+                        <span className="text-gray-500 font-semibold text-sm">+91</span>
+                      </div>
+                      <input 
+                        type="tel"
+                        id="field-mobile"
+                        name="mobile"
+                        value={form.mobile}
+                        onChange={handleChange}
+                        placeholder="9876543210"
+                        maxLength={10}
+                        className={`w-full bg-white border rounded-xl pl-16 pr-4 py-3.5 outline-none transition-all text-gray-900 font-medium placeholder:text-gray-300 ${errors.mobile ? 'border-red-400 focus:ring-4 focus:ring-red-100' : 'border-gray-200 focus:border-black focus:ring-4 focus:ring-black/5 hover:border-gray-300'}`}
+                      />
+                    </div>
+                    {errors.mobile && <p className="text-red-500 text-xs mt-1.5 font-medium flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5"/>{errors.mobile}</p>}
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[13px] font-bold text-gray-700">Email Address <span className="text-gray-400 font-normal">(Optional)</span></label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <Mail className="w-4 h-4 text-gray-400" />
+                    </div>
+                    <input 
+                      type="email"
+                      id="field-email"
+                      name="email"
+                      value={form.email}
+                      onChange={handleChange}
+                      placeholder="you@example.com" 
+                      className="w-full bg-white border border-gray-200 rounded-xl pl-11 pr-4 py-3.5 outline-none focus:border-black focus:ring-4 focus:ring-black/5 hover:border-gray-300 transition-all text-gray-900 font-medium placeholder:text-gray-300"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2" id="container-address">
+                  <label className="text-[13px] font-bold text-gray-700 block">Service Address</label>
+
+                  {/* 1. Manual Address Textarea */}
+                  <textarea 
+                    rows={3}
+                    id="field-address"
+                    name="address"
+                    value={form.address}
+                    onChange={handleChange}
+                    placeholder="House No, Street, Landmark, City, Pincode" 
+                    className={`w-full bg-white border rounded-xl px-4 py-3 outline-none transition-all resize-none text-gray-900 font-medium placeholder:text-gray-300 ${errors.address ? 'border-red-400 focus:ring-4 focus:ring-red-100' : 'border-gray-200 focus:border-black focus:ring-4 focus:ring-black/5 hover:border-gray-300'}`}
+                  ></textarea>
+                  {errors.address && <p className="text-red-500 text-xs font-medium flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5"/>{errors.address}</p>}
+
+                  {/* 2. Compact Search Address Bar + Use GPS Button side-by-side */}
+                  <div className="flex items-center gap-2 pt-0.5">
+                    <div className="relative flex-1">
+                      <input
+                        type="text"
+                        value={addrQuery}
+                        onChange={e => setAddrQuery(e.target.value)}
+                        placeholder="🔍 Search area, society, landmark to auto-fill..."
+                        className="w-full bg-gray-50/80 hover:bg-white focus:bg-white border border-gray-200 rounded-xl px-3.5 py-2 text-xs sm:text-[13px] outline-none focus:border-[#6b62d9] focus:ring-2 focus:ring-[#6b62d9]/15 hover:border-gray-300 transition-all text-gray-800 placeholder:text-gray-400"
+                      />
+                      {addrResults.length > 0 && (
+                        <ul className="absolute z-20 left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl max-h-52 overflow-y-auto divide-y divide-gray-50">
+                          {addrResults.map((r, i) => (
+                            <li
+                              key={i}
+                              onClick={() => selectAddr(r.label)}
+                              className="px-3.5 py-2 text-xs sm:text-[13px] text-gray-800 cursor-pointer hover:bg-indigo-50 hover:text-indigo-700 font-medium transition-colors"
+                            >
+                              {r.label}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+
+                    {/* Use GPS Button */}
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          const { getCurrentLocation } = await import("@/lib/location");
+                          const locationData = await getCurrentLocation();
+                          if (locationData.address) {
+                            setForm(prev => ({ ...prev, address: locationData.address }));
+                            setErrors(prev => ({ ...prev, address: '' }));
+                            localStorage.setItem('user_location', JSON.stringify(locationData));
+                            window.dispatchEvent(new Event('location_changed'));
+                          }
+                        } catch (e: any) {
+                          alert(e.message || "Failed to fetch live address.");
+                        }
+                      }}
+                      className="shrink-0 text-xs font-bold text-[#6b62d9] hover:text-white hover:bg-[#6b62d9] flex items-center gap-1.5 bg-indigo-50 hover:bg-indigo-600 border border-indigo-200 px-3.5 py-2 rounded-xl transition shadow-xs active:scale-95 cursor-pointer"
+                      title="Fetch Live GPS Location"
+                    >
+                      <MapPin className="w-3.5 h-3.5" />
+                      <span>Use GPS</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Booking Date & Time Slot */}
+                {requiresSchedule && (
+                  <div id="field-schedule" className="pt-8 mt-8 border-t border-gray-100 scroll-mt-24">
+                    <BookingSchedulePicker 
+                      selectedDate={form.booking_date}
+                      selectedTime={form.time_slot}
+                      onChange={(date, time) => {
+                        setForm(prev => ({ ...prev, booking_date: date, time_slot: time }));
+                        setErrors(prev => ({ ...prev, booking_date: '', time_slot: '' }));
+                      }}
+                      errorDate={errors.booking_date}
+                      errorTime={errors.time_slot}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column - Payment Summary */}
+          <div className="w-full xl:w-[480px] shrink-0">
+            <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 p-6 sm:p-8 xl:sticky xl:top-28 transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-12 h-12 rounded-2xl bg-gray-100 text-gray-900 flex items-center justify-center font-bold text-xl shadow-inner">2</div>
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">Order Summary</h2>
+              </div>
+              
+              <div className="space-y-4 mb-8 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                {cart.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-10 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm mb-3">
+                      <List className="w-5 h-5 text-gray-400" />
+                    </div>
+                    <p className="text-gray-500 text-sm font-medium">Your cart is empty</p>
+                  </div>
+                ) : (
+                  cart.map((item, idx) => (
+                    <div key={idx} className="flex gap-4 p-4 rounded-2xl bg-[#f8f9fa] border border-gray-50/50 items-center transition-all hover:bg-gray-50">
+                      <div className="w-14 h-14 rounded-xl bg-white shadow-sm flex items-center justify-center shrink-0 border border-gray-100 overflow-hidden p-2">
+                        {item.image_url ? (
+                          <img src={item.image_url} alt={item.title} className="w-full h-full object-contain" />
+                        ) : (
+                          <ShieldCheck className="w-6 h-6 text-gray-300" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-bold text-gray-900 text-[14px] leading-snug line-clamp-2">{item.title}</p>
+                        <p className="text-xs text-gray-500 mt-1 font-medium bg-white px-2 py-0.5 rounded-full inline-block border border-gray-200 shadow-sm">Item: {item.quantity}</p>
+                      </div>
+                      <p className="font-black text-gray-900 text-base shrink-0">₹{(Number(item.selling_price) * item.quantity).toLocaleString()}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Dotted divider */}
+              <div className="border-t-[3px] border-dotted border-gray-200 pt-6 space-y-4 mb-6">
+                <div className="flex justify-between items-center text-[15px]">
+                  <span className="text-gray-500 font-semibold">Subtotal</span>
+                  <span className="font-bold text-gray-800">₹{itemTotals.toLocaleString()}</span>
+                </div>
+                {gstAmount > 0 && (
+                  <div className="flex justify-between items-center text-[15px]">
+                    <span className="text-gray-500 font-semibold">GST ({gstRate}%)</span>
+                    <span className="font-bold text-gray-800">₹{Math.round(gstAmount).toLocaleString()}</span>
+                  </div>
+                )}
+                {convenienceFee > 0 && (
+                  <div className="flex justify-between items-center text-[15px]">
+                    <span className="text-gray-500 font-semibold">Convenience Fee</span>
+                    <span className="font-bold text-gray-800">₹{convenienceFee}</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center text-[15px]">
+                  <span className="text-gray-500 font-semibold">Taxes</span>
+                  <span className="font-bold text-[#328e3b] bg-green-50 px-3 py-1 rounded-full text-xs uppercase tracking-wider">Free</span>
+                </div>
+              </div>
+
+              {/* Redesigned Total to Pay Card */}
+              <div className="mb-8 p-6 rounded-2xl bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ebe7ff] border-2 border-[#6b62d9]/25 shadow-sm flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-black uppercase tracking-wider text-gray-500 block mb-1">
+                    Total Amount to Pay
+                  </span>
+                  <div className="flex items-center gap-1.5 text-xs text-[#328e3b] font-bold">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Best Price Guaranteed</span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <span className="font-black text-3xl sm:text-4xl text-[#584ec6] tracking-tight">
+                    ₹{Math.round(totalAmount).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+
+              {/* Payment Method Selector */}
+              <div className="mb-6">
+                <p className="text-[12px] font-black text-gray-400 tracking-widest mb-3 uppercase">Select Payment Method</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  
+                  {/* Pay Online with QR (1-Click Opens Scanner) */}
+                  <div 
+                    onClick={() => {
+                      setPaymentMethod('online');
+                      setShowQrModal(true);
+                    }}
+                    className={`border-2 rounded-2xl p-4 sm:p-5 cursor-pointer flex flex-col items-start transition-all duration-300 relative overflow-hidden group select-none ${
+                      paymentMethod === 'online' 
+                        ? 'border-[#6b62d9] bg-[#f8f7ff] shadow-[0_4px_20px_rgba(107,98,217,0.15)] ring-1 ring-[#6b62d9]' 
+                        : 'border-gray-200 hover:border-[#6b62d9]/60 hover:bg-gray-50 bg-white'
+                    }`}
+                  >
+                    <input type="radio" name="payment_method" value="online" checked={paymentMethod === 'online'} readOnly className="hidden" />
+                    
+                    <div className="flex items-center justify-between w-full mb-2.5">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${paymentMethod === 'online' ? 'bg-[#6b62d9] text-white shadow-sm' : 'bg-gray-100 text-gray-400 group-hover:bg-[#6b62d9]/10 group-hover:text-[#6b62d9]'}`}>
+                        <QrCode className="w-4 h-4" />
+                      </div>
+                      <span className="bg-[#6b62d9]/10 text-[#6b62d9] text-[10.5px] font-extrabold px-2.5 py-0.5 rounded-full flex items-center gap-1 group-hover:bg-[#6b62d9] group-hover:text-white transition-colors">
+                        <Sparkles className="w-2.5 h-2.5" /> Scan QR
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <p className={`font-extrabold text-[15px] ${paymentMethod === 'online' ? 'text-[#6b62d9]' : 'text-gray-900'}`}>Pay Online</p>
+                    </div>
+                    <p className={`text-[11.5px] mt-0.5 font-medium ${paymentMethod === 'online' ? 'text-[#6b62d9]/80' : 'text-gray-500'}`}>
+                      GPay, PhonePe, Paytm & Cards
+                    </p>
+                  </div>
+
+                  {/* Pay Cash */}
+                  <div 
+                    onClick={() => setPaymentMethod('cash')}
+                    className={`border-2 rounded-2xl p-4 sm:p-5 cursor-pointer flex flex-col items-start transition-all duration-300 relative overflow-hidden group select-none ${
+                      paymentMethod === 'cash' 
+                        ? 'border-[#328e3b] bg-[#f0f9f2] shadow-[0_4px_20px_rgba(50,142,59,0.15)] ring-1 ring-[#328e3b]' 
+                        : 'border-gray-200 hover:border-[#328e3b]/60 hover:bg-gray-50 bg-white'
+                    }`}
+                  >
+                    <input type="radio" name="payment_method" value="cash" checked={paymentMethod === 'cash'} readOnly className="hidden" />
+                    
+                    <div className="flex items-center justify-between w-full mb-2.5">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${paymentMethod === 'cash' ? 'bg-[#328e3b] text-white shadow-sm' : 'bg-gray-100 text-gray-400 group-hover:bg-[#328e3b]/10 group-hover:text-[#328e3b]'}`}>
+                        <IndianRupee className="w-4 h-4" />
+                      </div>
+                      {paymentMethod === 'cash' && (
+                        <div className="text-[#328e3b]">
+                          <CheckCircle2 className="w-4 h-4 fill-[#328e3b]/20" />
+                        </div>
+                      )}
+                    </div>
+
+                    <p className={`font-extrabold text-[15px] ${paymentMethod === 'cash' ? 'text-[#328e3b]' : 'text-gray-900'}`}>Pay Cash</p>
+                    <p className={`text-[11.5px] mt-0.5 font-medium ${paymentMethod === 'cash' ? 'text-[#328e3b]/80' : 'text-gray-500'}`}>
+                      Pay after service
+                    </p>
+                  </div>
+
+                </div>
+              </div>
+
+              {/* Main Submit / Proceed Button */}
+              <button 
+                onClick={handleProceed}
+                disabled={isSubmitting || cart.length === 0}
+                className="w-full bg-[#6b62d9] hover:bg-[#5b52c9] hover:scale-[1.01] active:scale-95 disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed text-white font-extrabold text-base sm:text-lg py-4 sm:py-5 rounded-2xl transition-all duration-300 shadow-[0_8px_25px_rgba(107,98,217,0.35)] flex justify-center items-center gap-3 mb-5 group cursor-pointer"
+              >
+                {isSubmitting ? (
+                  <span className="flex items-center gap-3"><div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Processing...</span>
+                ) : (
+                  <>
+                    {!user && <Lock className="w-4 h-4 text-amber-300 stroke-[2.5]" />}
+                    <span>
+                      {user 
+                        ? (paymentMethod === 'online' ? 'Proceed to Pay Online' : 'Confirm Cash Booking')
+                        : (paymentMethod === 'online' ? 'Login & Proceed to Pay' : 'Login & Confirm Booking')}
+                    </span>
+                    <span className="font-normal opacity-80 text-sm sm:text-base">| ₹{Math.round(totalAmount).toLocaleString()}</span>
+                    <ArrowRight className="w-4 h-4 opacity-75 group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
+              </button>
+
+              <div className="flex items-center justify-center gap-2 text-gray-400 text-[12.5px] font-semibold bg-gray-50 py-3 rounded-xl border border-gray-100">
+                <ShieldCheck className="w-4 h-4 text-[#328e3b]" /> SSL Encrypted & Secure Checkout
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* 🚀 COMPACT, RESPONSIVE & SLEEK UPI QR MODAL */}
+      {/* ========================================================================= */}
+      {showQrModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200"
+          onClick={() => setShowQrModal(false)}
+        >
+          <div 
+            className="bg-white rounded-[28px] w-full max-w-[390px] shadow-[0_25px_70px_rgba(0,0,0,0.4)] border border-gray-100 overflow-hidden relative my-auto animate-in zoom-in-95 duration-200"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-[#584ec6] via-[#6b62d9] to-[#7f74e6] text-white px-5 py-4 relative">
+              <button 
+                onClick={() => setShowQrModal(false)}
+                className="absolute top-3.5 right-3.5 w-8 h-8 rounded-full bg-white/15 hover:bg-white/30 flex items-center justify-center text-white transition active:scale-95 cursor-pointer"
+                title="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="flex items-center justify-between pr-8">
+                <div>
+                  <div className="flex items-center gap-1.5 text-[10.5px] font-extrabold uppercase tracking-wider text-indigo-100">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
+                    <span>Verified Merchant</span>
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-black text-white tracking-tight mt-0.5">Scan & Pay via UPI</h3>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] font-bold text-indigo-200 block uppercase">Payable</span>
+                  <span className="text-lg font-black text-white">₹{Math.round(totalAmount).toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-4 sm:p-5 space-y-3.5">
+              
+              {/* QR Image Card */}
+              <div className="bg-white rounded-2xl p-2.5 sm:p-3 border-2 border-indigo-100/90 shadow-2xs text-center relative group">
+                
+                {/* Decorative corner accents */}
+                <div className="absolute top-1.5 left-1.5 w-3.5 h-3.5 border-t-2 border-l-2 border-[#6b62d9] rounded-tl pointer-events-none"></div>
+                <div className="absolute top-1.5 right-1.5 w-3.5 h-3.5 border-t-2 border-r-2 border-[#6b62d9] rounded-tr pointer-events-none"></div>
+                <div className="absolute bottom-1.5 left-1.5 w-3.5 h-3.5 border-b-2 border-l-2 border-[#6b62d9] rounded-bl pointer-events-none"></div>
+                <div className="absolute bottom-1.5 right-1.5 w-3.5 h-3.5 border-b-2 border-r-2 border-[#6b62d9] rounded-br pointer-events-none"></div>
+
+                <img 
+                  src="/scanner.jpeg" 
+                  alt="IDFC Bank UPI QR Scanner" 
+                  className="w-44 sm:w-48 h-auto max-h-[220px] object-contain rounded-lg mx-auto shadow-2xs"
+                />
+                
+                <p className="text-[11px] text-gray-500 font-semibold mt-2 flex items-center justify-center gap-1.5">
+                  <Smartphone className="w-3.5 h-3.5 text-[#6b62d9]" />
+                  Scan with GPay, PhonePe, Paytm or Any UPI App
+                </p>
+              </div>
+
+              {/* UPI ID Box with 1-Click Copy */}
+              <div className="bg-gray-50/90 rounded-xl p-2.5 sm:p-3 border border-gray-200 flex items-center justify-between gap-2">
+                <div className="min-w-0 flex-1 pl-1">
+                  <p className="text-[9.5px] font-extrabold text-gray-400 uppercase tracking-wider">UPI ID</p>
+                  <p className="font-mono font-bold text-gray-900 text-xs sm:text-[13.5px] truncate select-all">
+                    omacr8ewa@idfcbank
+                  </p>
+                </div>
+                
+                <button
+                  type="button"
+                  onClick={handleCopyUpi}
+                  className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-2xs ${
+                    copiedUpi 
+                      ? 'bg-emerald-600 text-white' 
+                      : 'bg-[#6b62d9] hover:bg-[#5b52c9] text-white'
+                  }`}
+                >
+                  {copiedUpi ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      <span>Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Copy UPI</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Direct UPI Intent Link (For Mobile Phones) */}
+              <a
+                href={`upi://pay?pa=omacr8ewa@idfcbank&pn=OMAA%20CURRENTSEWA%20INDIA%20PVT%20LTD&am=${Math.round(totalAmount)}&cu=INR&tn=OMAA%20Service%20Booking`}
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 transition active:scale-95 shadow-2xs sm:hidden"
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+                <span>Tap to Pay with Installed UPI App</span>
+              </a>
+
+              {/* Supported UPI Apps Badges */}
+              <div className="flex items-center justify-center gap-1.5 text-[10px] font-bold text-gray-600 flex-wrap">
+                <span className="bg-gray-100 px-2 py-0.5 rounded-md">Google Pay</span>
+                <span className="bg-gray-100 px-2 py-0.5 rounded-md">PhonePe</span>
+                <span className="bg-gray-100 px-2 py-0.5 rounded-md">Paytm</span>
+                <span className="bg-gray-100 px-2 py-0.5 rounded-md">BHIM</span>
+                <span className="bg-gray-100 px-2 py-0.5 rounded-md">Cred</span>
+              </div>
+
+              {/* Payment Confirmation Action */}
+              <div className="pt-1 space-y-2">
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className="w-full bg-[#6b62d9] hover:bg-[#5b52c9] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-white font-extrabold text-sm sm:text-base py-3.5 rounded-xl transition-all shadow-[0_4px_18px_rgba(107,98,217,0.35)] flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {isSubmitting ? (
+                    <span className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Confirming Booking...</span>
+                    </span>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+                      <span>I Have Paid • Confirm Booking</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowQrModal(false)}
+                  disabled={isSubmitting}
+                  className="w-full text-gray-400 hover:text-gray-700 font-bold text-[11px] py-1 text-center transition cursor-pointer"
+                >
+                  Cancel / Edit Details
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Customer Authentication Modal */}
+      <LoginModal 
+        isOpen={isLoginModalOpen} 
+        onClose={() => setIsLoginModalOpen(false)}
+        onLoginSuccess={(loggedInUser) => {
+          setUser(loggedInUser);
+          setIsLoginModalOpen(false);
+          setForm(prev => ({
+            ...prev,
+            email: prev.email || loggedInUser.email || '',
+            name: prev.name || loggedInUser.name || prev.name,
+          }));
+          if (paymentMethod === 'online') {
+            setShowQrModal(true);
+          } else {
+            setTimeout(() => {
+              handleSubmit(loggedInUser);
+            }, 300);
+          }
+        }}
+      />
+
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #ddd;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #ccc;
+        }
+      `}</style>
+    </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#f8f9fa] flex items-center justify-center"><div className="w-8 h-8 border-4 border-[#6b62d9] border-t-transparent rounded-full animate-spin"></div></div>}>
+      <CheckoutContent />
+    </Suspense>
+  );
+}
+
+
+

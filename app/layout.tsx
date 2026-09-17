@@ -1,0 +1,172 @@
+import type { Metadata } from "next";
+import { Plus_Jakarta_Sans } from "next/font/google";
+import "./globals.css";
+import GlobalLoader from "./components/GlobalLoader";
+import OfferMarquee from "./components/OfferMarquee";
+import RatingReviewModal from "./components/RatingReviewModal";
+import { getSiteSettings } from "./actions/settings";
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  variable: "--font-plus-jakarta",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+});
+
+const rawBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.omaacompany.com";
+const siteUrl = rawBaseUrl.endsWith("/") ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
+
+export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "OMAA Company - Doorstep Appliance Repair & Maintenance Experts",
+    template: "%s | OMAA Company",
+  },
+  description:
+    "Book certified doorstep repair & maintenance for RO water purifiers, refrigerators, washing machines, and ACs with OMAA Company. 30-day warranty, transparent pricing & verified experts across Delhi NCR.",
+  keywords: [
+    "RO repair and service",
+    "water purifier repair",
+    "RO AMC plan",
+    "refrigerator repair",
+    "fridge repair service",
+    "washing machine repair",
+    "washing machine jet service",
+    "AC repair and service",
+    "home appliance repair",
+    "appliance repair Delhi NCR",
+    "appliance repair Noida",
+    "OMAA Company",
+  ],
+  authors: [{ name: "OMAA Company", url: siteUrl }],
+  creator: "OMAA Company",
+  publisher: "OMAA Company",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_IN",
+    url: siteUrl,
+    siteName: "OMAA Company",
+    title: "OMAA Company - Doorstep Appliance Repair & Maintenance Experts",
+    description:
+      "Certified doorstep repair for RO purifiers, refrigerators, washing machines & ACs in Delhi NCR. 30-day warranty & upfront honest pricing.",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "OMAA Company - Doorstep Appliance Repair Services",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "OMAA Company - Doorstep Appliance Repair & Maintenance",
+    description:
+      "Certified doorstep repair for RO purifiers, refrigerators, washing machines & ACs in Delhi NCR with 30-day warranty.",
+    images: ["/og-image.jpg"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  icons: {
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
+  verification: {
+    google: "6chr3KOkEHLF43tQxoATLMWdqqMjuPAQYsldOANyayQ",
+  },
+};
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const settings = await getSiteSettings();
+
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "HomeAndConstructionBusiness",
+    name: "OMAA Company",
+    url: siteUrl,
+    logo: `${siteUrl}/logo.png`,
+    image: `${siteUrl}/og-image.jpg`,
+    description:
+      "Reliable doorstep home appliance repair services specializing in RO water purifiers, refrigerators, washing machines, and ACs.",
+    telephone: "+919999251966",
+    email: "support@omaacompany.com",
+    priceRange: "₹160 - ₹4000",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "Plot No.197, Office No.2, Gaur City - 2 (Opp. Mahagun My Wood)",
+      addressLocality: "Noida Extension, Greater Noida West",
+      addressRegion: "Uttar Pradesh",
+      postalCode: "201009",
+      addressCountry: "IN",
+    },
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: "28.6087",
+      longitude: "77.4265",
+    },
+    areaServed: [
+      { "@type": "City", name: "Delhi" },
+      { "@type": "City", name: "Noida" },
+      { "@type": "City", name: "Greater Noida" },
+      { "@type": "City", name: "Ghaziabad" },
+      { "@type": "City", name: "Gurgaon" },
+    ],
+    openingHoursSpecification: [
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+          "Sunday",
+        ],
+        opens: "08:00",
+        closes: "20:00",
+      },
+    ],
+    sameAs: ["https://www.omaacompany.com"],
+  };
+
+  return (
+    <html
+      lang="en"
+      className={`${plusJakartaSans.variable} font-sans h-full antialiased`}
+    >
+      <head>
+        <meta name="google-site-verification" content="6chr3KOkEHLF43tQxoATLMWdqqMjuPAQYsldOANyayQ" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+      </head>
+      <body className="min-h-full flex flex-col bg-[#f8f9fa] text-gray-900">
+        <GlobalLoader />
+        <RatingReviewModal />
+        {settings.offer_enabled && settings.offer_text && (
+          <OfferMarquee text={settings.offer_text} />
+        )}
+        {children}
+      </body>
+    </html>
+  );
+}
