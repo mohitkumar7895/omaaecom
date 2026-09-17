@@ -46,12 +46,9 @@ export default function Footer() {
             <Link href="/sitemap" className="text-blue-100 hover:text-white hover:underline transition">
               Sitemap
             </Link>
-<<<<<<< HEAD
             <Link href="/sitemap-pages" className="text-blue-100 hover:text-white hover:underline transition">
               Sitemap Pages
             </Link>
-=======
->>>>>>> e1188c7b0ff9a791f56bae097d046e40ba9efaff
           </div>
           <div className="pt-2">
             <Link 
