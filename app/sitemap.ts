@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 import pool from "@/lib/db";
+import { SEO_LOCATIONS } from "@/lib/seo-locations";
+import { SEO_SERVICES } from "@/lib/seo-services";
 
 export const dynamic = "force-dynamic";
 
@@ -9,7 +11,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const defaultPages: MetadataRoute.Sitemap = [
     { url: baseUrl, lastModified: new Date(), changeFrequency: "daily", priority: 1.0 },
-    { url: `${baseUrl}/services`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
+    { url: `${baseUrl}/service-areas`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
     { url: `${baseUrl}/services/5`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
     { url: `${baseUrl}/services/7`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
     { url: `${baseUrl}/services/2`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
@@ -21,22 +23,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/complaint`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
     { url: `${baseUrl}/privacy-policy`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.5 },
     { url: `${baseUrl}/terms-and-conditions`, lastModified: new Date(), changeFrequency: "yearly", priority: 0.5 },
-    { url: `${baseUrl}/noida`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-    { url: `${baseUrl}/noida-extension`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-    { url: `${baseUrl}/greater-noida-west`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-    { url: `${baseUrl}/gurugram`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
-    { url: `${baseUrl}/delhi`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-    { url: `${baseUrl}/greater-noida`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-    { url: `${baseUrl}/ghaziabad`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-    { url: `${baseUrl}/gurgaon`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-    { url: `${baseUrl}/gaur-city-2-10th-avenue`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
-    { url: `${baseUrl}/gaur-city-2-11th-avenue`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
-    { url: `${baseUrl}/gaur-city-2-12th-avenue`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
-    { url: `${baseUrl}/gaur-city-2-14th-avenue`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
-    { url: `${baseUrl}/gaur-city-2-14th-avenue-phase-1`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
-    { url: `${baseUrl}/gaur-city-2-14th-avenue-phase-2`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
-    { url: `${baseUrl}/gaur-city-2-16th-avenue`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
   ];
+
+  for (const loc of SEO_LOCATIONS) {
+    defaultPages.push({
+      url: `${baseUrl}/${loc.slug}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: loc.kind === "society" ? 0.9 : 0.8,
+    });
+    for (const svc of SEO_SERVICES) {
+      defaultPages.push({
+        url: `${baseUrl}/${loc.slug}/${svc.slug}`,
+        lastModified: new Date(),
+        changeFrequency: "weekly",
+        priority: 0.85,
+      });
+    }
+  }
 
   try {
     const [rows]: any = await pool.query(
@@ -59,12 +63,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
       let normalizedUrl = fullUrl.endsWith("/") ? fullUrl.slice(0, -1) : fullUrl;
 
-      // Do not list the XML feed as a page. Map the old /sitemap HTML URL
-      // to the directory so Google never fetches HTML as a sitemap file.
-      if (normalizedUrl === `${baseUrl}/sitemap.xml`) continue;
-      if (normalizedUrl === `${baseUrl}/sitemap`) {
-        normalizedUrl = `${baseUrl}/sitemap-directory`;
-      }
+      const hiddenFromGoogle = [
+        `${baseUrl}/sitemap`,
+        `${baseUrl}/sitemap.xml`,
+        `${baseUrl}/sitemap-directory`,
+        `${baseUrl}/sitemap-pages`,
+      ];
+      if (hiddenFromGoogle.includes(normalizedUrl)) continue;
 
       if (seenUrls.has(normalizedUrl)) continue;
       seenUrls.add(normalizedUrl);

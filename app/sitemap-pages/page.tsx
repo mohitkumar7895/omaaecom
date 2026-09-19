@@ -7,6 +7,7 @@ import { SEO_LOCATIONS } from "../../lib/seo-locations";
 export const metadata: Metadata = {
   title: "Appliance Repair Service Areas | Noida, Delhi, Gaur City 2",
   description: "OMAA Company doorstep appliance repair locations across Delhi NCR including Noida, Greater Noida, Ghaziabad, Gurgaon and Gaur City 2.",
+  robots: { index: false, follow: false },
 };
 
 export default function SitemapPages() {

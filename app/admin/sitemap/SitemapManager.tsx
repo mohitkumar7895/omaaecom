@@ -17,7 +17,6 @@ import {
   Check,
   AlertCircle,
   FileCode,
-  Compass,
   HelpCircle,
   Building2,
   Copy,
@@ -426,7 +425,7 @@ export default function SitemapManager({
               Sitemap & Area-Wise SEO Manager
             </h1>
             <p className="text-gray-500 text-xs sm:text-sm mt-1">
-              Control your Google search indexing, manage static & dynamic service pages, and bulk-generate local Area-wise SEO keywords.
+              Admin-only. Website visitors do not see this. Google reads <span className="font-mono text-indigo-700">/sitemap.xml</span> for ranking.
             </p>
           </div>
 
@@ -446,22 +445,10 @@ export default function SitemapManager({
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 active:scale-95 rounded-xl border border-indigo-200 transition shadow-xs"
-              title="View the raw XML feed that Google Search Console reads"
+              title="Google Search Console XML sitemap"
             >
               <FileCode className="w-3.5 h-3.5 text-indigo-600" />
-              <span>/sitemap.xml</span>
-              <ExternalLink className="w-3 h-3 opacity-60" />
-            </a>
-
-            <a
-              href="/sitemap-directory"
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 active:scale-95 rounded-xl border border-emerald-200 transition shadow-xs"
-              title="View the customer-facing HTML directory linked in the footer"
-            >
-              <Compass className="w-3.5 h-3.5 text-emerald-600" />
-              <span>/sitemap-directory</span>
+              <span>Google sitemap.xml</span>
               <ExternalLink className="w-3 h-3 opacity-60" />
             </a>
 

@@ -25,6 +25,7 @@ export default function robots(): MetadataRoute.Robots {
           "/product-history",
           "/cashback",
           "/refer-earn",
+          "/sitemap-directory",
         ],
       },
     ],

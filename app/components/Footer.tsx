@@ -4,7 +4,7 @@ import { Phone, Mail, MapPin } from "lucide-react";
 export default function Footer() {
   return (
     <footer className="bg-[#5c67b8] text-white py-12 font-sans border-t border-indigo-400/20">
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 grid grid-cols-1 md:grid-cols-4 gap-8 sm:gap-10">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-10">
         
         {/* Column 1: Brand Info */}
         <div className="space-y-4">
@@ -43,16 +43,16 @@ export default function Footer() {
             <Link href="/complaint" className="text-blue-100 hover:text-white hover:underline transition">
               Lodge Complaint
             </Link>
-            <Link href="/sitemap-directory" className="text-blue-100 hover:text-white hover:underline transition">
-              Sitemap
-            </Link>
-            <Link href="/sitemap-pages" className="text-blue-100 hover:text-white hover:underline transition">
-              Service Areas
-            </Link>
           </div>
-          <div className="pt-2">
-            <Link 
-              href="/registration_form.php" 
+          <div className="pt-3 space-y-2">
+            <Link
+              href="/service-areas"
+              className="inline-flex items-center justify-center w-full sm:w-auto text-sm font-extrabold bg-white text-[#5c67b8] hover:bg-indigo-50 px-4 py-2.5 rounded-xl shadow-sm transition"
+            >
+              Sitemap Service
+            </Link>
+            <Link
+              href="/registration_form.php"
               className="inline-flex items-center text-xs font-bold bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg border border-white/20 transition"
             >
               Professional Registration
@@ -60,20 +60,7 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Column 3: Locations */}
-        <div className="space-y-2.5 flex flex-col">
-          <h3 className="font-bold text-base text-white mb-1">Service Areas</h3>
-          <div className="grid grid-cols-1 gap-2 text-sm">
-            <Link href="/noida" className="text-blue-100 hover:text-white hover:underline transition">Noida</Link>
-            <Link href="/delhi" className="text-blue-100 hover:text-white hover:underline transition">Delhi</Link>
-            <Link href="/greater-noida" className="text-blue-100 hover:text-white hover:underline transition">Greater Noida</Link>
-            <Link href="/ghaziabad" className="text-blue-100 hover:text-white hover:underline transition">Ghaziabad</Link>
-            <Link href="/gurgaon" className="text-blue-100 hover:text-white hover:underline transition">Gurgaon</Link>
-            <Link href="/gaur-city-2-14th-avenue" className="text-blue-100 hover:text-white hover:underline transition">Gaur City 2</Link>
-          </div>
-        </div>
-
-        {/* Column 4: Customer Support */}
+        {/* Column 3: Customer Support */}
         <div>
           <h3 className="font-bold text-base text-white mb-3">Customer Support</h3>
           <div className="bg-[#6b76c4] rounded-xl p-5 space-y-3.5 shadow-inner border border-indigo-400/30">

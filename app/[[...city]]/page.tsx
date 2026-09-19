@@ -1,13 +1,14 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import NewProductsSection from "../components/NewProductsSection";
 import HomeCategoryStream from "../components/HomeCategoryStream";
 import Footer from "../components/Footer";
-import LocationSeoSection from "../components/LocationSeoSection";
 import pool from "../../lib/db";
 import { absoluteTitle, getSeoLocation } from "../../lib/seo-locations";
+import { getSeoService } from "../../lib/seo-services";
+import LocationSeoSection from "../components/LocationSeoSection";
 
 // Dynamic rendering to reflect live booking ratings in real time
 export const dynamic = 'force-dynamic';
@@ -24,8 +25,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const resolvedParams = await params;
   const citySegments = resolvedParams.city || [];
   const citySlug = citySegments[0] || "";
+  const serviceSlug = citySegments[1] || "";
+  const extraSegment = citySegments[2];
+  const seoLocation = citySlug ? getSeoLocation(citySlug) : undefined;
+  const seoService = serviceSlug ? getSeoService(serviceSlug) : undefined;
 
-  if (citySlug && !getSeoLocation(citySlug)) {
+  if (citySlug && !seoLocation) {
+    return {
+      title: absoluteTitle("Page not found | OMAA Company"),
+      robots: { index: false, follow: false },
+    };
+  }
+
+  if (citySlug && (extraSegment || (serviceSlug && !seoService))) {
     return {
       title: absoluteTitle("Page not found | OMAA Company"),
       robots: { index: false, follow: false },
@@ -66,9 +78,22 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  const seoLocation = getSeoLocation(citySlug);
   const locationTitle = seoLocation?.title || citySlug;
-  const pagePath = `/${citySlug}`;
+  const pagePath = seoService ? `/${citySlug}/${seoService.slug}` : `/${citySlug}`;
+
+  if (seoService && seoLocation) {
+    return {
+      title: absoluteTitle(`${seoService.titleKeyword} in ${locationTitle} | Call 9999251966`),
+      description: seoService.description(locationTitle),
+      alternates: { canonical: `${siteUrl}${pagePath}` },
+      openGraph: {
+        title: `${seoService.titleKeyword} in ${locationTitle} | OMAA Company`,
+        description: seoService.description(locationTitle),
+        url: `${siteUrl}${pagePath}`,
+        images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: `${seoService.shortName} in ${locationTitle}` }],
+      },
+    };
+  }
 
   // Hyper-optimized SEO specific for Gaur City 2 target keywords
   if (citySlug.startsWith("gaur-city-2")) {
@@ -121,10 +146,57 @@ export default async function Home({ params }: PageProps) {
   const resolvedParams = await params;
   const citySegments = resolvedParams.city || [];
   const citySlug = citySegments[0] || "";
+  const serviceSlug = citySegments[1] || "";
+  const extraSegment = citySegments[2];
   const seoLocation = citySlug ? getSeoLocation(citySlug) : undefined;
+  const seoService = serviceSlug ? getSeoService(serviceSlug) : undefined;
 
   if (citySlug && !seoLocation) {
     notFound();
+  }
+  if (extraSegment || (serviceSlug && !seoService)) {
+    notFound();
+  }
+
+  const homeSiteUrl = (process.env.NEXT_PUBLIC_BASE_URL || "https://www.omaacompany.com").replace(/\/$/, "");
+
+  if (seoLocation) {
+    const locationUrl = `${homeSiteUrl}/${seoLocation.slug}${seoService ? `/${seoService.slug}` : ""}`;
+    const landingSchema = {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Home", item: homeSiteUrl },
+            { "@type": "ListItem", position: 2, name: seoLocation.title, item: `${homeSiteUrl}/${seoLocation.slug}` },
+            ...(seoService
+              ? [{ "@type": "ListItem", position: 3, name: seoService.shortName, item: locationUrl }]
+              : []),
+          ],
+        },
+        {
+          "@type": "FAQPage",
+          mainEntity: (seoService ? seoService.faqs(seoLocation.title) : seoLocation.faqs).map((faq) => ({
+            "@type": "Question",
+            name: faq.q,
+            acceptedAnswer: { "@type": "Answer", text: faq.a },
+          })),
+        },
+      ],
+    };
+
+    return (
+      <main className="min-h-screen bg-gray-50 flex flex-col font-sans">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(landingSchema) }}
+        />
+        <Navbar />
+        <LocationSeoSection location={seoLocation} service={seoService} />
+        <Footer />
+      </main>
+    );
   }
 
   let categories: any[] = [];
@@ -132,7 +204,6 @@ export default async function Home({ params }: PageProps) {
   let mobileBanners: any[] = [];
 
   try {
-    // Fetch all required data in parallel to massively improve page load speed
     const [
       bResult,
       catResult,
@@ -148,36 +219,33 @@ export default async function Home({ params }: PageProps) {
     ]);
 
     let bookingRatings: any[] = [];
-    if (bResult.status === 'fulfilled') {
+    if (bResult.status === "fulfilled") {
       const [bRows]: any = bResult.value;
       bookingRatings = bRows || [];
     }
 
     let catRows: any[] = [];
-    if (catResult.status === 'fulfilled') {
+    if (catResult.status === "fulfilled") {
       const [rows]: any = catResult.value;
       catRows = rows || [];
     }
 
     let allServices: any[] = [];
-    if (servicesResult.status === 'fulfilled') {
+    if (servicesResult.status === "fulfilled") {
       const [rows]: any = servicesResult.value;
       allServices = rows || [];
     }
-    
-    // Process categories and their associated services
+
     categories = catRows.map((cat: any) => {
-      // Filter services for this category from the pre-fetched list
       const services = allServices.filter((s: any) => s.category_id === cat.id);
-      
+
       const enhancedServices = services.map((srv: any) => {
-        // Find matching booking reviews for this service / category
         const matching = bookingRatings.filter((b) => {
           const matchesCategory = b.category && cat.title && b.category.toLowerCase().includes(cat.title.toLowerCase());
           let matchesService = false;
           try {
             if (b.services) {
-              const srvStr = typeof b.services === 'string' ? b.services : JSON.stringify(b.services);
+              const srvStr = typeof b.services === "string" ? b.services : JSON.stringify(b.services);
               matchesService = srvStr.toLowerCase().includes(srv.title.toLowerCase());
             }
           } catch {}
@@ -207,8 +275,7 @@ export default async function Home({ params }: PageProps) {
       };
     });
 
-    // Fetch desktop banners
-    if (desktopResult.status === 'fulfilled') {
+    if (desktopResult.status === "fulfilled") {
       const [desktopRows]: any = desktopResult.value;
       if (desktopRows && desktopRows.length > 0) {
         const row = desktopRows[0];
@@ -218,8 +285,7 @@ export default async function Home({ params }: PageProps) {
       }
     }
 
-    // Fetch mobile banners
-    if (mobileResult.status === 'fulfilled') {
+    if (mobileResult.status === "fulfilled") {
       const [mobileRows]: any = mobileResult.value;
       if (mobileRows && mobileRows.length > 0) {
         const row = mobileRows[0];
@@ -228,99 +294,65 @@ export default async function Home({ params }: PageProps) {
         if (row.banner3_url) mobileBanners.push(row.banner3_url);
       }
     }
-
   } catch (error) {
     console.error("Database connection error on Home page:", error);
   }
 
-    const rawBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.omaacompany.com";
-    const siteUrl = rawBaseUrl.endsWith("/") ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
+  const homepageSchema = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": `${homeSiteUrl}/#website`,
+        url: homeSiteUrl,
+        name: "OMAA Company",
+        description: "Doorstep Appliance Repair and Maintenance Services",
+      },
+      {
+        "@type": "ItemList",
+        "@id": `${homeSiteUrl}#services-list`,
+        name: "Doorstep Appliance Repair Services",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: "RO Repair and Service",
+            url: `${homeSiteUrl}/services/5`,
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: "Refrigerator Repair",
+            url: `${homeSiteUrl}/services/2`,
+          },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: "Washing Machines Repair",
+            url: `${homeSiteUrl}/services/3`,
+          },
+        ],
+      },
+    ],
+  };
 
-    const locationUrl = seoLocation ? `${siteUrl}/${seoLocation.slug}` : siteUrl;
-    const homepageSchema = {
-      "@context": "https://schema.org",
-      "@graph": [
-        {
-          "@type": "WebSite",
-          "@id": `${siteUrl}/#website`,
-          "url": siteUrl,
-          "name": "OMAA Company",
-          "description": "Doorstep Appliance Repair and Maintenance Services",
-        },
-        {
-          "@type": "ItemList",
-          "@id": `${locationUrl}#services-list`,
-          "name": seoLocation
-            ? `Doorstep Appliance Repair in ${seoLocation.title}`
-            : "Doorstep Appliance Repair Services",
-          "itemListElement": [
-            {
-              "@type": "ListItem",
-              "position": 1,
-              "name": "RO Repair and Service",
-              "url": `${siteUrl}/services/5`,
-            },
-            {
-              "@type": "ListItem",
-              "position": 2,
-              "name": "Refrigerator Repair",
-              "url": `${siteUrl}/services/2`,
-            },
-            {
-              "@type": "ListItem",
-              "position": 3,
-              "name": "Washing Machines Repair",
-              "url": `${siteUrl}/services/3`,
-            },
-          ],
-        },
-        ...(seoLocation
-          ? [
-              {
-                "@type": "BreadcrumbList",
-                itemListElement: [
-                  { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
-                  { "@type": "ListItem", position: 2, name: seoLocation.title, item: locationUrl },
-                ],
-              },
-              {
-                "@type": "FAQPage",
-                mainEntity: seoLocation.faqs.map((faq) => ({
-                  "@type": "Question",
-                  name: faq.q,
-                  acceptedAnswer: { "@type": "Answer", text: faq.a },
-                })),
-              },
-            ]
-          : []),
-      ],
-    };
-
-    return (
-      <main className="min-h-screen bg-gray-50 flex flex-col font-sans">
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(homepageSchema) }}
-        />
-        <Navbar />
-        {seoLocation && <LocationSeoSection location={seoLocation} />}
-        <Hero
-          categories={categories}
-          banners={mobileBanners.length > 0 ? mobileBanners : desktopBanners}
-          hideHeadline={Boolean(seoLocation)}
-        />
-        
-        {/* New Products Section above RO AMC */}
-        <NewProductsSection />
-        
-        {/* Exact Order: RO AMC -> Banner 1 -> AC Repair -> Refrigerator -> Banner 2 -> Washing Machine -> Microwave -> Banner 3 -> Water Purifier with Zone Filtering */}
-        <HomeCategoryStream 
-          initialCategories={categories} 
-          banners={desktopBanners} 
-        />
-        
-        {/* Footer is rendered strictly on the Home Page */}
-        <Footer />
-      </main>
-    );
-  }
+  return (
+    <main className="min-h-screen bg-gray-50 flex flex-col font-sans">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(homepageSchema) }}
+      />
+      <Navbar />
+      <Hero
+        categories={categories}
+        banners={mobileBanners.length > 0 ? mobileBanners : desktopBanners}
+      />
+      <NewProductsSection />
+      <HomeCategoryStream
+        initialCategories={categories}
+        banners={desktopBanners}
+      />
+      <Footer />
+    </main>
+  );
+}

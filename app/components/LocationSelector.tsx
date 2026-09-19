@@ -1,9 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { getCurrentLocation, autoDetectLocation } from "@/lib/location";
-import { isIndexableLocation, locationToCitySlug } from "@/lib/seo-locations";
 import { ChevronDown, MapPin, X, LocateFixed, Search, ChevronRight, Loader2, AlertCircle } from "lucide-react";
 
 interface LocationData {
@@ -17,7 +15,6 @@ interface LocationData {
 }
 
 export default function LocationSelector() {
-  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
@@ -144,14 +141,6 @@ export default function LocationSelector() {
     setLocation(locationData);
     localStorage.setItem("user_location", JSON.stringify(locationData));
     window.dispatchEvent(new Event("location_changed"));
-    
-    if (locationData.city) {
-      const slug = locationToCitySlug(locationData.city);
-      if (isIndexableLocation(slug)) {
-        router.push(`/${slug}`);
-      }
-    }
-    
     setIsOpen(false);
   };
 
@@ -165,15 +154,6 @@ export default function LocationSelector() {
       setLocation(locationData);
       localStorage.setItem("user_location", JSON.stringify(locationData));
       window.dispatchEvent(new Event("location_changed"));
-      
-      if (locationData.city) {
-        const slug = locationToCitySlug(locationData.city);
-        if (isIndexableLocation(slug)) {
-          router.push(`/${slug}`);
-        }
-      }
-      
-      // Close modal after successful detection
       setIsOpen(false);
     } catch (err: any) {
       setError(err.message || "Failed to detect location");

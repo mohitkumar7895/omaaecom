@@ -4,6 +4,7 @@ export type SeoLocation = {
   region: string;
   intro: string;
   faqs: { q: string; a: string }[];
+  kind?: "city" | "society";
 };
 
 const PHONE = "9999251966";
@@ -150,7 +151,110 @@ export const SEO_LOCATIONS: SeoLocation[] = [
       "Local technicians for RO service, refrigerator repair, washing machine repair and AC service in Gaur City 2, 16th Avenue.",
     faqs: faqsFor("Gaur City 2, 16th Avenue"),
   },
+  {
+    slug: "white-orchid",
+    title: "White Orchid",
+    region: "Gaur City 2, Noida Extension",
+    kind: "society",
+    intro:
+      "Doorstep RO repair, refrigerator repair and washing machine repair in White Orchid, Gaur City 2 / Noida Extension. Same-day technician visit with a 30-day warranty.",
+    faqs: faqsFor("White Orchid"),
+  },
+  {
+    slug: "aishwaryam",
+    title: "Aishwaryam",
+    region: "Gaur City 2, Noida Extension",
+    kind: "society",
+    intro:
+      "Book RO, fridge and washing machine repair at Aishwaryam. OMAA technicians reach your tower in Noida Extension with upfront rates.",
+    faqs: faqsFor("Aishwaryam"),
+  },
+  {
+    slug: "casa-woods",
+    title: "Casa Woods",
+    region: "Greater Noida West",
+    kind: "society",
+    intro:
+      "RO repair and service, refrigerator repair and washing machine repair at Casa Woods. Certified doorstep service near Gaur City 2.",
+    faqs: faqsFor("Casa Woods"),
+  },
+  {
+    slug: "flora",
+    title: "Flora",
+    region: "Gaur City 2, Noida Extension",
+    kind: "society",
+    intro:
+      "Same-day appliance repair in Flora for RO water purifiers, refrigerators and washing machines. Call 9999251966 to book.",
+    faqs: faqsFor("Flora"),
+  },
+  {
+    slug: "galaxy-north-avenue",
+    title: "Galaxy North Avenue",
+    region: "Greater Noida West",
+    kind: "society",
+    intro:
+      "Doorstep RO, refrigerator and washing machine repair in Galaxy North Avenue. Verified technicians with genuine parts and 30-day warranty.",
+    faqs: faqsFor("Galaxy North Avenue"),
+  },
+  {
+    slug: "galaxy-royal",
+    title: "Galaxy Royal",
+    region: "Greater Noida West",
+    kind: "society",
+    intro:
+      "RO repair and service, fridge repair and washing machine repair for Galaxy Royal residents. Fast doorstep visit in Greater Noida West.",
+    faqs: faqsFor("Galaxy Royal"),
+  },
+  {
+    slug: "pristine-avenue",
+    title: "Pristine Avenue",
+    region: "Greater Noida West",
+    kind: "society",
+    intro:
+      "Appliance repair at Pristine Avenue: RO service, refrigerator repair and washing machine repair at your doorstep.",
+    faqs: faqsFor("Pristine Avenue"),
+  },
+  {
+    slug: "aarcity-regency-park",
+    title: "Aarcity Regency Park",
+    region: "Greater Noida West",
+    kind: "society",
+    intro:
+      "Book RO, refrigerator and washing machine repair in Aarcity Regency Park. OMAA Company provides same-day doorstep service nearby Gaur City 2.",
+    faqs: faqsFor("Aarcity Regency Park"),
+  },
+  {
+    slug: "mahagun-mywoods",
+    title: "Mahagun Mywoods",
+    region: "Noida Extension",
+    kind: "society",
+    intro:
+      "OMAA workshop is opposite Mahagun Mywoods. Get the fastest RO, fridge and washing machine repair for Mywoods towers with a 30-day warranty.",
+    faqs: faqsFor("Mahagun Mywoods"),
+  },
+  {
+    slug: "palm-olympia",
+    title: "Palm Olympia",
+    region: "Greater Noida West",
+    kind: "society",
+    intro:
+      "Doorstep RO repair, refrigerator repair and washing machine repair in Palm Olympia. Call 9999251966 for a same-day technician.",
+    faqs: faqsFor("Palm Olympia"),
+  },
+  {
+    slug: "gaur-city-2-sanskriti-vihar",
+    title: "Gaur City 2 – Sanskriti Vihar",
+    region: "Gaur City 2, Noida Extension",
+    kind: "society",
+    intro:
+      "RO, refrigerator and washing machine doorstep repair in Gaur City 2 Sanskriti Vihar. Local technicians, rate-card pricing and 30-day service warranty.",
+    faqs: faqsFor("Gaur City 2 Sanskriti Vihar"),
+  },
 ];
+
+export function getSocietyLocations(): SeoLocation[] {
+  return SEO_LOCATIONS.filter((loc) => loc.kind === "society");
+}
 
 const LOCATION_BY_SLUG = new Map(SEO_LOCATIONS.map((loc) => [loc.slug, loc]));
 

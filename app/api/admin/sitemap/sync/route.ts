@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import pool from "@/lib/db";
+import { SEO_LOCATIONS } from "@/lib/seo-locations";
+import { SEO_SERVICES } from "@/lib/seo-services";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +19,6 @@ export async function POST() {
       { title: "Professional Service Partner Registration", url: "/registration_form.php", group_name: "Main Pages", priority: 0.7, changefreq: "monthly" },
       { title: "Privacy Policy", url: "/privacy-policy", group_name: "Legal & Policies", priority: 0.5, changefreq: "yearly" },
       { title: "Terms & Conditions", url: "/terms-and-conditions", group_name: "Legal & Policies", priority: 0.5, changefreq: "yearly" },
-      { title: "Sitemap Directory", url: "/sitemap-directory", group_name: "Main Pages", priority: 0.6, changefreq: "weekly" },
     ];
 
     for (const p of staticPages) {
@@ -29,6 +30,11 @@ export async function POST() {
       );
       insertedOrUpdated++;
     }
+
+    await pool.query(
+      `UPDATE sitemap_links SET is_active = FALSE
+       WHERE url IN ('/sitemap', '/sitemap-directory', '/sitemap-pages')`
+    );
 
     // 2. Active Categories
     const [categories]: any = await pool.query("SELECT id, title FROM categories WHERE status = 'Active'");
@@ -42,6 +48,31 @@ export async function POST() {
         [title, url, cat.id]
       );
       insertedOrUpdated++;
+    }
+
+    // 3. Society + city SEO pages (and RO / fridge / washing machine URLs)
+    for (const loc of SEO_LOCATIONS) {
+      const locUrl = `/${loc.slug}`;
+      const locTitle = `RO, Refrigerator & Washing Machine Repair in ${loc.title}`;
+      await pool.query(
+        `INSERT INTO sitemap_links (title, url, group_name, city, area, priority, changefreq, is_active, is_system)
+         VALUES (?, ?, 'Area-wise SEO', ?, ?, ?, 'weekly', TRUE, TRUE)
+         ON DUPLICATE KEY UPDATE title = VALUES(title), group_name = VALUES(group_name), is_active = TRUE, city = VALUES(city), area = VALUES(area), priority = VALUES(priority)`,
+        [locTitle, locUrl, loc.region, loc.title, loc.kind === "society" ? 0.9 : 0.8]
+      );
+      insertedOrUpdated++;
+
+      for (const svc of SEO_SERVICES) {
+        const svcUrl = `/${loc.slug}/${svc.slug}`;
+        const svcTitle = `${svc.titleKeyword} in ${loc.title}`;
+        await pool.query(
+          `INSERT INTO sitemap_links (title, url, group_name, city, area, priority, changefreq, is_active, is_system)
+           VALUES (?, ?, 'Area-wise SEO', ?, ?, 0.85, 'weekly', TRUE, TRUE)
+           ON DUPLICATE KEY UPDATE title = VALUES(title), group_name = VALUES(group_name), is_active = TRUE, city = VALUES(city), area = VALUES(area)`,
+          [svcTitle, svcUrl, loc.region, loc.title]
+        );
+        insertedOrUpdated++;
+      }
     }
 
     return NextResponse.json({
