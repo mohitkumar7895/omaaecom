@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ServiceCard from "./ServiceCard";
 import ServiceDetailsModal from "./ServiceDetailsModal";
-import { useCurrentLocation } from "../../hooks/useCurrentLocation";
+import Link from "next/link";
 
 
 type CategoryViewProps = {
@@ -19,7 +19,6 @@ export default function CategoryView({ category, subcategories, services, rateCa
   const [activeSubcat, setActiveSubcat] = useState<number>(subcategories[0]?.id || 0);
   const [cart, setCart] = useState<any[]>([]);
   const [selectedService, setSelectedService] = useState<any | null>(null);
-  const { location, loading, error } = useCurrentLocation();
 
   useEffect(() => {
     const savedCart = localStorage.getItem("omaa_cart");
@@ -142,8 +141,19 @@ export default function CategoryView({ category, subcategories, services, rateCa
       {/* Header Area */}
       <div className="pt-6 sm:pt-8 pb-4 sm:pb-5 px-3.5 sm:px-6 lg:px-12 border-b border-gray-100 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#111827] mb-1">{category.title}</h1>
-          <p className="text-gray-500 text-xs sm:text-sm">Select a service ....</p>
+          <nav aria-label="Breadcrumb" className="text-xs text-gray-500 mb-2">
+            <ol className="flex flex-wrap items-center gap-1">
+              <li><Link href="/" className="hover:text-[#5c67b8]">Home</Link></li>
+              <li aria-hidden="true">/</li>
+              <li><Link href="/services" className="hover:text-[#5c67b8]">Services</Link></li>
+              <li aria-hidden="true">/</li>
+              <li className="text-gray-800 font-semibold">{category.title}</li>
+            </ol>
+          </nav>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#111827] mb-1">{category.title} in Delhi NCR</h1>
+          <p className="text-gray-500 text-xs sm:text-sm max-w-2xl">
+            Book doorstep {(category.title || "appliance repair").toLowerCase()} with certified OMAA technicians. Upfront rate card, genuine parts and 30-day service warranty across Noida, Delhi, Greater Noida, Ghaziabad and Gurgaon.
+          </p>
         </div>
       </div>
 

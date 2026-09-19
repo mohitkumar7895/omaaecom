@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import NewProductsSection from "../components/NewProductsSection";
 import HomeCategoryStream from "../components/HomeCategoryStream";
 import Footer from "../components/Footer";
+import LocationSeoSection from "../components/LocationSeoSection";
 import pool from "../../lib/db";
+import { absoluteTitle, getSeoLocation } from "../../lib/seo-locations";
 
 // Dynamic rendering to reflect live booking ratings in real time
 export const dynamic = 'force-dynamic';
@@ -14,20 +17,25 @@ type PageProps = {
   searchParams: Promise<{ area?: string }>;
 };
 
-export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const rawBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.omaacompany.com";
   const siteUrl = rawBaseUrl.endsWith("/") ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
   
   const resolvedParams = await params;
-  const resolvedSearchParams = await searchParams;
   const citySegments = resolvedParams.city || [];
   const citySlug = citySegments[0] || "";
-  const areaSlug = resolvedSearchParams.area || citySegments[1] || "";
+
+  if (citySlug && !getSeoLocation(citySlug)) {
+    return {
+      title: absoluteTitle("Page not found | OMAA Company"),
+      robots: { index: false, follow: false },
+    };
+  }
 
   if (!citySlug) {
     // Root Homepage SEO
     return {
-      title: "OMAA Company - Doorstep Appliance Repair | RO, Fridge, Washing Machine",
+      title: absoluteTitle("OMAA Company - Doorstep Appliance Repair | RO, Fridge, Washing Machine"),
       description:
         "Book certified doorstep repair services for RO water purifiers, refrigerators, washing machines, and ACs. Upfront pricing, 30-day warranty, and same-day expert visit in Delhi NCR.",
       alternates: {
@@ -58,21 +66,14 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
     };
   }
 
-  // City or Area Landing SEO
-  const formatLocation = (slug: string) =>
-    slug
-      .replace(/-/g, " ")
-      .replace(/\b\w/g, (l) => l.toUpperCase());
-
-  const formattedCity = formatLocation(citySlug);
-  const formattedArea = areaSlug ? formatLocation(areaSlug) : "";
-  const locationTitle = formattedArea ? `${formattedArea}, ${formattedCity}` : formattedCity;
-  const pagePath = areaSlug ? `/${citySlug}?area=${encodeURIComponent(areaSlug)}` : `/${citySlug}`;
+  const seoLocation = getSeoLocation(citySlug);
+  const locationTitle = seoLocation?.title || citySlug;
+  const pagePath = `/${citySlug}`;
 
   // Hyper-optimized SEO specific for Gaur City 2 target keywords
   if (citySlug.startsWith("gaur-city-2")) {
     return {
-      title: `RO, Refrigerator & Washing Machine Repair in ${locationTitle} | Call 9999251966`,
+      title: absoluteTitle(`RO, Refrigerator & Washing Machine Repair in ${locationTitle} | Call 9999251966`),
       description: `Expert doorstep RO repair, Refrigerator servicing, and Washing Machine repair in ${locationTitle}. Call 9999251966 for verified technicians, instant booking, and 30-day service warranty.`,
       alternates: {
         canonical: `${siteUrl}${pagePath}`,
@@ -95,7 +96,7 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
 
   // Default SEO for all other locations
   return {
-    title: `Appliance Repair in ${locationTitle} | RO, Refrigerator, Washing Machine - OMAA Company`,
+    title: absoluteTitle(`Appliance Repair in ${locationTitle} | RO, Refrigerator, Washing Machine`),
     description: `Expert doorstep RO repair, refrigerator servicing, and washing machine repair in ${locationTitle}. Verified local technicians, instant booking, and 30-day service warranty.`,
     alternates: {
       canonical: `${siteUrl}${pagePath}`,
@@ -116,7 +117,16 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   };
 }
 
-export default async function Home({ params, searchParams }: PageProps) {
+export default async function Home({ params }: PageProps) {
+  const resolvedParams = await params;
+  const citySegments = resolvedParams.city || [];
+  const citySlug = citySegments[0] || "";
+  const seoLocation = citySlug ? getSeoLocation(citySlug) : undefined;
+
+  if (citySlug && !seoLocation) {
+    notFound();
+  }
+
   let categories: any[] = [];
   let desktopBanners: any[] = [];
   let mobileBanners: any[] = [];
@@ -226,6 +236,7 @@ export default async function Home({ params, searchParams }: PageProps) {
     const rawBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.omaacompany.com";
     const siteUrl = rawBaseUrl.endsWith("/") ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
 
+    const locationUrl = seoLocation ? `${siteUrl}/${seoLocation.slug}` : siteUrl;
     const homepageSchema = {
       "@context": "https://schema.org",
       "@graph": [
@@ -235,49 +246,54 @@ export default async function Home({ params, searchParams }: PageProps) {
           "url": siteUrl,
           "name": "OMAA Company",
           "description": "Doorstep Appliance Repair and Maintenance Services",
-          "potentialAction": [
-            {
-              "@type": "SearchAction",
-              "target": {
-                "@type": "EntryPoint",
-                "urlTemplate": `${siteUrl}/services?search={search_term_string}`
-              },
-              "query-input": "required name=search_term_string"
-            }
-          ]
         },
         {
           "@type": "ItemList",
-          "@id": `${siteUrl}/#services-list`,
-          "name": "Doorstep Appliance Repair Services",
+          "@id": `${locationUrl}#services-list`,
+          "name": seoLocation
+            ? `Doorstep Appliance Repair in ${seoLocation.title}`
+            : "Doorstep Appliance Repair Services",
           "itemListElement": [
             {
-              "@type": "Service",
+              "@type": "ListItem",
               "position": 1,
               "name": "RO Repair and Service",
-              "description": "Comprehensive doorstep water purifier and RO servicing, filter replacement, TDS calibration, and annual maintenance contracts (AMC).",
-              "provider": { "@type": "LocalBusiness", "name": "OMAA Company" },
-              "offers": { "@type": "Offer", "price": "160.00", "priceCurrency": "INR" }
+              "url": `${siteUrl}/services/5`,
             },
             {
-              "@type": "Service",
+              "@type": "ListItem",
               "position": 2,
               "name": "Refrigerator Repair",
-              "description": "Expert repair for single-door, double-door, side-by-side, and inverter refrigerators. Power issue, cooling problems, water leakage, and compressor repairs.",
-              "provider": { "@type": "LocalBusiness", "name": "OMAA Company" },
-              "offers": { "@type": "Offer", "price": "199.00", "priceCurrency": "INR" }
+              "url": `${siteUrl}/services/2`,
             },
             {
-              "@type": "Service",
+              "@type": "ListItem",
               "position": 3,
               "name": "Washing Machines Repair",
-              "description": "Doorstep repair & jet cleaning for top-load, front-load, and semi-automatic washing machines with genuine parts and a 30-day warranty.",
-              "provider": { "@type": "LocalBusiness", "name": "OMAA Company" },
-              "offers": { "@type": "Offer", "price": "199.00", "priceCurrency": "INR" }
-            }
-          ]
-        }
-      ]
+              "url": `${siteUrl}/services/3`,
+            },
+          ],
+        },
+        ...(seoLocation
+          ? [
+              {
+                "@type": "BreadcrumbList",
+                itemListElement: [
+                  { "@type": "ListItem", position: 1, name: "Home", item: siteUrl },
+                  { "@type": "ListItem", position: 2, name: seoLocation.title, item: locationUrl },
+                ],
+              },
+              {
+                "@type": "FAQPage",
+                mainEntity: seoLocation.faqs.map((faq) => ({
+                  "@type": "Question",
+                  name: faq.q,
+                  acceptedAnswer: { "@type": "Answer", text: faq.a },
+                })),
+              },
+            ]
+          : []),
+      ],
     };
 
     return (
@@ -287,7 +303,12 @@ export default async function Home({ params, searchParams }: PageProps) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(homepageSchema) }}
         />
         <Navbar />
-        <Hero categories={categories} banners={mobileBanners.length > 0 ? mobileBanners : desktopBanners} />
+        {seoLocation && <LocationSeoSection location={seoLocation} />}
+        <Hero
+          categories={categories}
+          banners={mobileBanners.length > 0 ? mobileBanners : desktopBanners}
+          hideHeadline={Boolean(seoLocation)}
+        />
         
         {/* New Products Section above RO AMC */}
         <NewProductsSection />

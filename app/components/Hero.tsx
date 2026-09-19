@@ -19,9 +19,10 @@ interface HeroCategory {
 interface HeroProps {
   categories?: HeroCategory[];
   banners?: string[];
+  hideHeadline?: boolean;
 }
 
-export default function Hero({ categories = [], banners = [] }: HeroProps) {
+export default function Hero({ categories = [], banners = [], hideHeadline = false }: HeroProps) {
   const [visibleCategories, setVisibleCategories] = useState<HeroCategory[]>([]);
 
   useEffect(() => {
@@ -115,9 +116,11 @@ export default function Hero({ categories = [], banners = [] }: HeroProps) {
             <MobileBannerCarousel banners={banners} />
           </div>
 
-          <h1 className="hidden md:block text-[32px] lg:text-[40px] xl:text-[46px] font-extrabold tracking-tight leading-[1.12] text-white drop-shadow-md">
-            Home services at your <br /> doorsteps
-          </h1>
+          {!hideHeadline && (
+            <h1 className="text-[26px] sm:text-[32px] lg:text-[40px] xl:text-[46px] font-extrabold tracking-tight leading-[1.12] text-white drop-shadow-md">
+              Home appliance repair at your doorstep
+            </h1>
+          )}
 
           {/* Mobile Search Bar */}
           <LiveSearchBar className="md:hidden" />
@@ -286,7 +289,7 @@ export default function Hero({ categories = [], banners = [] }: HeroProps) {
             <div className="w-1/2 h-full">
               <Image
                 src="/Hero1.webp"
-                alt="Cleaning Service"
+                alt="OMAA technician providing doorstep home appliance repair"
                 width={600}
                 height={800}
                 priority
@@ -298,7 +301,7 @@ export default function Hero({ categories = [], banners = [] }: HeroProps) {
             <div className="w-1/2 h-full flex flex-col gap-3">
               <Image
                 src="/Hero 2.webp"
-                alt="RO Repair"
+                alt="RO water purifier repair and service at home"
                 width={600}
                 height={400}
                 priority
@@ -306,7 +309,7 @@ export default function Hero({ categories = [], banners = [] }: HeroProps) {
               />
               <Image
                 src="/Hero3.webp"
-                alt="AC Repair"
+                alt="Air conditioner doorstep repair and gas refill"
                 width={600}
                 height={400}
                 priority

@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { getCurrentLocation, autoDetectLocation } from "@/lib/location";
+import { isIndexableLocation, locationToCitySlug } from "@/lib/seo-locations";
 import { ChevronDown, MapPin, X, LocateFixed, Search, ChevronRight, Loader2, AlertCircle } from "lucide-react";
 
 interface LocationData {
@@ -17,7 +18,6 @@ interface LocationData {
 
 export default function LocationSelector() {
   const router = useRouter();
-  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
@@ -35,13 +35,6 @@ export default function LocationSelector() {
 
   // Load saved location on mount, or auto-detect immediately
   useEffect(() => {
-    const syncUrl = (city: string) => {
-      if (pathname === '/' && city) {
-        // Update URL to match city without reloading
-        window.history.replaceState(null, '', `/${city.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`);
-      }
-    };
-
     const loadOrDetect = async () => {
       const savedLocation = localStorage.getItem("user_location");
       if (savedLocation) {
@@ -49,7 +42,6 @@ export default function LocationSelector() {
           const parsed = JSON.parse(savedLocation);
           if (parsed && (parsed.city || parsed.address)) {
             setLocation(parsed);
-            if (parsed.city) syncUrl(parsed.city);
             return;
           }
         } catch (e) {
@@ -63,7 +55,6 @@ export default function LocationSelector() {
         const detected = await autoDetectLocation();
         if (detected) {
           setLocation(detected);
-          if (detected.city) syncUrl(detected.city);
         }
       } catch (err) {
         console.warn("Auto detect location failed:", err);
@@ -81,7 +72,6 @@ export default function LocationSelector() {
         if (saved) {
           const parsed = JSON.parse(saved);
           setLocation(parsed);
-          if (parsed.city) syncUrl(parsed.city);
         }
       } catch (e) {}
     };
@@ -93,7 +83,7 @@ export default function LocationSelector() {
       window.removeEventListener("location_changed", handleLocationChange);
       window.removeEventListener("storage", handleLocationChange);
     };
-  }, [pathname]);
+  }, []);
 
   // Handle modal animation
   useEffect(() => {
@@ -156,7 +146,10 @@ export default function LocationSelector() {
     window.dispatchEvent(new Event("location_changed"));
     
     if (locationData.city) {
-      router.push(`/${locationData.city.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`);
+      const slug = locationToCitySlug(locationData.city);
+      if (isIndexableLocation(slug)) {
+        router.push(`/${slug}`);
+      }
     }
     
     setIsOpen(false);
@@ -174,7 +167,10 @@ export default function LocationSelector() {
       window.dispatchEvent(new Event("location_changed"));
       
       if (locationData.city) {
-        router.push(`/${locationData.city.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`);
+        const slug = locationToCitySlug(locationData.city);
+        if (isIndexableLocation(slug)) {
+          router.push(`/${slug}`);
+        }
       }
       
       // Close modal after successful detection

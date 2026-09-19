@@ -59,10 +59,14 @@ export default function CategoryGrid({ title, services }: CategoryGridProps) {
       
       <div className={`pb-4 pt-1.5 -mt-1.5 -mx-4 px-4 ${isLargeSet ? 'overflow-hidden' : 'overflow-x-auto'}`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         <div className={`flex gap-3.5 sm:gap-4 md:gap-5 items-stretch ${isLargeSet ? 'animate-smooth-slide' : 'w-max sm:w-auto flex-nowrap'}`}>
-          {displayServices.map((service, index) => (
+          {displayServices.map((service, index) => {
+            const isClone = isLargeSet && index >= services.length;
+            return (
             <Link 
               href={`/services/${service.category_id}`}
               key={`${service.id}-${index}`} 
+              aria-hidden={isClone ? true : undefined}
+              tabIndex={isClone ? -1 : undefined}
               className="flex-none w-[180px] sm:w-[215px] md:w-[245px] snap-start bg-white rounded-2xl border border-gray-200/80 shadow-xs transition-all duration-300 overflow-hidden cursor-pointer flex flex-col group/card hover:border-[#6b62d9]/50 hover:shadow-lg"
             >
               {/* Image Area - Prominent and Spacious */}
@@ -122,7 +126,8 @@ export default function CategoryGrid({ title, services }: CategoryGridProps) {
                 </div>
               </div>
             </Link>
-          ))}
+            );
+          })}
         </div>
       </div>
 

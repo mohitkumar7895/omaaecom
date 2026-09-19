@@ -4,6 +4,7 @@ import pool from "../../../lib/db";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import CategoryView from "./CategoryView";
+import { absoluteTitle } from "../../../lib/seo-locations";
 
 export const dynamic = 'force-dynamic';
 
@@ -14,19 +15,21 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const siteUrl = rawBaseUrl.endsWith("/") ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
 
   if (!categoryId || isNaN(Number(categoryId))) {
-    return { title: "Service Category | OMAA Company" };
+    return { title: absoluteTitle("Service Category | OMAA Company"), robots: { index: false, follow: true } };
   }
 
   try {
     const [catRows]: any = await pool.query("SELECT * FROM categories WHERE id = ?", [categoryId]);
     if (!catRows || catRows.length === 0) {
-      return { title: "Services | OMAA Company" };
+      return { title: absoluteTitle("Services | OMAA Company"), robots: { index: false, follow: true } };
     }
     const cat = catRows[0];
     const catTitle = cat.title || "Appliance Service";
 
     let metaDescription = `Book expert doorstep ${catTitle} with OMAA Company in Delhi NCR. Genuine parts, certified technicians, upfront rate card & 30-day warranty.`;
-    if (cat.id === 5 || catTitle.toLowerCase().includes("water purifier")) {
+    if (cat.id === 1 || catTitle.toLowerCase().includes("ac repair")) {
+      metaDescription = "Doorstep AC repair, foam jet service, gas refill and installation in Delhi NCR. Split and window AC servicing with 30-day warranty.";
+    } else if (cat.id === 5 || catTitle.toLowerCase().includes("water purifier")) {
       metaDescription = "Top-rated RO water purifier repair, regular maintenance & filter replacement service at your doorstep. 30-day warranty & genuine parts across Delhi NCR.";
     } else if (cat.id === 7 || catTitle.toLowerCase().includes("ro amc")) {
       metaDescription = "Affordable RO AMC annual maintenance plans for Kent, Aquafresh, Livpure, Aqua Grand & all brands. Unlimited breakdown visits & filter changes.";
@@ -37,13 +40,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     }
 
     return {
-      title: `${catTitle} - Doorstep Repair & Services | OMAA Company`,
+      title: absoluteTitle(`${catTitle} in Delhi NCR | Doorstep Repair & Service`),
       description: metaDescription,
       alternates: {
         canonical: `${siteUrl}/services/${categoryId}`,
       },
       openGraph: {
-        title: `${catTitle} - Doorstep Repair & Services | OMAA Company`,
+        title: `${catTitle} in Delhi NCR | Doorstep Repair & Service`,
         description: metaDescription,
         url: `${siteUrl}/services/${categoryId}`,
         images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: catTitle }],
@@ -57,7 +60,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     };
   } catch (error) {
     return {
-      title: "Services | OMAA Company",
+      title: absoluteTitle("Services | OMAA Company"),
     };
   }
 }
@@ -134,9 +137,12 @@ export default async function CategoryPage({ params }: { params: Promise<{ id: s
           "@type": "Service",
           "name": category.title,
           "serviceType": category.title,
-          "description": `Certified doorstep ${category.title} repair and maintenance with 30-day warranty in Delhi NCR.`,
+          "url": `${siteUrl}/services/${categoryId}`,
+          "image": category.image_url || `${siteUrl}/og-image.jpg`,
+          "description": `Certified doorstep ${category.title} in Delhi NCR with 30-day warranty.`,
           "provider": {
-            "@type": "LocalBusiness",
+            "@id": `${siteUrl}/#business`,
+            "@type": "HomeAndConstructionBusiness",
             "name": "OMAA Company",
             "telephone": "+919999251966",
             "url": siteUrl,
@@ -148,19 +154,16 @@ export default async function CategoryPage({ params }: { params: Promise<{ id: s
             { "@type": "City", name: "Ghaziabad" },
             { "@type": "City", name: "Gurgaon" },
           ],
-          "hasOfferCatalog": {
-            "@type": "OfferCatalog",
-            "name": `${category.title} Service Offerings`,
-            "itemListElement": services.map((s: any) => ({
-              "@type": "Offer",
-              "itemOffered": {
-                "@type": "Service",
-                "name": s.title,
-              },
-              "price": s.selling_price || "199.00",
-              "priceCurrency": "INR",
-            })),
-          },
+        },
+        {
+          "@type": "ItemList",
+          "name": `${category.title} options`,
+          "itemListElement": services.slice(0, 20).map((s: any, index: number) => ({
+            "@type": "ListItem",
+            "position": index + 1,
+            "name": s.title,
+            "url": `${siteUrl}/services/${categoryId}`,
+          })),
         },
       ],
     };
@@ -182,6 +185,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ id: s
             rateCards={rateCards}
           />
         </div>
+        <Footer />
       </main>
     );
   } catch (error) {

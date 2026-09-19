@@ -18,8 +18,8 @@ export default function ServiceCard({ service, quantity = 0, onAdd, onRemove, on
         <h3 className="text-gray-900 font-bold text-base sm:text-lg mb-1 leading-tight">{service.title}</h3>
         <div className="flex items-center space-x-1 text-[13px] text-gray-500">
           <Star className="w-3.5 h-3.5 text-yellow-500 fill-current" />
-          <span className="font-bold text-black">{service.rating}</span>
-          <span>({service.reviews ? `${service.reviews}` : '273K reviews'})</span>
+          <span className="font-bold text-black">{service.rating || "4.8"}</span>
+          {service.reviews ? <span>({service.reviews})</span> : null}
         </div>
       </div>
 

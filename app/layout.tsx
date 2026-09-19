@@ -17,10 +17,7 @@ const siteUrl = rawBaseUrl.endsWith("/") ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: {
-    default: "OMAA Company - Doorstep Appliance Repair & Maintenance Experts",
-    template: "%s | OMAA Company",
-  },
+  title: "OMAA Company - Doorstep Appliance Repair & Maintenance Experts",
   description:
     "Book certified doorstep repair & maintenance for RO water purifiers, refrigerators, washing machines, and ACs with OMAA Company. 30-day warranty, transparent pricing & verified experts across Delhi NCR.",
   keywords: [
@@ -44,9 +41,6 @@ export const metadata: Metadata = {
     email: false,
     address: false,
     telephone: false,
-  },
-  alternates: {
-    canonical: "/",
   },
   openGraph: {
     type: "website",
@@ -99,6 +93,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "HomeAndConstructionBusiness",
+    "@id": `${siteUrl}/#business`,
     name: "OMAA Company",
     url: siteUrl,
     logo: `${siteUrl}/logo.png`,

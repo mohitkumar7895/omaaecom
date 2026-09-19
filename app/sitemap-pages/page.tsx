@@ -2,27 +2,15 @@ import { Metadata } from "next";
 import Link from "next/link";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { SEO_LOCATIONS } from "../../lib/seo-locations";
 
 export const metadata: Metadata = {
-  title: "Sitemap Pages | OMAA Company",
-  description: "Browse all our service location pages including Gaur City 2, Noida, Delhi, and Gurgaon.",
+  title: "Appliance Repair Service Areas | Noida, Delhi, Gaur City 2",
+  description: "OMAA Company doorstep appliance repair locations across Delhi NCR including Noida, Greater Noida, Ghaziabad, Gurgaon and Gaur City 2.",
 };
 
 export default function SitemapPages() {
-  const locations = [
-    { title: "Gaur City 2 – 10th Avenue", path: "/gaur-city-2-10th-avenue" },
-    { title: "Gaur City 2 – 11th Avenue", path: "/gaur-city-2-11th-avenue" },
-    { title: "Gaur City 2 – 12th Avenue", path: "/gaur-city-2-12th-avenue" },
-    { title: "Gaur City 2 – 14th Avenue", path: "/gaur-city-2-14th-avenue" },
-    { title: "Gaur City 2 – 14th Avenue Phase 1", path: "/gaur-city-2-14th-avenue-phase-1" },
-    { title: "Gaur City 2 – 14th Avenue Phase 2", path: "/gaur-city-2-14th-avenue-phase-2" },
-    { title: "Gaur City 2 – 16th Avenue", path: "/gaur-city-2-16th-avenue" },
-    { title: "Noida", path: "/noida" },
-    { title: "Delhi", path: "/delhi" },
-    { title: "Greater Noida", path: "/greater-noida" },
-    { title: "Ghaziabad", path: "/ghaziabad" },
-    { title: "Gurgaon", path: "/gurgaon" },
-  ];
+  const locations = SEO_LOCATIONS.map((loc) => ({ title: loc.title, path: `/${loc.slug}` }));
 
   return (
     <main className="min-h-screen bg-slate-50 flex flex-col font-sans">
