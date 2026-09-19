@@ -17,7 +17,7 @@ export async function POST() {
       { title: "Professional Service Partner Registration", url: "/registration_form.php", group_name: "Main Pages", priority: 0.7, changefreq: "monthly" },
       { title: "Privacy Policy", url: "/privacy-policy", group_name: "Legal & Policies", priority: 0.5, changefreq: "yearly" },
       { title: "Terms & Conditions", url: "/terms-and-conditions", group_name: "Legal & Policies", priority: 0.5, changefreq: "yearly" },
-      { title: "Sitemap Directory", url: "/sitemap", group_name: "Main Pages", priority: 0.6, changefreq: "weekly" },
+      { title: "Sitemap Directory", url: "/sitemap-directory", group_name: "Main Pages", priority: 0.6, changefreq: "weekly" },
     ];
 
     for (const p of staticPages) {

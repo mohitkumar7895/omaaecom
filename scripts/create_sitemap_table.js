@@ -48,7 +48,7 @@ async function migrate() {
       { title: "Professional Service Partner Registration", url: "/registration_form.php", group_name: "Main Pages", priority: 0.7, changefreq: "monthly", is_system: true },
       { title: "Privacy Policy", url: "/privacy-policy", group_name: "Legal & Policies", priority: 0.5, changefreq: "yearly", is_system: true },
       { title: "Terms & Conditions", url: "/terms-and-conditions", group_name: "Legal & Policies", priority: 0.5, changefreq: "yearly", is_system: true },
-      { title: "Sitemap Directory", url: "/sitemap", group_name: "Main Pages", priority: 0.6, changefreq: "weekly", is_system: true },
+      { title: "Sitemap Directory", url: "/sitemap-directory", group_name: "Main Pages", priority: 0.6, changefreq: "weekly", is_system: true },
     ];
 
     for (const p of staticPages) {

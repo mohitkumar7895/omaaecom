@@ -57,8 +57,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         fullUrl = `${baseUrl}${fullUrl.startsWith("/") ? "" : "/"}${fullUrl}`;
       }
 
-      // Normalize trailing slash for deduplication
-      const normalizedUrl = fullUrl.endsWith("/") ? fullUrl.slice(0, -1) : fullUrl;
+      let normalizedUrl = fullUrl.endsWith("/") ? fullUrl.slice(0, -1) : fullUrl;
+
+      // Do not list the XML feed as a page. Map the old /sitemap HTML URL
+      // to the directory so Google never fetches HTML as a sitemap file.
+      if (normalizedUrl === `${baseUrl}/sitemap.xml`) continue;
+      if (normalizedUrl === `${baseUrl}/sitemap`) {
+        normalizedUrl = `${baseUrl}/sitemap-directory`;
+      }
 
       if (seenUrls.has(normalizedUrl)) continue;
       seenUrls.add(normalizedUrl);

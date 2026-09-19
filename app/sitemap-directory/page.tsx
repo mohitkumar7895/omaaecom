@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   description:
     "Browse all home appliance repair, maintenance, and installation services across Noida, Greater Noida, Ghaziabad, Delhi NCR, and Gurgaon. Find local service areas and book doorstep repairs.",
   alternates: {
-    canonical: "/sitemap",
+    canonical: "/sitemap-directory",
   },
 };
 

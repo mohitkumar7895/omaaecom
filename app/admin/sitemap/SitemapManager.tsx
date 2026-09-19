@@ -454,14 +454,14 @@ export default function SitemapManager({
             </a>
 
             <a
-              href="/sitemap"
+              href="/sitemap-directory"
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 active:scale-95 rounded-xl border border-emerald-200 transition shadow-xs"
               title="View the customer-facing HTML directory linked in the footer"
             >
               <Compass className="w-3.5 h-3.5 text-emerald-600" />
-              <span>/sitemap</span>
+              <span>/sitemap-directory</span>
               <ExternalLink className="w-3 h-3 opacity-60" />
             </a>
 
