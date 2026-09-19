@@ -232,3 +232,5 @@ export default async function ManageBookingPage({
           hrefForPage={(n) => listHref("/admin/booking/completed-booking", n, { filter: filter === "All" ? undefined : filter, q })}
         />
       </div>
+  );
+}
