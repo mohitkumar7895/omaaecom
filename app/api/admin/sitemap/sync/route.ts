@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import pool from "@/lib/db";
 import { SEO_LOCATIONS } from "@/lib/seo-locations";
 import { SEO_SERVICES } from "@/lib/seo-services";
+import { SEO_KEYWORD_PAGES, keywordFitsLocation } from "@/lib/seo-keywords";
 
 export const dynamic = "force-dynamic";
 
@@ -73,6 +74,30 @@ export async function POST() {
         );
         insertedOrUpdated++;
       }
+
+      for (const kw of SEO_KEYWORD_PAGES) {
+        if (!keywordFitsLocation(kw, loc.slug)) continue;
+        const kwUrl = `/${loc.slug}/${kw.slug}`;
+        const kwTitle = `${kw.title} in ${loc.title}`;
+        await pool.query(
+          `INSERT INTO sitemap_links (title, url, group_name, city, area, priority, changefreq, is_active, is_system)
+           VALUES (?, ?, 'Area-wise SEO', ?, ?, 0.8, 'weekly', TRUE, TRUE)
+           ON DUPLICATE KEY UPDATE title = VALUES(title), group_name = VALUES(group_name), is_active = TRUE, city = VALUES(city), area = VALUES(area)`,
+          [kwTitle, kwUrl, loc.region, loc.title]
+        );
+        insertedOrUpdated++;
+      }
+    }
+
+    for (const kw of SEO_KEYWORD_PAGES) {
+      const url = `/${kw.slug}`;
+      await pool.query(
+        `INSERT INTO sitemap_links (title, url, group_name, city, area, priority, changefreq, is_active, is_system)
+         VALUES (?, ?, 'Keyword SEO', 'Noida', ?, 0.95, 'weekly', TRUE, TRUE)
+         ON DUPLICATE KEY UPDATE title = VALUES(title), group_name = VALUES(group_name), is_active = TRUE, priority = VALUES(priority)`,
+        [kw.title, url, kw.title]
+      );
+      insertedOrUpdated++;
     }
 
     return NextResponse.json({

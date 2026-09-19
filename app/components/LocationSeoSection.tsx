@@ -6,14 +6,22 @@ import { SEO_SERVICES } from "../../lib/seo-services";
 export default function LocationSeoSection({
   location,
   service,
+  heading: headingOverride,
 }: {
   location: SeoLocation;
   service?: SeoService;
+  heading?: string;
 }) {
   const faqs = service ? service.faqs(location.title) : location.faqs;
-  const heading = service
-    ? `${service.titleKeyword} in ${location.title}`
-    : `RO, Refrigerator & Washing Machine Repair in ${location.title}`;
+  const heading =
+    headingOverride ||
+    (service
+      ? location.slug === "noida"
+        ? `${service.shortName} Noida | ${service.shortName} Near Me`
+        : `${service.titleKeyword} Near Me in ${location.title}`
+      : location.slug === "noida"
+        ? "Home Appliance Repair Noida | Washing Machine, Refrigerator & RO Repair Near Me"
+        : `Washing Machine, Refrigerator & RO Repair Near Me in ${location.title}`);
   const intro = service ? service.intro(location.title) : location.intro;
 
   return (
@@ -47,8 +55,8 @@ export default function LocationSeoSection({
         <p className="mt-3 text-sm sm:text-base text-gray-600 max-w-3xl leading-relaxed">{intro}</p>
         <p className="mt-4 text-sm text-gray-700 max-w-3xl">
           <span className="font-semibold">Services we provide in {location.title}:</span>{" "}
-          RO repair and service, refrigerator repair, and washing machine repair at your doorstep.
-          Workshop near Gaur City 2. Timing 8 AM – 8 PM. 30-day service warranty. Call 9999251966.
+          washing machine repair near me, refrigerator repair near me, fridge repair, RO repair near me
+          and water purifier repair. Local technicians, 8 AM – 8 PM, 30-day warranty. Call 9999251966.
         </p>
         <div className="mt-5 grid sm:grid-cols-3 gap-3">
           {(service ? SEO_SERVICES.filter((item) => item.slug === service.slug) : SEO_SERVICES).map((item) => (

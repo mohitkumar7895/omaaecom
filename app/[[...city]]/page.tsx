@@ -8,6 +8,12 @@ import Footer from "../components/Footer";
 import pool from "../../lib/db";
 import { absoluteTitle, getSeoLocation } from "../../lib/seo-locations";
 import { getSeoService } from "../../lib/seo-services";
+import {
+  getKeywordPage,
+  keywordFitsLocation,
+  keywordHeading,
+  keywordService,
+} from "../../lib/seo-keywords";
 import LocationSeoSection from "../components/LocationSeoSection";
 
 // Dynamic rendering to reflect live booking ratings in real time
@@ -29,11 +35,46 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const extraSegment = citySegments[2];
   const seoLocation = citySlug ? getSeoLocation(citySlug) : undefined;
   const seoService = serviceSlug ? getSeoService(serviceSlug) : undefined;
+  const rootKeyword = !serviceSlug && citySlug ? getKeywordPage(citySlug) : undefined;
+  const nestedKeyword =
+    serviceSlug && seoLocation ? getKeywordPage(serviceSlug) : undefined;
+  const keywordPage =
+    rootKeyword ||
+    (nestedKeyword && keywordFitsLocation(nestedKeyword, citySlug) ? nestedKeyword : undefined);
 
-  if (citySlug && !seoLocation) {
+  if (citySlug && !seoLocation && !rootKeyword) {
     return {
       title: absoluteTitle("Page not found | OMAA Company"),
       robots: { index: false, follow: false },
+    };
+  }
+
+  if (extraSegment) {
+    return {
+      title: absoluteTitle("Page not found | OMAA Company"),
+      robots: { index: false, follow: false },
+    };
+  }
+
+  if (keywordPage) {
+    const place = seoLocation?.title || "Noida";
+    const heading = keywordHeading(keywordPage, place);
+    const canonical = nestedKeyword
+      ? `${siteUrl}/${citySlug}/${keywordPage.slug}`
+      : `${siteUrl}/${keywordPage.slug}`;
+    return {
+      title: absoluteTitle(`${heading} | Call 9999251966`),
+      description: nestedKeyword
+        ? `${keywordPage.title} in ${place}. Same-day doorstep technician. Call 9999251966.`
+        : keywordPage.description,
+      keywords: [keywordPage.title, place, "Delhi NCR", "OMAA Company"],
+      alternates: { canonical },
+      openGraph: {
+        title: heading,
+        description: keywordPage.description,
+        url: canonical,
+        images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: heading }],
+      },
     };
   }
 
@@ -47,9 +88,20 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!citySlug) {
     // Root Homepage SEO
     return {
-      title: absoluteTitle("OMAA Company - Doorstep Appliance Repair | RO, Fridge, Washing Machine"),
+      title: absoluteTitle("Home Appliance Repair Noida | Washing Machine, Refrigerator & RO Repair Near Me"),
       description:
-        "Book certified doorstep repair services for RO water purifiers, refrigerators, washing machines, and ACs. Upfront pricing, 30-day warranty, and same-day expert visit in Delhi NCR.",
+        "Washing machine repair near me, refrigerator repair near me, RO repair near me and home appliance repair Noida. Same-day technician at your doorstep. Call 9999251966.",
+      keywords: [
+        "Washing Machine Repair Near Me",
+        "Refrigerator Repair Near Me",
+        "RO Repair Near Me",
+        "Washing Machine Repair Noida",
+        "Refrigerator Repair Noida",
+        "RO Repair Noida",
+        "Fridge Repair Near Me",
+        "Water Purifier Repair Near Me",
+        "Home Appliance Repair Noida",
+      ],
       alternates: {
         canonical: siteUrl,
       },
@@ -82,9 +134,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const pagePath = seoService ? `/${citySlug}/${seoService.slug}` : `/${citySlug}`;
 
   if (seoService && seoLocation) {
+    const isNoida = citySlug === "noida";
+    const pageTitle = isNoida
+      ? `${seoService.titleKeyword} Noida | ${seoService.shortName} Near Me`
+      : `${seoService.titleKeyword} in ${locationTitle} | Near Me`;
     return {
-      title: absoluteTitle(`${seoService.titleKeyword} in ${locationTitle} | Call 9999251966`),
+      title: absoluteTitle(pageTitle),
       description: seoService.description(locationTitle),
+      keywords: [
+        `${seoService.titleKeyword} ${locationTitle}`,
+        `${seoService.shortName} near me`,
+        `${seoService.shortName} Noida`,
+      ],
       alternates: { canonical: `${siteUrl}${pagePath}` },
       openGraph: {
         title: `${seoService.titleKeyword} in ${locationTitle} | OMAA Company`,
@@ -121,7 +182,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   // Default SEO for all other locations
   return {
-    title: absoluteTitle(`Appliance Repair in ${locationTitle} | RO, Refrigerator, Washing Machine`),
+    title: absoluteTitle(
+      citySlug === "noida"
+        ? "Home Appliance Repair Noida | RO Repair, Fridge Repair & Washing Machine Repair"
+        : `Appliance Repair in ${locationTitle} | RO, Refrigerator, Washing Machine Near Me`
+    ),
     description: `Expert doorstep RO repair, refrigerator servicing, and washing machine repair in ${locationTitle}. Verified local technicians, instant booking, and 30-day service warranty.`,
     alternates: {
       canonical: `${siteUrl}${pagePath}`,
@@ -150,15 +215,63 @@ export default async function Home({ params }: PageProps) {
   const extraSegment = citySegments[2];
   const seoLocation = citySlug ? getSeoLocation(citySlug) : undefined;
   const seoService = serviceSlug ? getSeoService(serviceSlug) : undefined;
+  const rootKeyword = !serviceSlug && citySlug ? getKeywordPage(citySlug) : undefined;
+  const nestedKeyword =
+    serviceSlug && seoLocation ? getKeywordPage(serviceSlug) : undefined;
+  const keywordPage =
+    rootKeyword ||
+    (nestedKeyword && keywordFitsLocation(nestedKeyword, citySlug) ? nestedKeyword : undefined);
 
-  if (citySlug && !seoLocation) {
+  if (citySlug && !seoLocation && !rootKeyword) {
     notFound();
   }
-  if (extraSegment || (serviceSlug && !seoService)) {
+  if (extraSegment || (serviceSlug && !seoService && !keywordPage)) {
     notFound();
   }
 
   const homeSiteUrl = (process.env.NEXT_PUBLIC_BASE_URL || "https://www.omaacompany.com").replace(/\/$/, "");
+
+  if (keywordPage) {
+    const location = seoLocation || getSeoLocation(keywordPage.locationSlug);
+    if (!location) notFound();
+    const service = keywordService(keywordPage);
+    const heading = keywordHeading(keywordPage, location.title);
+    const pageUrl = nestedKeyword
+      ? `${homeSiteUrl}/${location.slug}/${keywordPage.slug}`
+      : `${homeSiteUrl}/${keywordPage.slug}`;
+    const landingSchema = {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Home", item: homeSiteUrl },
+            { "@type": "ListItem", position: 2, name: heading, item: pageUrl },
+          ],
+        },
+        {
+          "@type": "FAQPage",
+          mainEntity: (service ? service.faqs(location.title) : location.faqs).map((faq) => ({
+            "@type": "Question",
+            name: faq.q,
+            acceptedAnswer: { "@type": "Answer", text: faq.a },
+          })),
+        },
+      ],
+    };
+
+    return (
+      <main className="min-h-screen bg-gray-50 flex flex-col font-sans">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(landingSchema) }}
+        />
+        <Navbar />
+        <LocationSeoSection location={location} service={service} heading={heading} />
+        <Footer />
+      </main>
+    );
+  }
 
   if (seoLocation) {
     const locationUrl = `${homeSiteUrl}/${seoLocation.slug}${seoService ? `/${seoService.slug}` : ""}`;

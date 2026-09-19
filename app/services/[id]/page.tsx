@@ -26,34 +26,38 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     const cat = catRows[0];
     const catTitle = cat.title || "Appliance Service";
 
+    let pageTitle = `${catTitle} in Delhi NCR | Doorstep Repair & Service`;
     let metaDescription = `Book expert doorstep ${catTitle} with OMAA Company in Delhi NCR. Genuine parts, certified technicians, upfront rate card & 30-day warranty.`;
     if (cat.id === 1 || catTitle.toLowerCase().includes("ac repair")) {
       metaDescription = "Doorstep AC repair, foam jet service, gas refill and installation in Delhi NCR. Split and window AC servicing with 30-day warranty.";
     } else if (cat.id === 5 || catTitle.toLowerCase().includes("water purifier")) {
-      metaDescription = "Top-rated RO water purifier repair, regular maintenance & filter replacement service at your doorstep. 30-day warranty & genuine parts across Delhi NCR.";
+      pageTitle = "RO Repair Near Me | Water Purifier Repair Noida";
+      metaDescription = "RO repair near me, RO service near me and water purifier repair near me in Noida. Filter, TDS and leakage at home. Call 9999251966.";
     } else if (cat.id === 7 || catTitle.toLowerCase().includes("ro amc")) {
       metaDescription = "Affordable RO AMC annual maintenance plans for Kent, Aquafresh, Livpure, Aqua Grand & all brands. Unlimited breakdown visits & filter changes.";
     } else if (cat.id === 2 || catTitle.toLowerCase().includes("refrigerator")) {
-      metaDescription = "Doorstep refrigerator repair service for single-door, double-door & inverter fridges. Fast cooling issue diagnosis, compressor service & 30-day warranty.";
+      pageTitle = "Refrigerator Repair Near Me | Fridge Repair Noida";
+      metaDescription = "Refrigerator repair near me, fridge repair near me and refrigerator technician near me in Noida. Same-day cooling and gas service. Call 9999251966.";
     } else if (cat.id === 3 || catTitle.toLowerCase().includes("washing machine")) {
-      metaDescription = "Doorstep washing machine repair & deep jet service for top load, front load & semi-automatic machines in Delhi NCR with a 30-day service guarantee.";
+      pageTitle = "Washing Machine Repair Near Me | Washing Machine Repair Noida";
+      metaDescription = "Washing machine repair near me, washing machine service near me and washing machine technician near me in Noida. Call 9999251966.";
     }
 
     return {
-      title: absoluteTitle(`${catTitle} in Delhi NCR | Doorstep Repair & Service`),
+      title: absoluteTitle(pageTitle),
       description: metaDescription,
       alternates: {
         canonical: `${siteUrl}/services/${categoryId}`,
       },
       openGraph: {
-        title: `${catTitle} in Delhi NCR | Doorstep Repair & Service`,
+        title: pageTitle,
         description: metaDescription,
         url: `${siteUrl}/services/${categoryId}`,
         images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: catTitle }],
       },
       twitter: {
         card: "summary_large_image",
-        title: `${catTitle} - Doorstep Repair | OMAA Company`,
+        title: pageTitle,
         description: metaDescription,
         images: ["/og-image.jpg"],
       },

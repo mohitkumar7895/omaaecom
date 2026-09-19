@@ -4,6 +4,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { SEO_LOCATIONS } from "../../lib/seo-locations";
 import { SEO_SERVICES } from "../../lib/seo-services";
+import { SEO_KEYWORD_PAGES, keywordFitsLocation } from "../../lib/seo-keywords";
 
 const rawBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.omaacompany.com";
 const siteUrl = rawBaseUrl.endsWith("/") ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
@@ -34,9 +35,26 @@ export default function ServiceAreasPage() {
           Sitemap Service
         </h1>
         <p className="mt-2 text-gray-600 max-w-2xl">
-          Choose your city or society. Each page has RO repair, refrigerator repair and washing
-          machine repair with local booking.
+          Search keywords, cities and societies. Click any keyword to open its repair page.
         </p>
+
+        <section className="mt-8">
+          <h2 className="text-lg font-extrabold text-gray-900 mb-3">Search keywords</h2>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-5">
+            <ul className="flex flex-wrap gap-2">
+              {SEO_KEYWORD_PAGES.map((kw) => (
+                <li key={kw.slug}>
+                  <Link
+                    href={`/${kw.slug}`}
+                    className="inline-block text-[11px] sm:text-xs font-semibold bg-[#eef1fc] text-[#5c67b8] px-2.5 py-1.5 rounded-full hover:bg-[#5c67b8] hover:text-white"
+                  >
+                    {kw.title}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
 
         <LocationGroup title="Cities" locations={cities} />
         <LocationGroup title="Societies near Gaur City 2" locations={societies} />
@@ -75,6 +93,15 @@ function LocationGroup({
                   className="text-[11px] sm:text-xs font-semibold bg-[#eef1fc] text-[#5c67b8] px-2.5 py-1 rounded-full hover:bg-[#5c67b8] hover:text-white"
                 >
                   {svc.shortName}
+                </Link>
+              ))}
+              {SEO_KEYWORD_PAGES.filter((kw) => keywordFitsLocation(kw, loc.slug)).map((kw) => (
+                <Link
+                  key={kw.slug}
+                  href={`/${loc.slug}/${kw.slug}`}
+                  className="text-[11px] sm:text-xs font-semibold bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full hover:bg-[#5c67b8] hover:text-white"
+                >
+                  {kw.title}
                 </Link>
               ))}
             </div>
