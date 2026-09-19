@@ -1,4 +1,3 @@
-import pool from "../../../../lib/db";
 import { Copy, FileSpreadsheet, FileIcon as FilePdf, Printer, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import ExportButtons from "../../components/ExportButtons";
@@ -232,5 +231,6 @@ export default async function ManageBookingPage({
           hrefForPage={(n) => listHref("/admin/booking/completed-booking", n, { filter: filter === "All" ? undefined : filter, q })}
         />
       </div>
+    </div>
   );
 }
