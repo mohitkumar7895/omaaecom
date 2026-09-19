@@ -274,6 +274,24 @@ export function locationToCitySlug(city: string): string {
     .replace(/^-|-$/g, "");
 }
 
+export function matchSeoLocationSlug(city?: string, address?: string): string | undefined {
+  const blob = `${city || ""} ${address || ""}`.toLowerCase().replace(/[–—]/g, " ");
+  if (!blob.trim()) return undefined;
+
+  const ranked = [...SEO_LOCATIONS].sort((a, b) => b.title.length - a.title.length);
+  for (const loc of ranked) {
+    const title = loc.title.toLowerCase().replace(/[–—]/g, " ");
+    const slugText = loc.slug.replace(/-/g, " ");
+    if (blob.includes(title) || blob.includes(slugText)) {
+      return loc.slug;
+    }
+  }
+
+  const slug = locationToCitySlug(city || "");
+  if (slug && isIndexableLocation(slug)) return slug;
+  return undefined;
+}
+
 export function absoluteTitle(title: string) {
   return { absolute: title };
 }

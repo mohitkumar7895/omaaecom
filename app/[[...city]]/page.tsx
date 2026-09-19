@@ -273,8 +273,8 @@ export default async function Home({ params }: PageProps) {
     );
   }
 
-  if (seoLocation) {
-    const locationUrl = `${homeSiteUrl}/${seoLocation.slug}${seoService ? `/${seoService.slug}` : ""}`;
+  if (seoLocation && seoService) {
+    const locationUrl = `${homeSiteUrl}/${seoLocation.slug}/${seoService.slug}`;
     const landingSchema = {
       "@context": "https://schema.org",
       "@graph": [
@@ -283,14 +283,12 @@ export default async function Home({ params }: PageProps) {
           itemListElement: [
             { "@type": "ListItem", position: 1, name: "Home", item: homeSiteUrl },
             { "@type": "ListItem", position: 2, name: seoLocation.title, item: `${homeSiteUrl}/${seoLocation.slug}` },
-            ...(seoService
-              ? [{ "@type": "ListItem", position: 3, name: seoService.shortName, item: locationUrl }]
-              : []),
+            { "@type": "ListItem", position: 3, name: seoService.shortName, item: locationUrl },
           ],
         },
         {
           "@type": "FAQPage",
-          mainEntity: (seoService ? seoService.faqs(seoLocation.title) : seoLocation.faqs).map((faq) => ({
+          mainEntity: seoService.faqs(seoLocation.title).map((faq) => ({
             "@type": "Question",
             name: faq.q,
             acceptedAnswer: { "@type": "Answer", text: faq.a },
@@ -456,6 +454,7 @@ export default async function Home({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(homepageSchema) }}
       />
       <Navbar />
+      {seoLocation ? <LocationSeoSection location={seoLocation} /> : null}
       <Hero
         categories={categories}
         banners={mobileBanners.length > 0 ? mobileBanners : desktopBanners}

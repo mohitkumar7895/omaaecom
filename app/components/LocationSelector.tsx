@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { getCurrentLocation, autoDetectLocation } from "@/lib/location";
+import { getKeywordPage } from "@/lib/seo-keywords";
+import { isIndexableLocation, matchSeoLocationSlug } from "@/lib/seo-locations";
 import { ChevronDown, MapPin, X, LocateFixed, Search, ChevronRight, Loader2, AlertCircle } from "lucide-react";
 
 interface LocationData {
@@ -14,7 +17,18 @@ interface LocationData {
   postalCode: string;
 }
 
+function shouldSyncCityUrl(pathname: string) {
+  if (pathname === "/") return true;
+  const parts = pathname.split("/").filter(Boolean);
+  if (parts.length !== 1) return false;
+  const first = parts[0];
+  if (getKeywordPage(first)) return false;
+  return isIndexableLocation(first);
+}
+
 export default function LocationSelector() {
+  const router = useRouter();
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
@@ -39,6 +53,10 @@ export default function LocationSelector() {
           const parsed = JSON.parse(savedLocation);
           if (parsed && (parsed.city || parsed.address)) {
             setLocation(parsed);
+            if (pathname === "/") {
+              const slug = matchSeoLocationSlug(parsed.city, parsed.address);
+              if (slug) router.replace(`/${slug}`);
+            }
             return;
           }
         } catch (e) {
@@ -52,6 +70,12 @@ export default function LocationSelector() {
         const detected = await autoDetectLocation();
         if (detected) {
           setLocation(detected);
+          localStorage.setItem("user_location", JSON.stringify(detected));
+          window.dispatchEvent(new Event("location_changed"));
+          if (pathname === "/") {
+            const slug = matchSeoLocationSlug(detected.city, detected.address);
+            if (slug) router.replace(`/${slug}`);
+          }
         }
       } catch (err) {
         console.warn("Auto detect location failed:", err);
@@ -137,11 +161,23 @@ export default function LocationSelector() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const handleSelectLocation = (locationData: LocationData) => {
+  const applyLocation = (locationData: LocationData) => {
     setLocation(locationData);
     localStorage.setItem("user_location", JSON.stringify(locationData));
     window.dispatchEvent(new Event("location_changed"));
     setIsOpen(false);
+
+    if (!pathname || !shouldSyncCityUrl(pathname)) return;
+    const slug = matchSeoLocationSlug(locationData.city, locationData.address);
+    if (!slug) return;
+    const nextPath = `/${slug}`;
+    if (pathname !== nextPath) {
+      router.push(nextPath);
+    }
+  };
+
+  const handleSelectLocation = (locationData: LocationData) => {
+    applyLocation(locationData);
   };
 
   const handleGetCurrentLocation = async () => {
@@ -151,10 +187,7 @@ export default function LocationSelector() {
       const locationData = await getCurrentLocation();
       
       // Save to state and local storage
-      setLocation(locationData);
-      localStorage.setItem("user_location", JSON.stringify(locationData));
-      window.dispatchEvent(new Event("location_changed"));
-      setIsOpen(false);
+      applyLocation(locationData);
     } catch (err: any) {
       setError(err.message || "Failed to detect location");
     } finally {
