@@ -57,24 +57,35 @@ export default function LocationSelector() {
               const slug = matchSeoLocationSlug(parsed.city, parsed.address);
               if (slug) router.replace(`/${slug}`);
             }
-            return;
           }
         } catch (e) {
           console.error("Failed to parse saved location");
         }
       }
 
-      // Auto-detect immediately on website open
+      let alreadyDetected = false;
+      try {
+        alreadyDetected = sessionStorage.getItem("omaa_auto_located") === "1";
+      } catch {}
+
+      if (alreadyDetected && savedLocation) {
+        return;
+      }
+
       setIsAutoDetecting(true);
       try {
         const detected = await autoDetectLocation();
-        if (detected) {
+        if (detected && (detected.city || detected.address || detected.latitude)) {
           setLocation(detected);
           localStorage.setItem("user_location", JSON.stringify(detected));
           window.dispatchEvent(new Event("location_changed"));
-          if (pathname === "/") {
+          try {
+            sessionStorage.setItem("omaa_auto_located", "1");
+          } catch {}
+          if (shouldSyncCityUrl(pathname || "/")) {
             const slug = matchSeoLocationSlug(detected.city, detected.address);
-            if (slug) router.replace(`/${slug}`);
+            const nextPath = slug ? `/${slug}` : pathname;
+            if (slug && pathname !== nextPath) router.replace(nextPath);
           }
         }
       } catch (err) {

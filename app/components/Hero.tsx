@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Home, ShoppingCart, ShieldCheck, Sparkles } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import MobileBannerCarousel from "./MobileBannerCarousel";
 import LiveSearchBar from "./LiveSearchBar";
-import { isCategoryAvailableAtLocation } from "../../lib/zone-matcher";
+import { useZoneFilteredCategories } from "../../lib/use-zone-filtered-categories";
 
 interface HeroCategory {
   id: number;
@@ -23,41 +22,7 @@ interface HeroProps {
 }
 
 export default function Hero({ categories = [], banners = [], hideHeadline = false }: HeroProps) {
-  const [visibleCategories, setVisibleCategories] = useState<HeroCategory[]>([]);
-
-  useEffect(() => {
-    const filterCategories = () => {
-      try {
-        const saved = localStorage.getItem("user_location");
-        if (!saved) {
-          setVisibleCategories(categories);
-          return;
-        }
-
-        const location = JSON.parse(saved);
-        const filtered = categories.filter((category) =>
-          isCategoryAvailableAtLocation(
-            category.zones_location,
-            location.city || "",
-            location.address || "",
-            location.fullAddress || ""
-          )
-        );
-        setVisibleCategories(filtered);
-      } catch {
-        setVisibleCategories(categories);
-      }
-    };
-
-    filterCategories();
-    window.addEventListener("location_changed", filterCategories);
-    window.addEventListener("storage", filterCategories);
-
-    return () => {
-      window.removeEventListener("location_changed", filterCategories);
-      window.removeEventListener("storage", filterCategories);
-    };
-  }, [categories]);
+  const visibleCategories = useZoneFilteredCategories(categories);
 
   const getIcon = (title: string) => {
     if (title.includes("Ac Repair")) return "❄️";

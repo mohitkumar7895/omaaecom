@@ -117,8 +117,14 @@ export function getAvailableCategoryIdsForLocation(
     };
   }
 
-  // If user location is unknown, default to all categories
-  if (lat === null || lng === null) {
+  const hasCoords =
+    lat !== null &&
+    lng !== null &&
+    Number.isFinite(lat) &&
+    Number.isFinite(lng) &&
+    !(Number(lat) === 0 && Number(lng) === 0);
+
+  if (!hasCoords && !cityName) {
     return {
       matchedZoneNames: [],
       allowedCategoryIds: allCategories.map((c) => c.id),
@@ -130,9 +136,26 @@ export function getAvailableCategoryIdsForLocation(
   const allowedIdsSet = new Set<number>();
 
   for (const zone of activeZones) {
-    if (isLocationInZone(lat, lng, zone, cityName || undefined)) {
+    let inZone = false;
+    if (hasCoords) {
+      inZone = isLocationInZone(Number(lat), Number(lng), zone, cityName || undefined);
+    } else if (cityName && zone.city_names) {
+      const userCity = cityName.toLowerCase().trim();
+      const zoneCities = zone.city_names
+        .toLowerCase()
+        .split(",")
+        .map((c) => c.trim());
+      inZone = zoneCities.some((c) => c.length > 1 && (userCity.includes(c) || c.includes(userCity)));
+    }
+
+    if (inZone) {
       matchedZones.push(zone);
-      zone.category_ids.forEach((id) => allowedIdsSet.add(Number(id)));
+      const ids = Array.isArray(zone.category_ids) ? zone.category_ids : [];
+      if (ids.length === 0) {
+        allCategories.forEach((c) => allowedIdsSet.add(c.id));
+      } else {
+        ids.forEach((id) => allowedIdsSet.add(Number(id)));
+      }
     }
   }
 

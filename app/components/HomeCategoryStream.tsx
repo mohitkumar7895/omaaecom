@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
 import CategoryGrid from "./CategoryGrid";
-import { isCategoryAvailableAtLocation } from "../../lib/zone-matcher";
+import { useZoneFilteredCategories } from "../../lib/use-zone-filtered-categories";
 
 interface CategoryWithServices {
   id: number;
@@ -22,54 +21,7 @@ export default function HomeCategoryStream({
   initialCategories,
   banners,
 }: HomeCategoryStreamProps) {
-  const [userLocation, setUserLocation] = useState<{
-    latitude: number;
-    longitude: number;
-    city: string;
-    address?: string;
-  } | null>(null);
-
-  // Sync user location from localStorage and events
-  useEffect(() => {
-    const checkLocation = () => {
-      try {
-        const saved = localStorage.getItem("user_location");
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (parsed.city || parsed.address) {
-            setUserLocation({
-              latitude: parsed.latitude || 0,
-              longitude: parsed.longitude || 0,
-              city: parsed.city || "",
-              address: parsed.address || "",
-            });
-          }
-        }
-      } catch (e) {}
-    };
-
-    checkLocation();
-    window.addEventListener("location_changed", checkLocation);
-    window.addEventListener("storage", checkLocation);
-
-    return () => {
-      window.removeEventListener("location_changed", checkLocation);
-      window.removeEventListener("storage", checkLocation);
-    };
-  }, []);
-
-  const visibleCategories = useMemo(() => {
-    if (!userLocation) return initialCategories;
-
-    return initialCategories.filter((category) =>
-      isCategoryAvailableAtLocation(
-        category.zones_location,
-        userLocation.city,
-        userLocation.address,
-        (userLocation as any).fullAddress
-      )
-    );
-  }, [initialCategories, userLocation]);
+  const visibleCategories = useZoneFilteredCategories(initialCategories);
 
   // Helper to match category rank according to exact required sequence:
   // 1. RO AMC
