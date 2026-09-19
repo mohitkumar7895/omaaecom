@@ -1,7 +1,7 @@
 "use server";
 
 import pool from "@/lib/db";
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { getCachedSiteSettings } from "@/lib/site-settings";
 
 export async function getSiteSettings() {
@@ -28,7 +28,7 @@ export async function updateSiteSettings(formData: FormData): Promise<void> {
       );
     }
 
-    revalidateTag("site-settings");
+    updateTag("site-settings");
     revalidatePath("/", "layout");
   } catch (error) {
     console.error("Failed to update site settings:", error);
