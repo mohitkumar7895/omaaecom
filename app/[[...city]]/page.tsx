@@ -324,7 +324,7 @@ export default async function Home({ params }: PageProps) {
       desktopResult,
       mobileResult
     ] = await Promise.allSettled([
-      pool.query("SELECT category, services, rating FROM bookings WHERE rating IS NOT NULL AND rating > 0"),
+      pool.query("SELECT category, services, rating FROM bookings WHERE rating IS NOT NULL AND rating > 0 ORDER BY created_at DESC LIMIT 400"),
       pool.query("SELECT * FROM categories WHERE status = 'Active'"),
       pool.query("SELECT * FROM services"),
       pool.query("SELECT * FROM banners WHERE type = 'desktop' OR type IS NULL ORDER BY created_at DESC LIMIT 1"),

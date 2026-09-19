@@ -1,10 +1,12 @@
-import pool from "../../../../lib/db";
 import { CalendarCheck, MessageCircle } from "lucide-react";
 import ExportButtons from "../../components/ExportButtons";
 import WorkingStatusSelect from "../components/WorkingStatusSelect";
 import PaymentStatusSelect from "../components/PaymentStatusSelect";
 import BookingItemsManager from "../components/BookingItemsManager";
 import { updateWorkingStatus, updatePaymentStatus } from "../actions";
+import { pagedBookings, parsePage, listHref } from "../../../../lib/admin-list";
+import AdminListPagination from "../../components/AdminListPagination";
+import BookingSearchInput from "../components/BookingSearchInput";
 
 export const dynamic = 'force-dynamic';
 
@@ -12,25 +14,27 @@ export const metadata = {
   title: "New Bookings (Pending) - OMAA Admin",
 };
 
-export default async function NewBookingPage() {
+export default async function NewBookingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; q?: string }>;
+}) {
+  const resolvedSearchParams = await searchParams;
+  const page = parsePage(resolvedSearchParams.page);
+  const q = resolvedSearchParams.q || "";
   let bookings: any[] = [];
+  let total = 0;
+  let totalPages = 1;
 
   try {
-    const query = `
-      SELECT * FROM bookings 
-      WHERE working_status = 'Pendi'
-      ORDER BY created_at DESC
-    `;
-    const [rows]: any = await pool.query(query);
-    bookings = rows.map((row: any) => {
-      let parsedServices = row.services;
-      try {
-        if (typeof row.services === 'string') {
-          parsedServices = JSON.parse(row.services);
-        }
-      } catch {}
-      return { ...row, services: parsedServices };
+    const paged = await pagedBookings({
+      where: "working_status = 'Pendi'",
+      page,
+      q,
     });
+    bookings = paged.rows;
+    total = paged.total;
+    totalPages = paged.totalPages;
   } catch (e) {
     console.error("Failed to fetch New Bookings:", e);
   }
@@ -55,8 +59,9 @@ export default async function NewBookingPage() {
         {/* Top Action Bar */}
         <div className="p-4 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <ExportButtons tableId="newBookingTable" filename="omaa-new-bookings" />
+          <BookingSearchInput tableId="newBookingTable" />
           <div className="text-xs font-semibold text-gray-500">
-            Pending Orders: <span className="font-bold text-amber-600">{bookings.length}</span>
+            Pending Orders: <span className="font-bold text-amber-600">{total}</span>
           </div>
         </div>
 
@@ -188,7 +193,12 @@ export default async function NewBookingPage() {
             </tbody>
           </table>
         </div>
-
+        <AdminListPagination
+          page={page}
+          total={total}
+          totalPages={totalPages}
+          hrefForPage={(n) => listHref("/admin/booking/new-booking", n, { q })}
+        />
       </div>
 
     </div>

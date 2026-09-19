@@ -10,24 +10,35 @@ import EditableTotal from "./components/EditableTotal";
 import AddressViewButton from "./components/AddressViewButton";
 import BookingItemsManager from "./components/BookingItemsManager";
 import { updateWorkingStatus, updateTotal, updateCashback, updatePaymentStatus, updateInvoiceStatus } from "./actions";
+import { pagedBookings, parsePage, listHref } from "../../../lib/admin-list";
+import AdminListPagination from "../components/AdminListPagination";
 
 export const dynamic = 'force-dynamic';
 
-export default async function ManageBookingPage({ searchParams }: { searchParams: Promise<{ filter?: string }> }) {
+export default async function ManageBookingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ filter?: string; page?: string; q?: string }>;
+}) {
   const resolvedSearchParams = await searchParams;
   const filter = resolvedSearchParams.filter || "All";
-  
+  const page = parsePage(resolvedSearchParams.page);
+  const q = resolvedSearchParams.q || "";
+
   let bookings: any[] = [];
+  let total = 0;
+  let totalPages = 1;
 
   try {
-    try {
-      await pool.query("ALTER TABLE bookings ADD COLUMN invoice_status VARCHAR(50) DEFAULT 'Pending'");
-    } catch (e) {}
+    const paged = await pagedBookings({
+      where:
+        "(type = 'Normal Service' OR type IS NULL) AND working_status NOT IN ('Complete', 'Completed', 'Reject', 'Rejected', 'Cancel', 'Cancelled')",
+      page,
+      q,
+    });
+    total = paged.total;
+    totalPages = paged.totalPages;
 
-    let query = `SELECT * FROM bookings WHERE (type = 'Normal Service' OR type IS NULL) AND working_status NOT IN ('Complete', 'Completed', 'Reject', 'Rejected', 'Cancel', 'Cancelled') ORDER BY created_at DESC`;
-    const [rows]: any = await pool.query(query);
-    
-    // Fetch categories and services to resolve category accurately
     const [allCats]: any = await pool.query(`SELECT id, title FROM categories`).catch(() => [[]]);
     const catMap = new Map<number, string>();
     if (Array.isArray(allCats)) {
@@ -40,7 +51,7 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
       allSvcs.forEach((s: any) => svcCatMap.set(s.id, s.category_id));
     }
 
-    bookings = rows.map((row: any) => {
+    bookings = paged.rows.map((row: any) => {
       // Parse services JSON if it's a string
       let parsedServices = row.services;
       try {
@@ -315,6 +326,12 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
             </tbody>
           </table>
         </div>
+        <AdminListPagination
+          page={page}
+          total={total}
+          totalPages={totalPages}
+          hrefForPage={(n) => listHref("/admin/booking", n, { filter: filter === "All" ? undefined : filter, q })}
+        />
       </div>
       
     </div>

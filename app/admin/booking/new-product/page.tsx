@@ -1,10 +1,12 @@
-import pool from "../../../../lib/db";
 import { CalendarCheck, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import ExportButtons from "../../components/ExportButtons";
 import WorkingStatusSelect from "../components/WorkingStatusSelect";
 import PaymentStatusSelect from "../components/PaymentStatusSelect";
 import { updateWorkingStatus, updatePaymentStatus } from "../actions";
+import { pagedBookings, parsePage, listHref } from "../../../../lib/admin-list";
+import AdminListPagination from "../../components/AdminListPagination";
+import BookingSearchInput from "../components/BookingSearchInput";
 
 export const dynamic = 'force-dynamic';
 
@@ -12,26 +14,28 @@ export const metadata = {
   title: "New Product Bookings - OMAA Admin",
 };
 
-export default async function NewProductBookingPage() {
+export default async function NewProductBookingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; q?: string }>;
+}) {
+  const resolvedSearchParams = await searchParams;
+  const page = parsePage(resolvedSearchParams.page);
+  const q = resolvedSearchParams.q || "";
   let bookings: any[] = [];
+  let total = 0;
+  let totalPages = 1;
 
   try {
-    const query = `
-      SELECT * FROM bookings 
-      WHERE type = 'New Product' 
-        AND working_status NOT IN ('Complete', 'Completed', 'Reject', 'Rejected', 'Cancel', 'Cancelled')
-      ORDER BY created_at DESC
-    `;
-    const [rows]: any = await pool.query(query);
-    bookings = rows.map((row: any) => {
-      let parsedServices = row.services;
-      try {
-        if (typeof row.services === 'string') {
-          parsedServices = JSON.parse(row.services);
-        }
-      } catch {}
-      return { ...row, services: parsedServices };
+    const paged = await pagedBookings({
+      where:
+        "type = 'New Product' AND working_status NOT IN ('Complete', 'Completed', 'Reject', 'Rejected', 'Cancel', 'Cancelled')",
+      page,
+      q,
     });
+    bookings = paged.rows;
+    total = paged.total;
+    totalPages = paged.totalPages;
   } catch (e) {
     console.error("Failed to fetch New Product bookings:", e);
   }
@@ -58,8 +62,9 @@ export default async function NewProductBookingPage() {
         {/* Top Action Bar */}
         <div className="p-4 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <ExportButtons tableId="newProductBookingTable" filename="omaa-new-products" />
+          <BookingSearchInput tableId="newProductBookingTable" />
           <div className="text-xs font-semibold text-gray-500">
-            Total Orders: <span className="font-bold text-gray-900">{bookings.length}</span>
+            Total Orders: <span className="font-bold text-gray-900">{total}</span>
           </div>
         </div>
 
@@ -174,7 +179,12 @@ export default async function NewProductBookingPage() {
             </tbody>
           </table>
         </div>
-
+        <AdminListPagination
+          page={page}
+          total={total}
+          totalPages={totalPages}
+          hrefForPage={(n) => listHref("/admin/booking/new-product", n, { q })}
+        />
       </div>
 
     </div>

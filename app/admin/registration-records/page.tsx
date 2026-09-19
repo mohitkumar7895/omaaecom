@@ -8,15 +8,8 @@ export default async function ManageRegistrationPage() {
 
   try {
     // Ensure status column exists
-    try {
-      await pool.query(`
-        ALTER TABLE registration_records 
-        ADD COLUMN status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Pending'
-      `);
-    } catch (e) {}
-
     const [rows]: any = await pool.query(
-      "SELECT * FROM registration_records ORDER BY created_at DESC"
+      "SELECT * FROM registration_records ORDER BY created_at DESC LIMIT 300"
     );
     records = JSON.parse(JSON.stringify(rows));
   } catch (error) {

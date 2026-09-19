@@ -12,20 +12,6 @@ interface DecodedToken {
 
 export async function GET() {
   try {
-    // Ensure rating columns exist in bookings table
-    try {
-      await pool.query("ALTER TABLE bookings ADD COLUMN rating INT DEFAULT NULL");
-    } catch (_) {}
-    try {
-      await pool.query("ALTER TABLE bookings ADD COLUMN review TEXT DEFAULT NULL");
-    } catch (_) {}
-    try {
-      await pool.query("ALTER TABLE bookings ADD COLUMN review_tags VARCHAR(255) DEFAULT NULL");
-    } catch (_) {}
-    try {
-      await pool.query("ALTER TABLE bookings ADD COLUMN reviewed_at TIMESTAMP NULL DEFAULT NULL");
-    } catch (_) {}
-
     const cookieStore = await cookies();
     const token = cookieStore.get("omaa_auth_token")?.value;
 

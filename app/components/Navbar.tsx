@@ -37,7 +37,19 @@ export default function Navbar() {
   };
 
   useEffect(() => {
-    getActiveCategories().then(setCategories).catch(console.error);
+    try {
+      const cachedCats = sessionStorage.getItem("omaa_nav_categories");
+      if (cachedCats) setCategories(JSON.parse(cachedCats));
+    } catch {}
+
+    getActiveCategories()
+      .then((cats) => {
+        setCategories(cats);
+        try {
+          sessionStorage.setItem("omaa_nav_categories", JSON.stringify(cats));
+        } catch {}
+      })
+      .catch(console.error);
     
     // Initial cart load
     updateCartCount();
@@ -46,12 +58,25 @@ export default function Navbar() {
     window.addEventListener("cart_updated", updateCartCount);
     window.addEventListener("storage", updateCartCount);
 
+    try {
+      const cachedUser = sessionStorage.getItem("omaa_user_cache");
+      if (cachedUser) {
+        const parsed = JSON.parse(cachedUser);
+        if (parsed?.at && Date.now() - parsed.at < 60000) {
+          setUser(parsed.user);
+        }
+      }
+    } catch {}
+
     const checkAuth = async () => {
       try {
         const res = await fetch("/api/auth/me");
         if (res.ok) {
           const data = await res.json();
           setUser(data.user);
+          try {
+            sessionStorage.setItem("omaa_user_cache", JSON.stringify({ user: data.user, at: Date.now() }));
+          } catch {}
           if (data.user) {
             setIsLoginModalOpen(false);
           }

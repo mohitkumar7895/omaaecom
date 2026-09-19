@@ -44,6 +44,9 @@ export default function RatingReviewModal() {
   // Check pending review on mount & periodically
   const checkPendingReview = async () => {
     try {
+      if (typeof window !== "undefined" && window.location.pathname.startsWith("/admin")) {
+        return;
+      }
       // Don't disturb if user dismissed in this browser session
       const dismissedOrder = sessionStorage.getItem("omaa_dismissed_rating_order");
 
@@ -62,10 +65,11 @@ export default function RatingReviewModal() {
   };
 
   useEffect(() => {
-    // Delay check by 1.5s after page load for smooth experience
+    if (window.location.pathname.startsWith("/admin")) return;
+
     const timer = setTimeout(() => {
       checkPendingReview();
-    }, 1500);
+    }, 2500);
 
     // Listen for custom trigger e.g. from My Bookings "Rate Now" button
     const handleManualOpen = (event: any) => {

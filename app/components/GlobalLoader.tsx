@@ -28,18 +28,16 @@ export default function GlobalLoader() {
       }
     } catch (e) {}
 
-    // Smooth simulated progress across 2.2 seconds
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(interval);
           return 100;
         }
-        return prev + 1;
+        return prev + 4;
       });
-    }, 20);
+    }, 16);
 
-    // Total duration before fade out
     const timer = setTimeout(() => {
       setAnimateOut(true);
       setTimeout(() => {
@@ -47,8 +45,8 @@ export default function GlobalLoader() {
         try {
           sessionStorage.setItem("omaa_app_initial_loaded", "true");
         } catch (e) {}
-      }, 500);
-    }, 2200);
+      }, 180);
+    }, 480);
 
     return () => {
       clearTimeout(timer);

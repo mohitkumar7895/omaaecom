@@ -1,10 +1,12 @@
-import pool from "../../../../lib/db";
 import { Copy, FileSpreadsheet, FileIcon as FilePdf, Printer, MessageCircle, CalendarCheck, Search } from "lucide-react";
 import Link from "next/link";
 import ExportButtons from "../../components/ExportButtons";
 import WorkingStatusSelect from "../components/WorkingStatusSelect";
 import PaymentStatusSelect from "../components/PaymentStatusSelect";
 import { updateWorkingStatus, updateTotal, updateCashback, updatePaymentStatus } from "../actions";
+import { pagedBookings, parsePage, listHref } from "../../../../lib/admin-list";
+import AdminListPagination from "../../components/AdminListPagination";
+import BookingSearchInput from "../components/BookingSearchInput";
 
 export const dynamic = 'force-dynamic';
 
@@ -12,27 +14,28 @@ export const metadata = {
   title: "AMC Bookings - OMAA Admin",
 };
 
-export default async function AmcBookingPage() {
+export default async function AmcBookingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string; q?: string }>;
+}) {
+  const resolvedSearchParams = await searchParams;
+  const page = parsePage(resolvedSearchParams.page);
+  const q = resolvedSearchParams.q || "";
   let bookings: any[] = [];
+  let total = 0;
+  let totalPages = 1;
 
   try {
-    // Fetch all bookings where type is AMC or category/services contain AMC
-    const query = `
-      SELECT * FROM bookings 
-      WHERE type = 'AMC' 
-        AND working_status NOT IN ('Complete', 'Completed', 'Reject', 'Rejected', 'Cancel', 'Cancelled')
-      ORDER BY created_at DESC
-    `;
-    const [rows]: any = await pool.query(query);
-    bookings = rows.map((row: any) => {
-      let parsedServices = row.services;
-      try {
-        if (typeof row.services === 'string') {
-          parsedServices = JSON.parse(row.services);
-        }
-      } catch {}
-      return { ...row, services: parsedServices };
+    const paged = await pagedBookings({
+      where:
+        "type = 'AMC' AND working_status NOT IN ('Complete', 'Completed', 'Reject', 'Rejected', 'Cancel', 'Cancelled')",
+      page,
+      q,
     });
+    bookings = paged.rows;
+    total = paged.total;
+    totalPages = paged.totalPages;
   } catch (e) {
     console.error("Failed to fetch AMC bookings:", e);
   }
@@ -59,8 +62,9 @@ export default async function AmcBookingPage() {
         {/* Top Action Bar */}
         <div className="p-4 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <ExportButtons tableId="amcBookingTable" filename="omaa-amc-bookings" />
+          <BookingSearchInput tableId="amcBookingTable" />
           <div className="text-xs font-semibold text-gray-500">
-            Total AMC Records: <span className="font-bold text-gray-900">{bookings.length}</span>
+            Total AMC Records: <span className="font-bold text-gray-900">{total}</span>
           </div>
         </div>
 
@@ -175,7 +179,12 @@ export default async function AmcBookingPage() {
             </tbody>
           </table>
         </div>
-
+        <AdminListPagination
+          page={page}
+          total={total}
+          totalPages={totalPages}
+          hrefForPage={(n) => listHref("/admin/booking/amc", n, { q })}
+        />
       </div>
 
     </div>

@@ -43,14 +43,11 @@ export default function Footer() {
             <Link href="/complaint" className="text-blue-100 hover:text-white hover:underline transition">
               Lodge Complaint
             </Link>
-          </div>
-          <div className="pt-3 space-y-2">
-            <Link
-              href="/service-areas"
-              className="inline-flex items-center justify-center w-full sm:w-auto text-sm font-extrabold bg-white text-[#5c67b8] hover:bg-indigo-50 px-4 py-2.5 rounded-xl shadow-sm transition"
-            >
+            <Link href="/service-areas" className="text-blue-100 hover:text-white hover:underline transition">
               Sitemap Service
             </Link>
+          </div>
+          <div className="pt-3">
             <Link
               href="/registration_form.php"
               className="inline-flex items-center text-xs font-bold bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg border border-white/20 transition"

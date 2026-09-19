@@ -43,13 +43,13 @@ export default function Sidebar() {
   const getLinkClass = (href: string, isSubItem = false) => {
     const active = isActive(href);
     if (isSubItem) {
-      return `group flex items-center space-x-3 px-10 py-2.5 text-[13px] font-medium transition-all duration-300 rounded-lg mx-3 mb-0.5 ${
+      return `group flex items-center space-x-3 px-10 py-2.5 text-[13px] font-medium transition-colors duration-150 rounded-lg mx-3 mb-0.5 ${
         active 
           ? "bg-indigo-500/10 text-indigo-300 border border-indigo-500/10 shadow-[0_0_10px_rgba(99,102,241,0.05)]" 
           : "text-slate-400 hover:text-slate-100 hover:bg-white/5"
       }`;
     }
-    return `group flex items-center justify-between px-4 py-3 mx-3 mb-1 text-[14px] font-medium transition-all duration-300 rounded-xl ${
+    return `group flex items-center justify-between px-4 py-3 mx-3 mb-1 text-[14px] font-medium transition-colors duration-150 rounded-xl ${
       active 
         ? "bg-gradient-to-r from-indigo-600/20 to-indigo-600/5 text-indigo-300 border border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.1)] backdrop-blur-md" 
         : "text-slate-400 hover:bg-white/5 hover:text-white border border-transparent"
@@ -58,7 +58,7 @@ export default function Sidebar() {
 
   const getIconClass = (href: string, isSubItem = false) => {
     const active = isActive(href);
-    return `transition-colors duration-300 ${
+    return `transition-colors duration-150 ${
       active ? "text-indigo-400 drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]" : "text-slate-500 group-hover:text-slate-300"
     }`;
   };

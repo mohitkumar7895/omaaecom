@@ -1,31 +1,37 @@
-import pool from "../../../../lib/db";
 import { Copy, FileSpreadsheet, FileIcon as FilePdf, Printer, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import ExportButtons from "../../components/ExportButtons";
 import WorkingStatusSelect from "../components/WorkingStatusSelect";
 import { updateWorkingStatus, updateTotal } from "../actions";
+import { pagedBookings, parsePage, listHref } from "../../../../lib/admin-list";
+import AdminListPagination from "../../components/AdminListPagination";
+import BookingSearchInput from "../components/BookingSearchInput";
 
 export const dynamic = 'force-dynamic';
 
-export default async function ManageBookingPage({ searchParams }: { searchParams: Promise<{ filter?: string }> }) {
+export default async function ManageBookingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ filter?: string; page?: string; q?: string }>;
+}) {
   const resolvedSearchParams = await searchParams;
   const filter = resolvedSearchParams.filter || "All";
-  
+  const page = parsePage(resolvedSearchParams.page);
+  const q = resolvedSearchParams.q || "";
+
   let bookings: any[] = [];
+  let total = 0;
+  let totalPages = 1;
 
   try {
-    let query = `SELECT * FROM bookings WHERE working_status IN ('Reject', 'Rejected', 'Cancel', 'Cancelled') ORDER BY created_at DESC`;
-    const [rows]: any = await pool.query(query);
-    bookings = rows.map((row: any) => {
-      // Parse services JSON if it's a string
-      let parsedServices = row.services;
-      try {
-        if (typeof row.services === 'string') {
-          parsedServices = JSON.parse(row.services);
-        }
-      } catch {}
-      return { ...row, services: parsedServices };
+    const paged = await pagedBookings({
+      where: "working_status IN ('Reject', 'Rejected', 'Cancel', 'Cancelled')",
+      page,
+      q,
     });
+    bookings = paged.rows;
+    total = paged.total;
+    totalPages = paged.totalPages;
   } catch (e) {
     console.error("Failed to fetch bookings:", e);
   }
@@ -57,8 +63,7 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
 
         {/* Search */}
         <div className="flex items-center space-x-2">
-          <span className="text-gray-600">Search:</span>
-          <input type="text" className="border border-gray-300 rounded px-2 py-1 outline-none focus:border-blue-500 w-48" />
+          <BookingSearchInput tableId="bookingsTable" />
         </div>
       </div>
 
@@ -195,6 +200,12 @@ export default async function ManageBookingPage({ searchParams }: { searchParams
             </tbody>
           </table>
         </div>
+        <AdminListPagination
+          page={page}
+          total={total}
+          totalPages={totalPages}
+          hrefForPage={(n) => listHref("/admin/booking/reject-booking", n, { filter: filter === "All" ? undefined : filter, q })}
+        />
       </div>
     </div>
   );

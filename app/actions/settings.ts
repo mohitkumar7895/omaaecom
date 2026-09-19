@@ -1,27 +1,11 @@
 "use server";
 
 import pool from "@/lib/db";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { getCachedSiteSettings } from "@/lib/site-settings";
 
 export async function getSiteSettings() {
-  try {
-    const queryPromise = pool.query("SELECT * FROM site_settings WHERE id = 1");
-    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 2000));
-    
-    const [rows]: any = await Promise.race([queryPromise, timeoutPromise]);
-
-    if (!rows || rows.length === 0) {
-      return { offer_text: "", offer_enabled: false };
-    }
-
-    return {
-      offer_text: rows[0].offer_text,
-      offer_enabled: rows[0].offer_enabled === 1,
-    };
-  } catch {
-    // Fail silently with default fallback during build/unreachable DB
-    return { offer_text: "", offer_enabled: false };
-  }
+  return getCachedSiteSettings();
 }
 
 export async function updateSiteSettings(formData: FormData): Promise<void> {
@@ -44,7 +28,8 @@ export async function updateSiteSettings(formData: FormData): Promise<void> {
       );
     }
 
-    revalidatePath("/", "layout"); // Revalidate entire app to reflect marquee changes
+    revalidateTag("site-settings");
+    revalidatePath("/", "layout");
   } catch (error) {
     console.error("Failed to update site settings:", error);
   }

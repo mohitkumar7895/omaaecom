@@ -25,7 +25,6 @@ async function runMigration() {
 }
 
 export async function getActiveCategories() {
-  await runMigration();
   try {
     const [rows]: any = await pool.query("SELECT id, title FROM categories WHERE status = 'Active'");
     return rows;

@@ -2,14 +2,15 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import GlobalLoader from "./components/GlobalLoader";
-import OfferMarquee from "./components/OfferMarquee";
+import OfferMarqueeHost from "./components/OfferMarqueeHost";
 import RatingReviewModal from "./components/RatingReviewModal";
-import { getSiteSettings } from "./actions/settings";
+import NavigationProgress from "./components/NavigationProgress";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
 const rawBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.omaacompany.com";
@@ -91,9 +92,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const settings = await getSiteSettings();
-
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "HomeAndConstructionBusiness",
@@ -159,11 +158,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         />
       </head>
       <body className="min-h-full flex flex-col bg-[#f8f9fa] text-gray-900">
+        <NavigationProgress />
         <GlobalLoader />
         <RatingReviewModal />
-        {settings.offer_enabled && settings.offer_text && (
-          <OfferMarquee text={settings.offer_text} />
-        )}
+        <OfferMarqueeHost />
         {children}
       </body>
     </html>
