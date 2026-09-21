@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
@@ -314,6 +314,8 @@ export default async function Home({ params }: PageProps) {
   let desktopBanners: any[] = [];
   let mobileBanners: any[] = [];
 
+  const locationTitle = seoLocation?.title || (citySlug ? citySlug.charAt(0).toUpperCase() + citySlug.slice(1) : "");
+
   try {
     const [
       bResult,
@@ -323,7 +325,9 @@ export default async function Home({ params }: PageProps) {
       mobileResult
     ] = await Promise.allSettled([
       pool.query("SELECT category, services, rating FROM bookings WHERE rating IS NOT NULL AND rating > 0 ORDER BY created_at DESC LIMIT 400"),
-      pool.query("SELECT * FROM categories WHERE status = 'Active'"),
+      locationTitle
+        ? pool.query("SELECT * FROM categories WHERE status = 'Active' AND zones_location LIKE ?", [`%${locationTitle}%`])
+        : pool.query("SELECT * FROM categories WHERE status = 'Active'"),
       pool.query("SELECT * FROM services"),
       pool.query("SELECT * FROM banners WHERE type = 'desktop' OR type IS NULL ORDER BY created_at DESC LIMIT 1"),
       pool.query("SELECT * FROM banners WHERE type = 'mobile' ORDER BY created_at DESC LIMIT 1")
