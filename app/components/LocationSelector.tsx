@@ -17,13 +17,23 @@ interface LocationData {
   postalCode: string;
 }
 
+const NON_CITY_ROUTES = new Set([
+  'about', 'admin', 'api', 'cart', 'cashback', 'checkout', 'complaint', 
+  'contact', 'invoice', 'login', 'manage-address', 'my-amc', 'my-bookings', 
+  'privacy', 'privacy-policy', 'product-history', 'professional-registration', 
+  'rate-card', 'refer-earn', 'service-areas', 'services', 'settings', 
+  'sitemap-directory', 'sitemap-pages', 'sso-callback', 'terms', 
+  'terms-and-conditions', 'wallet', 'member_login', 'registration_form.php'
+]);
+
 function shouldSyncCityUrl(pathname: string) {
   if (pathname === "/") return true;
   const parts = pathname.split("/").filter(Boolean);
   if (parts.length !== 1) return false;
-  const first = parts[0];
+  const first = parts[0].toLowerCase();
+  if (NON_CITY_ROUTES.has(first)) return false;
   if (getKeywordPage(first)) return false;
-  return isIndexableLocation(first);
+  return true;
 }
 
 export default function LocationSelector() {

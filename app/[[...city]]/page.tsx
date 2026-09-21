@@ -42,13 +42,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     rootKeyword ||
     (nestedKeyword && keywordFitsLocation(nestedKeyword, citySlug) ? nestedKeyword : undefined);
 
-  if (citySlug && !seoLocation && !rootKeyword) {
-    return {
-      title: absoluteTitle("Page not found | OMAA Company"),
-      robots: { index: false, follow: false },
-    };
-  }
-
   if (extraSegment) {
     return {
       title: absoluteTitle("Page not found | OMAA Company"),
@@ -222,9 +215,6 @@ export default async function Home({ params }: PageProps) {
     rootKeyword ||
     (nestedKeyword && keywordFitsLocation(nestedKeyword, citySlug) ? nestedKeyword : undefined);
 
-  if (citySlug && !seoLocation && !rootKeyword) {
-    notFound();
-  }
   if (extraSegment || (serviceSlug && !seoService && !keywordPage)) {
     notFound();
   }

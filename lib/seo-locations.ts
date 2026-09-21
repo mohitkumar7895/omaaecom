@@ -288,7 +288,7 @@ export function matchSeoLocationSlug(city?: string, address?: string): string | 
   }
 
   const slug = locationToCitySlug(city || "");
-  if (slug && isIndexableLocation(slug)) return slug;
+  if (slug) return slug;
   return undefined;
 }
 
