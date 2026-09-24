@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
           ? `https://api.bigdatacloud.net/data/reverse-geocode-client?ip=${clientIp}&localityLanguage=en`
           : `https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=en`;
 
-        const ipRes = await fetch(bdcIpUrl);
+        const ipRes = await fetch(bdcIpUrl, { signal: AbortSignal.timeout(5000) });
         if (ipRes.ok) {
           const ipData = await ipRes.json();
           if (ipData && (ipData.city || ipData.locality || ipData.principalSubdivision)) {
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     if (apiKey) {
       try {
         const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}`;
-        const res = await fetch(url);
+        const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
         if (res.ok) {
           const data = await res.json();
           if (data.status === "OK" && data.results && data.results.length > 0) {
@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
     if (!resolvedData) {
       try {
         const bdcUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`;
-        const bdcRes = await fetch(bdcUrl);
+        const bdcRes = await fetch(bdcUrl, { signal: AbortSignal.timeout(5000) });
         if (bdcRes.ok) {
           const bdc = await bdcRes.json();
           if (bdc && (bdc.locality || bdc.city || bdc.principalSubdivision)) {
@@ -164,6 +164,7 @@ export async function POST(req: NextRequest) {
             "User-Agent": "OmaaEcomApp/4.0 (contact@omaacompany.com)", 
             "Accept-Language": "en-IN,hi,en;q=0.9",
           },
+          signal: AbortSignal.timeout(5000)
         });
 
         if (osmRes.ok) {
