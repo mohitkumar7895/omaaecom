@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import pool from "../../../lib/db";
+import { PUBLIC_IMAGE_SQL, publicAssetUrl } from "../../../lib/public-media";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import CategoryView from "./CategoryView";
 import { absoluteTitle } from "../../../lib/seo-locations";
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 120;
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const resolvedParams = await params;
@@ -19,7 +20,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   }
 
   try {
-    const [catRows]: any = await pool.query("SELECT * FROM categories WHERE id = ?", [categoryId]);
+    const [catRows]: any = await pool.query("SELECT id, title FROM categories WHERE id = ?", [categoryId]);
     if (!catRows || catRows.length === 0) {
       return { title: absoluteTitle("Services | OMAA Company"), robots: { index: false, follow: true } };
     }
@@ -85,9 +86,12 @@ export default async function CategoryPage({ params }: { params: Promise<{ id: s
       [servicesRows],
       [rateCards]
     ] = (await Promise.all([
-      pool.query("SELECT * FROM categories WHERE id = ?", [categoryId]),
-      pool.query("SELECT * FROM subcategories WHERE category_id = ?", [categoryId]),
-      pool.query("SELECT * FROM services WHERE category_id = ?", [categoryId]),
+      pool.query(`SELECT id, title, ${PUBLIC_IMAGE_SQL}, short_description, type FROM categories WHERE id = ?`, [categoryId]),
+      pool.query("SELECT id, title, category_id FROM subcategories WHERE category_id = ?", [categoryId]),
+      pool.query(
+        `SELECT id, category_id, subcategory_id, title, rating, reviews, discount, selling_price, original_price, ${PUBLIC_IMAGE_SQL}, LEFT(description, 400) AS description FROM services WHERE category_id = ?`,
+        [categoryId]
+      ),
       pool.query(`
         SELECT rc.*, h.title as heading_title 
         FROM rate_cards rc
@@ -100,10 +104,11 @@ export default async function CategoryPage({ params }: { params: Promise<{ id: s
     if (!catRows || catRows.length === 0) {
       return notFound();
     }
-    const category = catRows[0];
+    const category = { ...catRows[0], image_url: publicAssetUrl(catRows[0].image_url) };
 
     const services = servicesRows.map((s: any) => ({
       ...s,
+      image_url: publicAssetUrl(s.image_url),
       short_description: category.short_description,
       warranty_days: category.warranty_days,
     }));

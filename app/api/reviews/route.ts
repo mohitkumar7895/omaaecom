@@ -11,15 +11,15 @@ export async function GET(req: Request) {
     let reviews: any[] = [];
     try {
       let query = `
-        SELECT id, customer_name, rating, review, review_tags, reviewed_at, category, services
+        SELECT id, customer_name, rating, review, review_tags, reviewed_at, category
         FROM bookings
         WHERE rating IS NOT NULL AND rating > 0
       `;
       const params: any[] = [];
 
       if (category || serviceTitle) {
-        query += ` AND (category LIKE ? OR services LIKE ?)`;
-        params.push(`%${category}%`, `%${serviceTitle || category}%`);
+        query += ` AND category LIKE ?`;
+        params.push(`%${category || serviceTitle}%`);
       }
 
       query += ` ORDER BY reviewed_at DESC, id DESC LIMIT 25`;

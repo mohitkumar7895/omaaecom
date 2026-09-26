@@ -2,7 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-
+  images: {
+    formats: ["image/webp", "image/avif"],
+    minimumCacheTTL: 86400,
+  },
   experimental: {
     serverActions: {
       bodySizeLimit: '10mb',
@@ -12,6 +15,18 @@ const nextConfig: NextConfig = {
       static: 180,
     },
     optimizePackageImports: ["lucide-react"],
+  },
+  async headers() {
+    return [
+      {
+        source: "/api/search",
+        headers: [{ key: "Cache-Control", value: "public, s-maxage=60, stale-while-revalidate=120" }],
+      },
+      {
+        source: "/:path*.(ico|svg|woff2|jpg|jpeg|png|webp|gif)",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
+    ];
   },
   async redirects() {
     return [

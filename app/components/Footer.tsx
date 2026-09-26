@@ -22,33 +22,34 @@ export default function Footer() {
         <div className="space-y-2.5 flex flex-col">
           <h3 className="font-bold text-base text-white mb-1">Quick Links</h3>
           <div className="grid grid-cols-2 gap-2 text-sm">
-            <Link href="/" className="text-blue-100 hover:text-white hover:underline transition">
+            <Link prefetch={false} href="/" className="text-blue-100 hover:text-white hover:underline transition">
               Home
             </Link>
-            <Link href="/about" className="text-blue-100 hover:text-white hover:underline transition">
+            <Link prefetch={false} href="/about" className="text-blue-100 hover:text-white hover:underline transition">
               About Us
             </Link>
-            <Link href="/services" className="text-blue-100 hover:text-white hover:underline transition font-semibold">
+            <Link prefetch={false} href="/services" className="text-blue-100 hover:text-white hover:underline transition font-semibold">
               Services
             </Link>
-            <Link href="/contact" className="text-blue-100 hover:text-white hover:underline transition">
+            <Link prefetch={false} href="/contact" className="text-blue-100 hover:text-white hover:underline transition">
               Contact Us
             </Link>
-            <Link href="/privacy-policy" className="text-blue-100 hover:text-white hover:underline transition">
+            <Link prefetch={false} href="/privacy-policy" className="text-blue-100 hover:text-white hover:underline transition">
               Privacy Policy
             </Link>
-            <Link href="/terms-and-conditions" className="text-blue-100 hover:text-white hover:underline transition">
+            <Link prefetch={false} href="/terms-and-conditions" className="text-blue-100 hover:text-white hover:underline transition">
               Terms & Conditions
             </Link>
-            <Link href="/complaint" className="text-blue-100 hover:text-white hover:underline transition">
+            <Link prefetch={false} href="/complaint" className="text-blue-100 hover:text-white hover:underline transition">
               Lodge Complaint
             </Link>
-            <Link href="/service-areas" className="text-blue-100 hover:text-white hover:underline transition">
+            <Link prefetch={false} href="/service-areas" className="text-blue-100 hover:text-white hover:underline transition">
               Sitemap Service
             </Link>
           </div>
           <div className="pt-3">
             <Link
+              prefetch={false}
               href="/registration_form.php"
               className="inline-flex items-center text-xs font-bold bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg border border-white/20 transition"
             >

@@ -2,7 +2,7 @@ import { getPolicy } from "../actions/policies";
 import PolicyPageView from "../components/PolicyPageView";
 import { Metadata } from "next";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 86400;
 
 export const metadata: Metadata = {
   title: "Terms & Conditions - OMAA Company",

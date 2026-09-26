@@ -207,10 +207,5 @@ export async function POST(req: Request) {
 }
 
 export async function GET() {
-  try {
-    const [rows] = await pool.query(`SELECT * FROM bookings ORDER BY created_at DESC`);
-    return NextResponse.json(rows);
-  } catch (error) {
-    return NextResponse.json({ error: "Failed to fetch bookings" }, { status: 500 });
-  }
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }

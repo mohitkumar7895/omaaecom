@@ -1,5 +1,4 @@
-import type { ZoneData } from "../app/actions/zones";
-import { getAvailableCategoryIdsForLocation, isCategoryAvailableAtLocation } from "./zone-matcher";
+import { isCategoryAvailableAtLocation } from "./zone-matcher";
 
 export type LocatableCategory = {
   id: number;
@@ -17,26 +16,21 @@ export type UserLocationLike = {
 export function filterCategoriesByUserLocation<T extends LocatableCategory>(
   categories: T[],
   location: UserLocationLike,
-  zones: ZoneData[]
+  allowedCategoryIds: number[] | null = null
 ): T[] {
   if (!location || (!location.city && !location.address && !location.latitude)) {
     return categories;
   }
 
-  const lat = location.latitude ?? null;
-  const lng = location.longitude ?? null;
   const city = location.city || "";
   const address = location.address || "";
   const fullAddress = location.fullAddress || "";
 
   let next = categories;
 
-  if (zones.length > 0) {
-    const zoneMatch = getAvailableCategoryIdsForLocation(lat, lng, city, zones, categories);
-    if (zoneMatch.matchedZoneNames.length > 0 && zoneMatch.allowedCategoryIds.length > 0) {
-      const allowed = new Set(zoneMatch.allowedCategoryIds);
-      next = next.filter((category) => allowed.has(Number(category.id)));
-    }
+  if (allowedCategoryIds && allowedCategoryIds.length > 0) {
+    const allowed = new Set(allowedCategoryIds.map(Number));
+    next = next.filter((category) => allowed.has(Number(category.id)));
   }
 
   next = next.filter((category) =>

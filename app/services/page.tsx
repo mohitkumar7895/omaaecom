@@ -17,7 +17,7 @@ import {
   ChevronRight
 } from "lucide-react";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 120;
 
 const rawBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.omaacompany.com";
 const siteUrl = rawBaseUrl.endsWith("/") ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
@@ -58,7 +58,7 @@ export default async function ServicesPage() {
 
   try {
     const [catRows]: any = await pool.query(
-      "SELECT * FROM categories WHERE status = 'Active' ORDER BY id ASC"
+      "SELECT id, title, type FROM categories WHERE status = 'Active' ORDER BY id ASC"
     );
 
     categories = await Promise.all(

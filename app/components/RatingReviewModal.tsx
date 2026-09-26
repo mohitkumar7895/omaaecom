@@ -49,6 +49,7 @@ export default function RatingReviewModal() {
       }
       // Don't disturb if user dismissed in this browser session
       const dismissedOrder = sessionStorage.getItem("omaa_dismissed_rating_order");
+      if (!document.cookie.includes("omaa_auth_token")) return;
 
       const res = await fetch("/api/bookings/pending-review", { cache: "no-store" });
       if (!res.ok) return;

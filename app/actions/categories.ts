@@ -1,5 +1,6 @@
 "use server";
 
+import { unstable_cache } from "next/cache";
 import pool from "../../lib/db";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -25,13 +26,19 @@ async function runMigration() {
 }
 
 export async function getActiveCategories() {
-  try {
-    const [rows]: any = await pool.query("SELECT id, title FROM categories WHERE status = 'Active'");
-    return rows;
-  } catch (error) {
-    console.error("Failed to fetch active categories:", error);
-    return [];
-  }
+  return unstable_cache(
+    async () => {
+      try {
+        const [rows]: any = await pool.query("SELECT id, title FROM categories WHERE status = 'Active'");
+        return rows;
+      } catch (error) {
+        console.error("Failed to fetch active categories:", error);
+        return [];
+      }
+    },
+    ["nav-active-categories"],
+    { revalidate: 300, tags: ["home-catalog"] }
+  )();
 }
 
 

@@ -4,7 +4,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import SitemapClient from "@/app/sitemap-directory/SitemapClient";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "Sitemap & Service Directory | OMAA Company",
@@ -21,7 +21,7 @@ export default async function SitemapPage() {
 
   try {
     const [rows]: any = await pool.query(
-      "SELECT * FROM sitemap_links WHERE is_active = TRUE ORDER BY priority DESC, title ASC"
+      "SELECT id, title, url, group_name, city, area, priority, changefreq FROM sitemap_links WHERE is_active = TRUE ORDER BY priority DESC, title ASC LIMIT 400"
     );
     links = rows || [];
   } catch (error) {

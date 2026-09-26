@@ -13,11 +13,30 @@ export default function OfferMarqueeHost() {
   useEffect(() => {
     if (pathname?.startsWith("/admin")) return;
     let cancelled = false;
+    try {
+      const cached = sessionStorage.getItem("omaa_offer_marquee");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Date.now() - parsed.at < 5 * 60 * 1000) {
+          setText(parsed.text || "");
+          setEnabled(Boolean(parsed.enabled));
+          return;
+        }
+      }
+    } catch {}
     getSiteSettings()
       .then((settings) => {
         if (cancelled) return;
-        setText(settings.offer_text || "");
-        setEnabled(Boolean(settings.offer_enabled));
+        const nextText = settings.offer_text || "";
+        const nextEnabled = Boolean(settings.offer_enabled);
+        setText(nextText);
+        setEnabled(nextEnabled);
+        try {
+          sessionStorage.setItem(
+            "omaa_offer_marquee",
+            JSON.stringify({ text: nextText, enabled: nextEnabled, at: Date.now() })
+          );
+        } catch {}
       })
       .catch(() => {});
     return () => {

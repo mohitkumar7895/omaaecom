@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 import pool from "@/lib/db";
 import { SEO_LOCATIONS } from "@/lib/seo-locations";
 import { SEO_SERVICES } from "@/lib/seo-services";
-import { SEO_KEYWORD_PAGES, keywordFitsLocation } from "@/lib/seo-keywords";
+import { SEO_KEYWORD_PAGES } from "@/lib/seo-keywords";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const rawBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.omaacompany.com";
@@ -50,20 +50,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.85,
       });
     }
-    for (const kw of SEO_KEYWORD_PAGES) {
-      if (!keywordFitsLocation(kw, loc.slug)) continue;
-      defaultPages.push({
-        url: `${baseUrl}/${loc.slug}/${kw.slug}`,
-        lastModified: new Date(),
-        changeFrequency: "weekly",
-        priority: 0.8,
-      });
-    }
   }
 
   try {
     const [rows]: any = await pool.query(
-      "SELECT url, priority, changefreq, updated_at FROM sitemap_links WHERE is_active = TRUE ORDER BY priority DESC, id ASC"
+      "SELECT url, priority, changefreq, updated_at FROM sitemap_links WHERE is_active = TRUE ORDER BY priority DESC, id ASC LIMIT 400"
     );
 
     if (!rows || rows.length === 0) {

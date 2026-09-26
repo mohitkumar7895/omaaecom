@@ -5,7 +5,6 @@ import Hero from "../components/Hero";
 import NewProductsSection from "../components/NewProductsSection";
 import HomeCategoryStream from "../components/HomeCategoryStream";
 import Footer from "../components/Footer";
-import pool from "../../lib/db";
 import { absoluteTitle, getSeoLocation } from "../../lib/seo-locations";
 import { getSeoService } from "../../lib/seo-services";
 import {
@@ -15,13 +14,12 @@ import {
   keywordService,
 } from "../../lib/seo-keywords";
 import LocationSeoSection from "../components/LocationSeoSection";
+import { getHomeCatalog } from "../../lib/home-catalog";
 
-// Dynamic rendering to reflect live booking ratings in real time
-export const dynamic = 'force-dynamic';
+export const revalidate = 120;
 
 type PageProps = {
   params: Promise<{ city?: string[] }>;
-  searchParams: Promise<{ area?: string }>;
 };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -304,101 +302,13 @@ export default async function Home({ params }: PageProps) {
   let desktopBanners: any[] = [];
   let mobileBanners: any[] = [];
 
-  const locationTitle = seoLocation?.title || (citySlug ? citySlug.charAt(0).toUpperCase() + citySlug.slice(1) : "");
+  const locationTitle = seoLocation?.title || "";
 
   try {
-    const [
-      bResult,
-      catResult,
-      servicesResult,
-      desktopResult,
-      mobileResult
-    ] = await Promise.allSettled([
-      pool.query("SELECT category, services, rating FROM bookings WHERE rating IS NOT NULL AND rating > 0 ORDER BY created_at DESC LIMIT 400"),
-      locationTitle
-        ? pool.query("SELECT * FROM categories WHERE status = 'Active' AND zones_location LIKE ?", [`%${locationTitle}%`])
-        : pool.query("SELECT * FROM categories WHERE status = 'Active'"),
-      pool.query("SELECT * FROM services"),
-      pool.query("SELECT * FROM banners WHERE type = 'desktop' OR type IS NULL ORDER BY created_at DESC LIMIT 1"),
-      pool.query("SELECT * FROM banners WHERE type = 'mobile' ORDER BY created_at DESC LIMIT 1")
-    ]);
-
-    let bookingRatings: any[] = [];
-    if (bResult.status === "fulfilled") {
-      const [bRows]: any = bResult.value;
-      bookingRatings = bRows || [];
-    }
-
-    let catRows: any[] = [];
-    if (catResult.status === "fulfilled") {
-      const [rows]: any = catResult.value;
-      catRows = rows || [];
-    }
-
-    let allServices: any[] = [];
-    if (servicesResult.status === "fulfilled") {
-      const [rows]: any = servicesResult.value;
-      allServices = rows || [];
-    }
-
-    categories = catRows.map((cat: any) => {
-      const services = allServices.filter((s: any) => s.category_id === cat.id);
-
-      const enhancedServices = services.map((srv: any) => {
-        const matching = bookingRatings.filter((b) => {
-          const matchesCategory = b.category && cat.title && b.category.toLowerCase().includes(cat.title.toLowerCase());
-          let matchesService = false;
-          try {
-            if (b.services) {
-              const srvStr = typeof b.services === "string" ? b.services : JSON.stringify(b.services);
-              matchesService = srvStr.toLowerCase().includes(srv.title.toLowerCase());
-            }
-          } catch {}
-          return matchesService || matchesCategory;
-        });
-
-        if (matching.length > 0) {
-          const sum = matching.reduce((acc, curr) => acc + Number(curr.rating || 0), 0);
-          const liveAvg = (sum / matching.length).toFixed(1);
-          return {
-            ...srv,
-            rating: liveAvg,
-            reviews: `${matching.length}+`,
-          };
-        }
-
-        return {
-          ...srv,
-          rating: srv.rating || "4.8",
-          reviews: srv.reviews || "120+",
-        };
-      });
-
-      return {
-        ...cat,
-        services: enhancedServices,
-      };
-    });
-
-    if (desktopResult.status === "fulfilled") {
-      const [desktopRows]: any = desktopResult.value;
-      if (desktopRows && desktopRows.length > 0) {
-        const row = desktopRows[0];
-        if (row.banner1_url) desktopBanners.push(row.banner1_url);
-        if (row.banner2_url) desktopBanners.push(row.banner2_url);
-        if (row.banner3_url) desktopBanners.push(row.banner3_url);
-      }
-    }
-
-    if (mobileResult.status === "fulfilled") {
-      const [mobileRows]: any = mobileResult.value;
-      if (mobileRows && mobileRows.length > 0) {
-        const row = mobileRows[0];
-        if (row.banner1_url) mobileBanners.push(row.banner1_url);
-        if (row.banner2_url) mobileBanners.push(row.banner2_url);
-        if (row.banner3_url) mobileBanners.push(row.banner3_url);
-      }
-    }
+    const catalog = await getHomeCatalog(locationTitle);
+    categories = catalog.categories;
+    desktopBanners = catalog.desktopBanners;
+    mobileBanners = catalog.mobileBanners;
   } catch (error) {
     console.error("Database connection error on Home page:", error);
   }

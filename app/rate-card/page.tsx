@@ -4,7 +4,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import RateCardClient from "./RateCardClient";
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 export default async function RateCardPage() {
   let categories: any[] = [];

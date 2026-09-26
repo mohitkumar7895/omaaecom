@@ -39,7 +39,11 @@ export default function Navbar() {
   useEffect(() => {
     try {
       const cachedCats = sessionStorage.getItem("omaa_nav_categories");
+      const cachedAt = Number(sessionStorage.getItem("omaa_nav_categories_at") || 0);
       if (cachedCats) setCategories(JSON.parse(cachedCats));
+      if (cachedCats && cachedAt && Date.now() - cachedAt < 5 * 60 * 1000) {
+        return;
+      }
     } catch {}
 
     getActiveCategories()
@@ -47,6 +51,7 @@ export default function Navbar() {
         setCategories(cats);
         try {
           sessionStorage.setItem("omaa_nav_categories", JSON.stringify(cats));
+          sessionStorage.setItem("omaa_nav_categories_at", String(Date.now()));
         } catch {}
       })
       .catch(console.error);
