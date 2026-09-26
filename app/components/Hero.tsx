@@ -264,7 +264,7 @@ export default function Hero({ categories = [], banners = [], hideHeadline = fal
             <div className="w-1/2 h-full flex flex-col gap-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/Hero%202.webp"
+                src="/Hero 2.webp"
                 alt="RO water purifier repair and service at home"
                 width={600}
                 height={400}

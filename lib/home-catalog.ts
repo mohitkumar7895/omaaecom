@@ -8,7 +8,17 @@ export type HomeCatalog = {
   mobileBanners: string[];
 };
 
-const STATIC_BANNERS = ["/Hero1.webp", "/Hero 2.webp", "/Hero3.webp"];
+const DESKTOP_BANNERS = [
+  "/banners/Banner2-RO-Service.jpg",
+  "/banners/Banner3-Home-Services-Doorstep.jpg",
+  "/banners/Banner3-Premium-Package.jpg",
+];
+
+const MOBILE_BANNERS = [
+  "/banners/Mobile-Banner1-AC-3D.jpg",
+  "/banners/Mobile-Banner3-Premium-Package-3D.jpg",
+  "/banners/Banner2-RO-Service.jpg",
+];
 
 async function loadHomeCatalog(): Promise<HomeCatalog> {
   const [catResult, servicesResult] = await Promise.allSettled([
@@ -52,13 +62,13 @@ async function loadHomeCatalog(): Promise<HomeCatalog> {
 
   return {
     categories,
-    desktopBanners: [...STATIC_BANNERS],
-    mobileBanners: [...STATIC_BANNERS],
+    desktopBanners: [...DESKTOP_BANNERS],
+    mobileBanners: [...MOBILE_BANNERS],
   };
 }
 
 export function getHomeCatalog(_locationTitle = "") {
-  return unstable_cache(() => loadHomeCatalog(), ["home-catalog-v7"], {
+  return unstable_cache(() => loadHomeCatalog(), ["home-catalog-v8"], {
     revalidate: 300,
     tags: ["home-catalog"],
   })();
