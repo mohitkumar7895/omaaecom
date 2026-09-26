@@ -1,7 +1,6 @@
 "use client";
 
 import CategoryGrid from "./CategoryGrid";
-import { useZoneFilteredCategories } from "../../lib/use-zone-filtered-categories";
 
 interface CategoryWithServices {
   id: number;
@@ -21,7 +20,7 @@ export default function HomeCategoryStream({
   initialCategories,
   banners,
 }: HomeCategoryStreamProps) {
-  const visibleCategories = useZoneFilteredCategories(initialCategories);
+  const visibleCategories = initialCategories;
 
   // Helper to match category rank according to exact required sequence:
   // 1. RO AMC

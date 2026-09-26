@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import MobileBannerCarousel from "./MobileBannerCarousel";
 import LiveSearchBar from "./LiveSearchBar";
-import { useZoneFilteredCategories } from "../../lib/use-zone-filtered-categories";
 
 interface HeroCategory {
   id: number;
@@ -22,7 +21,7 @@ interface HeroProps {
 }
 
 export default function Hero({ categories = [], banners = [], hideHeadline = false }: HeroProps) {
-  const visibleCategories = useZoneFilteredCategories(categories);
+  const visibleCategories = categories;
 
   const getIcon = (title: string) => {
     if (title.includes("Ac Repair")) return "❄️";

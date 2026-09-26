@@ -302,10 +302,8 @@ export default async function Home({ params }: PageProps) {
   let desktopBanners: any[] = [];
   let mobileBanners: any[] = [];
 
-  const locationTitle = seoLocation?.title || "";
-
   try {
-    const catalog = await getHomeCatalog(locationTitle);
+    const catalog = await getHomeCatalog();
     categories = catalog.categories;
     desktopBanners = catalog.desktopBanners;
     mobileBanners = catalog.mobileBanners;

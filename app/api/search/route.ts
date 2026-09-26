@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import pool from '../../../lib/db';
-import { PUBLIC_IMAGE_SQL, publicAssetUrl } from '../../../lib/public-media';
+import { publicAssetUrl } from '../../../lib/public-media';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -14,7 +14,7 @@ export async function GET(request: Request) {
     const searchTerm = `%${query.trim()}%`;
 
     const [categories]: any = await pool.query(
-      `SELECT id, title, ${PUBLIC_IMAGE_SQL}, 'category' as type 
+      `SELECT id, title, image_url, 'category' as type 
        FROM categories 
        WHERE title LIKE ? AND status = 'Active' 
        LIMIT 5`,
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
     );
 
     const [services]: any = await pool.query(
-      `SELECT id, category_id, title, ${PUBLIC_IMAGE_SQL}, 'service' as type, selling_price 
+      `SELECT id, category_id, title, image_url, 'service' as type, selling_price 
        FROM services 
        WHERE title LIKE ? 
        LIMIT 5`,
@@ -31,7 +31,7 @@ export async function GET(request: Request) {
 
     const results = [...categories, ...services].map((row: any) => ({
       ...row,
-      image_url: publicAssetUrl(row.image_url),
+      image_url: publicAssetUrl(row.image_url) || (row.image_url ? `/api/media/${row.type}/${row.id}` : ""),
     }));
 
     return NextResponse.json(

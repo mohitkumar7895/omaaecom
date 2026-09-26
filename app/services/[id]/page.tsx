@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import pool from "../../../lib/db";
-import { PUBLIC_IMAGE_SQL, publicAssetUrl } from "../../../lib/public-media";
+import { publicAssetUrl } from "../../../lib/public-media";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import CategoryView from "./CategoryView";
@@ -86,10 +86,10 @@ export default async function CategoryPage({ params }: { params: Promise<{ id: s
       [servicesRows],
       [rateCards]
     ] = (await Promise.all([
-      pool.query(`SELECT id, title, ${PUBLIC_IMAGE_SQL}, short_description, type FROM categories WHERE id = ?`, [categoryId]),
+      pool.query("SELECT id, title, image_url, short_description, type FROM categories WHERE id = ?", [categoryId]),
       pool.query("SELECT id, title, category_id FROM subcategories WHERE category_id = ?", [categoryId]),
       pool.query(
-        `SELECT id, category_id, subcategory_id, title, rating, reviews, discount, selling_price, original_price, ${PUBLIC_IMAGE_SQL}, LEFT(description, 400) AS description FROM services WHERE category_id = ?`,
+        "SELECT id, category_id, subcategory_id, title, rating, selling_price, original_price, warranty_days, short_description, image_url FROM services WHERE category_id = ?",
         [categoryId]
       ),
       pool.query(`
@@ -108,9 +108,9 @@ export default async function CategoryPage({ params }: { params: Promise<{ id: s
 
     const services = servicesRows.map((s: any) => ({
       ...s,
-      image_url: publicAssetUrl(s.image_url),
-      short_description: category.short_description,
-      warranty_days: category.warranty_days,
+      image_url: publicAssetUrl(s.image_url) || (s.image_url ? `/api/media/service/${s.id}` : ""),
+      short_description: s.short_description || category.short_description,
+      warranty_days: s.warranty_days,
     }));
 
     const rawBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.omaacompany.com";

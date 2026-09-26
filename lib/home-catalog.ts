@@ -1,6 +1,6 @@
 import { unstable_cache } from "next/cache";
 import pool from "./db";
-import { PUBLIC_IMAGE_SQL, publicAssetUrl } from "./public-media";
+import { publicAssetUrl } from "./public-media";
 
 export type HomeCatalog = {
   categories: any[];
@@ -8,60 +8,54 @@ export type HomeCatalog = {
   mobileBanners: string[];
 };
 
-const IMAGE_SQL = PUBLIC_IMAGE_SQL;
-const BANNER_SQL = (col: string) =>
-  `CASE WHEN ${col} IS NULL OR ${col} LIKE 'data:%' OR CHAR_LENGTH(${col}) > 2048 THEN NULL ELSE ${col} END AS ${col}`;
+const STATIC_BANNERS = ["/Hero1.webp", "/Hero 2.webp", "/Hero3.webp"];
 
-async function loadHomeCatalog(locationTitle: string): Promise<HomeCatalog> {
-  const [
-    bResult,
-    catResult,
-    servicesResult,
-    desktopResult,
-    mobileResult,
-  ] = await Promise.allSettled([
+function bannerUrls(row: any): string[] {
+  if (!row?.id) return [];
+  const urls: string[] = [];
+  if (Number(row.has1)) urls.push(`/api/media/banner/${row.id}/1`);
+  if (Number(row.has2)) urls.push(`/api/media/banner/${row.id}/2`);
+  if (Number(row.has3)) urls.push(`/api/media/banner/${row.id}/3`);
+  return urls;
+}
+
+async function loadHomeCatalog(): Promise<HomeCatalog> {
+  const [bResult, catResult, servicesResult, desktopResult, mobileResult] = await Promise.allSettled([
     pool.query(
       "SELECT category, rating FROM bookings WHERE rating IS NOT NULL AND rating > 0 ORDER BY created_at DESC LIMIT 80"
     ),
-    locationTitle
-      ? pool.query(
-          `SELECT id, title, type, ${IMAGE_SQL}, zones_location FROM categories WHERE status = 'Active' AND (zones_location IS NULL OR zones_location = '' OR zones_location LIKE ?)`,
-          [`%${locationTitle}%`]
-        )
-      : pool.query(
-          `SELECT id, title, type, ${IMAGE_SQL}, zones_location FROM categories WHERE status = 'Active'`
-        ),
+    pool.query("SELECT id, title, type, image_url, zones_location FROM categories WHERE status = 'Active'"),
     pool.query(
-      `SELECT id, category_id, title, rating, reviews, discount, selling_price, original_price, ${IMAGE_SQL} FROM services`
+      "SELECT id, category_id, subcategory_id, title, original_price, selling_price, rating, warranty_days, short_description, image_url FROM services"
     ),
     pool.query(
-      `SELECT ${BANNER_SQL("banner1_url")}, ${BANNER_SQL("banner2_url")}, ${BANNER_SQL("banner3_url")} FROM banners WHERE type = 'desktop' OR type IS NULL ORDER BY created_at DESC LIMIT 1`
+      `SELECT id,
+        (banner1_url IS NOT NULL AND banner1_url <> '') AS has1,
+        (banner2_url IS NOT NULL AND banner2_url <> '') AS has2,
+        (banner3_url IS NOT NULL AND banner3_url <> '') AS has3
+       FROM banners WHERE type = 'desktop' OR type IS NULL ORDER BY created_at DESC LIMIT 1`
     ),
     pool.query(
-      `SELECT ${BANNER_SQL("banner1_url")}, ${BANNER_SQL("banner2_url")}, ${BANNER_SQL("banner3_url")} FROM banners WHERE type = 'mobile' ORDER BY created_at DESC LIMIT 1`
+      `SELECT id,
+        (banner1_url IS NOT NULL AND banner1_url <> '') AS has1,
+        (banner2_url IS NOT NULL AND banner2_url <> '') AS has2,
+        (banner3_url IS NOT NULL AND banner3_url <> '') AS has3
+       FROM banners WHERE type = 'mobile' ORDER BY created_at DESC LIMIT 1`
     ),
   ]);
 
-  let bookingRatings: any[] = [];
-  if (bResult.status === "fulfilled") {
-    const [bRows]: any = bResult.value;
-    bookingRatings = bRows || [];
-  }
+  const bookingRatings =
+    bResult.status === "fulfilled" ? ((bResult.value as any)[0] as any[]) || [] : [];
+  const catRows = catResult.status === "fulfilled" ? ((catResult.value as any)[0] as any[]) || [] : [];
+  const allServices =
+    servicesResult.status === "fulfilled" ? ((servicesResult.value as any)[0] as any[]) || [] : [];
 
-  let catRows: any[] = [];
-  if (catResult.status === "fulfilled") {
-    const [rows]: any = catResult.value;
-    catRows = rows || [];
-  }
-
-  let allServices: any[] = [];
-  if (servicesResult.status === "fulfilled") {
-    const [rows]: any = servicesResult.value;
-    allServices = rows || [];
+  if (servicesResult.status === "rejected") {
+    console.error("Home catalog services query failed:", servicesResult.reason);
   }
 
   const categories = catRows.map((cat: any) => {
-    const services = allServices.filter((s: any) => s.category_id === cat.id);
+    const services = allServices.filter((s: any) => Number(s.category_id) === Number(cat.id));
     const matching = bookingRatings.filter(
       (b) =>
         b.category &&
@@ -82,49 +76,33 @@ async function loadHomeCatalog(locationTitle: string): Promise<HomeCatalog> {
       services: services.map((srv: any) => ({
         id: srv.id,
         category_id: srv.category_id,
+        subcategory_id: srv.subcategory_id,
         title: srv.title,
         rating: liveAvg || srv.rating || "4.8",
-        reviews: matching.length > 0 ? `${matching.length}+` : srv.reviews || "120+",
-        discount: srv.discount,
+        reviews: matching.length > 0 ? `${matching.length}+` : "120+",
         selling_price: srv.selling_price,
         original_price: srv.original_price,
-        image_url: publicAssetUrl(srv.image_url),
+        warranty_days: srv.warranty_days,
+        short_description: srv.short_description,
+        image_url: publicAssetUrl(srv.image_url) || (srv.image_url ? `/api/media/service/${srv.id}` : ""),
       })),
     };
   });
 
-  const desktopBanners: string[] = [];
-  const mobileBanners: string[] = [];
+  let desktopBanners =
+    desktopResult.status === "fulfilled" ? bannerUrls(((desktopResult.value as any)[0] || [])[0]) : [];
+  let mobileBanners =
+    mobileResult.status === "fulfilled" ? bannerUrls(((mobileResult.value as any)[0] || [])[0]) : [];
 
-  if (desktopResult.status === "fulfilled") {
-    const [desktopRows]: any = desktopResult.value;
-    const row = desktopRows?.[0];
-    const b1 = publicAssetUrl(row?.banner1_url);
-    const b2 = publicAssetUrl(row?.banner2_url);
-    const b3 = publicAssetUrl(row?.banner3_url);
-    if (b1) desktopBanners.push(b1);
-    if (b2) desktopBanners.push(b2);
-    if (b3) desktopBanners.push(b3);
-  }
-
-  if (mobileResult.status === "fulfilled") {
-    const [mobileRows]: any = mobileResult.value;
-    const row = mobileRows?.[0];
-    const b1 = publicAssetUrl(row?.banner1_url);
-    const b2 = publicAssetUrl(row?.banner2_url);
-    const b3 = publicAssetUrl(row?.banner3_url);
-    if (b1) mobileBanners.push(b1);
-    if (b2) mobileBanners.push(b2);
-    if (b3) mobileBanners.push(b3);
-  }
+  if (desktopBanners.length === 0) desktopBanners = [...STATIC_BANNERS];
+  if (mobileBanners.length === 0) mobileBanners = [...STATIC_BANNERS];
 
   return { categories, desktopBanners, mobileBanners };
 }
 
-export function getHomeCatalog(locationTitle = "") {
-  return unstable_cache(
-    () => loadHomeCatalog(locationTitle),
-    ["home-catalog-v3", locationTitle || "all"],
-    { revalidate: 120, tags: ["home-catalog"] }
-  )();
+export function getHomeCatalog(_locationTitle = "") {
+  return unstable_cache(() => loadHomeCatalog(), ["home-catalog-v6"], {
+    revalidate: 120,
+    tags: ["home-catalog"],
+  })();
 }

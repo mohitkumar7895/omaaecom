@@ -15,6 +15,7 @@ export type ServiceItem = {
   selling_price?: number;
   original_price?: number;
   image_url?: string | null;
+  short_description?: string | null;
 };
 
 type CategoryGridProps = {
@@ -104,6 +105,19 @@ export default function CategoryGrid({ title, services }: CategoryGridProps) {
                 <h3 className="font-bold text-xs sm:text-[14px] text-gray-900 leading-snug line-clamp-2 group-hover/card:text-[#6b62d9] transition-colors">
                   {service.title}
                 </h3>
+                {service.short_description ? (
+                  <p className="mt-1 text-[11px] sm:text-xs text-gray-500 line-clamp-2">{service.short_description}</p>
+                ) : null}
+                {(service.selling_price || service.original_price) ? (
+                  <div className="mt-1.5 flex items-baseline gap-2">
+                    {service.selling_price ? (
+                      <span className="text-sm font-black text-gray-900">₹{service.selling_price}</span>
+                    ) : null}
+                    {service.original_price && Number(service.original_price) !== Number(service.selling_price) ? (
+                      <span className="text-[11px] text-gray-400 line-through">₹{service.original_price}</span>
+                    ) : null}
+                  </div>
+                ) : null}
                 
                 {/* Rating & Review clickable button */}
                 <div className="mt-2.5 pt-2 border-t border-gray-100 flex items-center justify-between">
