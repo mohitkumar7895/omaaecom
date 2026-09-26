@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   images: {
-    formats: ["image/webp", "image/avif"],
+    unoptimized: true,
     minimumCacheTTL: 86400,
   },
   experimental: {
@@ -23,7 +23,11 @@ const nextConfig: NextConfig = {
         headers: [{ key: "Cache-Control", value: "public, s-maxage=60, stale-while-revalidate=120" }],
       },
       {
-        source: "/:path*.(ico|svg|woff2|jpg|jpeg|png|webp|gif)",
+        source: "/uploads/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+      },
+      {
+        source: "/Hero1.webp",
         headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
       },
     ];

@@ -21,15 +21,12 @@ export function mediaResponseFromStored(value: unknown, requestUrl?: string): Re
     return Response.redirect(new URL(trimmed, requestUrl).toString(), 302);
   }
 
-  const match = trimmed.match(/^data:([^;]+);base64,([\s\S]+)$/);
-  if (match) {
-    const body = Buffer.from(match[2], "base64");
-    return new Response(body, {
-      headers: {
-        "Content-Type": match[1] || "image/jpeg",
-        "Cache-Control": cache,
-      },
-    });
+  // Never stream DB base64 through Vercel functions (each banner is ~2.5MB origin transfer).
+  if (trimmed.startsWith("data:")) {
+    if (requestUrl) {
+      return Response.redirect(new URL("/Hero1.webp", requestUrl).toString(), 302);
+    }
+    return new Response("Not found", { status: 404 });
   }
 
   return new Response("Not found", { status: 404 });

@@ -12,6 +12,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: [
           "/admin/",
           "/api/",
+          "/_next/image",
           "/checkout",
           "/cart",
           "/manage-address",

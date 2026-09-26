@@ -2,7 +2,6 @@
 
 import { Home, ShoppingCart, ShieldCheck, Sparkles } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import MobileBannerCarousel from "./MobileBannerCarousel";
 import LiveSearchBar from "./LiveSearchBar";
 
@@ -251,32 +250,32 @@ export default function Hero({ categories = [], banners = [], hideHeadline = fal
           <div className="flex gap-3 p-3 border-4 border-white/20 rounded-[28px] bg-white/10 shadow-xl backdrop-blur-sm w-full max-w-120 lg:max-w-130 h-full">
             {/* Left Tall Image */}
             <div className="w-1/2 h-full">
-              <Image
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src="/Hero1.webp"
                 alt="OMAA technician providing doorstep home appliance repair"
                 width={600}
                 height={800}
-                priority
                 className="w-full h-full object-cover rounded-[18px] shadow-md hover:scale-[1.02] transition-transform duration-300"
               />
             </div>
 
             {/* Right Stacked Images */}
             <div className="w-1/2 h-full flex flex-col gap-3">
-              <Image
-                src="/Hero 2.webp"
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/Hero%202.webp"
                 alt="RO water purifier repair and service at home"
                 width={600}
                 height={400}
-                priority
                 className="w-full h-[calc(50%-6px)] object-cover rounded-[18px] shadow-md hover:scale-[1.02] transition-transform duration-300"
               />
-              <Image
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src="/Hero3.webp"
                 alt="Air conditioner doorstep repair and gas refill"
                 width={600}
                 height={400}
-                priority
                 className="w-full h-[calc(50%-6px)] object-cover rounded-[18px] shadow-md hover:scale-[1.02] transition-transform duration-300"
               />
             </div>
