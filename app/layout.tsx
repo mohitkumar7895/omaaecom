@@ -1,17 +1,9 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import GlobalLoader from "./components/GlobalLoader";
 import OfferMarqueeHost from "./components/OfferMarqueeHost";
 import RatingReviewModal from "./components/RatingReviewModal";
 import NavigationProgress from "./components/NavigationProgress";
-
-const plusJakartaSans = Plus_Jakarta_Sans({
-  variable: "--font-plus-jakarta",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
 
 const rawBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.omaacompany.com";
 const siteUrl = rawBaseUrl.endsWith("/") ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
@@ -146,12 +138,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   };
 
   return (
-    <html
-      lang="en"
-      className={`${plusJakartaSans.variable} font-sans h-full antialiased`}
-    >
+    <html lang="en" className="font-sans h-full antialiased">
       <head>
         <meta name="google-site-verification" content="6chr3KOkEHLF43tQxoATLMWdqqMjuPAQYsldOANyayQ" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
