@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Home, ShoppingCart, ShieldCheck, Sparkles } from "lucide-react";
 import Link from "next/link";
 import MobileBannerCarousel from "./MobileBannerCarousel";
@@ -20,7 +21,40 @@ interface HeroProps {
 }
 
 export default function Hero({ categories = [], banners = [], hideHeadline = false }: HeroProps) {
-  const visibleCategories = categories;
+  const [userCity, setUserCity] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleLocationChange = () => {
+      try {
+        const savedLocation = localStorage.getItem("user_location");
+        if (savedLocation) {
+          const parsed = JSON.parse(savedLocation);
+          if (parsed && parsed.city) {
+            setUserCity(parsed.city);
+          }
+        }
+      } catch (e) {}
+    };
+    handleLocationChange();
+    window.addEventListener("location_changed", handleLocationChange);
+    window.addEventListener("storage", handleLocationChange);
+    return () => {
+      window.removeEventListener("location_changed", handleLocationChange);
+      window.removeEventListener("storage", handleLocationChange);
+    };
+  }, []);
+
+  const visibleCategories = categories.filter((cat) => {
+    if (!userCity) return true;
+    if (!cat.zones_location) return true;
+    
+    const zones = cat.zones_location.split(',').map((z) => z.trim().toLowerCase());
+    const city = userCity.toLowerCase();
+    
+    if (zones.length === 0 || zones.includes("all") || zones.includes("")) return true;
+    
+    return zones.some(zone => city.includes(zone) || zone.includes(city));
+  });
 
   const getIcon = (title: string) => {
     if (title.includes("Ac Repair")) return "❄️";

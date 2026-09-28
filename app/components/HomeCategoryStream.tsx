@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import CategoryGrid from "./CategoryGrid";
 
 interface CategoryWithServices {
@@ -20,8 +21,40 @@ export default function HomeCategoryStream({
   initialCategories,
   banners,
 }: HomeCategoryStreamProps) {
-  const visibleCategories = initialCategories;
+  const [userCity, setUserCity] = useState<string | null>(null);
 
+  useEffect(() => {
+    const handleLocationChange = () => {
+      try {
+        const savedLocation = localStorage.getItem("user_location");
+        if (savedLocation) {
+          const parsed = JSON.parse(savedLocation);
+          if (parsed && parsed.city) {
+            setUserCity(parsed.city);
+          }
+        }
+      } catch (e) {}
+    };
+    handleLocationChange();
+    window.addEventListener("location_changed", handleLocationChange);
+    window.addEventListener("storage", handleLocationChange);
+    return () => {
+      window.removeEventListener("location_changed", handleLocationChange);
+      window.removeEventListener("storage", handleLocationChange);
+    };
+  }, []);
+
+  const visibleCategories = initialCategories.filter((cat) => {
+    if (!userCity) return true;
+    if (!cat.zones_location) return true;
+    
+    const zones = cat.zones_location.split(',').map((z) => z.trim().toLowerCase());
+    const city = userCity.toLowerCase();
+    
+    if (zones.length === 0 || zones.includes("all") || zones.includes("")) return true;
+    
+    return zones.some(zone => city.includes(zone) || zone.includes(city));
+  });
   // Helper to match category rank according to exact required sequence:
   // 1. RO AMC
   // [Banner 1]

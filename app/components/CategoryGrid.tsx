@@ -105,9 +105,7 @@ export default function CategoryGrid({ title, services }: CategoryGridProps) {
                 <h3 className="font-bold text-xs sm:text-[14px] text-gray-900 leading-snug line-clamp-2 group-hover/card:text-[#6b62d9] transition-colors">
                   {service.title}
                 </h3>
-                {service.short_description ? (
-                  <p className="mt-1 text-[11px] sm:text-xs text-gray-500 line-clamp-2">{service.short_description}</p>
-                ) : null}
+
                 {(service.selling_price || service.original_price) ? (
                   <div className="mt-1.5 flex items-baseline gap-2">
                     {service.selling_price ? (
