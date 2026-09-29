@@ -11,15 +11,7 @@ export async function POST(req: NextRequest) {
     if (!latitude || !longitude) {
       try {
         const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || req.headers.get("x-real-ip");
-        const isPrivate = clientIp && (
-          clientIp === "127.0.0.1" || 
-          clientIp === "::1" || 
-          clientIp.startsWith("192.168.") || 
-          clientIp.startsWith("10.") || 
-          /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(clientIp)
-        );
-        
-        const bdcIpUrl = clientIp && !isPrivate
+        const bdcIpUrl = clientIp && clientIp !== "127.0.0.1" && clientIp !== "::1"
           ? `https://api.bigdatacloud.net/data/reverse-geocode-client?ip=${clientIp}&localityLanguage=en`
           : `https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=en`;
 
@@ -169,7 +161,7 @@ export async function POST(req: NextRequest) {
         const osmUrl = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`;
         const osmRes = await fetch(osmUrl, {
           headers: {
-            "User-Agent": "OmaaEcomApp/4.0 (contact@omaacompany.com)", 
+            "User-Agent": "OmaaEcomApp/4.0 (contact@omaacompany.com)",
             "Accept-Language": "en-IN,hi,en;q=0.9",
           },
           signal: AbortSignal.timeout(5000)
