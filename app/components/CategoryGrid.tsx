@@ -68,10 +68,10 @@ export default function CategoryGrid({ title, services }: CategoryGridProps) {
               key={`${service.id}-${index}`} 
               aria-hidden={isClone ? true : undefined}
               tabIndex={isClone ? -1 : undefined}
-              className="flex-none w-[180px] sm:w-[215px] md:w-[245px] snap-start bg-white rounded-2xl border border-gray-200/80 shadow-xs transition-all duration-300 overflow-hidden cursor-pointer flex flex-col group/card hover:border-[#6b62d9]/50 hover:shadow-lg"
+              className="flex-none w-[140px] sm:w-[170px] md:w-[190px] snap-start bg-white rounded-2xl border border-gray-200/80 shadow-xs transition-all duration-300 overflow-hidden cursor-pointer flex flex-col group/card hover:border-[#6b62d9]/50 hover:shadow-lg"
             >
               {/* Image Area - Prominent and Spacious */}
-              <div className="relative h-42 sm:h-48 md:h-52 bg-[#f8f9fb] w-full shrink-0 flex items-center justify-center overflow-hidden p-3">
+              <div className="relative h-32 sm:h-40 md:h-44 bg-[#f8f9fb] w-full shrink-0 flex items-center justify-center overflow-hidden p-3">
                 {service.discount && (
                   <span className="absolute top-2.5 left-2.5 bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-md z-10 shadow-xs">
                     {service.discount}
@@ -106,16 +106,7 @@ export default function CategoryGrid({ title, services }: CategoryGridProps) {
                   {service.title}
                 </h3>
 
-                {(service.selling_price || service.original_price) ? (
-                  <div className="mt-1.5 flex items-baseline gap-2">
-                    {service.selling_price ? (
-                      <span className="text-sm font-black text-gray-900">₹{Number(service.selling_price)}</span>
-                    ) : null}
-                    {service.original_price && Number(service.original_price) !== Number(service.selling_price) ? (
-                      <span className="text-[11px] text-gray-400 line-through">₹{Number(service.original_price)}</span>
-                    ) : null}
-                  </div>
-                ) : null}
+
                 
                 {/* Rating & Review clickable button */}
                 <div className="mt-2.5 pt-2 border-t border-gray-100 flex items-center justify-between">
