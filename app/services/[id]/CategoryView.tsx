@@ -151,9 +151,7 @@ export default function CategoryView({ category, subcategories, services, rateCa
             </ol>
           </nav>
           <h1 className="text-2xl sm:text-3xl font-bold text-[#111827] mb-1">{category.title} in Delhi NCR</h1>
-          <p className="text-gray-500 text-xs sm:text-sm max-w-2xl">
-            Book doorstep {(category.title || "appliance repair").toLowerCase()} with certified OMAA technicians. Upfront rate card, genuine parts and 30-day service warranty across Noida, Delhi, Greater Noida, Ghaziabad and Gurgaon.
-          </p>
+
         </div>
       </div>
 

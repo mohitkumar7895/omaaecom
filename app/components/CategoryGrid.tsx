@@ -109,10 +109,10 @@ export default function CategoryGrid({ title, services }: CategoryGridProps) {
                 {(service.selling_price || service.original_price) ? (
                   <div className="mt-1.5 flex items-baseline gap-2">
                     {service.selling_price ? (
-                      <span className="text-sm font-black text-gray-900">₹{service.selling_price}</span>
+                      <span className="text-sm font-black text-gray-900">₹{Number(service.selling_price)}</span>
                     ) : null}
                     {service.original_price && Number(service.original_price) !== Number(service.selling_price) ? (
-                      <span className="text-[11px] text-gray-400 line-through">₹{service.original_price}</span>
+                      <span className="text-[11px] text-gray-400 line-through">₹{Number(service.original_price)}</span>
                     ) : null}
                   </div>
                 ) : null}
