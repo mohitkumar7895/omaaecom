@@ -21,20 +21,41 @@ const MOBILE_BANNERS = [
 ];
 
 async function loadHomeCatalog(): Promise<HomeCatalog> {
-  const [catResult, servicesResult] = await Promise.allSettled([
+  const [catResult, servicesResult, bannersResult] = await Promise.allSettled([
     pool.query("SELECT id, title, type, image_url, zones_location FROM categories WHERE status = 'Active'"),
     pool.query(
       "SELECT id, category_id, subcategory_id, title, original_price, selling_price, rating, warranty_days, short_description, image_url FROM services"
     ),
+    pool.query("SELECT id, banner1_url, banner2_url, banner3_url, type FROM banners"),
   ]);
 
   const catRows = catResult.status === "fulfilled" ? ((catResult.value as any)[0] as any[]) || [] : [];
   const allServices =
     servicesResult.status === "fulfilled" ? ((servicesResult.value as any)[0] as any[]) || [] : [];
+  const bannerRows =
+    bannersResult.status === "fulfilled" ? ((bannersResult.value as any)[0] as any[]) || [] : [];
 
   if (servicesResult.status === "rejected") {
     console.error("Home catalog services query failed:", servicesResult.reason);
   }
+
+  const desktopBanners: string[] = [];
+  const mobileBanners: string[] = [];
+
+  bannerRows.forEach((row: any) => {
+    if (row.banner1_url) {
+      if (row.type === "mobile") mobileBanners.push(`/api/media/banner/${row.id}/1`);
+      else desktopBanners.push(`/api/media/banner/${row.id}/1`);
+    }
+    if (row.banner2_url) {
+      if (row.type === "mobile") mobileBanners.push(`/api/media/banner/${row.id}/2`);
+      else desktopBanners.push(`/api/media/banner/${row.id}/2`);
+    }
+    if (row.banner3_url) {
+      if (row.type === "mobile") mobileBanners.push(`/api/media/banner/${row.id}/3`);
+      else desktopBanners.push(`/api/media/banner/${row.id}/3`);
+    }
+  });
 
   const categories = catRows.map((cat: any) => {
     const services = allServices.filter((s: any) => Number(s.category_id) === Number(cat.id));
@@ -62,8 +83,8 @@ async function loadHomeCatalog(): Promise<HomeCatalog> {
 
   return {
     categories,
-    desktopBanners: [...DESKTOP_BANNERS],
-    mobileBanners: [...MOBILE_BANNERS],
+    desktopBanners: desktopBanners.length > 0 ? desktopBanners : [...DESKTOP_BANNERS],
+    mobileBanners: mobileBanners.length > 0 ? mobileBanners : [...MOBILE_BANNERS],
   };
 }
 
