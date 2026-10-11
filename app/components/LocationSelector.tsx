@@ -11,10 +11,13 @@ interface LocationData {
   latitude?: number;
   longitude?: number;
   address: string;
+  shortAddress?: string;
   city: string;
   state: string;
   country: string;
   postalCode: string;
+  mohalla?: string;
+  sector?: string;
 }
 
 const NON_CITY_ROUTES = new Set([
@@ -65,7 +68,7 @@ export default function LocationSelector() {
             setLocation(parsed);
             if (pathname === "/") {
               const slug = matchSeoLocationSlug(parsed.city, parsed.address);
-              if (slug) router.replace(`/${slug}`);
+              if (slug && isIndexableLocation(slug)) router.replace(`/${slug}`);
             }
           }
         } catch (e) {
@@ -78,7 +81,18 @@ export default function LocationSelector() {
         alreadyDetected = sessionStorage.getItem("omaa_auto_located") === "1";
       } catch {}
 
-      if (alreadyDetected && savedLocation) {
+      const savedIsGps =
+        savedLocation &&
+        (() => {
+          try {
+            const parsed = JSON.parse(savedLocation);
+            return Number(parsed?.accuracy) > 0 && Number(parsed?.latitude) && Number(parsed?.longitude);
+          } catch {
+            return false;
+          }
+        })();
+
+      if (alreadyDetected && savedIsGps) {
         return;
       }
 
@@ -94,8 +108,9 @@ export default function LocationSelector() {
           } catch {}
           if (shouldSyncCityUrl(pathname || "/")) {
             const slug = matchSeoLocationSlug(detected.city, detected.address);
-            const nextPath = slug ? `/${slug}` : pathname;
-            if (slug && pathname !== nextPath) router.replace(nextPath);
+            if (slug && isIndexableLocation(slug) && pathname !== `/${slug}`) {
+              router.replace(`/${slug}`);
+            }
           }
         }
       } catch (err) {
@@ -160,13 +175,16 @@ export default function LocationSelector() {
         if (response.ok && (data.success || data.results)) {
           // Map Nominatim results to LocationData format
           const mapped = (data.results || data.data || []).map((r: any) => ({
-            address: r.display_name || r.address || '',
-            city: r.address?.city || r.address?.town || r.address?.village || r.display_name?.split(',')[0] || '',
-            state: r.address?.state || '',
-            country: r.address?.country || '',
-            postalCode: r.address?.postcode || '',
-            latitude: r.lat ? Number(r.lat) : undefined,
-            longitude: r.lon ? Number(r.lon) : undefined,
+            address: r.shortAddress || r.address || r.display_name || "",
+            shortAddress: r.shortAddress || r.display_name || "",
+            city: r.city || r.address?.city || "",
+            mohalla: r.mohalla || "",
+            sector: r.sector || "",
+            state: r.state || r.address?.state || "",
+            country: r.country || r.address?.country || "",
+            postalCode: r.postalCode || r.address?.postcode || "",
+            latitude: r.latitude ?? (r.lat ? Number(r.lat) : undefined),
+            longitude: r.longitude ?? (r.lon ? Number(r.lon) : undefined),
           }));
           setSearchResults(mapped);
         } else {
@@ -190,7 +208,7 @@ export default function LocationSelector() {
 
     if (!pathname || !shouldSyncCityUrl(pathname)) return;
     const slug = matchSeoLocationSlug(locationData.city, locationData.address);
-    if (!slug) return;
+    if (!slug || !isIndexableLocation(slug)) return;
     const nextPath = `/${slug}`;
     if (pathname !== nextPath) {
       router.push(nextPath);
@@ -218,11 +236,13 @@ export default function LocationSelector() {
 
   // Determine what to show on the trigger button
   const getButtonText = () => {
-    if (location && (location.address || (location as any).fullAddress)) {
-      return location.address || (location as any).fullAddress;
-    }
-    if (location && location.city) {
-      return location.city;
+    if (location?.shortAddress) return location.shortAddress;
+    if (location?.address) return location.address;
+    if (location) {
+      const spoken = [location.mohalla, location.sector, location.city]
+        .filter(Boolean)
+        .filter((v, i, a) => a.findIndex((x) => x.toLowerCase() === v.toLowerCase()) === i);
+      if (spoken.length) return spoken.join(", ");
     }
     if (isAutoDetecting) {
       return "Detecting location...";
@@ -235,8 +255,8 @@ export default function LocationSelector() {
       {/* Trigger Button */}
       <div 
         onClick={() => setIsOpen(true)}
-        className="flex items-center justify-between bg-white border border-gray-200 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl cursor-pointer hover:bg-gray-50 transition mr-2 min-w-[150px] max-w-[240px] sm:max-w-[320px] shadow-sm"
-        title={getButtonText()}
+        className="flex items-center justify-between bg-white border border-gray-200 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl cursor-pointer hover:bg-gray-50 transition mr-2 min-w-[180px] max-w-[280px] sm:max-w-[440px] shadow-sm"
+        title={(location as any)?.fullAddress || getButtonText()}
       >
         <div className="flex items-center space-x-2 overflow-hidden">
           {isAutoDetecting ? (
@@ -244,7 +264,7 @@ export default function LocationSelector() {
           ) : (
             <MapPin className="text-rose-500 w-4 h-4 shrink-0" />
           )}
-          <span className="text-[13px] sm:text-[14px] text-gray-800 font-medium line-clamp-1 break-words">{getButtonText()}</span>
+          <span className="text-[13px] sm:text-[14px] text-gray-800 font-medium line-clamp-2 break-words leading-tight">{getButtonText()}</span>
         </div>
         <ChevronDown className="text-gray-400 w-4 h-4 shrink-0 ml-1.5" />
       </div>
@@ -307,8 +327,8 @@ export default function LocationSelector() {
                     >
                       <MapPin className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
                       <div>
-                        <p className="font-semibold text-gray-900 text-sm line-clamp-1">{res.address.split(',')[0]}</p>
-                        <p className="text-xs text-gray-500 mt-1 line-clamp-1">{res.address}</p>
+                        <p className="font-semibold text-gray-900 text-sm line-clamp-2">{res.shortAddress || res.address}</p>
+                        <p className="text-xs text-gray-500 mt-1 line-clamp-1">{res.city}</p>
                       </div>
                     </button>
                   ))}
