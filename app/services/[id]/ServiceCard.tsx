@@ -1,6 +1,7 @@
 "use client";
 
 import { Star, Minus, Plus } from "lucide-react";
+import { isPremiumServiceCategory } from "@/lib/service-image-tone";
 
 type ServiceCardProps = {
   service: any;
@@ -8,9 +9,11 @@ type ServiceCardProps = {
   onAdd: (service: any) => void;
   onRemove?: () => void;
   onViewDetails?: () => void;
+  categoryTitle?: string;
 };
 
-export default function ServiceCard({ service, quantity = 0, onAdd, onRemove, onViewDetails }: ServiceCardProps) {
+export default function ServiceCard({ service, quantity = 0, onAdd, onRemove, onViewDetails, categoryTitle }: ServiceCardProps) {
+  const premiumFit = isPremiumServiceCategory(categoryTitle);
   return (
     <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100/90 shadow-[0_2px_12px_rgba(0,0,0,0.04)] p-3 sm:p-6 mb-3 sm:mb-5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300 w-full">
       {/* 1. Top Section: Title & Rating */}
@@ -55,13 +58,15 @@ export default function ServiceCard({ service, quantity = 0, onAdd, onRemove, on
         </div>
 
         {/* Right side: Image and Add button (Shifted nicely to the right) */}
-        <div className="relative w-[116px] sm:w-[150px] flex-shrink-0 self-start pb-3.5 -mr-0.5 sm:mr-0">
-          <div className="w-full aspect-[4/5] bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 shadow-sm relative">
+        <div className={`relative flex-shrink-0 self-start pb-3.5 -mr-0.5 sm:mr-0 ${premiumFit ? "w-[132px] sm:w-[172px]" : "w-[116px] sm:w-[150px]"}`}>
+          <div className={`w-full aspect-[4/5] rounded-2xl overflow-hidden border border-gray-100 shadow-sm relative ${
+            premiumFit ? "" : "bg-gray-50"
+          }`}>
             {service.image_url ? (
               <img 
                 src={service.image_url} 
                 alt={service.title} 
-                className="w-full h-full object-cover" 
+                className={premiumFit ? "w-full h-full object-cover object-center" : "w-full h-full object-cover"}
                 loading="lazy"
               />
             ) : (

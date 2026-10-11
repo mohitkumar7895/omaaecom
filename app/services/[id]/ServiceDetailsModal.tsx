@@ -58,9 +58,9 @@ export default function ServiceDetailsModal({ service, categoryName, onClose, on
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto">
           {/* Hero Image */}
-          <div className="w-full h-[180px] sm:h-[240px] bg-gray-100 relative">
+          <div className="w-full h-[180px] sm:h-[240px] bg-gray-100 relative overflow-hidden">
             {service.image_url ? (
-              <img src={service.image_url} alt={service.title} className="w-full h-full object-cover" />
+              <img src={service.image_url} alt={service.title} className="w-full h-full object-cover object-center" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
             )}

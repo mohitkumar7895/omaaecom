@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import { Star, MessageSquare } from "lucide-react";
 import CategoryReviewsModal from "./CategoryReviewsModal";
+import { isRoAmcCategory } from "@/lib/service-image-tone";
 
 export type ServiceItem = {
   id: number;
@@ -28,6 +29,7 @@ export default function CategoryGrid({ title, services }: CategoryGridProps) {
   const [selectedReviewCategory, setSelectedReviewCategory] = useState<string | null>(null);
 
   if (!services || services.length === 0) return null;
+  const amcImages = isRoAmcCategory(title);
   
   // If items > 3, auto-slide infinitely. If <= 3 (like Microwave), show exact items and enable touch scroll on mobile
   const isLargeSet = services.length > 3;
@@ -71,7 +73,11 @@ export default function CategoryGrid({ title, services }: CategoryGridProps) {
               className="flex-none w-[140px] sm:w-[170px] md:w-[190px] snap-start bg-white rounded-2xl border border-gray-200/80 shadow-xs transition-all duration-300 overflow-hidden cursor-pointer flex flex-col group/card hover:border-[#6b62d9]/50 hover:shadow-lg"
             >
               {/* Image Area - Prominent and Spacious */}
-              <div className="relative h-32 sm:h-40 md:h-44 bg-[#f8f9fb] w-full shrink-0 flex items-center justify-center overflow-hidden p-3">
+              <div className={`relative w-full shrink-0 overflow-hidden ${
+                amcImages
+                  ? "h-40 sm:h-48 md:h-52 bg-black/5"
+                  : "h-32 sm:h-40 md:h-44 bg-[#f8f9fb] flex items-center justify-center p-3"
+              }`}>
                 {service.discount && (
                   <span className="absolute top-2.5 left-2.5 bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-md z-10 shadow-xs">
                     {service.discount}
@@ -82,7 +88,10 @@ export default function CategoryGrid({ title, services }: CategoryGridProps) {
                   <img 
                     src={service.image_url} 
                     alt={service.title} 
-                    className="w-full h-full object-contain drop-shadow-xs group-hover/card:scale-105 transition-transform duration-300"
+                    className={amcImages
+                      ? "absolute inset-0 w-full h-full object-cover object-center group-hover/card:scale-105 transition-transform duration-500"
+                      : "w-full h-full object-contain drop-shadow-xs group-hover/card:scale-105 transition-transform duration-300"
+                    }
                     loading="lazy"
                     decoding="async"
                     onError={(e) => {

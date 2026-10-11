@@ -238,6 +238,7 @@ export default function CategoryView({ category, subcategories, services, rateCa
                       onAdd={() => handleAddService(service)}
                       onRemove={() => handleRemoveService(service.id)} 
                       onViewDetails={() => setSelectedService(service)}
+                      categoryTitle={category?.title}
                     />
                   ))}
                 </div>

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { getCurrentLocation, autoDetectLocation } from "@/lib/location";
 import { getKeywordPage } from "@/lib/seo-keywords";
-import { isIndexableLocation, matchSeoLocationSlug } from "@/lib/seo-locations";
+import { locationToCitySlug, matchSeoLocationSlug } from "@/lib/seo-locations";
 import { ChevronDown, MapPin, X, LocateFixed, Search, ChevronRight, Loader2, AlertCircle } from "lucide-react";
 
 interface LocationData {
@@ -39,6 +39,22 @@ function shouldSyncCityUrl(pathname: string) {
   return true;
 }
 
+function routeSlugForLocation(loc: LocationData | null | undefined): string | undefined {
+  if (!loc) return undefined;
+  const blob = [loc.city, loc.shortAddress, loc.address, loc.mohalla, loc.sector]
+    .filter(Boolean)
+    .join(" ");
+  const seo = matchSeoLocationSlug(loc.city, blob);
+  if (seo) return seo;
+
+  const fallback = locationToCitySlug(loc.city || loc.mohalla || "");
+  if (!fallback || fallback.length < 3) return undefined;
+  if (fallback === "local-area" || fallback === "india") return undefined;
+  if (NON_CITY_ROUTES.has(fallback)) return undefined;
+  if (getKeywordPage(fallback)) return undefined;
+  return fallback;
+}
+
 export default function LocationSelector() {
   const router = useRouter();
   const pathname = usePathname();
@@ -66,9 +82,9 @@ export default function LocationSelector() {
           const parsed = JSON.parse(savedLocation);
           if (parsed && (parsed.city || parsed.address)) {
             setLocation(parsed);
-            if (pathname === "/") {
-              const slug = matchSeoLocationSlug(parsed.city, parsed.address);
-              if (slug && isIndexableLocation(slug)) router.replace(`/${slug}`);
+            if (shouldSyncCityUrl(pathname || "/")) {
+              const slug = routeSlugForLocation(parsed);
+              if (slug && pathname !== `/${slug}`) router.replace(`/${slug}`);
             }
           }
         } catch (e) {
@@ -107,8 +123,8 @@ export default function LocationSelector() {
             sessionStorage.setItem("omaa_auto_located", "1");
           } catch {}
           if (shouldSyncCityUrl(pathname || "/")) {
-            const slug = matchSeoLocationSlug(detected.city, detected.address);
-            if (slug && isIndexableLocation(slug) && pathname !== `/${slug}`) {
+            const slug = routeSlugForLocation(detected);
+            if (slug && pathname !== `/${slug}`) {
               router.replace(`/${slug}`);
             }
           }
@@ -207,8 +223,8 @@ export default function LocationSelector() {
     setIsOpen(false);
 
     if (!pathname || !shouldSyncCityUrl(pathname)) return;
-    const slug = matchSeoLocationSlug(locationData.city, locationData.address);
-    if (!slug || !isIndexableLocation(slug)) return;
+    const slug = routeSlugForLocation(locationData);
+    if (!slug) return;
     const nextPath = `/${slug}`;
     if (pathname !== nextPath) {
       router.push(nextPath);
