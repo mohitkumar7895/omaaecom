@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { getCurrentLocation, autoDetectLocation } from "@/lib/location";
 import { getKeywordPage } from "@/lib/seo-keywords";
@@ -21,6 +21,9 @@ interface LocationData {
   sector?: string;
   houseNumber?: string;
   street?: string;
+  placeId?: string;
+  mainText?: string;
+  secondaryText?: string;
 }
 
 const NON_CITY_ROUTES = new Set([
@@ -75,17 +78,61 @@ export default function LocationSelector() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<LocationData[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [resolvingPlaceId, setResolvingPlaceId] = useState<string | null>(null);
+  const sessionTokenRef = useRef(
+    typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}`
+  );
+  const searchAbortRef = useRef<AbortController | null>(null);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const detectGenerationRef = useRef(0);
 
-  // Load saved location on mount, or auto-detect immediately
+  const lockSavedLocation = () => {
+    try {
+      sessionStorage.setItem("omaa_location_locked", "1");
+      localStorage.removeItem("omaa_location_locked");
+    } catch {}
+  };
+
+  const isLocationLocked = () => {
+    try {
+      return sessionStorage.getItem("omaa_location_locked") === "1";
+    } catch {
+      return false;
+    }
+  };
+
+  const isPageReload = () => {
+    try {
+      const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+      if (nav?.type === "reload") return true;
+    } catch {}
+    return false;
+  };
+
+  const newSessionToken = () => {
+    sessionTokenRef.current =
+      typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}`;
+  };
+
+  // Refresh → auto GPS. Search select stays until the next refresh.
   useEffect(() => {
     const loadOrDetect = async () => {
+      if (isPageReload()) {
+        try {
+          sessionStorage.removeItem("omaa_location_locked");
+          localStorage.removeItem("omaa_location_locked");
+        } catch {}
+      }
+
       const savedLocation = localStorage.getItem("user_location");
+      let parsedSaved: LocationData | null = null;
       if (savedLocation) {
         try {
           const parsed = JSON.parse(savedLocation);
-          if (parsed && (parsed.city || parsed.address)) {
+          if (parsed && (parsed.city || parsed.address || parsed.shortAddress)) {
+            parsedSaved = parsed;
             setLocation(parsed);
-            if (shouldSyncCityUrl(pathname || "/")) {
+            if (shouldSyncCityUrl(pathname || "/") && !isPageReload()) {
               const slug = routeSlugForLocation(parsed);
               if (slug && pathname !== `/${slug}`) router.replace(`/${slug}`);
             }
@@ -95,36 +142,20 @@ export default function LocationSelector() {
         }
       }
 
-      let alreadyDetected = false;
-      try {
-        alreadyDetected = sessionStorage.getItem("omaa_auto_located") === "1";
-      } catch {}
-
-      const savedIsGps =
-        savedLocation &&
-        (() => {
-          try {
-            const parsed = JSON.parse(savedLocation);
-            return Number(parsed?.accuracy) > 0 && Number(parsed?.latitude) && Number(parsed?.longitude);
-          } catch {
-            return false;
-          }
-        })();
-
-      if (alreadyDetected && savedIsGps) {
+      if (!isPageReload() && isLocationLocked() && parsedSaved) {
         return;
       }
 
+      const generation = ++detectGenerationRef.current;
       setIsAutoDetecting(true);
       try {
         const detected = await autoDetectLocation();
+        if (generation !== detectGenerationRef.current || isLocationLocked()) return;
         if (detected && (detected.city || detected.address || detected.latitude)) {
+          lockSavedLocation();
           setLocation(detected);
           localStorage.setItem("user_location", JSON.stringify(detected));
           window.dispatchEvent(new Event("location_changed"));
-          try {
-            sessionStorage.setItem("omaa_auto_located", "1");
-          } catch {}
           if (shouldSyncCityUrl(pathname || "/")) {
             const slug = routeSlugForLocation(detected);
             if (slug && pathname !== `/${slug}`) {
@@ -135,7 +166,7 @@ export default function LocationSelector() {
       } catch (err) {
         console.warn("Auto detect location failed:", err);
       } finally {
-        setIsAutoDetecting(false);
+        if (generation === detectGenerationRef.current) setIsAutoDetecting(false);
       }
     };
 
@@ -165,7 +196,11 @@ export default function LocationSelector() {
   useEffect(() => {
     if (isOpen) {
       setMounted(true);
-      setTimeout(() => setVisible(true), 20);
+      newSessionToken();
+      setTimeout(() => {
+        setVisible(true);
+        searchInputRef.current?.focus();
+      }, 20);
     } else {
       setVisible(false);
       const timer = setTimeout(() => {
@@ -178,48 +213,65 @@ export default function LocationSelector() {
     }
   }, [isOpen]);
 
-  // Handle Search Input with Debounce
+  // Debounced Google autocomplete — one request after typing pauses
   useEffect(() => {
-    if (!searchQuery.trim()) {
+    const q = searchQuery.trim();
+    searchAbortRef.current?.abort();
+
+    if (q.length < 3) {
       setSearchResults([]);
       setIsSearching(false);
       return;
     }
 
+    setIsSearching(true);
     const timer = setTimeout(async () => {
-      setIsSearching(true);
+      const ctrl = new AbortController();
+      searchAbortRef.current = ctrl;
       try {
-        const response = await fetch(`/api/location/search?q=${encodeURIComponent(searchQuery)}`);
+        const params = new URLSearchParams({
+          q,
+          session: sessionTokenRef.current,
+        });
+        const response = await fetch(`/api/location/search?${params.toString()}`, {
+          signal: ctrl.signal,
+        });
         const data = await response.json();
         if (response.ok && (data.success || data.results)) {
-          // Map Nominatim results to LocationData format
-          const mapped = (data.results || data.data || []).map((r: any) => ({
-            address: r.shortAddress || r.address || r.display_name || "",
-            shortAddress: r.shortAddress || r.display_name || "",
-            city: r.city || r.address?.city || "",
+          const mapped = (data.results || []).map((r: any) => ({
+            placeId: r.placeId,
+            address: r.address || r.display_name || r.mainText || "",
+            shortAddress: r.mainText || r.shortAddress || r.display_name || "",
+            mainText: r.mainText,
+            secondaryText: r.secondaryText,
+            city: r.secondaryText || r.city || "",
             mohalla: r.mohalla || "",
             sector: r.sector || "",
-            state: r.state || r.address?.state || "",
-            country: r.country || r.address?.country || "",
-            postalCode: r.postalCode || r.address?.postcode || "",
-            latitude: r.latitude ?? (r.lat ? Number(r.lat) : undefined),
-            longitude: r.longitude ?? (r.lon ? Number(r.lon) : undefined),
+            state: r.state || "",
+            country: r.country || "India",
+            postalCode: r.postalCode || "",
           }));
           setSearchResults(mapped);
         } else {
           setSearchResults([]);
         }
-      } catch (err) {
-        console.error("Search error:", err);
+      } catch (err: any) {
+        if (err?.name !== "AbortError") console.error("Search error:", err);
       } finally {
-        setIsSearching(false);
+        if (!ctrl.signal.aborted) setIsSearching(false);
       }
-    }, 500); // 500ms debounce
+    }, 400);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      searchAbortRef.current?.abort();
+    };
   }, [searchQuery]);
 
   const applyLocation = (locationData: LocationData) => {
+    detectGenerationRef.current += 1;
+    setIsAutoDetecting(false);
+    lockSavedLocation();
     setLocation(locationData);
     localStorage.setItem("user_location", JSON.stringify(locationData));
     window.dispatchEvent(new Event("location_changed"));
@@ -234,8 +286,45 @@ export default function LocationSelector() {
     }
   };
 
-  const handleSelectLocation = (locationData: LocationData) => {
-    applyLocation(locationData);
+  const handleSelectLocation = async (locationData: LocationData) => {
+    if (!locationData.placeId) {
+      applyLocation(locationData);
+      return;
+    }
+    setError(null);
+    setResolvingPlaceId(locationData.placeId);
+    try {
+      const params = new URLSearchParams({
+        placeId: locationData.placeId,
+        session: sessionTokenRef.current,
+      });
+      const response = await fetch(`/api/location/search?${params.toString()}`);
+      const data = await response.json();
+      const details = data.data;
+      if (!response.ok || !details) {
+        throw new Error("Could not load that address. Try another suggestion.");
+      }
+      applyLocation({
+        address: details.shortAddress || details.fullAddress || locationData.address,
+        shortAddress: details.shortAddress || locationData.shortAddress,
+        fullAddress: details.fullAddress,
+        city: details.city || "",
+        mohalla: details.mohalla || "",
+        sector: details.sector || "",
+        state: details.state || "",
+        country: details.country || "India",
+        postalCode: details.postalCode || "",
+        houseNumber: details.houseNumber || "",
+        street: details.street || "",
+        latitude: details.latitude,
+        longitude: details.longitude,
+      });
+      newSessionToken();
+    } catch (err: any) {
+      setError(err.message || "Could not load that address.");
+    } finally {
+      setResolvingPlaceId(null);
+    }
   };
 
   const handleGetCurrentLocation = async () => {
@@ -323,11 +412,13 @@ export default function LocationSelector() {
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
                 </button>
                 <input
+                  ref={searchInputRef}
                   type="text"
                   placeholder="Search for your location/society/apartment"
-                  disabled={isLoading}
+                  disabled={isLoading || Boolean(resolvingPlaceId)}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  autoComplete="off"
                   className="flex-1 bg-transparent border-none focus:outline-none text-gray-800 placeholder-gray-500 font-medium text-sm sm:text-base min-w-0"
                 />
                 {isSearching && <Loader2 className="w-5 h-5 text-gray-400 animate-spin ml-2" />}
@@ -346,19 +437,30 @@ export default function LocationSelector() {
                 <div className="max-h-[300px] overflow-y-auto mb-4 border border-gray-100 rounded-xl divide-y divide-gray-100 shadow-sm">
                   {searchResults.map((res, idx) => (
                     <button
-                      key={idx}
+                      key={res.placeId || idx}
                       onClick={() => handleSelectLocation(res)}
-                      className="w-full text-left p-4 hover:bg-gray-50 flex items-start space-x-3 transition-colors"
+                      disabled={Boolean(resolvingPlaceId)}
+                      className="w-full text-left p-4 hover:bg-gray-50 flex items-start space-x-3 transition-colors disabled:opacity-60"
                     >
-                      <MapPin className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
+                      {resolvingPlaceId && res.placeId === resolvingPlaceId ? (
+                        <Loader2 className="w-5 h-5 text-[#6b62d9] shrink-0 mt-0.5 animate-spin" />
+                      ) : (
+                        <MapPin className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
+                      )}
                       <div>
-                        <p className="font-semibold text-gray-900 text-sm line-clamp-2">{res.shortAddress || res.address}</p>
-                        <p className="text-xs text-gray-500 mt-1 line-clamp-1">{res.city}</p>
+                        <p className="font-semibold text-gray-900 text-sm line-clamp-2">
+                          {res.mainText || res.shortAddress || res.address}
+                        </p>
+                        {(res.secondaryText || res.city) && (
+                          <p className="text-xs text-gray-500 mt-1 line-clamp-1">
+                            {res.secondaryText || res.city}
+                          </p>
+                        )}
                       </div>
                     </button>
                   ))}
                 </div>
-              ) : searchQuery.trim() && !isSearching ? (
+              ) : searchQuery.trim().length >= 3 && !isSearching ? (
                 <div className="text-center py-6 text-gray-500 text-sm">
                   No locations found for "{searchQuery}"
                 </div>

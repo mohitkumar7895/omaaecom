@@ -131,16 +131,7 @@ export const autoDetectLocation = async (): Promise<ResolvedLocation | null> => 
     }
 
     const loc = await geocodeOnServer(coords || {});
-    const result = mapGeocodePayload(loc, coords || undefined);
-
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.setItem("user_location", JSON.stringify(result));
-        window.dispatchEvent(new Event("location_changed"));
-      } catch {}
-    }
-
-    return result;
+    return mapGeocodePayload(loc, coords || undefined);
   } catch (err) {
     console.error("Auto detect location failed:", err);
   }

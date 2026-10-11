@@ -69,7 +69,7 @@ function CheckoutContent() {
   const [addrResults, setAddrResults] = useState<{label:string}[]>([]);
 
   useEffect(() => {
-    if (!addrQuery.trim()) { setAddrResults([]); return; }
+    if (addrQuery.trim().length < 3) { setAddrResults([]); return; }
     const t = setTimeout(async () => {
       try {
         const res = await fetch(`/api/location/search?q=${encodeURIComponent(addrQuery)}`);

@@ -355,65 +355,76 @@ export async function googleReverseGeocode(
   return [bestOfPair, fromText, fromV4, fromAuto].sort((a, b) => exactness(b) - exactness(a))[0] || null;
 }
 
-async function searchViaPlacesNew(key: string, query: string): Promise<ResolvedAddress[]> {
+export type PlaceSuggestion = {
+  placeId: string;
+  mainText: string;
+  secondaryText: string;
+  text: string;
+};
+
+export async function googleAutocompleteSuggestions(
+  query: string,
+  sessionToken?: string
+): Promise<PlaceSuggestion[]> {
+  const key = googleMapsKey();
+  if (!key) return [];
+
   const auto = await googleFetch("https://places.googleapis.com/v1/places:autocomplete", {
     method: "POST",
-    headers: mapsHeaders(key, "suggestions.placePrediction.placeId,suggestions.placePrediction.text"),
+    headers: mapsHeaders(
+      key,
+      "suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat"
+    ),
     body: JSON.stringify({
       input: query,
       includedRegionCodes: ["IN"],
       languageCode: "en",
       regionCode: "IN",
+      ...(sessionToken ? { sessionToken } : {}),
     }),
   });
 
-  const predictions = (auto?.suggestions || [])
+  return (auto?.suggestions || [])
     .map((s: any) => s?.placePrediction)
     .filter((p: any) => p?.placeId)
-    .slice(0, 6);
-
-  if (!predictions.length) return [];
-
-  const detailed = await Promise.all(
-    predictions.map(async (pred: { placeId: string }) => {
-      const place = await googleFetch(
-        `https://places.googleapis.com/v1/places/${encodeURIComponent(pred.placeId)}?languageCode=en&regionCode=IN`,
-        {
-          headers: mapsHeaders(
-            key,
-            "id,formattedAddress,addressComponents,location,displayName"
-          ),
-        }
-      );
-      return place ? formatGoogleGeocodeResult(place) : null;
-    })
-  );
-
-  return detailed.filter(Boolean) as ResolvedAddress[];
+    .slice(0, 6)
+    .map((p: any) => {
+      const text = p.text?.text || p.text || "";
+      const mainText = p.structuredFormat?.mainText?.text || text.split(",")[0] || text;
+      const secondaryText =
+        p.structuredFormat?.secondaryText?.text ||
+        text
+          .split(",")
+          .slice(1)
+          .join(",")
+          .trim();
+      return {
+        placeId: p.placeId as string,
+        mainText,
+        secondaryText,
+        text: text || [mainText, secondaryText].filter(Boolean).join(", "),
+      };
+    });
 }
 
-async function searchViaGeocoding(key: string, query: string): Promise<ResolvedAddress[]> {
-  const geoUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(query)}&region=in&components=country:IN&language=en&key=${encodeURIComponent(key)}`;
-  const geoData = await googleFetch(geoUrl);
-  if (!geoData) return [];
-  if (geoData.status !== "OK" || !Array.isArray(geoData.results)) {
-    if (geoData.status && geoData.status !== "OK" && geoData.status !== "ZERO_RESULTS") {
-      console.warn("Google Geocoding search:", geoData.status, geoData.error_message || "");
-    }
-    return [];
-  }
-  return geoData.results
-    .slice(0, 8)
-    .map((item: any) => formatGoogleGeocodeResult(item))
-    .filter(Boolean) as ResolvedAddress[];
-}
-
-export async function googleSearchPlaces(query: string): Promise<ResolvedAddress[]> {
+export async function googlePlaceDetails(
+  placeId: string,
+  sessionToken?: string
+): Promise<ResolvedAddress | null> {
   const key = googleMapsKey();
-  if (!key) return [];
+  if (!key || !placeId) return null;
 
-  const fromNew = await searchViaPlacesNew(key, query);
-  if (fromNew.length) return fromNew;
+  const params = new URLSearchParams({ languageCode: "en", regionCode: "IN" });
+  if (sessionToken) params.set("sessionToken", sessionToken);
 
-  return searchViaGeocoding(key, query);
+  const place = await googleFetch(
+    `https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}?${params.toString()}`,
+    {
+      headers: mapsHeaders(
+        key,
+        "id,formattedAddress,addressComponents,location,displayName"
+      ),
+    }
+  );
+  return place ? formatGoogleGeocodeResult(place) : null;
 }
