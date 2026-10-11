@@ -256,7 +256,7 @@ export default function LocationSelector() {
     if (location?.address) return location.address;
     if (location) {
       const spoken = [location.mohalla, location.sector, location.city]
-        .filter(Boolean)
+        .filter((part): part is string => Boolean(part))
         .filter((v, i, a) => a.findIndex((x) => x.toLowerCase() === v.toLowerCase()) === i);
       if (spoken.length) return spoken.join(", ");
     }
