@@ -103,13 +103,13 @@ export default function Hero({ categories = [], banners = [], hideHeadline = fal
   return (
     <div className="relative bg-linear-to-br from-[#6277db] via-[#a268b8] to-[#db5285] text-white w-full font-sans overflow-hidden py-4 md:py-8 px-4 md:px-10 lg:px-12">
 
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 md:gap-6 items-start justify-between">
+      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-4 md:gap-6 items-start justify-between">
 
         {/* Left Side: Title & Services Card */}
-        <div className="w-full md:w-1/2 flex flex-col space-y-3 md:space-y-4 z-10">
+        <div className="w-full lg:w-1/2 flex flex-col space-y-3 md:space-y-4 z-10">
 
-          {/* Mobile Carousel (Mobile Only) */}
-          <div className="md:hidden">
+          {/* Mobile / tablet promotional banners */}
+          <div className="lg:hidden">
             <MobileBannerCarousel banners={banners} />
           </div>
 
@@ -280,7 +280,7 @@ export default function Hero({ categories = [], banners = [], hideHeadline = fal
         </div>
 
         {/* Right Side: Masonry Images Grid */}
-        <div className="w-full md:w-1/2 hidden md:flex items-stretch justify-center md:h-[550px]">
+        <div className="w-full lg:w-1/2 hidden lg:flex items-stretch justify-center lg:h-[550px]">
           <div className="flex gap-3 p-3 border-4 border-white/20 rounded-[28px] bg-white/10 shadow-xl backdrop-blur-sm w-full max-w-120 lg:max-w-130 h-full">
             {/* Left Tall Image */}
             <div className="w-1/2 h-full">

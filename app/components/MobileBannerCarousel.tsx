@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function MobileBannerCarousel({ banners = [] }: { banners?: string[] }) {
@@ -27,18 +26,18 @@ export default function MobileBannerCarousel({ banners = [] }: { banners?: strin
   };
 
   return (
-    <div className="relative w-full md:hidden rounded-2xl overflow-hidden shadow-lg mb-3 md:mb-6 group">
+    <div className="relative w-full lg:hidden rounded-2xl overflow-hidden shadow-lg mb-3 md:mb-6 group bg-white/15">
       <div 
-        className="flex transition-transform duration-500 ease-in-out h-[120px] sm:h-[180px]"
+        className="flex transition-transform duration-500 ease-in-out h-[140px] sm:h-[210px] md:h-[280px]"
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
       >
         {images.map((src, idx) => (
-          <div key={idx} className="w-full flex-shrink-0 relative bg-gray-50">
+          <div key={idx} className="w-full flex-shrink-0 relative flex items-center justify-center bg-black/10">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img 
               src={src}
               alt={`Banner ${idx + 1}`}
-              className="w-full h-full object-contain"
+              className="max-w-full max-h-full w-full h-full object-contain object-center"
             />
           </div>
         ))}
