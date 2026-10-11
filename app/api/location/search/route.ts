@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { SEO_LOCATIONS } from "@/lib/seo-locations";
 import { formatOsmPlace } from "@/lib/reverse-geocode";
+import { googleMapsKey, googleSearchPlaces } from "@/lib/google-maps";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -28,6 +29,18 @@ export async function GET(request: Request) {
     });
 
   try {
+    if (googleMapsKey()) {
+      const google = await googleSearchPlaces(query);
+      const mapped = google.map((formatted) => ({
+        display_name: formatted.shortAddress,
+        lat: formatted.latitude,
+        lon: formatted.longitude,
+        address: formatted,
+        ...formatted,
+      }));
+      return NextResponse.json({ success: true, results: [...local, ...mapped] });
+    }
+
     const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(query)}&addressdetails=1&limit=8&countrycodes=in`;
     const resp = await fetch(nominatimUrl, {
       headers: { "User-Agent": "OMAA-App/1.0 (+https://omaacompany.com)", Accept: "application/json" },

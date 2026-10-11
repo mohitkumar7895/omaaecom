@@ -18,7 +18,7 @@ const PIN = /^\d{6}$/;
 const STATE_OR_COUNTRY =
   /^(india|भारत|uttar pradesh|madhya pradesh|himachal pradesh|andhra pradesh|arunachal pradesh|west bengal|tamil nadu|karnataka|kerala|maharashtra|gujarat|rajasthan|bihar|jharkhand|odisha|punjab|haryana|assam|goa|delhi nct)$/i;
 const SKIP_PARENT =
-  /^(dadri|dadri tehsil|gautam buddha nagar|gautam buddh nagar|national capital region|ncr|tehsil)$/i;
+  /^(dadri|dadri tehsil|gautam buddha nagar|gautam buddh nagar|national capital region|ncr|tehsil|.+\sdivision)$/i;
 
 function clean(value: unknown): string {
   return String(value || "")
@@ -103,14 +103,24 @@ export function formatOsmPlace(
   if (!display && !Object.keys(address).length) return null;
 
   const houseNumber = clean(address.house_number);
-  const street = clean(address.road || address.pedestrian || address.street || address.path || address.lane);
+  const streetRaw = clean(address.road || address.pedestrian || address.street || address.path || address.lane);
+  const street = /^unnamed\b/i.test(streetRaw) ? "" : streetRaw;
   const blob = [display, ...Object.values(address)].join(" ");
   const sector = asSector(clean(address.suburb)) || asSector(clean(address.neighbourhood)) || asSector(blob);
   const block = asBlock(clean(address.block)) || asBlock(blob);
+  const building = clean(address.name);
   const area = pickArea(address, sector);
   const city = pickCity(address);
   const townLike = city || clean(address.village) || clean(address.town);
-  const spokenCore = uniq([block, street, sector, area, townLike && townLike !== area ? townLike : ""]);
+  const spokenCore = uniq([
+    houseNumber,
+    block,
+    building && building !== street && building !== townLike ? building : "",
+    street,
+    sector,
+    area,
+    townLike && townLike !== area ? townLike : "",
+  ]);
   const parent = pickParent(address, spokenCore);
   const spoken = uniq([...spokenCore, parent]);
 
@@ -171,6 +181,18 @@ export async function reverseGeocodeCoords(
   latitude: number,
   longitude: number
 ): Promise<ResolvedAddress | null> {
+  try {
+    const { googleReverseGeocode, googleMapsKey } = await import("@/lib/google-maps");
+    const google = await googleReverseGeocode(latitude, longitude);
+    if (google?.shortAddress) return google;
+    if (googleMapsKey()) {
+      console.warn("Google reverse geocode returned no address");
+      return null;
+    }
+  } catch (e) {
+    console.warn("Google reverse geocode failed:", e);
+  }
+
   const [zoom18, zoom16] = await Promise.allSettled([
     fetchOsm(latitude, longitude, 18),
     fetchOsm(latitude, longitude, 16),

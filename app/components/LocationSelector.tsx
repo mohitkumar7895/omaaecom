@@ -12,12 +12,15 @@ interface LocationData {
   longitude?: number;
   address: string;
   shortAddress?: string;
+  fullAddress?: string;
   city: string;
   state: string;
   country: string;
   postalCode: string;
   mohalla?: string;
   sector?: string;
+  houseNumber?: string;
+  street?: string;
 }
 
 const NON_CITY_ROUTES = new Set([
@@ -252,14 +255,20 @@ export default function LocationSelector() {
 
   // Determine what to show on the trigger button
   const getButtonText = () => {
-    if (location?.shortAddress) return location.shortAddress;
-    if (location?.address) return location.address;
     if (location) {
-      const spoken = [location.mohalla, location.sector, location.city]
+      const spoken = [
+        location.houseNumber,
+        location.street,
+        location.sector,
+        location.mohalla,
+        location.city,
+      ]
         .filter((part): part is string => Boolean(part))
         .filter((v, i, a) => a.findIndex((x) => x.toLowerCase() === v.toLowerCase()) === i);
-      if (spoken.length) return spoken.join(", ");
+      if (spoken.length >= 2) return spoken.join(", ");
     }
+    if (location?.shortAddress) return location.shortAddress;
+    if (location?.address) return location.address;
     if (isAutoDetecting) {
       return "Detecting location...";
     }
