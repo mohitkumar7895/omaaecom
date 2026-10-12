@@ -71,6 +71,7 @@ export async function POST(req: Request) {
     // Set HTTP-only Cookie
     const response = NextResponse.json({ 
       success: true, 
+      token,
       user: {
         ...user,
         referral_code: user.referral_code,

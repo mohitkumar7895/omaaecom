@@ -43,18 +43,35 @@ async function loadHomeCatalog(): Promise<HomeCatalog> {
   const mobileBanners: string[] = [];
 
   bannerRows.forEach((row: any) => {
-    if (row.banner1_url) {
-      if (row.type === "mobile") mobileBanners.push(`/api/media/banner/${row.id}/1`);
-      else desktopBanners.push(`/api/media/banner/${row.id}/1`);
+    if (row.banner1_url && String(row.banner1_url).trim()) {
+      const url = String(row.banner1_url).trim().startsWith("http") || String(row.banner1_url).trim().startsWith("/banners")
+        ? row.banner1_url.trim()
+        : `/api/media/banner/${row.id}/1`;
+      if (row.type === "mobile") mobileBanners.push(url);
+      else desktopBanners.push(url);
     }
-    if (row.banner2_url) {
-      if (row.type === "mobile") mobileBanners.push(`/api/media/banner/${row.id}/2`);
-      else desktopBanners.push(`/api/media/banner/${row.id}/2`);
+    if (row.banner2_url && String(row.banner2_url).trim()) {
+      const url = String(row.banner2_url).trim().startsWith("http") || String(row.banner2_url).trim().startsWith("/banners")
+        ? row.banner2_url.trim()
+        : `/api/media/banner/${row.id}/2`;
+      if (row.type === "mobile") mobileBanners.push(url);
+      else desktopBanners.push(url);
     }
-    if (row.banner3_url) {
-      if (row.type === "mobile") mobileBanners.push(`/api/media/banner/${row.id}/3`);
-      else desktopBanners.push(`/api/media/banner/${row.id}/3`);
+    if (row.banner3_url && String(row.banner3_url).trim()) {
+      const url = String(row.banner3_url).trim().startsWith("http") || String(row.banner3_url).trim().startsWith("/banners")
+        ? row.banner3_url.trim()
+        : `/api/media/banner/${row.id}/3`;
+      if (row.type === "mobile") mobileBanners.push(url);
+      else desktopBanners.push(url);
     }
+  });
+
+  // Always backfill with the known working static banners so banners never disappear on live
+  DESKTOP_BANNERS.forEach((b, i) => {
+    if (!desktopBanners[i]) desktopBanners[i] = b;
+  });
+  MOBILE_BANNERS.forEach((b, i) => {
+    if (!mobileBanners[i]) mobileBanners[i] = b;
   });
 
   const categories = catRows.map((cat: any) => {

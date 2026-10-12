@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useRef, useState, Suspense } from "react";
 import Navbar from "../components/Navbar";
 import { 
   CheckCircle2, 
@@ -33,6 +33,7 @@ import BookingSchedulePicker from "../components/BookingSchedulePicker";
 import CashbackFeatures from "../components/CashbackFeatures";
 import { getGstSettings } from "../actions/gst-settings";
 import LoginModal from "../components/LoginModal";
+import { getStoredUser, saveStoredUser, persistLogin, fetchCurrentUser, authFetch, isLoggedIn } from "@/lib/client-auth";
 
 function CheckoutContent() {
   const router = useRouter();
@@ -47,8 +48,9 @@ function CheckoutContent() {
   const [gstSettings, setGstSettings] = useState<any>(null);
   
   // Customer Auth State
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<any>(() => getStoredUser());
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const pendingCheckoutAfterLogin = useRef(false);
   
   // QR Payment Modal State
   const [showQrModal, setShowQrModal] = useState(false);
@@ -115,24 +117,32 @@ function CheckoutContent() {
     });
 
     // Check Customer Authentication
-    const checkAuth = async () => {
+    const stored = getStoredUser();
+    if (stored) {
+      setUser(stored);
+      setForm(prev => ({
+        ...prev,
+        email: prev.email || stored.email || '',
+        name: prev.name || stored.name || '',
+      }));
+    }
+
+    const checkAuth = async (e?: Event) => {
       try {
-        const res = await fetch("/api/auth/me");
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data.user);
-          if (data.user) {
-            setForm(prev => ({
-              ...prev,
-              email: prev.email || data.user.email || '',
-              name: prev.name || data.user.name || '',
-            }));
-          }
-        } else {
+        const fromEvent = (e as CustomEvent)?.detail?.user;
+        const freshUser = fromEvent || (await fetchCurrentUser()) || getStoredUser();
+        if (freshUser) {
+          setUser(freshUser);
+          setForm(prev => ({
+            ...prev,
+            email: prev.email || freshUser.email || '',
+            name: prev.name || freshUser.name || '',
+          }));
+        } else if (!getStoredUser()) {
           setUser(null);
         }
       } catch (e) {
-        setUser(null);
+        // Keep stored user on error
       }
     };
 
@@ -268,7 +278,9 @@ function CheckoutContent() {
     }
 
     // AUTHENTICATION CHECK: Customer MUST be logged in to book / make payment
-    if (!user) {
+    const currentUser = isLoggedIn() ? user || getStoredUser() : null;
+    if (!currentUser) {
+      pendingCheckoutAfterLogin.current = true;
       setIsLoginModalOpen(true);
       return;
     }
@@ -277,20 +289,21 @@ function CheckoutContent() {
     if (paymentMethod === 'online') {
       setShowQrModal(true);
     } else {
-      handleSubmit();
+      handleSubmit(currentUser);
     }
   };
 
   const handleSubmit = async (userOverride?: any) => {
-    const currentUser = userOverride || user;
+    const currentUser = userOverride || (isLoggedIn() ? user || getStoredUser() : null);
     if (!currentUser) {
+      pendingCheckoutAfterLogin.current = true;
       setIsLoginModalOpen(true);
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const res = await fetch('/api/bookings', {
+      const res = await authFetch('/api/bookings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -317,6 +330,7 @@ function CheckoutContent() {
       } else {
         const err = await res.json();
         if (res.status === 401) {
+          pendingCheckoutAfterLogin.current = true;
           setIsLoginModalOpen(true);
         } else {
           alert(err.error || 'Something went wrong. Please try again.');
@@ -335,59 +349,61 @@ function CheckoutContent() {
     const categoryHeader = uniqueCategories.length > 0 ? uniqueCategories.join(' & ') : 'Booked Services';
 
     return (
-      <div className="min-h-screen bg-white sm:bg-[#fafafa] pb-12 flex flex-col font-sans selection:bg-black selection:text-white">
+      <div className="min-h-screen bg-[#fafafa] pb-8 flex flex-col font-sans selection:bg-black selection:text-white">
         <Navbar />
-        <div className="flex-1 flex items-center justify-center mt-10 px-4">
-          <div className="bg-white sm:shadow-[0_20px_60px_rgba(0,0,0,0.04)] sm:border border-gray-100 rounded-[32px] w-full max-w-[560px] relative overflow-hidden z-10 p-8 sm:p-12">
+        <div className="flex-1 flex items-center justify-center my-6 px-3">
+          <div className="bg-white shadow-[0_10px_35px_rgba(0,0,0,0.06)] border border-gray-100 rounded-2xl sm:rounded-3xl w-full max-w-[440px] relative overflow-hidden z-10 p-4 sm:p-6">
             
             {/* Subtle Success Glow */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[250px] h-[250px] bg-green-400/10 rounded-full blur-[60px] pointer-events-none -z-10"></div>
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[180px] h-[180px] bg-green-400/10 rounded-full blur-[50px] pointer-events-none -z-10"></div>
 
-            <div className="text-center mb-8 sm:mb-10">
-              <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_40px_rgba(34,197,94,0.3)] ring-8 ring-green-50">
-                <CheckCircle2 className="w-10 h-10 text-white" strokeWidth={2.5} />
+            {/* Compact Header */}
+            <div className="text-center mb-4 sm:mb-5">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-2.5 shadow-[0_4px_16px_rgba(34,197,94,0.3)] ring-4 ring-green-50">
+                <CheckCircle2 className="w-6 h-6 sm:w-7 sm:h-7 text-white" strokeWidth={2.5} />
               </div>
-              <h2 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight mb-3">Booking Confirmed</h2>
-              <p className="text-gray-500 text-[15px] font-medium max-w-sm mx-auto">
+              <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight mb-1">Booking Confirmed</h2>
+              <p className="text-gray-500 text-xs sm:text-[13px] font-medium max-w-xs mx-auto leading-relaxed">
                 Your booking has been placed successfully. We've sent the details to your email and mobile.
               </p>
             </div>
 
-            <div className="bg-[#fafafa] rounded-2xl p-5 sm:p-6 mb-8 border border-gray-100/80 space-y-4">
+            {/* Compact Details Box */}
+            <div className="bg-[#f9fafb] rounded-xl p-3.5 sm:p-4 mb-4 border border-gray-100 space-y-3">
               {/* 1. Dynamic Category & Service Items Box */}
               {bookedItems.length > 0 && (
-                <div className="pb-4 border-b border-gray-200/60">
-                  <div className="flex items-center justify-between mb-2.5">
-                    <p className="text-gray-500 text-[12px] font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+                <div className="pb-3 border-b border-gray-200/70">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-[11px] font-extrabold uppercase tracking-wider flex items-center gap-1.5">
                       <span className="text-[#6b62d9] font-black">{categoryHeader}</span>
                     </p>
-                    <span className="text-[11px] font-bold text-gray-400">
+                    <span className="text-[10px] font-bold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
                       {bookedItems.reduce((acc, curr) => acc + (curr.quantity || 1), 0)} {bookedItems.reduce((acc, curr) => acc + (curr.quantity || 1), 0) === 1 ? 'Item' : 'Items'}
                     </span>
                   </div>
 
-                  <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                  <div className="space-y-1.5 max-h-[160px] overflow-y-auto pr-1 custom-scrollbar">
                     {bookedItems.map((item, idx) => {
                       const catName = item.category || item.category_name || (item.category_id === 6 ? 'New Product' : item.category_id === 7 ? 'RO AMC' : 'Service');
                       const qty = item.quantity || 1;
                       return (
-                        <div key={idx} className="flex items-center justify-between bg-white p-3 rounded-xl border border-gray-100 shadow-2xs">
-                          <div className="flex items-center gap-3 min-w-0">
+                        <div key={idx} className="flex items-center justify-between bg-white p-2 rounded-lg border border-gray-100 shadow-2xs">
+                          <div className="flex items-center gap-2.5 min-w-0">
                             {item.image_url ? (
-                              <img src={item.image_url} alt={item.title} className="w-11 h-11 rounded-lg object-cover bg-gray-50 shrink-0 border border-gray-100" />
+                              <img src={item.image_url} alt={item.title} className="w-8 h-8 rounded-md object-cover bg-gray-50 shrink-0 border border-gray-100" />
                             ) : (
-                              <div className="w-11 h-11 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 font-bold text-sm">🛠️</div>
+                              <div className="w-8 h-8 rounded-md bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 font-bold text-xs">🛠️</div>
                             )}
                             <div className="min-w-0">
-                              <p className="text-gray-900 font-bold text-[13.5px] truncate">{item.title}</p>
-                              <p className="text-gray-500 text-[11.5px] font-medium flex items-center gap-1.5 mt-0.5">
-                                <span className="text-[#6b62d9] font-bold bg-[#f4f3ff] px-2 py-0.5 rounded-md">{catName}</span>
+                              <p className="text-gray-900 font-bold text-xs truncate max-w-[190px] sm:max-w-[210px]">{item.title}</p>
+                              <p className="text-gray-500 text-[10.5px] font-medium flex items-center gap-1 mt-0.5">
+                                <span className="text-[#6b62d9] font-bold bg-[#f4f3ff] px-1.5 py-0.2 rounded">{catName}</span>
                                 <span>•</span>
                                 <span className="text-gray-600 font-semibold">{qty} {qty === 1 ? 'Item' : 'Items'}</span>
                               </p>
                             </div>
                           </div>
-                          <span className="text-gray-900 font-black text-[14px] shrink-0 ml-3">
+                          <span className="text-gray-900 font-black text-xs shrink-0 ml-2">
                             ₹{Number((item.selling_price || item.price || 0) * qty)}
                           </span>
                         </div>
@@ -399,25 +415,25 @@ function CheckoutContent() {
 
               {/* 2. Date & Time (if scheduled) */}
               {requiresSchedule && form.booking_date && (
-                <div className="grid grid-cols-2 gap-4 pb-4 border-b border-gray-200/60">
+                <div className="grid grid-cols-2 gap-3 pb-3 border-b border-gray-200/70">
                   <div>
-                    <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5"/> Date</p>
-                    <p className="text-gray-900 font-bold text-[13.5px]">{new Date(form.booking_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                    <p className="text-gray-400 text-[10px] font-bold uppercase tracking-wider mb-0.5 flex items-center gap-1"><Calendar className="w-3 h-3"/> Date</p>
+                    <p className="text-gray-900 font-bold text-xs">{new Date(form.booking_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                   </div>
                   <div>
-                    <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5"><Clock className="w-3.5 h-3.5"/> Time</p>
-                    <p className="text-gray-900 font-bold text-[13.5px]">{form.time_slot}</p>
+                    <p className="text-gray-400 text-[10px] font-bold uppercase tracking-wider mb-0.5 flex items-center gap-1"><Clock className="w-3 h-3"/> Time</p>
+                    <p className="text-gray-900 font-bold text-xs">{form.time_slot}</p>
                   </div>
                 </div>
               )}
 
               {/* 3. Payment Method */}
-              <div className="pb-4 border-b border-gray-200/60">
-                <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1.5"><IndianRupee className="w-3.5 h-3.5"/> Payment Method</p>
-                <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-[12px] font-bold rounded-lg border ${paymentMethod === 'online' ? 'bg-indigo-50 text-[#6b62d9] border-indigo-200' : 'bg-gray-100 text-gray-800 border-gray-200'}`}>
+              <div className="pb-3 border-b border-gray-200/70">
+                <p className="text-gray-400 text-[10px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1"><IndianRupee className="w-3 h-3"/> Payment Method</p>
+                <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[11px] font-bold rounded-md border ${paymentMethod === 'online' ? 'bg-indigo-50 text-[#6b62d9] border-indigo-200' : 'bg-gray-100 text-gray-800 border-gray-200'}`}>
                   {paymentMethod === 'online' ? (
                     <>
-                      <QrCode className="w-3.5 h-3.5" />
+                      <QrCode className="w-3 h-3" />
                       <span>Online Paid (UPI / QR)</span>
                     </>
                   ) : (
@@ -427,32 +443,31 @@ function CheckoutContent() {
               </div>
 
               {/* 4. Order ID & Total Amount */}
-              <div className="flex justify-between items-center pb-4 border-b border-gray-200/60">
+              <div className="flex justify-between items-center pb-3 border-b border-gray-200/70">
                 <div>
-                  <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1">Order ID</p>
-                  <p className="text-gray-900 font-extrabold text-base tracking-tight">{orderId}</p>
+                  <p className="text-gray-400 text-[10px] font-bold uppercase tracking-wider mb-0.5">Order ID</p>
+                  <p className="text-gray-900 font-extrabold text-xs sm:text-sm tracking-tight">{orderId}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1">Total Amount</p>
-                  <p className="text-gray-900 font-black text-xl">₹{Number(totalAmount)}</p>
+                  <p className="text-gray-400 text-[10px] font-bold uppercase tracking-wider mb-0.5">Total Amount</p>
+                  <p className="text-gray-900 font-black text-sm sm:text-base">₹{Number(totalAmount)}</p>
                 </div>
               </div>
 
               {/* 5. Address */}
               <div>
-                <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5"/> Address</p>
-                <p className="text-gray-800 font-semibold text-[13px] leading-relaxed">{form.address}</p>
+                <p className="text-gray-400 text-[10px] font-bold uppercase tracking-wider mb-0.5 flex items-center gap-1"><MapPin className="w-3 h-3"/> Address</p>
+                <p className="text-gray-800 font-semibold text-xs leading-snug">{form.address}</p>
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3">
-              <button 
-                onClick={() => router.push('/')}
-                className="flex-1 bg-white border-2 border-gray-200 hover:border-black hover:bg-gray-50 text-gray-900 font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 text-[15px] cursor-pointer"
-              >
-                <Home className="w-4 h-4" /> Go Home
-              </button>
-            </div>
+            {/* Compact Action */}
+            <button 
+              onClick={() => router.push('/')}
+              className="w-full bg-white border border-gray-300 hover:border-black hover:bg-gray-50 text-gray-900 font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 text-xs sm:text-[13px] cursor-pointer shadow-xs"
+            >
+              <Home className="w-3.5 h-3.5" /> Go Home
+            </button>
           </div>
         </div>
       </div>
@@ -477,7 +492,7 @@ function CheckoutContent() {
             <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 p-6 sm:p-8 md:p-10 relative">
 
               {/* Customer Authentication Status Card */}
-              {user ? (
+              {user && isLoggedIn() ? (
                 <div className="mb-8 p-4 sm:p-5 rounded-2xl bg-emerald-50/80 border border-emerald-200/80 flex items-center justify-between gap-4 animate-in fade-in">
                   <div className="flex items-center gap-3.5">
                     <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
@@ -513,7 +528,10 @@ function CheckoutContent() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => setIsLoginModalOpen(true)}
+                    onClick={() => {
+                      pendingCheckoutAfterLogin.current = false;
+                      setIsLoginModalOpen(true);
+                    }}
                     className="shrink-0 bg-[#6b62d9] hover:bg-[#5b52c9] text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-xs cursor-pointer active:scale-95 flex items-center gap-1.5"
                   >
                     <LogIn className="w-3.5 h-3.5" />
@@ -998,19 +1016,25 @@ function CheckoutContent() {
         isOpen={isLoginModalOpen} 
         onClose={() => setIsLoginModalOpen(false)}
         onLoginSuccess={(loggedInUser) => {
-          setUser(loggedInUser);
+          if (loggedInUser) {
+            persistLogin(loggedInUser);
+            setUser(loggedInUser);
+          }
           setIsLoginModalOpen(false);
           setForm(prev => ({
             ...prev,
-            email: prev.email || loggedInUser.email || '',
-            name: prev.name || loggedInUser.name || prev.name,
+            email: prev.email || loggedInUser?.email || '',
+            name: prev.name || loggedInUser?.name || prev.name,
           }));
-          if (paymentMethod === 'online') {
-            setShowQrModal(true);
-          } else {
-            setTimeout(() => {
-              handleSubmit(loggedInUser);
-            }, 300);
+          if (pendingCheckoutAfterLogin.current) {
+            pendingCheckoutAfterLogin.current = false;
+            if (paymentMethod === 'online') {
+              setShowQrModal(true);
+            } else {
+              setTimeout(() => {
+                handleSubmit(loggedInUser);
+              }, 300);
+            }
           }
         }}
       />

@@ -37,9 +37,10 @@ interface WalletHistoryItem {
   date: string | Date;
 }
 
-async function getUserEmail(): Promise<string | null> {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("omaa_auth_token")?.value;
+import { getAuthToken } from "../../../lib/auth";
+
+async function getUserEmail(req?: Request): Promise<string | null> {
+  const token = await getAuthToken(req);
   if (!token) return null;
   
   try {
@@ -50,9 +51,9 @@ async function getUserEmail(): Promise<string | null> {
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const userEmail = await getUserEmail();
+    const userEmail = await getUserEmail(req);
     if (!userEmail) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

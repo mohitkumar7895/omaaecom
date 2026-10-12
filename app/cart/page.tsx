@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getGstSettings } from "../actions/gst-settings";
 import LoginModal from "../components/LoginModal";
+import { getStoredUser, saveStoredUser, fetchCurrentUser, isLoggedIn } from "@/lib/client-auth";
 
 export default function CartPage() {
   const router = useRouter();
@@ -33,17 +34,21 @@ export default function CartPage() {
       }
     });
 
-    const checkAuth = async () => {
+    if (isLoggedIn()) {
+      setUser(getStoredUser());
+    }
+
+    const checkAuth = async (e?: Event) => {
       try {
-        const res = await fetch("/api/auth/me");
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data.user);
-        } else {
+        const fromEvent = (e as CustomEvent)?.detail?.user;
+        const freshUser = fromEvent || (await fetchCurrentUser()) || getStoredUser();
+        if (freshUser && (fromEvent || isLoggedIn())) {
+          setUser(freshUser);
+        } else if (!isLoggedIn()) {
           setUser(null);
         }
       } catch (e) {
-        setUser(null);
+        // Keep stored user on error
       }
     };
 
@@ -76,7 +81,7 @@ export default function CartPage() {
   };
 
   const handleProceedToCheckout = () => {
-    if (!user) {
+    if (!user || !isLoggedIn()) {
       setIsLoginModalOpen(true);
       return;
     }
@@ -255,8 +260,8 @@ export default function CartPage() {
                 onClick={handleProceedToCheckout}
                 className="w-full bg-[#6b62d9] hover:bg-[#5b52c9] active:scale-[0.99] text-white font-bold py-3.5 rounded-xl transition shadow-md flex justify-center items-center gap-2 cursor-pointer"
               >
-                {!user && <Lock className="w-4 h-4 opacity-75" />}
-                <span>{user ? "Proceed to Checkout" : "Login & Proceed to Checkout"}</span>
+                {!(user && isLoggedIn()) && <Lock className="w-4 h-4 opacity-75" />}
+                <span>{user && isLoggedIn() ? "Proceed to Checkout" : "Login to Checkout"}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -270,6 +275,7 @@ export default function CartPage() {
         isOpen={isLoginModalOpen} 
         onClose={() => setIsLoginModalOpen(false)}
         onLoginSuccess={(loggedInUser) => {
+          saveStoredUser(loggedInUser);
           setUser(loggedInUser);
           setIsLoginModalOpen(false);
           router.push('/checkout');

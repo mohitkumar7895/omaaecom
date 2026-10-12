@@ -4,34 +4,39 @@ import Navbar from "../components/Navbar";
 import { Package, ShoppingBag, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { getStoredUser, fetchCurrentUser, authFetch } from "@/lib/client-auth";
 
 export default function ProductHistoryPage() {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<any>(() => getStoredUser());
 
   useEffect(() => {
+    const stored = getStoredUser();
+    if (stored) {
+      setUser(stored);
+    }
+
     const fetchProducts = async () => {
       try {
-        const res = await fetch("/api/auth/me");
-        if (res.ok) {
-          const { user } = await res.json();
-          setUser(user);
+        const currentUser = await fetchCurrentUser();
+        if (currentUser) {
+          setUser(currentUser);
           
-          if (user) {
-            const bRes = await fetch("/api/bookings/my-bookings");
-            if (bRes.ok) {
-              const { bookings } = await bRes.json();
-              // Filter bookings to find Product orders (assuming Product is in the name or category)
-              const prods = (bookings || []).filter((b: any) => 
-                b.services?.some((s: any) => s.name.toLowerCase().includes('ro') || s.name.toLowerCase().includes('product') || s.category?.toLowerCase() === 'product')
-              );
-              setProducts(prods);
-            }
+          const bRes = await authFetch("/api/bookings/my-bookings");
+          if (bRes.ok) {
+            const { bookings } = await bRes.json();
+            // Filter bookings to find Product orders (assuming Product is in the name or category)
+            const prods = (bookings || []).filter((b: any) => 
+              b.services?.some((s: any) => s.name?.toLowerCase().includes('ro') || s.name?.toLowerCase().includes('product') || s.category?.toLowerCase() === 'product')
+            );
+            setProducts(prods);
           }
+        } else if (!getStoredUser()) {
+          setUser(null);
         }
       } catch (err) {
-        console.error("Failed to load Product History");
+        console.error("Failed to load Product History", err);
       } finally {
         setLoading(false);
       }

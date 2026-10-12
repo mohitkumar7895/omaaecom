@@ -19,6 +19,7 @@ import {
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import CashbackFeatures from "../components/CashbackFeatures";
+import { getStoredUser, fetchCurrentUser, authFetch } from "@/lib/client-auth";
 
 interface BookingService {
   title?: string;
@@ -77,32 +78,35 @@ export const isAmcBooking = (booking: any) => {
 export default function MyBookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<{ email?: string; name?: string } | null>(null);
+  const [user, setUser] = useState<{ email?: string; name?: string } | null>(() => getStoredUser());
   const [loadError, setLoadError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"Upcoming" | "Completed" | "Cancelled">("Upcoming");
   const [expandedOrders, setExpandedOrders] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
+    const stored = getStoredUser();
+    if (stored) {
+      setUser(stored);
+    }
+
     const fetchBookings = async () => {
       try {
-        const res = await fetch("/api/auth/me");
-        if (res.ok) {
-          const { user } = await res.json();
-          setUser(user);
+        const currentUser = await fetchCurrentUser();
+        if (currentUser) {
+          setUser(currentUser);
           
-          if (user) {
-            const bRes = await fetch("/api/bookings/my-bookings");
-            if (!bRes.ok) throw new Error("Unable to load your bookings");
-            const { bookings: rawBookings } = await bRes.json() as { bookings?: Booking[] };
-            const regularBookings = (rawBookings || []).filter(b => !isAmcBooking(b));
-            setBookings(regularBookings);
-            
-            // Expand first booking by default
-            if (regularBookings && regularBookings.length > 0) {
-              setExpandedOrders({ [regularBookings[0].order_id]: true });
-            }
+          const bRes = await authFetch("/api/bookings/my-bookings");
+          if (!bRes.ok) throw new Error("Unable to load your bookings");
+          const { bookings: rawBookings } = await bRes.json() as { bookings?: Booking[] };
+          const regularBookings = (rawBookings || []).filter(b => !isAmcBooking(b));
+          setBookings(regularBookings);
+          
+          // Expand first booking by default
+          if (regularBookings && regularBookings.length > 0) {
+            setExpandedOrders({ [regularBookings[0].order_id]: true });
           }
-        } else {
+        } else if (!getStoredUser()) {
+          setUser(null);
           setLoadError("Unable to load your account");
         }
       } catch (error) {

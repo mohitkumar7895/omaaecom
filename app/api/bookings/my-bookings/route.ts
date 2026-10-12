@@ -15,10 +15,11 @@ interface BookingRow {
   services?: string;
 }
 
-export async function GET() {
+import { getAuthToken } from "../../../../lib/auth";
+
+export async function GET(req: Request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("omaa_auth_token")?.value;
+    const token = await getAuthToken(req);
     
     if (!token) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

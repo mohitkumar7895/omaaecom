@@ -122,8 +122,9 @@ export default function Hero({ categories = [], banners = [], hideHeadline = fal
           {/* Mobile Search Bar */}
           <LiveSearchBar className="md:hidden" />
 
-          {/* Services Box (Urban Company Style) */}
-          <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-2xl text-gray-800 flex flex-col space-y-5">
+          {/* Services Box (Urban Company Style) — 3-color gradient border */}
+          <div className="rounded-3xl p-[3px] shadow-2xl bg-linear-to-r from-[#4f6fff] via-[#a855f7] to-[#f43f8c]">
+          <div className="bg-white rounded-[21px] p-5 sm:p-6 text-gray-800 flex flex-col space-y-5">
 
             {/* Top Section: Home Services */}
             <div>
@@ -275,6 +276,7 @@ export default function Hero({ categories = [], banners = [], hideHeadline = fal
               </div>
             )}
 
+          </div>
           </div>
 
         </div>

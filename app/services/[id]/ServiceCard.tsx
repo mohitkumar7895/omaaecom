@@ -59,7 +59,7 @@ export default function ServiceCard({ service, quantity = 0, onAdd, onRemove, on
 
         {/* Right side: Image and Add button (Shifted nicely to the right) */}
         <div className={`relative flex-shrink-0 self-start pb-3.5 -mr-0.5 sm:mr-0 ${premiumFit ? "w-[132px] sm:w-[172px]" : "w-[116px] sm:w-[150px]"}`}>
-          <div className={`w-full aspect-[4/5] rounded-2xl overflow-hidden border border-gray-100 shadow-sm relative ${
+          <div className={`w-full aspect-[4/5] rounded-2xl overflow-hidden border-2 border-gray-100 hover:border-gray-900 transition-colors duration-300 shadow-sm relative ${
             premiumFit ? "" : "bg-gray-50"
           }`}>
             {service.image_url ? (

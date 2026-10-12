@@ -6,8 +6,12 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 export default function MobileBannerCarousel({ banners = [] }: { banners?: string[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   
-  // Use DB banners if available, fallback to static if empty
-  const images = banners.length > 0 ? banners : ["/Hero1.webp", "/Hero 2.webp", "/Hero3.webp"];
+  const fallbackList = [
+    "/banners/Mobile-Banner1-AC-3D.jpg", 
+    "/banners/Mobile-Banner3-Premium-Package-3D.jpg", 
+    "/banners/Banner2-RO-Service.jpg"
+  ];
+  const images = banners.length > 0 ? banners : fallbackList;
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -38,6 +42,13 @@ export default function MobileBannerCarousel({ banners = [] }: { banners?: strin
               src={src}
               alt={`Banner ${idx + 1}`}
               className="max-w-full max-h-full w-full h-full object-contain object-center"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                const fb = fallbackList[idx % fallbackList.length];
+                if (!target.src.includes(fb)) {
+                  target.src = fb;
+                }
+              }}
             />
           </div>
         ))}

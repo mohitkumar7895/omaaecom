@@ -3,12 +3,13 @@ import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 import pool from "../../../../lib/db";
 
+import { getAuthToken } from "../../../../lib/auth";
+
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_for_development_only";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("omaa_auth_token")?.value;
+    const token = await getAuthToken(req);
 
     if (!token) {
       return NextResponse.json({ user: null }, { status: 200 });

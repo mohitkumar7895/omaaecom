@@ -8,12 +8,14 @@ import { useRouter } from "next/navigation";
 import { Mail, KeyRound } from "lucide-react";
 
 
+import { getStoredUser, saveStoredUser, clearStoredUser, fetchCurrentUser } from "@/lib/client-auth";
+
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<any>(() => getStoredUser());
 
   const [step, setStep] = useState<"email" | "otp">("email");
   const [email, setEmail] = useState("");
@@ -21,15 +23,19 @@ export default function LoginPage() {
   const [resendTimer, setResendTimer] = useState(0);
 
   useEffect(() => {
+    const cached = getStoredUser();
+    if (cached) {
+      setUser(cached);
+      router.push("/");
+      return;
+    }
+
     const checkAuth = async () => {
-      try {
-        const res = await fetch("/api/auth/me");
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data.user);
-          if (data.user) router.push("/");
-        }
-      } catch (e) {
+      const freshUser = await fetchCurrentUser();
+      if (freshUser) {
+        setUser(freshUser);
+        router.push("/");
+      } else {
         setUser(null);
       }
     };
@@ -98,6 +104,11 @@ export default function LoginPage() {
 
       if (!res.ok) throw new Error(data.error || "Invalid OTP");
 
+      if (data.user) {
+        saveStoredUser(data.user, data.token);
+        setUser(data.user);
+      }
+
       window.dispatchEvent(new Event("auth_changed"));
       router.push("/");
     } catch (err: any) {
@@ -109,9 +120,12 @@ export default function LoginPage() {
 
 
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    window.dispatchEvent(new Event("auth_changed"));
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {}
+    clearStoredUser();
     setUser(null);
+    window.dispatchEvent(new Event("auth_changed"));
   };
 
   return (

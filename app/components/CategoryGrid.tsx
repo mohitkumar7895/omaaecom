@@ -70,10 +70,10 @@ export default function CategoryGrid({ title, services }: CategoryGridProps) {
               key={`${service.id}-${index}`} 
               aria-hidden={isClone ? true : undefined}
               tabIndex={isClone ? -1 : undefined}
-              className="flex-none w-[140px] sm:w-[170px] md:w-[190px] snap-start bg-white rounded-2xl border border-gray-200/80 shadow-xs transition-all duration-300 overflow-hidden cursor-pointer flex flex-col group/card hover:border-[#6b62d9]/50 hover:shadow-lg"
+              className="flex-none w-[140px] sm:w-[170px] md:w-[190px] snap-start bg-white rounded-2xl border-2 border-gray-100 hover:border-gray-900 shadow-xs transition-all duration-300 overflow-hidden cursor-pointer flex flex-col group/card hover:shadow-lg"
             >
-              {/* Image Area - Prominent and Spacious */}
-              <div className={`relative w-full shrink-0 overflow-hidden ${
+              {/* Image Area - Prominent and Spacious with bottom border line appearing on hover */}
+              <div className={`relative w-full shrink-0 overflow-hidden border-b-2 border-gray-100 group-hover/card:border-gray-900 transition-colors duration-300 ${
                 amcImages
                   ? "h-40 sm:h-48 md:h-52 bg-black/5"
                   : "h-32 sm:h-40 md:h-44 bg-[#f8f9fb] flex items-center justify-center p-3"

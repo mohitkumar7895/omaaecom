@@ -4,31 +4,33 @@ import Navbar from "../components/Navbar";
 import { Wallet, TrendingUp, IndianRupee, ArrowDownRight, ArrowUpRight, History, ShieldCheck, Plus } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { getStoredUser, fetchCurrentUser, authFetch } from "@/lib/client-auth";
 
 export default function WalletPage() {
   const [balance, setBalance] = useState<number>(0);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<any>(() => getStoredUser());
 
   const fetchWallet = async () => {
     try {
-      const res = await fetch("/api/auth/me");
-      if (res.ok) {
-        const { user } = await res.json();
-        setUser(user);
-        
-        if (user) {
-          const wRes = await fetch("/api/wallet");
-          if (wRes.ok) {
-            const data = await wRes.json();
-            setBalance(data.balance || 0);
-            setTransactions(data.transactions || []);
-          }
+      const stored = getStoredUser();
+      if (stored) setUser(stored);
+
+      const currentUser = await fetchCurrentUser();
+      if (currentUser) {
+        setUser(currentUser);
+        const wRes = await authFetch("/api/wallet");
+        if (wRes.ok) {
+          const data = await wRes.json();
+          setBalance(data.balance || 0);
+          setTransactions(data.transactions || []);
         }
+      } else if (!getStoredUser()) {
+        setUser(null);
       }
     } catch (err) {
-      console.error("Failed to load wallet");
+      console.error("Failed to load wallet", err);
     } finally {
       setLoading(false);
     }

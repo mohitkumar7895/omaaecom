@@ -116,20 +116,44 @@ export async function sendBookingEmail(booking: {
 }) {
   const adminEmail = await getAdminNotificationEmail();
 
-  const servicesHtml = Array.isArray(booking.services)
-    ? booking.services
-      .filter((s: any) => {
+  const bookingTotal = Math.round(Number(booking.total) || 0);
+
+  const lineAmount = (s: any) => {
+    const unit = Number(s.selling_price ?? s.price ?? s.final_price ?? s.amount ?? 0);
+    const qty = Math.max(1, Number(s.quantity) || 1);
+    const line = Math.round(unit * qty);
+    return Number.isFinite(line) ? line : 0;
+  };
+
+  const visibleServices = Array.isArray(booking.services)
+    ? booking.services.filter((s: any) => {
         const title = (s.title || s.name || "").toLowerCase();
         return !title.includes("power issue") && !title.includes("check-up") && !title.includes("checkup");
       })
-      .map(
-        (s: any) =>
-          `<tr>
+    : [];
+
+  const pricedServices = visibleServices.map((s: any) => ({
+    ...s,
+    displayAmount: lineAmount(s),
+  }));
+
+  const pricedSum = pricedServices.reduce((sum: number, s: any) => sum + s.displayAmount, 0);
+  if (bookingTotal > 0 && pricedSum === 0 && pricedServices.length === 1) {
+    pricedServices[0].displayAmount = bookingTotal;
+  } else if (bookingTotal > 0 && pricedSum === 0 && pricedServices.length > 1) {
+    pricedServices[0].displayAmount = bookingTotal;
+  }
+
+  const servicesHtml = pricedServices.length
+    ? pricedServices
+        .map(
+          (s: any) =>
+            `<tr>
               <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; font-size: 14px; color: #1f2937;">${s.title || s.name || "Service Item"}</td>
-              <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; font-size: 14px; text-align: right; font-weight: bold; color: #111827;">₹${s.price || s.final_price || 0}</td>
+              <td style="padding: 8px 12px; border-bottom: 1px solid #e5e7eb; font-size: 14px; text-align: right; font-weight: bold; color: #111827;">₹${s.displayAmount}</td>
             </tr>`
-      )
-      .join("")
+        )
+        .join("")
     : `<tr><td colspan="2" style="padding: 8px 12px; font-size: 14px;">${booking.category}</td></tr>`;
 
   const emailHtml = `
@@ -177,7 +201,7 @@ export async function sendBookingEmail(booking: {
           ${servicesHtml}
           <tr>
             <td style="padding: 12px; font-size: 15px; font-weight: 800; color: #1e293b; border-top: 2px solid #e2e8f0;">Total Amount:</td>
-            <td style="padding: 12px; font-size: 18px; font-weight: 900; color: #059669; text-align: right; border-top: 2px solid #e2e8f0;">₹${booking.total}</td>
+            <td style="padding: 12px; font-size: 18px; font-weight: 900; color: #059669; text-align: right; border-top: 2px solid #e2e8f0;">₹${bookingTotal}</td>
           </tr>
         </table>
       </div>

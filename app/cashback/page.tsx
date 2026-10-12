@@ -5,6 +5,7 @@ import { Clock, RefreshCw, Banknote, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { getStoredUser, fetchCurrentUser, authFetch } from "@/lib/client-auth";
 
 export default function CashbackPage() {
   const router = useRouter();
@@ -13,23 +14,26 @@ export default function CashbackPage() {
   const [history, setHistory] = useState<{ id: number; date: string; details: string; amount: string; status: string }[]>([]);
   const [isClaiming, setIsClaiming] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<any>(() => getStoredUser());
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
+    const stored = getStoredUser();
+    if (stored) {
+      setUser(stored);
+    }
+
     const fetchAuthAndData = async () => {
       try {
-        const authRes = await fetch("/api/auth/me");
-        if (authRes.ok) {
-          const authData = await authRes.json();
-          setUser(authData.user);
+        const currentUser = await fetchCurrentUser();
+        if (currentUser) {
+          setUser(currentUser);
           
-          if (authData.user) {
-            const res = await fetch("/api/cashback");
-            if (res.ok) {
-              const data = await res.json();
-              setBalance(Number(data.balance) || 0);
-              setTimeLeft(data.timeLeft || 0);
+          const res = await authFetch("/api/cashback");
+          if (res.ok) {
+            const data = await res.json();
+            setBalance(Number(data.balance) || 0);
+            setTimeLeft(data.timeLeft || 0);
               
               // Format history
               const formattedHistory = (data.history || []).map((h: any) => ({
@@ -44,11 +48,12 @@ export default function CashbackPage() {
                 status: h.status
               }));
               setHistory(formattedHistory);
-            }
           }
+        } else if (!getStoredUser()) {
+          setUser(null);
         }
       } catch (err) {
-        console.error("Failed to load data");
+        console.error("Failed to load data", err);
       } finally {
         setLoading(false);
       }

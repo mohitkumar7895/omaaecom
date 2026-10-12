@@ -115,6 +115,12 @@ export default function HomeCategoryStream({
               src={banner1}
               alt="Promotion Banner 1"
               className="w-full h-auto object-contain max-h-[260px] md:max-h-[320px] lg:max-h-[480px]"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                if (!target.src.includes("/banners/Banner2-RO-Service.jpg")) {
+                  target.src = "/banners/Banner2-RO-Service.jpg";
+                }
+              }}
             />
           </div>
         </div>
@@ -139,6 +145,12 @@ export default function HomeCategoryStream({
               src={banner2}
               alt="Promotion Banner 2"
               className="w-full h-auto object-contain max-h-[260px] md:max-h-[320px] lg:max-h-[480px]"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                if (!target.src.includes("/banners/Banner3-Home-Services-Doorstep.jpg")) {
+                  target.src = "/banners/Banner3-Home-Services-Doorstep.jpg";
+                }
+              }}
             />
           </div>
         </div>
@@ -163,6 +175,12 @@ export default function HomeCategoryStream({
               src={banner3}
               alt="Promotion Banner 3"
               className="w-full h-auto object-contain max-h-[260px] md:max-h-[320px] lg:max-h-[480px]"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                if (!target.src.includes("/banners/Banner3-Premium-Package.jpg")) {
+                  target.src = "/banners/Banner3-Premium-Package.jpg";
+                }
+              }}
             />
           </div>
         </div>
@@ -185,6 +203,12 @@ export default function HomeCategoryStream({
                   src={remainingBanners[idx]}
                   alt="Promotion Banner"
                   className="w-full h-auto object-contain max-h-[260px] md:max-h-[320px] lg:max-h-[480px]"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    if (!target.src.includes("/banners/Banner2-RO-Service.jpg")) {
+                      target.src = "/banners/Banner2-RO-Service.jpg";
+                    }
+                  }}
                 />
               </div>
             </div>

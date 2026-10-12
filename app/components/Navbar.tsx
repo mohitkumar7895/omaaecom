@@ -9,6 +9,7 @@ import LoginModal from "./LoginModal";
 import { useEffect, useState, useRef } from "react";
 import { getActiveCategories } from "../actions/categories";
 import ProfileDropdown from "./ProfileDropdown";
+import { getStoredUser, fetchCurrentUser, clearStoredUser, isLoggedIn } from "@/lib/client-auth";
 
 export default function Navbar() {
   const [categories, setCategories] = useState<any[]>([]);
@@ -63,33 +64,35 @@ export default function Navbar() {
     window.addEventListener("cart_updated", updateCartCount);
     window.addEventListener("storage", updateCartCount);
 
-    try {
-      const cachedUser = sessionStorage.getItem("omaa_user_cache");
-      if (cachedUser) {
-        const parsed = JSON.parse(cachedUser);
-        if (parsed?.at && Date.now() - parsed.at < 60000) {
-          setUser(parsed.user);
-        }
-      }
-    } catch {}
+    // Instant user load from persistent storage
+    const stored = getStoredUser();
+    if (stored) {
+      setUser(stored);
+    }
 
-    const checkAuth = async () => {
-      try {
-        const res = await fetch("/api/auth/me");
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data.user);
-          try {
-            sessionStorage.setItem("omaa_user_cache", JSON.stringify({ user: data.user, at: Date.now() }));
-          } catch {}
-          if (data.user) {
-            setIsLoginModalOpen(false);
-          }
-        } else {
-          setUser(null);
-        }
-      } catch (error) {
+    const applyUser = (next: any) => {
+      if (next) {
+        setUser(next);
+        setIsLoginModalOpen(false);
+      } else if (!getStoredUser()) {
         setUser(null);
+      }
+    };
+
+    const checkAuth = async (e?: Event) => {
+      const fromEvent = (e as CustomEvent)?.detail?.user;
+      if (fromEvent) {
+        applyUser(fromEvent);
+        setIsProfileDropdownOpen(true);
+        return;
+      }
+      const stored = getStoredUser();
+      if (stored) applyUser(stored);
+      try {
+        const freshUser = await fetchCurrentUser();
+        applyUser(freshUser || stored || getStoredUser());
+      } catch (error) {
+        // Retain stored user on transient network failure
       }
     };
 
@@ -183,11 +186,15 @@ export default function Navbar() {
           <div className="relative order-4" ref={profileRef}>
             <button 
               onClick={() => {
-                if (user) {
-                  setIsProfileDropdownOpen(!isProfileDropdownOpen);
-                } else {
-                  setIsLoginModalOpen(true);
+                const stored = getStoredUser();
+                if (stored?.email || isLoggedIn()) {
+                  setUser(stored);
+                  setIsLoginModalOpen(false);
+                  setIsProfileDropdownOpen((open) => !open);
+                  return;
                 }
+                setIsProfileDropdownOpen(false);
+                setIsLoginModalOpen(true);
               }}
               className={`p-1.5 lg:p-2.5 rounded-[8px] lg:rounded-[10px] transition shadow-sm flex items-center justify-center ${
                 user ? 'bg-[#5c67b8] text-white hover:bg-[#4a55a2]' : 'bg-[#6069c9] text-white hover:bg-[#525ab5]'
@@ -200,14 +207,28 @@ export default function Navbar() {
               isOpen={isProfileDropdownOpen} 
               onClose={() => setIsProfileDropdownOpen(false)}
               onLogout={async () => {
-                await fetch("/api/auth/logout", { method: "POST" });
+                try {
+                  await fetch("/api/auth/logout", { method: "POST" });
+                } catch {}
+                clearStoredUser();
+                setUser(null);
                 window.dispatchEvent(new Event("auth_changed"));
                 setIsProfileDropdownOpen(false);
               }} 
             />
           </div>
 
-          <LoginModal isOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
+          <LoginModal
+            isOpen={isLoginModalOpen}
+            onClose={() => setIsLoginModalOpen(false)}
+            onLoginSuccess={(loggedInUser) => {
+              if (loggedInUser) {
+                setUser(loggedInUser);
+                setIsLoginModalOpen(false);
+                setIsProfileDropdownOpen(true);
+              }
+            }}
+          />
         </div>
       </div>
     </nav>

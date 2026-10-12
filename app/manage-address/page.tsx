@@ -3,10 +3,11 @@
 import Navbar from "../components/Navbar";
 import { MapPin, CheckCircle2, User, Mail, Phone, Home, Building, Map, Navigation } from "lucide-react";
 import { useEffect, useState } from "react";
+import { getStoredUser, fetchCurrentUser } from "@/lib/client-auth";
 
 export default function ManageAddressPage() {
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<any>(() => getStoredUser());
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -19,24 +20,30 @@ export default function ManageAddressPage() {
   });
 
   useEffect(() => {
+    const stored = getStoredUser();
+    if (stored) {
+      setUser(stored);
+      setFormData(prev => ({
+        ...prev,
+        name: prev.name || stored.name || "",
+        email: prev.email || stored.email || "",
+        phone: prev.phone || stored.phone || "",
+      }));
+    }
+
     const fetchUser = async () => {
       try {
-        const res = await fetch("/api/auth/me");
-        if (res.ok) {
-          const { user } = await res.json();
-          setUser(user);
-          if (user) {
-            setFormData({
-              name: user.name || `User ${user.phone}`,
-              email: user.email || "",
-              phone: user.phone || "",
-              houseNo: "",
-              street: "",
-              landmark: "",
-              city: "",
-              pincode: ""
-            });
-          }
+        const currentUser = await fetchCurrentUser();
+        if (currentUser) {
+          setUser(currentUser);
+          setFormData(prev => ({
+            ...prev,
+            name: prev.name || currentUser.name || `User ${currentUser.phone || ''}`,
+            email: prev.email || currentUser.email || "",
+            phone: prev.phone || currentUser.phone || "",
+          }));
+        } else if (!getStoredUser()) {
+          setUser(null);
         }
       } catch (err) {
       } finally {

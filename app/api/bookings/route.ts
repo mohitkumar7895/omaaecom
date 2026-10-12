@@ -4,6 +4,8 @@ import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 import { sendBookingEmail } from "../../../lib/mail";
 
+import { getAuthToken } from "../../../lib/auth";
+
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_for_development_only";
 
 function generateOrderId(): string {
@@ -23,8 +25,7 @@ export async function POST(req: Request) {
     const { name, mobile, email, address, payment_method, total_amount, cart_items, booking_date, time_slot, referred_by } = body;
 
     let user_email = null;
-    const cookieStore = await cookies();
-    const token = cookieStore.get("omaa_auth_token")?.value;
+    const token = await getAuthToken(req);
     if (token) {
       try {
         const decoded = jwt.verify(token, JWT_SECRET) as any;
@@ -85,8 +86,9 @@ export async function POST(req: Request) {
     const servicesJson = JSON.stringify(cart_items.map((item: any) => ({
       id: item.id,
       title: item.title,
-      quantity: item.quantity,
-      price: item.selling_price,
+      quantity: item.quantity || 1,
+      price: Number(item.selling_price ?? item.price ?? item.final_price ?? 0),
+      selling_price: Number(item.selling_price ?? item.price ?? item.final_price ?? 0),
       category_id: item.category_id,
     })));
 

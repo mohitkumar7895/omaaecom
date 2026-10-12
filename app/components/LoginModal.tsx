@@ -4,6 +4,7 @@ import { X, Mail, KeyRound } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { persistLogin } from "@/lib/client-auth";
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -94,6 +95,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
     try {
       const res = await fetch("/api/auth/verify-otp", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp }),
       });
@@ -101,7 +103,11 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
       
       if (!res.ok) throw new Error(data.error || "Invalid OTP");
       
-      window.dispatchEvent(new Event("auth_changed"));
+      if (data.user) {
+        persistLogin(data.user, data.token);
+      } else {
+        window.dispatchEvent(new CustomEvent("auth_changed", { detail: { user: data.user } }));
+      }
 
       if (onLoginSuccess) onLoginSuccess(data.user);
       setTimeout(() => onClose(), 300);

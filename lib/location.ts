@@ -56,85 +56,61 @@ async function geocodeOnServer(
   return mapGeocodePayload(data.data);
 }
 
-function gpsErrorMessage(err: GeolocationPositionError): string {
-  switch (err.code) {
-    case err.PERMISSION_DENIED:
-      return "Location permission denied. Please allow location access in your browser settings.";
-    case err.POSITION_UNAVAILABLE:
-      return "GPS location details are unavailable. Please type your address manually.";
-    case err.TIMEOUT:
-      return "The request to get your GPS location timed out. Please try again.";
-    default:
-      return "Failed to fetch GPS coordinates. Please enter manually.";
+async function gpsAllowed(): Promise<boolean> {
+  if (typeof navigator === "undefined" || !navigator.geolocation) return false;
+  try {
+    const status = await navigator.permissions?.query({ name: "geolocation" });
+    if (status?.state === "denied") return false;
+  } catch {
+    // Safari / older browsers: still try getCurrentPosition
   }
+  return true;
 }
 
-/** Watch GPS until accuracy is tight, instead of one coarse Wi‑Fi ping. */
-function readBestGps(maxWaitMs = 12000, goodAccuracyM = 35): Promise<GeolocationPosition> {
+function readGps(options: PositionOptions): Promise<GeolocationPosition> {
   return new Promise((resolve, reject) => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
       reject(new Error("Geolocation is not supported by your browser."));
       return;
     }
 
-    let best: GeolocationPosition | null = null;
-    let settled = false;
-
-    const finish = (pos: GeolocationPosition | null, err?: Error) => {
-      if (settled) return;
-      settled = true;
-      navigator.geolocation.clearWatch(watchId);
-      clearTimeout(timer);
-      if (pos) resolve(pos);
-      else reject(err || new Error("Failed to fetch GPS coordinates. Please enter manually."));
-    };
-
-    const watchId = navigator.geolocation.watchPosition(
-      (pos) => {
-        if (!best || pos.coords.accuracy < best.coords.accuracy) best = pos;
-        if (pos.coords.accuracy <= goodAccuracyM) finish(pos);
-      },
-      (err) => {
-        if (best) finish(best);
-        else finish(null, new Error(gpsErrorMessage(err)));
-      },
-      { enableHighAccuracy: true, timeout: maxWaitMs, maximumAge: 0 }
-    );
-
-    const timer = setTimeout(() => {
-      if (best) finish(best);
-      else finish(null, new Error("The request to get your GPS location timed out. Please try again."));
-    }, maxWaitMs);
+    navigator.geolocation.getCurrentPosition(resolve, (err) => reject(err), options);
   });
 }
 
-export const getCurrentLocation = async (): Promise<ResolvedLocation> => {
-  const position = await readBestGps(14000, 30);
-  const { latitude, longitude, accuracy } = position.coords;
-  const loc = await geocodeOnServer({ latitude, longitude });
-  return mapGeocodePayload(loc, { latitude, longitude, accuracy });
-};
+async function detectFromGpsOrIp(): Promise<ResolvedLocation> {
+  let coords: { latitude: number; longitude: number; accuracy?: number } | undefined;
 
-export const autoDetectLocation = async (): Promise<ResolvedLocation | null> => {
-  try {
-    let coords: { latitude: number; longitude: number; accuracy?: number } | null = null;
-
+  if (await gpsAllowed()) {
     try {
-      const position = await readBestGps(12000, 35);
+      const position = await readGps({
+        enableHighAccuracy: true,
+        timeout: 12000,
+        maximumAge: 60_000,
+      });
       coords = {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
         accuracy: position.coords.accuracy,
       };
     } catch {
-      console.info("GPS unavailable, using network IP location.");
+      // Permission denied / timeout: fall back to IP like before
     }
-
-    const loc = await geocodeOnServer(coords || {});
-    return mapGeocodePayload(loc, coords || undefined);
-  } catch (err) {
-    console.error("Auto detect location failed:", err);
   }
 
-  return null;
+  const loc = await geocodeOnServer(coords || {});
+  return mapGeocodePayload(loc, coords);
+}
+
+export const getCurrentLocation = async (): Promise<ResolvedLocation> => {
+  return detectFromGpsOrIp();
+};
+
+export const autoDetectLocation = async (): Promise<ResolvedLocation | null> => {
+  try {
+    return await detectFromGpsOrIp();
+  } catch (err) {
+    console.error("Auto detect location failed:", err);
+    return null;
+  }
 };

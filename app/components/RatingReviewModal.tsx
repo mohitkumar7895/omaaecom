@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Star, X, CheckCircle2, Sparkles, ThumbsUp, Wrench, ShieldCheck, Heart } from "lucide-react";
+import { authFetch, getStoredUser, getStoredToken } from "@/lib/client-auth";
 
 interface PendingBooking {
   id: number;
@@ -49,9 +50,9 @@ export default function RatingReviewModal() {
       }
       // Don't disturb if user dismissed in this browser session
       const dismissedOrder = sessionStorage.getItem("omaa_dismissed_rating_order");
-      if (!document.cookie.includes("omaa_auth_token")) return;
+      if (!getStoredUser() && !getStoredToken()) return;
 
-      const res = await fetch("/api/bookings/pending-review", { cache: "no-store" });
+      const res = await authFetch("/api/bookings/pending-review", { cache: "no-store" });
       if (!res.ok) return;
       const data = await res.json();
 
@@ -114,7 +115,7 @@ export default function RatingReviewModal() {
     setIsSubmitting(true);
 
     try {
-      const res = await fetch("/api/bookings/submit-review", {
+      const res = await authFetch("/api/bookings/submit-review", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
