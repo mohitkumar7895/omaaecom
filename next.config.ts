@@ -30,6 +30,10 @@ const nextConfig: NextConfig = {
         source: "/Hero1.webp",
         headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
       },
+      {
+        source: "/sitemap.xml",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, follow" }],
+      },
     ];
   },
   async redirects() {
@@ -48,12 +52,12 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/sitemap",
-        destination: "/sitemap.xml",
+        destination: "/service-areas",
         permanent: true,
       },
       {
         source: "/sitemap/",
-        destination: "/sitemap.xml",
+        destination: "/service-areas",
         permanent: true,
       },
       {
