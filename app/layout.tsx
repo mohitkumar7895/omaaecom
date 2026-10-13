@@ -4,9 +4,9 @@ import GlobalLoader from "./components/GlobalLoader";
 import OfferMarqueeHost from "./components/OfferMarqueeHost";
 import RatingReviewModal from "./components/RatingReviewModal";
 import NavigationProgress from "./components/NavigationProgress";
+import { getSiteUrl } from "@/lib/site-url";
 
-const rawBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.omaacompany.com";
-const siteUrl = rawBaseUrl.endsWith("/") ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
+const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -134,7 +134,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         closes: "20:00",
       },
     ],
-    sameAs: ["https://www.omaacompany.com"],
+    sameAs: ["https://omaacompany.com"],
   };
 
   return (

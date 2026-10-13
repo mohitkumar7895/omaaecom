@@ -3,9 +3,9 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { MapPin, Phone, Mail } from "lucide-react";
 import ContactForm from "./ContactForm";
+import { getSiteUrl } from "../../lib/site-url";
 
-const rawBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.omaacompany.com";
-const siteUrl = rawBaseUrl.endsWith("/") ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
+const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
   title: "Contact Us & Support | OMAA Company Doorstep Services",

@@ -16,11 +16,11 @@ import {
   PhoneCall,
   ChevronRight
 } from "lucide-react";
+import { getSiteUrl } from "../../lib/site-url";
 
 export const revalidate = 120;
 
-const rawBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.omaacompany.com";
-const siteUrl = rawBaseUrl.endsWith("/") ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
+const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
   title: "Doorstep Appliance Repair Services | RO, Refrigerator & Washing Machine | OMAA Company",

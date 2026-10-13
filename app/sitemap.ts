@@ -3,12 +3,12 @@ import pool from "@/lib/db";
 import { SEO_LOCATIONS } from "@/lib/seo-locations";
 import { SEO_SERVICES } from "@/lib/seo-services";
 import { SEO_KEYWORD_PAGES } from "@/lib/seo-keywords";
+import { getSiteUrl, toCanonicalUrl } from "@/lib/site-url";
 
 export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const rawBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.omaacompany.com";
-  const baseUrl = rawBaseUrl.endsWith("/") ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
+  const baseUrl = getSiteUrl();
 
   const defaultPages: MetadataRoute.Sitemap = [
     { url: baseUrl, lastModified: new Date(), changeFrequency: "daily", priority: 1.0 },
@@ -71,7 +71,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         fullUrl = `${baseUrl}${fullUrl.startsWith("/") ? "" : "/"}${fullUrl}`;
       }
 
-      let normalizedUrl = fullUrl.endsWith("/") ? fullUrl.slice(0, -1) : fullUrl;
+      let normalizedUrl = toCanonicalUrl(fullUrl);
 
       const hiddenFromGoogle = [
         `${baseUrl}/sitemap`,

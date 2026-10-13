@@ -35,6 +35,18 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: "/",
+        has: [{ type: "host", value: "www.omaacompany.com" }],
+        destination: "https://omaacompany.com",
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.omaacompany.com" }],
+        destination: "https://omaacompany.com/:path*",
+        permanent: true,
+      },
+      {
         source: "/sitemap",
         destination: "/sitemap.xml",
         permanent: true,

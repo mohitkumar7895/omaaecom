@@ -5,9 +5,9 @@ import Footer from "../components/Footer";
 import { SEO_LOCATIONS } from "../../lib/seo-locations";
 import { SEO_SERVICES } from "../../lib/seo-services";
 import { SEO_KEYWORD_PAGES, keywordFitsLocation } from "../../lib/seo-keywords";
+import { getSiteUrl } from "../../lib/site-url";
 
-const rawBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.omaacompany.com";
-const siteUrl = rawBaseUrl.endsWith("/") ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
+const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
   title: "Sitemap Service | Appliance Repair Cities & Societies",

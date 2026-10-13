@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { Snowflake, Droplet, Flame, Microwave, RefreshCw, Check } from "lucide-react";
+import { getSiteUrl } from "../../lib/site-url";
 
-const rawBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.omaacompany.com";
-const siteUrl = rawBaseUrl.endsWith("/") ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
+const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
   title: "About Us - OMAA Company | Doorstep Appliance Repair Specialists",

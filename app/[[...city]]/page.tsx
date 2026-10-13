@@ -15,6 +15,7 @@ import {
 } from "../../lib/seo-keywords";
 import LocationSeoSection from "../components/LocationSeoSection";
 import { getHomeCatalog } from "../../lib/home-catalog";
+import { getSiteUrl } from "../../lib/site-url";
 
 export const revalidate = 120;
 
@@ -23,8 +24,7 @@ type PageProps = {
 };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const rawBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.omaacompany.com";
-  const siteUrl = rawBaseUrl.endsWith("/") ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
+  const siteUrl = getSiteUrl();
   
   const resolvedParams = await params;
   const citySegments = resolvedParams.city || [];
@@ -217,7 +217,7 @@ export default async function Home({ params }: PageProps) {
     notFound();
   }
 
-  const homeSiteUrl = (process.env.NEXT_PUBLIC_BASE_URL || "https://www.omaacompany.com").replace(/\/$/, "");
+  const homeSiteUrl = getSiteUrl();
 
   if (keywordPage) {
     const location = seoLocation || getSeoLocation(keywordPage.locationSlug);

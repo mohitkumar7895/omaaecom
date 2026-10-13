@@ -6,14 +6,14 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import CategoryView from "./CategoryView";
 import { absoluteTitle } from "../../../lib/seo-locations";
+import { getSiteUrl } from "../../../lib/site-url";
 
 export const revalidate = 120;
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const resolvedParams = await params;
   const categoryId = resolvedParams.id;
-  const rawBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.omaacompany.com";
-  const siteUrl = rawBaseUrl.endsWith("/") ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
+  const siteUrl = getSiteUrl();
 
   if (!categoryId || isNaN(Number(categoryId))) {
     return { title: absoluteTitle("Service Category | OMAA Company"), robots: { index: false, follow: true } };
@@ -113,8 +113,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ id: s
       warranty_days: s.warranty_days,
     }));
 
-    const rawBaseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.omaacompany.com";
-    const siteUrl = rawBaseUrl.endsWith("/") ? rawBaseUrl.slice(0, -1) : rawBaseUrl;
+    const siteUrl = getSiteUrl();
 
     const categorySchema = {
       "@context": "https://schema.org",
