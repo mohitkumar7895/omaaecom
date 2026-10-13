@@ -1,10 +1,20 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import pool from "../../lib/db";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import RateCardClient from "./RateCardClient";
+import { getSiteUrl } from "@/lib/site-url";
 
 export const revalidate = 300;
+
+const siteUrl = getSiteUrl();
+
+export const metadata: Metadata = {
+  title: "Rate Card | OMAA Company Appliance Repair Prices",
+  description: "Transparent OMAA Company rate card for RO, refrigerator, washing machine and AC repair in Delhi NCR.",
+  alternates: { canonical: `${siteUrl}/rate-card` },
+};
 
 export default async function RateCardPage() {
   let categories: any[] = [];

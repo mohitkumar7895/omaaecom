@@ -134,7 +134,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         closes: "20:00",
       },
     ],
-    sameAs: ["https://omaacompany.com"],
+    sameAs: [siteUrl],
   };
 
   return (

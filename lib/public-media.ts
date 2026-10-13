@@ -1,9 +1,11 @@
+import { toApexAssetUrl } from "@/lib/site-url";
+
 export function publicAssetUrl(value: unknown): string {
   if (typeof value !== "string") return "";
   const trimmed = value.trim();
   if (!trimmed || trimmed.startsWith("data:")) return "";
   if (trimmed.length > 2048) return "";
-  return trimmed;
+  return toApexAssetUrl(trimmed);
 }
 
 export function mediaResponseFromStored(value: unknown, requestUrl?: string): Response {
@@ -14,7 +16,7 @@ export function mediaResponseFromStored(value: unknown, requestUrl?: string): Re
   const cache = "public, max-age=86400, stale-while-revalidate=604800";
 
   if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-    return Response.redirect(trimmed, 302);
+    return Response.redirect(toApexAssetUrl(trimmed), 302);
   }
 
   if (trimmed.startsWith("/") && requestUrl) {

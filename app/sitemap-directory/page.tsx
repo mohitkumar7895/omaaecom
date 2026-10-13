@@ -3,8 +3,11 @@ import pool from "@/lib/db";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import SitemapClient from "@/app/sitemap-directory/SitemapClient";
+import { getSiteUrl } from "@/lib/site-url";
 
 export const revalidate = 3600;
+
+const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
   title: "Sitemap & Service Directory | OMAA Company",
@@ -12,7 +15,7 @@ export const metadata: Metadata = {
     "Browse all home appliance repair, maintenance, and installation services across Noida, Greater Noida, Ghaziabad, Delhi NCR, and Gurgaon. Find local service areas and book doorstep repairs.",
   robots: { index: false, follow: false },
   alternates: {
-    canonical: "/sitemap-directory",
+    canonical: `${siteUrl}/service-areas`,
   },
 };
 

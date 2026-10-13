@@ -1,12 +1,16 @@
 import { getPolicy } from "../actions/policies";
 import PolicyPageView from "../components/PolicyPageView";
 import { Metadata } from "next";
+import { getSiteUrl } from "@/lib/site-url";
 
 export const revalidate = 86400;
+
+const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
   title: "Terms & Conditions - OMAA Company",
   description: "Terms and conditions for using OMAA Company's home appliance repair and maintenance services.",
+  alternates: { canonical: `${siteUrl}/terms-and-conditions` },
 };
 
 export default async function TermsAndConditionsPage() {

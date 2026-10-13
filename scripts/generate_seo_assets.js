@@ -88,7 +88,7 @@ async function generateAssets() {
       <text x="940" y="525" fill="#38bdf8" font-family="Segoe UI, Roboto, sans-serif" font-size="17" font-weight="bold">📍 Delhi NCR Service</text>
 
       <text x="80" y="580" fill="#94a3b8" font-family="Segoe UI, Roboto, sans-serif" font-size="16">Call &amp; WhatsApp: +91 9999251966</text>
-      <text x="1120" y="580" fill="#94a3b8" font-family="Segoe UI, Roboto, sans-serif" font-size="16" text-anchor="end">www.omaacompany.com</text>
+      <text x="1120" y="580" fill="#94a3b8" font-family="Segoe UI, Roboto, sans-serif" font-size="16" text-anchor="end">omaacompany.com</text>
     </svg>
   `;
 
