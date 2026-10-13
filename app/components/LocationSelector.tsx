@@ -31,7 +31,7 @@ const NON_CITY_ROUTES = new Set([
   'contact', 'invoice', 'login', 'manage-address', 'my-amc', 'my-bookings', 
   'privacy', 'privacy-policy', 'product-history', 'professional-registration', 
   'rate-card', 'refer-earn', 'service-areas', 'services', 'settings', 
-  'sitemap-directory', 'sitemap-pages', 'sso-callback', 'terms', 
+  'sitemap', 'sitemap.xml', 'sitemap-directory', 'sitemap-pages', 'robots.txt', 'sso-callback', 'terms', 
   'terms-and-conditions', 'wallet', 'member_login', 'registration_form.php'
 ]);
 

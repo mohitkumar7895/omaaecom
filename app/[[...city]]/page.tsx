@@ -31,6 +31,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const citySlug = citySegments[0] || "";
   const serviceSlug = citySegments[1] || "";
   const extraSegment = citySegments[2];
+  if (citySlug === "sitemap.xml" || citySlug === "sitemap" || citySlug === "robots.txt") {
+    return { robots: { index: false, follow: false } };
+  }
   const seoLocation = citySlug ? getSeoLocation(citySlug) : undefined;
   const seoService = serviceSlug ? getSeoService(serviceSlug) : undefined;
   const rootKeyword = !serviceSlug && citySlug ? getKeywordPage(citySlug) : undefined;
@@ -204,6 +207,9 @@ export default async function Home({ params }: PageProps) {
   const citySlug = citySegments[0] || "";
   const serviceSlug = citySegments[1] || "";
   const extraSegment = citySegments[2];
+  if (citySlug === "sitemap.xml" || citySlug === "sitemap" || citySlug === "robots.txt") {
+    notFound();
+  }
   const seoLocation = citySlug ? getSeoLocation(citySlug) : undefined;
   const seoService = serviceSlug ? getSeoService(serviceSlug) : undefined;
   const rootKeyword = !serviceSlug && citySlug ? getKeywordPage(citySlug) : undefined;
