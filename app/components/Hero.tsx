@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Home, ShoppingCart, ShieldCheck, Sparkles } from "lucide-react";
+import { Home, ShoppingCart, ShieldCheck, Sparkles, Copy, Check, Share2 } from "lucide-react";
 import Link from "next/link";
 import MobileBannerCarousel from "./MobileBannerCarousel";
 import LiveSearchBar from "./LiveSearchBar";
@@ -22,6 +22,42 @@ interface HeroProps {
 
 export default function Hero({ categories = [], banners = [], hideHeadline = false }: HeroProps) {
   const [userCity, setUserCity] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [referralLink, setReferralLink] = useState("https://omaacompany.com/wallet?ref=OC564990");
+
+  useEffect(() => {
+    // Check local stored user
+    try {
+      const stored = localStorage.getItem("omaa_user");
+      if (stored) {
+        const u = JSON.parse(stored);
+        if (u?.referral_code) {
+          setReferralLink(`https://omaacompany.com/wallet?ref=${u.referral_code}`);
+        }
+      }
+    } catch (e) {}
+
+    // Fetch from auth/me if available
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.user?.referral_code) {
+          setReferralLink(`https://omaacompany.com/wallet?ref=${d.user.referral_code}`);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(referralLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  const handleWhatsAppShare = () => {
+    const message = `Hey! Book Doorstep RO, AC & Home Appliance Repair on OMAA Company. Get 100 Welcome Points instantly on wallet: ${referralLink}`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, "_blank");
+  };
 
   useEffect(() => {
     const handleLocationChange = () => {
@@ -99,6 +135,133 @@ export default function Hero({ categories = [], banners = [], hideHeadline = fal
 
   const newProducts = visibleCategories.filter(c => c.type && c.type.toLowerCase().includes("product")).slice(0, 1);
   const amcProducts = visibleCategories.filter(c => c.type && c.type.toLowerCase().includes("amc")).slice(0, 1);
+
+  // Check if ALL 7 services/packages are available:
+  // Home Services (5): AC, Refrigerator, Washing Machine, Microwave, RO / Water Purifier
+  // OMAA Premium Package (2): New Products, RO AMC
+  const hasAc = Boolean(acService);
+  const hasFridge = Boolean(fridgeService);
+  const hasWashing = Boolean(washingService);
+  const hasMicrowave = Boolean(microwaveService);
+  const hasRo = Boolean(roService);
+  const hasNewProducts = newProducts.length > 0;
+  const hasAmc = amcProducts.length > 0;
+
+  const isAllCategoriesShown = Boolean(
+    hasAc &&
+    hasFridge &&
+    hasWashing &&
+    hasMicrowave &&
+    hasRo &&
+    hasNewProducts &&
+    hasAmc
+  );
+
+  // Reusable Referral Card Component
+  const renderReferralCard = (customWidthClass = "max-w-120 lg:max-w-130") => (
+    <div className={`w-full ${customWidthClass} rounded-[22px] p-[2.5px] bg-linear-to-r from-amber-400 via-pink-500 to-indigo-500 shadow-xl transition-transform duration-300 hover:scale-[1.005]`}>
+      <div className="bg-white/95 backdrop-blur-xl rounded-[20px] p-3 sm:p-3.5 text-gray-900 flex flex-col gap-2.5">
+        
+        {/* Header with Badges */}
+        <div className="flex items-center justify-between gap-2 border-b border-gray-100 pb-2">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-amber-500 to-orange-400 text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0">
+              🎁
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <h4 className="text-[13px] font-black text-gray-900 tracking-tight leading-none">
+                  Refer & Earn ₹400 + ₹200 Cash
+                </h4>
+                <span className="bg-emerald-100 text-emerald-800 text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider">
+                  Direct
+                </span>
+              </div>
+              <p className="text-[10.5px] text-gray-500 mt-0.5 font-medium leading-none">
+                Direct cash to your bank or UPI on RO AMC & Products
+              </p>
+            </div>
+          </div>
+
+          <Link 
+            href="/wallet" 
+            className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-[11px] px-2.5 py-1 rounded-lg transition flex items-center gap-1 shrink-0 group"
+          >
+            <span>Wallet</span>
+            <span className="group-hover:translate-x-0.5 transition-transform">→</span>
+          </Link>
+        </div>
+
+        {/* Link Input Bar with Copy & WhatsApp Share */}
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1 min-w-0">
+            <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-gray-400 text-xs font-mono font-bold">
+              🔗
+            </div>
+            <input
+              type="text"
+              readOnly
+              value={referralLink}
+              className="w-full pl-7 pr-2.5 py-1.5 bg-gray-50 hover:bg-gray-100/70 border border-gray-200 rounded-lg text-xs font-mono font-bold text-gray-800 select-all focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
+            />
+          </div>
+
+          {/* Copy Button */}
+          <button
+            type="button"
+            onClick={handleCopyLink}
+            className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all shadow-xs shrink-0 flex items-center gap-1 cursor-pointer active:scale-95 ${
+              copied
+                ? "bg-emerald-600 text-white shadow-emerald-500/25 ring-2 ring-emerald-300"
+                : "bg-gray-900 hover:bg-black text-white hover:shadow-xs"
+            }`}
+          >
+            {copied ? (
+              <>
+                <Check className="w-3 h-3" />
+                <span>Copied!</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3 h-3" />
+                <span>Copy</span>
+              </>
+            )}
+          </button>
+
+          {/* WhatsApp Share Button */}
+          <button
+            type="button"
+            onClick={handleWhatsAppShare}
+            className="px-3 py-1.5 rounded-lg text-xs font-black text-white bg-[#25D366] hover:bg-[#20ba59] transition-all shadow-xs hover:shadow-sm shrink-0 flex items-center gap-1 active:scale-95 cursor-pointer"
+            title="Share on WhatsApp"
+          >
+            <svg className="w-3 h-3 fill-current shrink-0" viewBox="0 0 24 24">
+              <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+            </svg>
+            <span>Share</span>
+          </button>
+        </div>
+
+        {/* 3 Value Pillars */}
+        <div className="grid grid-cols-3 gap-1.5 pt-0.5 border-t border-gray-100 text-center">
+          <div className="bg-amber-50/70 border border-amber-200/60 rounded py-0.5 px-1">
+            <span className="block text-[9.5px] font-black text-amber-900 leading-tight">₹400 Cash</span>
+            <span className="text-[8.5px] text-amber-700 font-medium">Level 1 Direct</span>
+          </div>
+          <div className="bg-purple-50/70 border border-purple-200/60 rounded py-0.5 px-1">
+            <span className="block text-[9.5px] font-black text-purple-900 leading-tight">₹200 Cash</span>
+            <span className="text-[8.5px] text-purple-700 font-medium">Level 2 Indirect</span>
+          </div>
+          <div className="bg-emerald-50/70 border border-emerald-200/60 rounded py-0.5 px-1">
+            <span className="block text-[9.5px] font-black text-emerald-900 leading-tight">100 Pts</span>
+            <span className="text-[8.5px] text-emerald-700 font-medium">Friend Welcome</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
 
   return (
     <div className="relative bg-linear-to-br from-[#6277db] via-[#a268b8] to-[#db5285] text-white w-full font-sans overflow-hidden py-4 md:py-8 px-4 md:px-10 lg:px-12">
@@ -279,45 +442,95 @@ export default function Hero({ categories = [], banners = [], hideHeadline = fal
           </div>
           </div>
 
+          {/* Referral Card under Categories:
+              - On Mobile: ALWAYS visible here
+              - On Desktop: Visible here ONLY if any service is missing (!isAllCategoriesShown)
+          */}
+          <div className={`${isAllCategoriesShown ? "lg:hidden" : ""} w-full`}>
+            {renderReferralCard("w-full")}
+          </div>
+
         </div>
 
         {/* Right Side: Masonry Images Grid */}
-        <div className="w-full lg:w-1/2 hidden lg:flex items-stretch justify-center lg:h-[550px]">
-          <div className="flex gap-3 p-3 border-4 border-white/20 rounded-[28px] bg-white/10 shadow-xl backdrop-blur-sm w-full max-w-120 lg:max-w-130 h-full">
-            {/* Left Tall Image */}
-            <div className="w-1/2 h-full">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/Hero1.webp"
-                alt="OMAA technician providing doorstep home appliance repair"
-                width={600}
-                height={800}
-                className="w-full h-full object-cover rounded-[18px] shadow-md hover:scale-[1.02] transition-transform duration-300"
-              />
+        {isAllCategoriesShown ? (
+          /* When ALL 7 categories are shown: compact image height + Referral Card directly below images */
+          <div className="w-full lg:w-1/2 hidden lg:flex flex-col items-center gap-3">
+            <div className="flex gap-3 p-3 border-4 border-white/20 rounded-[28px] bg-white/10 shadow-xl backdrop-blur-sm w-full max-w-120 lg:max-w-130 h-[430px] xl:h-[450px]">
+              {/* Left Tall Image */}
+              <div className="w-1/2 h-full">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/Hero1.webp"
+                  alt="OMAA technician providing doorstep home appliance repair"
+                  width={600}
+                  height={800}
+                  className="w-full h-full object-cover rounded-[18px] shadow-md hover:scale-[1.02] transition-transform duration-300"
+                />
+              </div>
+
+              {/* Right Stacked Images */}
+              <div className="w-1/2 h-full flex flex-col gap-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/Hero 2.webp"
+                  alt="RO water purifier repair and service at home"
+                  width={600}
+                  height={400}
+                  className="w-full h-[calc(50%-6px)] object-cover rounded-[18px] shadow-md hover:scale-[1.02] transition-transform duration-300"
+                />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/Hero3.webp"
+                  alt="Air conditioner doorstep repair and gas refill"
+                  width={600}
+                  height={400}
+                  className="w-full h-[calc(50%-6px)] object-cover rounded-[18px] shadow-md hover:scale-[1.02] transition-transform duration-300"
+                />
+              </div>
             </div>
 
-            {/* Right Stacked Images */}
-            <div className="w-1/2 h-full flex flex-col gap-3">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/Hero 2.webp"
-                alt="RO water purifier repair and service at home"
-                width={600}
-                height={400}
-                className="w-full h-[calc(50%-6px)] object-cover rounded-[18px] shadow-md hover:scale-[1.02] transition-transform duration-300"
-              />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/Hero3.webp"
-                alt="Air conditioner doorstep repair and gas refill"
-                width={600}
-                height={400}
-                className="w-full h-[calc(50%-6px)] object-cover rounded-[18px] shadow-md hover:scale-[1.02] transition-transform duration-300"
-              />
+            {/* Ultra-Premium Referral Card directly under images */}
+            {renderReferralCard("max-w-120 lg:max-w-130")}
+          </div>
+        ) : (
+          /* When any category is missing: Full original 550px height images with NO card below images */
+          <div className="w-full lg:w-1/2 hidden lg:flex items-stretch justify-center lg:h-[550px]">
+            <div className="flex gap-3 p-3 border-4 border-white/20 rounded-[28px] bg-white/10 shadow-xl backdrop-blur-sm w-full max-w-120 lg:max-w-130 h-full">
+              {/* Left Tall Image */}
+              <div className="w-1/2 h-full">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/Hero1.webp"
+                  alt="OMAA technician providing doorstep home appliance repair"
+                  width={600}
+                  height={800}
+                  className="w-full h-full object-cover rounded-[18px] shadow-md hover:scale-[1.02] transition-transform duration-300"
+                />
+              </div>
+
+              {/* Right Stacked Images */}
+              <div className="w-1/2 h-full flex flex-col gap-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/Hero 2.webp"
+                  alt="RO water purifier repair and service at home"
+                  width={600}
+                  height={400}
+                  className="w-full h-[calc(50%-6px)] object-cover rounded-[18px] shadow-md hover:scale-[1.02] transition-transform duration-300"
+                />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/Hero3.webp"
+                  alt="Air conditioner doorstep repair and gas refill"
+                  width={600}
+                  height={400}
+                  className="w-full h-[calc(50%-6px)] object-cover rounded-[18px] shadow-md hover:scale-[1.02] transition-transform duration-300"
+                />
+              </div>
             </div>
           </div>
-        </div>
-
+        )}
       </div>
     </div>
   );
