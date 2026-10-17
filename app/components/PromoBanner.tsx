@@ -98,7 +98,7 @@ export default function PromoBanner() {
             <div className="flex justify-center relative">
               <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-blue-900 z-0"></div>
               <div className="bg-blue-900 text-white text-4xl font-extrabold px-12 py-3 rounded-full relative z-10 border-4 border-[#fefaf4] shadow-lg">
-                ₹4000/-
+                ₹3999/-
               </div>
             </div>
 

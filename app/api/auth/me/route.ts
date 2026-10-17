@@ -46,8 +46,9 @@ export async function GET(req: Request) {
       user: {
         ...decoded,
         referral_code: referralCode,
-        referral_link: `https://omaacompany.in/?ref=${referralCode}`
-      } 
+        referral_link: `https://omaacompany.com/wallet?ref=${referralCode}`
+      },
+      token
     });
   } catch (error) {
     // Token invalid or expired

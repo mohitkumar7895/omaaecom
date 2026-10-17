@@ -22,7 +22,29 @@ export default function CartPage() {
     const savedCart = localStorage.getItem("omaa_cart");
     if (savedCart) {
       try {
-        setCart(JSON.parse(savedCart));
+        const parsed = JSON.parse(savedCart);
+        let changed = false;
+        const normalized = (parsed || []).map((item: any) => {
+          const title = (item.title || item.name || "").toLowerCase();
+          const catId = Number(item.category_id);
+          const isAmc = catId === 7 || title.includes("amc") || title.includes("ro & refrigerator");
+          if (isAmc || Number(item.selling_price) === 4000 || Number(item.price) === 4000) {
+            if (Number(item.selling_price) === 4000 || !item.selling_price) {
+              changed = true;
+              return {
+                ...item,
+                selling_price: 3999,
+                price: 3999,
+              };
+            }
+          }
+          return item;
+        });
+        if (changed) {
+          localStorage.setItem("omaa_cart", JSON.stringify(normalized));
+          window.dispatchEvent(new Event("cart_updated"));
+        }
+        setCart(normalized);
       } catch (e) {
         console.error("Failed to parse cart");
       }
@@ -34,17 +56,18 @@ export default function CartPage() {
       }
     });
 
-    if (isLoggedIn()) {
-      setUser(getStoredUser());
+    const stored = getStoredUser();
+    if (stored) {
+      setUser(stored);
     }
 
     const checkAuth = async (e?: Event) => {
       try {
         const fromEvent = (e as CustomEvent)?.detail?.user;
         const freshUser = fromEvent || (await fetchCurrentUser()) || getStoredUser();
-        if (freshUser && (fromEvent || isLoggedIn())) {
+        if (freshUser && (freshUser.email || isLoggedIn())) {
           setUser(freshUser);
-        } else if (!isLoggedIn()) {
+        } else if (!isLoggedIn() && !getStoredUser()) {
           setUser(null);
         }
       } catch (e) {
@@ -80,8 +103,15 @@ export default function CartPage() {
     updateCart(newCart);
   };
 
+  const isCustomerLoggedIn = Boolean(
+    (user && (user.email || user.name)) ||
+    (getStoredUser() && (getStoredUser()?.email || getStoredUser()?.name)) ||
+    isLoggedIn()
+  );
+
   const handleProceedToCheckout = () => {
-    if (!user || !isLoggedIn()) {
+    const activeUser = user || getStoredUser();
+    if (!activeUser && !isLoggedIn()) {
       setIsLoginModalOpen(true);
       return;
     }
@@ -260,8 +290,8 @@ export default function CartPage() {
                 onClick={handleProceedToCheckout}
                 className="w-full bg-[#6b62d9] hover:bg-[#5b52c9] active:scale-[0.99] text-white font-bold py-3.5 rounded-xl transition shadow-md flex justify-center items-center gap-2 cursor-pointer"
               >
-                {!(user && isLoggedIn()) && <Lock className="w-4 h-4 opacity-75" />}
-                <span>{user && isLoggedIn() ? "Proceed to Checkout" : "Login to Checkout"}</span>
+                {!isCustomerLoggedIn && <Lock className="w-4 h-4 opacity-75" />}
+                <span>{isCustomerLoggedIn ? "Proceed to Checkout" : "Login to Checkout"}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>

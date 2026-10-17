@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import "./globals.css";
 import GlobalLoader from "./components/GlobalLoader";
 import OfferMarqueeHost from "./components/OfferMarqueeHost";
 import RatingReviewModal from "./components/RatingReviewModal";
 import NavigationProgress from "./components/NavigationProgress";
+import ReferralTracker from "./components/ReferralTracker";
 import { getSiteUrl } from "@/lib/site-url";
 
 const siteUrl = getSiteUrl();
@@ -97,7 +99,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       "Reliable doorstep home appliance repair services specializing in RO water purifiers, refrigerators, washing machines, and ACs.",
     telephone: "+919999251966",
     email: "support@omaacompany.com",
-    priceRange: "₹160 - ₹4000",
+    priceRange: "₹160 - ₹3999",
     address: {
       "@type": "PostalAddress",
       streetAddress: "Plot No.197, Office No.2, Gaur City - 2 (Opp. Mahagun My Wood)",
@@ -153,6 +155,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="min-h-full flex flex-col bg-[#f8f9fa] text-gray-900">
+        <Suspense fallback={null}>
+          <ReferralTracker />
+        </Suspense>
         <NavigationProgress />
         <GlobalLoader />
         <RatingReviewModal />

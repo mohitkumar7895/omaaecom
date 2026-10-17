@@ -68,7 +68,7 @@ export async function GET(req: Request) {
       couponCode = `OC${randomNum}`;
     }
 
-    const referralLink = `https://omaacompany.in/?ref=${couponCode}`;
+    const referralLink = `https://omaacompany.com/wallet?ref=${couponCode}`;
 
     // Get total referral earnings
     let totalEarnings = 0;
@@ -99,7 +99,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ 
       authenticated: false,
       couponCode: fallbackCode,
-      referralLink: `https://omaacompany.in/?ref=${fallbackCode}`,
+      referralLink: `https://omaacompany.com/wallet?ref=${fallbackCode}`,
       totalEarnings: 0
     });
   }

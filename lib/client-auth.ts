@@ -33,7 +33,7 @@ export function getStoredToken(): string | null {
 export function isLoggedIn(): boolean {
   const user = getStoredUser();
   const token = getStoredToken();
-  return Boolean(user?.email && token);
+  return Boolean((user && (user.email || user.uid)) || token);
 }
 
 export function saveStoredUser(user: AuthUser, token?: string) {
@@ -82,15 +82,8 @@ export async function fetchCurrentUser(): Promise<AuthUser | null> {
     if (res.ok) {
       const data = await res.json();
       if (data.user) {
-        saveStoredUser(data.user);
+        saveStoredUser(data.user, data.token || getStoredToken() || undefined);
         return data.user;
-      } else {
-        const token = getStoredToken();
-        // If server explicitly returned no user and there's no stored token, clear
-        if (!token) {
-          clearStoredUser();
-          return null;
-        }
       }
     }
   } catch (err) {

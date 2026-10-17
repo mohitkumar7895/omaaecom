@@ -22,7 +22,20 @@ function generateCouponCode(): string {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name, mobile, email, address, payment_method, total_amount, cart_items, booking_date, time_slot, referred_by } = body;
+    const { 
+      name, 
+      mobile, 
+      email, 
+      address, 
+      payment_method, 
+      total_amount, 
+      cart_items, 
+      booking_date, 
+      time_slot, 
+      referred_by,
+      points_redeemed,
+      referral_money_used
+    } = body;
 
     let user_email = null;
     const token = await getAuthToken(req);
@@ -40,6 +53,22 @@ export async function POST(req: Request) {
     // Require customer authentication to confirm booking
     if (!user_email && !token) {
       return NextResponse.json({ error: "Please log in with your email/account to confirm your booking." }, { status: 401 });
+    }
+
+    // Resolve referred_by if not provided in payload
+    let effectiveReferredBy = referred_by || null;
+    if (!effectiveReferredBy) {
+      try {
+        const cookieHeader = req.headers.get("cookie") || "";
+        const match = cookieHeader.match(/omaa_referral_code=([^;]+)/);
+        if (match) effectiveReferredBy = decodeURIComponent(match[1]).trim().toUpperCase();
+      } catch(e) {}
+    }
+    if (!effectiveReferredBy && user_email) {
+      try {
+        const [u]: any = await pool.query("SELECT referred_by FROM users WHERE email = ? LIMIT 1", [user_email]);
+        if (u.length > 0 && u[0].referred_by) effectiveReferredBy = u[0].referred_by;
+      } catch(e) {}
     }
 
     if (!name || !mobile || !address) {
@@ -163,11 +192,14 @@ export async function POST(req: Request) {
     const finalBookingDate = requiresSchedule ? booking_date : (booking_date || new Date().toISOString().slice(0, 10));
     const finalTimeSlot = requiresSchedule ? time_slot : (time_slot || 'Instant');
 
+    const ptsRedeemedNum = Math.max(0, Number(points_redeemed) || 0);
+    const refMoneyUsedNum = Math.max(0, Number(referral_money_used) || 0);
+
     try {
       await pool.query(
-        `INSERT INTO bookings (order_id, type, customer_name, mobile, address, category, services, booking_date, time_slot, total, payment_method, payment_status, working_status, created_at, user_email, amc_coupon_code, referred_by)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', 'Pendi', NOW(), ?, ?, ?)`,
-        [orderId, bookingType, name, mobile, address, categoryName, servicesJson, finalBookingDate, finalTimeSlot, total_amount, payment_method === 'online' ? 'cashfree' : 'Cash on Book', user_email, couponCode, referred_by || null]
+        `INSERT INTO bookings (order_id, type, customer_name, mobile, address, category, services, booking_date, time_slot, total, payment_method, payment_status, working_status, created_at, user_email, amc_coupon_code, referred_by, points_redeemed, referral_money_used)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', 'Pendi', NOW(), ?, ?, ?, ?, ?)`,
+        [orderId, bookingType, name, mobile, address, categoryName, servicesJson, finalBookingDate, finalTimeSlot, total_amount, payment_method === 'online' ? 'cashfree' : 'Cash on Book', user_email, couponCode, effectiveReferredBy || null, ptsRedeemedNum, refMoneyUsedNum]
       );
     } catch (insertErr: any) {
       console.warn("Standard insert failed, trying compatible fallback insert:", insertErr?.message);
@@ -177,6 +209,32 @@ export async function POST(req: Request) {
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', 'Pendi', NOW())`,
         [orderId, bookingType, name, mobile, address, categoryName, servicesJson, finalBookingDate, finalTimeSlot, total_amount, payment_method === 'online' ? 'cashfree' : 'Cash on Book']
       );
+    }
+
+    // Debit redeemed points from reward_points_transactions if used
+    if (ptsRedeemedNum > 0 && user_email) {
+      try {
+        await pool.query(
+          `INSERT INTO reward_points_transactions (user_email, points, type, category, order_id, description)
+           VALUES (?, ?, 'Debit', 'redemption', ?, ?)`,
+          [user_email, ptsRedeemedNum, orderId, `Points Redeemed on Booking #${orderId}`]
+        );
+      } catch (ptsErr) {
+        console.error("Failed to debit redeemed points:", ptsErr);
+      }
+    }
+
+    // Debit used referral money from referral_money_transactions if used
+    if (refMoneyUsedNum > 0 && user_email) {
+      try {
+        await pool.query(
+          `INSERT INTO referral_money_transactions (user_email, amount, type, category, level, order_id, description)
+           VALUES (?, ?, 'Debit', 'purchase_deduction', 0, ?, ?)`,
+          [user_email, refMoneyUsedNum, orderId, `Referral Balance used on Booking #${orderId}`]
+        );
+      } catch (rmErr) {
+        console.error("Failed to debit referral money:", rmErr);
+      }
     }
 
     // Trigger email notification immediately to Admin and Customer

@@ -43,28 +43,24 @@ const nextConfig: NextConfig = {
         has: [{ type: "header", key: "x-forwarded-proto", value: "http" }],
         destination: "https://omaacompany.com",
         permanent: true,
-        statusCode: 301,
       },
       {
         source: "/:path*",
         has: [{ type: "header", key: "x-forwarded-proto", value: "http" }],
         destination: "https://omaacompany.com/:path*",
         permanent: true,
-        statusCode: 301,
       },
       {
         source: "/",
         has: [{ type: "host", value: "www.omaacompany.com" }],
         destination: "https://omaacompany.com",
         permanent: true,
-        statusCode: 301,
       },
       {
         source: "/:path*",
         has: [{ type: "host", value: "www.omaacompany.com" }],
         destination: "https://omaacompany.com/:path*",
         permanent: true,
-        statusCode: 301,
       },
       {
         source: "/sitemap",

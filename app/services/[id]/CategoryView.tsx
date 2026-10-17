@@ -24,7 +24,28 @@ export default function CategoryView({ category, subcategories, services, rateCa
     const savedCart = localStorage.getItem("omaa_cart");
     if (savedCart) {
       try {
-        setCart(JSON.parse(savedCart));
+        const parsed = JSON.parse(savedCart);
+        let changed = false;
+        const normalized = (parsed || []).map((item: any) => {
+          const title = (item.title || item.name || "").toLowerCase();
+          const catId = Number(item.category_id);
+          const isAmc = catId === 7 || title.includes("amc") || title.includes("ro & refrigerator");
+          if (isAmc || Number(item.selling_price) === 4000 || Number(item.price) === 4000) {
+            if (Number(item.selling_price) === 4000 || !item.selling_price) {
+              changed = true;
+              return {
+                ...item,
+                selling_price: 3999,
+                price: 3999,
+              };
+            }
+          }
+          return item;
+        });
+        if (changed) {
+          localStorage.setItem("omaa_cart", JSON.stringify(normalized));
+        }
+        setCart(normalized);
       } catch (e) {
         console.error("Failed to parse cart");
       }

@@ -110,7 +110,7 @@ export default async function ServicesPage() {
     },
     {
       q: "Can I buy an Annual Maintenance Contract (RO AMC) for my water purifier?",
-      a: "Yes, we offer comprehensive RO AMC plans starting at ₹4,000 covering all major brands including Kent, Aquafresh, Livpure, Pureit, and Aqua Grand, including scheduled filter changes and unlimited breakdowns.",
+      a: "Yes, we offer comprehensive RO AMC plans starting at ₹3,999 covering all major brands including Kent, Aquafresh, Livpure, Pureit, and Aqua Grand, including scheduled filter changes and unlimited breakdowns.",
     },
   ];
 

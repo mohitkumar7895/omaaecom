@@ -69,6 +69,7 @@ export default function Sidebar() {
 
   const operationsItems = [
     { name: "Warranties", icon: <ShieldCheck className="w-[18px] h-[18px]" />, href: "/admin/warranties" },
+    { name: "Withdrawals", icon: <IndianRupee className="w-[18px] h-[18px]" />, href: "/admin/withdrawals" },
     { name: "Complaints", icon: <MessageSquare className="w-[18px] h-[18px]" />, href: "/admin/complaints" },
     { name: "Contacts", icon: <Mail className="w-[18px] h-[18px]" />, href: "/admin/contacts" },
   ];

@@ -2,6 +2,7 @@
 
 import pool from "../../../lib/db";
 import { revalidatePath } from "next/cache";
+import { processBookingCompletionRewards } from "@/lib/rewards";
 
 function generateCouponCode(): string {
   const randomNum = Math.floor(100000 + Math.random() * 900000);
@@ -14,8 +15,8 @@ export async function updateWorkingStatus(formData: FormData) {
   
   if (id && status) {
     try {
-      // Check if status is Complete
-      if (status === 'Complete') {
+      // Check if status is Complete or Completed
+      if (status === 'Complete' || status === 'Completed') {
         try {
           await pool.query("ALTER TABLE bookings ADD COLUMN amc_coupon_code VARCHAR(50) DEFAULT NULL");
         } catch(e) {}
@@ -89,33 +90,11 @@ export async function updateWorkingStatus(formData: FormData) {
             revalidatePath("/admin/warranties", 'layout');
           }
 
-          // Referral payout logic: If referred_by exists, add ₹100 to the referrer's wallet
-          if (booking.referred_by) {
-            const description = `Referral Bonus for Booking #${id}`;
-            
-            // Check if this bonus was already paid to prevent duplicate payouts
-            const [existingTxs]: any = await pool.query(
-              "SELECT id FROM wallet_transactions WHERE description = ?",
-              [description]
-            );
-            
-            if (existingTxs.length === 0) {
-              // Find the email of the referral member
-              const [referrerRows]: any = await pool.query(
-                "SELECT email FROM referral_registrations WHERE referral_member_id = ?",
-                [booking.referred_by]
-              );
-              
-              if (referrerRows && referrerRows.length > 0) {
-                const referrerEmail = referrerRows[0].email;
-                
-                // Add ₹100 to their wallet
-                await pool.query(
-                  "INSERT INTO wallet_transactions (user_email, amount, type, description) VALUES (?, ?, 'Credit', ?)",
-                  [referrerEmail, 100.00, description]
-                );
-              }
-            }
+          // OMAA Company 2-Level Referral Money (₹400 / ₹200) + 200 Buyer Reward Points System
+          try {
+            await processBookingCompletionRewards(pool, String(id));
+          } catch (rewardErr) {
+            console.error("Failed to process referral / reward points on booking completion:", rewardErr);
           }
 
           return;

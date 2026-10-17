@@ -183,7 +183,7 @@ export default function CashbackPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900 text-sm">Daily cashback claim</h3>
-                  <p className="text-xs text-gray-500">₹4,000 service value ÷ 365 days</p>
+                  <p className="text-xs text-gray-500">₹3,999 service value ÷ 365 days</p>
                 </div>
               </div>
 
@@ -246,7 +246,7 @@ export default function CashbackPage() {
             <div className="bg-[#1a2b3c] rounded-2xl p-6 text-white shadow-sm">
               <p className="text-xs text-gray-300 mb-2 font-medium">Available cashback balance</p>
               <div className="text-4xl font-bold mb-1">₹{Number(balance)}</div>
-              <p className="text-[11px] text-gray-400 mb-6">Minimum withdrawal amount: ₹500</p>
+              <p className="text-[11px] text-gray-400 mb-6">Withdraw directly to your bank account or UPI</p>
               <button className="w-full bg-white text-[#1a2b3c] hover:bg-gray-50 font-bold py-3 px-4 rounded-xl transition-colors text-sm">
                 Complete KYC to withdraw
               </button>

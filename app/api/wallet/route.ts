@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import pool from "../../../lib/db";
 import jwt from "jsonwebtoken";
-import { cookies } from "next/headers";
+import { getAuthToken } from "../../../lib/auth";
+import { getUserRewardSummary } from "@/lib/rewards";
 
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_for_development_only";
 
@@ -9,35 +9,6 @@ interface DecodedToken {
   email?: string;
   [key: string]: unknown;
 }
-
-interface WalletTransactionRow {
-  id: number;
-  type: string;
-  description: string;
-  amount: number | string;
-  created_at: string | Date;
-}
-
-interface BookingCashbackRow {
-  id: number;
-  type?: string;
-  order_id: string;
-  cashback_amount?: number | string;
-  ad_watched?: number | boolean;
-  ad_watched_at?: string | Date | null;
-  created_at: string | Date;
-  working_status?: string;
-}
-
-interface WalletHistoryItem {
-  id: string;
-  type: "Credit" | "Debit";
-  description: string;
-  amount: number;
-  date: string | Date;
-}
-
-import { getAuthToken } from "../../../lib/auth";
 
 async function getUserEmail(req?: Request): Promise<string | null> {
   const token = await getAuthToken(req);
@@ -58,64 +29,36 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    let walletTxBalance = 0;
-    let walletTxHistory: WalletHistoryItem[] = [];
-    try {
-      const [walletTxRows] = await pool.query(
-        `SELECT * FROM wallet_transactions WHERE user_email = ? ORDER BY created_at DESC`,
-        [userEmail]
-      ) as unknown as [WalletTransactionRow[]];
+    const summary = await getUserRewardSummary(userEmail);
 
-      walletTxHistory = (walletTxRows || []).map((tx) => {
-        const amount = Number(tx.amount);
-        walletTxBalance += amount;
-        return {
-          id: "wtx_" + tx.id,
-          type: tx.type === "Credit" ? "Credit" : "Debit",
-          description: tx.description,
-          amount,
-          date: tx.created_at
-        };
-      });
-    } catch (error) {
-      console.warn("Wallet transactions unavailable:", error instanceof Error ? error.message : error);
-    }
+    // Combine legacy transactions for backward compatibility
+    const combinedLegacyHistory = [
+      ...summary.referral_money.history.map(item => ({
+        id: `rm_${item.id}`,
+        type: item.type,
+        amount: Number(item.amount),
+        description: item.description,
+        date: item.created_at,
+        source: 'referral_money'
+      })),
+      ...summary.points.history.map(item => ({
+        id: `pts_${item.id}`,
+        type: item.type,
+        amount: Number(item.points),
+        description: `${item.description} (${item.points} Pts)`,
+        date: item.created_at,
+        source: 'points'
+      }))
+    ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-    // 2. Get Bookings Cashback Balance & History
-    let bookingsCashbackBalance = 0;
-    let bookingsHistory: WalletHistoryItem[] = [];
-    try {
-      const [bookings] = await pool.query(
-        `SELECT * FROM bookings WHERE user_email = ?`,
-        [userEmail]
-      ) as unknown as [BookingCashbackRow[]];
-
-      bookingsHistory = (bookings || [])
-        .filter((booking) => booking.working_status === "Complete" && Boolean(booking.ad_watched) && Number(booking.cashback_amount) > 0)
-        .map((booking) => {
-          const amount = Number(booking.cashback_amount);
-          bookingsCashbackBalance += amount;
-          return {
-            id: "bk_" + booking.id,
-            type: "Credit",
-            description: (booking.type || "Booking") + " Cashback (Order: " + booking.order_id + ")",
-            amount,
-            date: booking.ad_watched_at || booking.created_at
-          };
-        });
-    } catch (error) {
-      console.warn("Booking cashback unavailable:", error instanceof Error ? error.message : error);
-    }
-
-    // 3. Combine and sort all transactions
-    const totalBalance = walletTxBalance + bookingsCashbackBalance;
-    const allTransactions = [...walletTxHistory, ...bookingsHistory].sort((a, b) => {
-      return new Date(b.date).getTime() - new Date(a.date).getTime();
+    return NextResponse.json({
+      success: true,
+      balance: summary.referral_money.available_balance,
+      transactions: combinedLegacyHistory,
+      summary
     });
-
-    return NextResponse.json({ balance: totalBalance, transactions: allTransactions });
-  } catch (error) {
-    console.error("Wallet GET error:", error instanceof Error ? error.message : error);
-    return NextResponse.json({ error: "Failed to fetch wallet details" }, { status: 500 });
+  } catch (error: any) {
+    console.error("Wallet GET error:", error);
+    return NextResponse.json({ error: "Failed to fetch wallet details: " + error.message }, { status: 500 });
   }
 }

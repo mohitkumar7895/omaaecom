@@ -72,18 +72,18 @@ async function seed() {
       { c: 'Water Purifier', s: 'Installation', t: 'Water Purifier Uninstallation', p: 199, r: '4.80' },
 
       // RO AMC - Local / Non-branded
-      { c: 'RO AMC', s: 'Local', t: 'RO & Refrigerator', p: 4000, r: '4.80' },
-      { c: 'RO AMC', s: 'Local', t: 'Aqua Grand', p: 4000, r: '4.50' },
-      { c: 'RO AMC', s: 'Local', t: 'Aqua Grand Plus', p: 4000, r: '4.50' },
-      { c: 'RO AMC', s: 'Local', t: 'Aquafresh', p: 4000, r: '4.70' },
-      { c: 'RO AMC', s: 'Local', t: 'Aqua Ultra', p: 4000, r: '4.90' },
-      { c: 'RO AMC', s: 'Local', t: 'All Local Branded', p: 4000, r: '4.90' },
-      { c: 'RO AMC', s: 'Local', t: 'AC / Water Purifier / Refrigerator', p: 4000, r: '4.90' },
+      { c: 'RO AMC', s: 'Local', t: 'RO & Refrigerator', p: 3999, r: '4.80' },
+      { c: 'RO AMC', s: 'Local', t: 'Aqua Grand', p: 3999, r: '4.50' },
+      { c: 'RO AMC', s: 'Local', t: 'Aqua Grand Plus', p: 3999, r: '4.50' },
+      { c: 'RO AMC', s: 'Local', t: 'Aquafresh', p: 3999, r: '4.70' },
+      { c: 'RO AMC', s: 'Local', t: 'Aqua Ultra', p: 3999, r: '4.90' },
+      { c: 'RO AMC', s: 'Local', t: 'All Local Branded', p: 3999, r: '4.90' },
+      { c: 'RO AMC', s: 'Local', t: 'AC / Water Purifier / Refrigerator', p: 3999, r: '4.90' },
       // RO AMC - Branded
-      { c: 'RO AMC', s: 'Branded', t: 'KENT All Model', p: 4000, r: '4.80' },
-      { c: 'RO AMC', s: 'Branded', t: 'Livpure All Model', p: 4000, r: '4.80' },
-      { c: 'RO AMC', s: 'Branded', t: 'Havells RO, Model', p: 4000, r: '4.80' },
-      { c: 'RO AMC', s: 'Branded', t: 'pureitRo', p: 4000, r: '4.80' },
+      { c: 'RO AMC', s: 'Branded', t: 'KENT All Model', p: 3999, r: '4.80' },
+      { c: 'RO AMC', s: 'Branded', t: 'Livpure All Model', p: 3999, r: '4.80' },
+      { c: 'RO AMC', s: 'Branded', t: 'Havells RO, Model', p: 3999, r: '4.80' },
+      { c: 'RO AMC', s: 'Branded', t: 'pureitRo', p: 3999, r: '4.80' },
     ];
 
     console.log("Emptying services table...");

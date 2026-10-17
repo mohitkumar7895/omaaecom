@@ -18,8 +18,28 @@ export default function StickyCartSummary() {
       const savedCart = localStorage.getItem("omaa_cart");
       if (savedCart) {
         const parsed = JSON.parse(savedCart);
-        const newCount = parsed.length;
-        const newTotal = parsed.reduce((sum: number, item: any) => sum + (Number(item.selling_price) * (item.quantity || 1)), 0);
+        let changed = false;
+        const normalized = (parsed || []).map((item: any) => {
+          const title = (item.title || item.name || "").toLowerCase();
+          const catId = Number(item.category_id);
+          const isAmc = catId === 7 || title.includes("amc") || title.includes("ro & refrigerator");
+          if (isAmc || Number(item.selling_price) === 4000 || Number(item.price) === 4000) {
+            if (Number(item.selling_price) === 4000 || !item.selling_price) {
+              changed = true;
+              return {
+                ...item,
+                selling_price: 3999,
+                price: 3999,
+              };
+            }
+          }
+          return item;
+        });
+        if (changed) {
+          localStorage.setItem("omaa_cart", JSON.stringify(normalized));
+        }
+        const newCount = normalized.length;
+        const newTotal = normalized.reduce((sum: number, item: any) => sum + (Number(item.selling_price) * (item.quantity || 1)), 0);
         
         prevTotalRef.current = newTotal;
         isInitialLoad.current = false;

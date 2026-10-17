@@ -20,24 +20,58 @@ export async function POST(req: Request) {
       [email]
     );
 
-    // Ensure referral_code column exists in users
+    // Ensure columns exist in users
     try {
       await connection.query(`ALTER TABLE users ADD COLUMN referral_code VARCHAR(50) DEFAULT NULL`);
     } catch(e) {}
+    try {
+      await connection.query(`ALTER TABLE users ADD COLUMN referred_by VARCHAR(50) DEFAULT NULL`);
+    } catch(e) {}
+
+    // Check incoming referral code from cookie
+    const cookieHeader = req.headers.get("cookie") || "";
+    let incomingRefCode = "";
+    const match = cookieHeader.match(/omaa_referral_code=([^;]+)/);
+    if (match) {
+      incomingRefCode = decodeURIComponent(match[1]).trim().toUpperCase();
+    }
 
     let user;
     let referralCode = "";
 
     if (userRows.length === 0) {
+      // Validate referrer code
+      let validReferrer = null;
+      if (incomingRefCode) {
+        const [refCheck]: any = await connection.query(
+          "SELECT referral_code, email FROM users WHERE referral_code = ? LIMIT 1",
+          [incomingRefCode]
+        );
+        if (refCheck.length > 0 && refCheck[0].email !== email) {
+          validReferrer = refCheck[0].referral_code;
+        }
+      }
+
       const randomNum = Math.floor(100000 + Math.random() * 900000);
       referralCode = `OC${randomNum}`;
 
       // Create new user from Google Data
       await connection.query(
-        `INSERT INTO users (uid, email, name, referral_code) VALUES (?, ?, ?, ?)`,
-        [uid, email, displayName || email.split('@')[0], referralCode]
+        `INSERT INTO users (uid, email, name, referral_code, referred_by) VALUES (?, ?, ?, ?, ?)`,
+        [uid, email, displayName || email.split('@')[0], referralCode, validReferrer]
       );
-      user = { uid, email, name: displayName || email.split('@')[0], referral_code: referralCode };
+      user = { uid, email, name: displayName || email.split('@')[0], referral_code: referralCode, referred_by: validReferrer };
+
+      // Award 100 Welcome Points
+      try {
+        await connection.query(
+          `INSERT INTO reward_points_transactions (user_email, points, type, category, description) 
+           VALUES (?, 100, 'Credit', 'welcome', 'Welcome Bonus - 100 Signup Points')`,
+          [email]
+        );
+      } catch (ptsErr) {
+        console.error("Failed to credit welcome points:", ptsErr);
+      }
     } else {
       user = userRows[0];
       referralCode = user.referral_code;
@@ -51,6 +85,21 @@ export async function POST(req: Request) {
         );
         user.referral_code = referralCode;
       }
+
+      // If existing user has no welcome points recorded, credit 100 points
+      try {
+        const [wel]: any = await connection.query(
+          "SELECT id FROM reward_points_transactions WHERE user_email = ? AND category = 'welcome' LIMIT 1",
+          [email]
+        );
+        if (wel.length === 0) {
+          await connection.query(
+            `INSERT INTO reward_points_transactions (user_email, points, type, category, description) 
+             VALUES (?, 100, 'Credit', 'welcome', 'Welcome Bonus - 100 Signup Points')`,
+            [email]
+          );
+        }
+      } catch (ptsErr) {}
     }
 
     connection.release();
@@ -62,7 +111,7 @@ export async function POST(req: Request) {
         email: user.email, 
         name: user.name,
         referral_code: user.referral_code,
-        referral_link: `https://omaacompany.in/?ref=${user.referral_code}`
+        referral_link: `https://omaacompany.com/wallet?ref=${user.referral_code}`
       },
       JWT_SECRET,
       { expiresIn: '30d' }
@@ -75,7 +124,7 @@ export async function POST(req: Request) {
       user: {
         ...user,
         referral_code: user.referral_code,
-        referral_link: `https://omaacompany.in/?ref=${user.referral_code}`
+        referral_link: `https://omaacompany.com/wallet?ref=${user.referral_code}`
       } 
     });
     

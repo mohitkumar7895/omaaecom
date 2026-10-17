@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, Suspense } from "react";
+import Link from "next/link";
 import Navbar from "../components/Navbar";
 import { 
   CheckCircle2, 
@@ -51,10 +52,21 @@ function CheckoutContent() {
   const [user, setUser] = useState<any>(() => getStoredUser());
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const pendingCheckoutAfterLogin = useRef(false);
+
+  const isCustomerLoggedIn = Boolean(
+    (user && (user.email || user.name || user.uid)) ||
+    (getStoredUser() && (getStoredUser()?.email || getStoredUser()?.name || getStoredUser()?.uid)) ||
+    isLoggedIn()
+  );
   
   // QR Payment Modal State
   const [showQrModal, setShowQrModal] = useState(false);
   const [copiedUpi, setCopiedUpi] = useState(false);
+
+  // Rewards & Wallet State
+  const [userRewards, setUserRewards] = useState<any>(null);
+  const [redeemPoints, setRedeemPoints] = useState<boolean>(false);
+  const [useReferralMoney, setUseReferralMoney] = useState<boolean>(false);
 
   const [form, setForm] = useState({
     name: '',
@@ -63,7 +75,7 @@ function CheckoutContent() {
     address: '',
     booking_date: '',
     time_slot: '',
-    referred_by: searchParams.get('ref') || '',
+    referred_by: searchParams.get('ref') || (typeof window !== 'undefined' ? localStorage.getItem('omaa_referral_code') || '' : ''),
   });
 
   // Address search
@@ -93,7 +105,32 @@ function CheckoutContent() {
   useEffect(() => {
     const savedCart = localStorage.getItem("omaa_cart");
     if (savedCart) {
-      setCart(JSON.parse(savedCart));
+      try {
+        const parsed = JSON.parse(savedCart);
+        let changed = false;
+        const normalized = (parsed || []).map((item: any) => {
+          const title = (item.title || item.name || "").toLowerCase();
+          const catId = Number(item.category_id);
+          const isAmc = catId === 7 || title.includes("amc") || title.includes("ro & refrigerator");
+          if (isAmc || Number(item.selling_price) === 4000 || Number(item.price) === 4000) {
+            if (Number(item.selling_price) === 4000 || !item.selling_price) {
+              changed = true;
+              return {
+                ...item,
+                selling_price: 3999,
+                price: 3999,
+              };
+            }
+          }
+          return item;
+        });
+        if (changed) {
+          localStorage.setItem("omaa_cart", JSON.stringify(normalized));
+        }
+        setCart(normalized);
+      } catch (e) {
+        setCart(JSON.parse(savedCart));
+      }
     }
 
     // Auto-fill booking address from detected/saved user location
@@ -131,14 +168,14 @@ function CheckoutContent() {
       try {
         const fromEvent = (e as CustomEvent)?.detail?.user;
         const freshUser = fromEvent || (await fetchCurrentUser()) || getStoredUser();
-        if (freshUser) {
+        if (freshUser && (freshUser.email || freshUser.name)) {
           setUser(freshUser);
           setForm(prev => ({
             ...prev,
             email: prev.email || freshUser.email || '',
             name: prev.name || freshUser.name || '',
           }));
-        } else if (!getStoredUser()) {
+        } else if (!getStoredUser() && !isLoggedIn()) {
           setUser(null);
         }
       } catch (e) {
@@ -150,6 +187,22 @@ function CheckoutContent() {
     window.addEventListener("auth_changed", checkAuth);
     return () => window.removeEventListener("auth_changed", checkAuth);
   }, []);
+
+  // Fetch user rewards for redemption
+  useEffect(() => {
+    if (user) {
+      authFetch("/api/wallet")
+        .then(res => res.json())
+        .then(data => {
+          if (data?.summary) {
+            setUserRewards(data.summary);
+          }
+        })
+        .catch(() => {});
+    } else {
+      setUserRewards(null);
+    }
+  }, [user]);
 
   const isGstItem = (item: any) => {
     const title = (item.title || item.name || "").toLowerCase();
@@ -188,6 +241,28 @@ function CheckoutContent() {
   const hasGstItems = cart.some(isGstItem);
   const convenienceFee = (cart.length > 0 && !hasGstItems) ? 49 : 0;
   const totalAmount = itemTotals + gstAmount + convenienceFee;
+
+  // OMAA Company Rewards & Redemption Rules:
+  // Rule 2.A: Services (AC, Fridge, Washing Machine, etc.) -> Max 50% bill payment via Reward Points
+  // Rule 2.B: New Products & RO AMC -> Up to 100% bill payment via Reward Points
+  const servicesItemsTotal = cart.filter(item => !isGstItem(item)).reduce((sum, item) => sum + (Number(item.selling_price) * item.quantity || 0), 0);
+  const productsItemsTotal = cart.filter(isGstItem).reduce((sum, item) => sum + (Number(item.selling_price) * item.quantity || 0), 0);
+
+  const maxServicePoints = Math.floor(servicesItemsTotal * 0.50);
+  const maxProductPoints = productsItemsTotal;
+  const maxEligiblePointsForCart = maxServicePoints + maxProductPoints;
+
+  const availableRewardPoints = userRewards?.points?.available_points || 0;
+  const applicablePointsToRedeem = redeemPoints ? Math.min(availableRewardPoints, maxEligiblePointsForCart) : 0;
+
+  const amountAfterPoints = Math.max(0, totalAmount - applicablePointsToRedeem);
+
+  // Referral Money Rule:
+  // Can be used on eligible purchases/services up to remaining bill
+  const availableReferralMoney = userRewards?.referral_money?.available_balance || 0;
+  const applicableReferralMoney = useReferralMoney ? Math.min(availableReferralMoney, amountAfterPoints) : 0;
+
+  const finalPayableTotal = Math.max(0, amountAfterPoints - applicableReferralMoney);
 
   // Check if ANY cart item requires a schedule (i.e. is NOT an AMC or New Product)
   const requiresSchedule = cart.some(item => {
@@ -278,10 +353,18 @@ function CheckoutContent() {
     }
 
     // AUTHENTICATION CHECK: Customer MUST be logged in to book / make payment
-    const currentUser = isLoggedIn() ? user || getStoredUser() : null;
-    if (!currentUser) {
+    const currentUser = (user && (user.email || user.name)) ? user : (getStoredUser()?.email ? getStoredUser() : (isLoggedIn() ? user || getStoredUser() : null));
+    if (!currentUser && !form.email) {
       pendingCheckoutAfterLogin.current = true;
       setIsLoginModalOpen(true);
+      return;
+    }
+
+    const effectiveUser = currentUser || { email: form.email, name: form.name };
+
+    // If total payable is ₹0 (100% paid by Points and/or Referral Money), book directly
+    if (finalPayableTotal === 0) {
+      handleSubmit(effectiveUser);
       return;
     }
 
@@ -289,13 +372,13 @@ function CheckoutContent() {
     if (paymentMethod === 'online') {
       setShowQrModal(true);
     } else {
-      handleSubmit(currentUser);
+      handleSubmit(effectiveUser);
     }
   };
 
   const handleSubmit = async (userOverride?: any) => {
-    const currentUser = userOverride || (isLoggedIn() ? user || getStoredUser() : null);
-    if (!currentUser) {
+    const currentUser = userOverride || (user && (user.email || user.name) ? user : null) || (getStoredUser()?.email ? getStoredUser() : null) || (isLoggedIn() ? user || getStoredUser() : null) || (form.email ? { email: form.email, name: form.name } : null);
+    if (!currentUser || (!currentUser.email && !form.email)) {
       pendingCheckoutAfterLogin.current = true;
       setIsLoginModalOpen(true);
       return;
@@ -313,10 +396,12 @@ function CheckoutContent() {
           address: form.address,
           booking_date: requiresSchedule ? form.booking_date : new Date().toISOString().slice(0, 10),
           time_slot: requiresSchedule ? form.time_slot : 'Instant',
-          payment_method: paymentMethod,
-          total_amount: totalAmount,
+          payment_method: finalPayableTotal === 0 ? 'wallet' : paymentMethod,
+          total_amount: finalPayableTotal,
           cart_items: cart,
           referred_by: form.referred_by,
+          points_redeemed: applicablePointsToRedeem,
+          referral_money_used: applicableReferralMoney
         }),
       });
 
@@ -492,7 +577,7 @@ function CheckoutContent() {
             <div className="bg-white rounded-[24px] shadow-sm border border-gray-100 p-6 sm:p-8 md:p-10 relative">
 
               {/* Customer Authentication Status Card */}
-              {user && isLoggedIn() ? (
+              {isCustomerLoggedIn ? (
                 <div className="mb-8 p-4 sm:p-5 rounded-2xl bg-emerald-50/80 border border-emerald-200/80 flex items-center justify-between gap-4 animate-in fade-in">
                   <div className="flex items-center gap-3.5">
                     <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
@@ -505,7 +590,7 @@ function CheckoutContent() {
                           Verified
                         </span>
                       </div>
-                      <p className="text-sm font-extrabold text-gray-900 mt-0.5">{user.email || user.name}</p>
+                      <p className="text-sm font-extrabold text-gray-900 mt-0.5">{(user || getStoredUser())?.email || (user || getStoredUser())?.name || form.email}</p>
                     </div>
                   </div>
                   <div className="hidden sm:flex items-center gap-1.5 text-xs text-emerald-700 font-bold bg-white/80 px-3 py-1.5 rounded-xl border border-emerald-200">
@@ -745,7 +830,112 @@ function CheckoutContent() {
                   <span className="text-gray-500 font-semibold">Taxes</span>
                   <span className="font-bold text-[#328e3b] bg-green-50 px-3 py-1 rounded-full text-xs uppercase tracking-wider">Free</span>
                 </div>
+
+                {applicablePointsToRedeem > 0 && (
+                  <div className="flex justify-between items-center text-[15px] text-amber-700 bg-amber-50/60 px-3 py-2 rounded-xl border border-amber-200/60">
+                    <span className="font-bold flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-amber-600" /> Reward Points ({applicablePointsToRedeem} Pts)
+                    </span>
+                    <span className="font-extrabold">-₹{applicablePointsToRedeem}</span>
+                  </div>
+                )}
+
+                {applicableReferralMoney > 0 && (
+                  <div className="flex justify-between items-center text-[15px] text-emerald-700 bg-emerald-50/60 px-3 py-2 rounded-xl border border-emerald-200/60">
+                    <span className="font-bold flex items-center gap-1.5">
+                      <IndianRupee className="w-4 h-4 text-emerald-600" /> Referral Money Used
+                    </span>
+                    <span className="font-extrabold">-₹{applicableReferralMoney.toFixed(2)}</span>
+                  </div>
+                )}
               </div>
+
+              {/* 🎁 OMAA Reward Points & Referral Money Redemption Section */}
+              {user && userRewards && (
+                <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-amber-50/70 via-orange-50/40 to-indigo-50/50 border border-amber-200/80 shadow-xs">
+                  <div className="flex items-center justify-between mb-3.5 pb-2.5 border-b border-amber-200/60">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-sm">
+                        <Sparkles className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h4 className="font-extrabold text-sm text-gray-900">OMAA Rewards & Wallet</h4>
+                        <p className="text-[11px] text-gray-500 font-medium">Redeem points & referral money</p>
+                      </div>
+                    </div>
+                    <Link href="/wallet" target="_blank" className="text-[11px] font-bold text-[#6b62d9] hover:underline">
+                      View Wallet
+                    </Link>
+                  </div>
+
+                  <div className="space-y-3">
+                    {/* Option 1: Reward Points */}
+                    <div className={`p-3 rounded-xl border transition-all ${redeemPoints ? 'bg-white border-amber-400 shadow-xs' : 'bg-white/80 border-gray-200/80'}`}>
+                      <label className="flex items-start justify-between cursor-pointer">
+                        <div className="flex items-start gap-2.5">
+                          <input 
+                            type="checkbox"
+                            checked={redeemPoints}
+                            onChange={(e) => setRedeemPoints(e.target.checked)}
+                            disabled={availableRewardPoints <= 0 || maxEligiblePointsForCart <= 0}
+                            className="mt-1 w-4 h-4 text-amber-500 rounded border-gray-300 focus:ring-amber-400 cursor-pointer disabled:opacity-40"
+                          />
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-xs sm:text-[13px] text-gray-900">Redeem Reward Points</span>
+                              <span className="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full">
+                                {availableRewardPoints} Pts Available
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-gray-600 mt-0.5">
+                              Eligible for this cart: <strong className="text-gray-900">{Math.min(availableRewardPoints, maxEligiblePointsForCart)} Points (= ₹{Math.min(availableRewardPoints, maxEligiblePointsForCart)})</strong>
+                            </p>
+                            <p className="text-[10px] text-gray-400 mt-0.5">
+                              (Max 50% for Services • Up to 100% for New Products & RO AMC)
+                            </p>
+                          </div>
+                        </div>
+                        {redeemPoints && applicablePointsToRedeem > 0 && (
+                          <span className="font-black text-xs sm:text-sm text-emerald-600 shrink-0">
+                            -₹{applicablePointsToRedeem}
+                          </span>
+                        )}
+                      </label>
+                    </div>
+
+                    {/* Option 2: Referral Money */}
+                    <div className={`p-3 rounded-xl border transition-all ${useReferralMoney ? 'bg-white border-emerald-400 shadow-xs' : 'bg-white/80 border-gray-200/80'}`}>
+                      <label className="flex items-start justify-between cursor-pointer">
+                        <div className="flex items-start gap-2.5">
+                          <input 
+                            type="checkbox"
+                            checked={useReferralMoney}
+                            onChange={(e) => setUseReferralMoney(e.target.checked)}
+                            disabled={availableReferralMoney <= 0 || amountAfterPoints <= 0}
+                            className="mt-1 w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500 cursor-pointer disabled:opacity-40"
+                          />
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-xs sm:text-[13px] text-gray-900">Use Referral Money</span>
+                              <span className="bg-emerald-100 text-emerald-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full">
+                                ₹{availableReferralMoney.toFixed(2)} Balance
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-gray-600 mt-0.5">
+                              Pay remaining bill using your withdrawable referral balance
+                            </p>
+                          </div>
+                        </div>
+                        {useReferralMoney && applicableReferralMoney > 0 && (
+                          <span className="font-black text-xs sm:text-sm text-emerald-600 shrink-0">
+                            -₹{applicableReferralMoney.toFixed(2)}
+                          </span>
+                        )}
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Redesigned Total to Pay Card */}
               <div className="mb-8 p-6 rounded-2xl bg-gradient-to-br from-[#f8f7ff] via-[#f3f1ff] to-[#ebe7ff] border-2 border-[#6b62d9]/25 shadow-sm flex items-center justify-between">
@@ -755,17 +945,18 @@ function CheckoutContent() {
                   </span>
                   <div className="flex items-center gap-1.5 text-xs text-[#328e3b] font-bold">
                     <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Best Price Guaranteed</span>
+                    <span>{finalPayableTotal === 0 ? '100% Covered by Rewards / Wallet' : 'Best Price Guaranteed'}</span>
                   </div>
                 </div>
                 <div className="text-right">
                   <span className="font-black text-3xl sm:text-4xl text-[#584ec6] tracking-tight">
-                    ₹{Math.round(totalAmount).toLocaleString()}
+                    ₹{Math.round(finalPayableTotal).toLocaleString()}
                   </span>
                 </div>
               </div>
 
               {/* Payment Method Selector */}
+              {finalPayableTotal > 0 && (
               <div className="mb-6">
                 <p className="text-[12px] font-black text-gray-400 tracking-widest mb-3 uppercase">Select Payment Method</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -831,6 +1022,7 @@ function CheckoutContent() {
 
                 </div>
               </div>
+              )}
 
               {/* Main Submit / Proceed Button */}
               <button 
@@ -845,10 +1037,12 @@ function CheckoutContent() {
                     {!user && <Lock className="w-4 h-4 text-amber-300 stroke-[2.5]" />}
                     <span>
                       {user 
-                        ? (paymentMethod === 'online' ? 'Proceed to Pay Online' : 'Confirm Cash Booking')
+                        ? (finalPayableTotal === 0 
+                            ? 'Confirm Booking with Rewards & Balance' 
+                            : (paymentMethod === 'online' ? 'Proceed to Pay Online' : 'Confirm Cash Booking'))
                         : (paymentMethod === 'online' ? 'Login & Proceed to Pay' : 'Login & Confirm Booking')}
                     </span>
-                    <span className="font-normal opacity-80 text-sm sm:text-base">| ₹{Math.round(totalAmount).toLocaleString()}</span>
+                    <span className="font-normal opacity-80 text-sm sm:text-base">| ₹{Math.round(finalPayableTotal).toLocaleString()}</span>
                     <ArrowRight className="w-4 h-4 opacity-75 group-hover:translate-x-1 transition-transform" />
                   </>
                 )}
@@ -896,7 +1090,7 @@ function CheckoutContent() {
                 </div>
                 <div className="text-right">
                   <span className="text-[10px] font-bold text-indigo-200 block uppercase">Payable</span>
-                  <span className="text-lg font-black text-white">₹{Math.round(totalAmount).toLocaleString()}</span>
+                  <span className="text-lg font-black text-white">₹{Math.round(finalPayableTotal).toLocaleString()}</span>
                 </div>
               </div>
             </div>
@@ -959,7 +1153,7 @@ function CheckoutContent() {
 
               {/* Direct UPI Intent Link (For Mobile Phones) */}
               <a
-                href={`upi://pay?pa=omacr8ewa@idfcbank&pn=OMAA%20CURRENTSEWA%20INDIA%20PVT%20LTD&am=${Math.round(totalAmount)}&cu=INR&tn=OMAA%20Service%20Booking`}
+                href={`upi://pay?pa=omacr8ewa@idfcbank&pn=OMAA%20CURRENTSEWA%20INDIA%20PVT%20LTD&am=${Math.round(finalPayableTotal)}&cu=INR&tn=OMAA%20Service%20Booking`}
                 className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 transition active:scale-95 shadow-2xs sm:hidden"
               >
                 <Smartphone className="w-3.5 h-3.5" />
@@ -1015,9 +1209,9 @@ function CheckoutContent() {
       <LoginModal 
         isOpen={isLoginModalOpen} 
         onClose={() => setIsLoginModalOpen(false)}
-        onLoginSuccess={(loggedInUser) => {
+        onLoginSuccess={(loggedInUser, token) => {
           if (loggedInUser) {
-            persistLogin(loggedInUser);
+            persistLogin(loggedInUser, token);
             setUser(loggedInUser);
           }
           setIsLoginModalOpen(false);

@@ -8,7 +8,7 @@ import { persistLogin } from "@/lib/client-auth";
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLoginSuccess?: (user: any) => void;
+  onLoginSuccess?: (user: any, token?: string) => void;
 }
 
 export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginModalProps) {
@@ -93,11 +93,12 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
     setError("");
 
     try {
+      const storedRef = typeof window !== 'undefined' ? localStorage.getItem("omaa_referral_code") || "" : "";
       const res = await fetch("/api/auth/verify-otp", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp }),
+        body: JSON.stringify({ email, otp, referral_code: storedRef }),
       });
       const data = await res.json();
       
@@ -109,7 +110,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }: LoginMod
         window.dispatchEvent(new CustomEvent("auth_changed", { detail: { user: data.user } }));
       }
 
-      if (onLoginSuccess) onLoginSuccess(data.user);
+      if (onLoginSuccess) onLoginSuccess(data.user, data.token);
       setTimeout(() => onClose(), 300);
     } catch (err: any) {
       setError(err.message);

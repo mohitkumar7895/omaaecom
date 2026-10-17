@@ -95,10 +95,11 @@ export default function LoginPage() {
     setError("");
 
     try {
+      const storedRef = typeof window !== 'undefined' ? localStorage.getItem("omaa_referral_code") || "" : "";
       const res = await fetch("/api/auth/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp }),
+        body: JSON.stringify({ email, otp, referral_code: storedRef }),
       });
       const data = await res.json();
 
