@@ -84,7 +84,7 @@ export async function POST(req: Request) {
       }
 
       // Generate new 6-character referral code (3 letters + 3 numbers)
-      referralCode = generateReferralCode();
+      referralCode = generateReferralCode(email);
 
       const uid = `email-${Date.now()}`;
       await connection.query(
@@ -108,7 +108,7 @@ export async function POST(req: Request) {
       referralCode = user.referral_code;
 
       if (!referralCode) {
-        referralCode = generateReferralCode();
+        referralCode = generateReferralCode(email);
         await connection.query(
           `UPDATE users SET referral_code = ? WHERE email = ?`,
           [referralCode, email]

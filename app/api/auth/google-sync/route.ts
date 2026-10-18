@@ -53,7 +53,7 @@ export async function POST(req: Request) {
         }
       }
 
-      referralCode = generateReferralCode();
+      referralCode = generateReferralCode(email);
 
       // Create new user from Google Data
       await connection.query(
@@ -77,7 +77,7 @@ export async function POST(req: Request) {
       referralCode = user.referral_code;
 
       if (!referralCode) {
-        referralCode = generateReferralCode();
+        referralCode = generateReferralCode(email);
         await connection.query(
           `UPDATE users SET referral_code = ? WHERE email = ?`,
           [referralCode, email]

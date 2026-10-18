@@ -20,7 +20,8 @@ import {
   CheckCircle2, 
   X,
   ExternalLink,
-  ChevronRight
+  ChevronRight,
+  Link2
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState, Suspense } from "react";
@@ -70,8 +71,10 @@ function WalletContent() {
           setWalletData(data.summary || null);
           const freshCode = data.summary?.referral_network?.referral_code || currentUser.referral_code;
           if (freshCode && !freshCode.startsWith("OC") && freshCode.length === 6) {
+            currentUser.referral_code = freshCode;
             try {
               localStorage.setItem("omaa_active_ref", freshCode);
+              localStorage.setItem("omaa_user", JSON.stringify(currentUser));
               window.dispatchEvent(new CustomEvent("auth_changed", { detail: { user: currentUser } }));
             } catch(e) {}
           }
@@ -107,7 +110,7 @@ function WalletContent() {
     if (code && !code.startsWith("OC") && code.length === 6) {
       return code;
     }
-    return getActiveReferralCode();
+    return getActiveReferralCode(user?.email);
   };
 
   const getReferralLink = () => {
@@ -137,18 +140,19 @@ function WalletContent() {
 
   const handleShare = async () => {
     const link = getReferralLink();
-    const message = `Hey! Book Doorstep RO, AC & Home Appliance Repair on OMAA Company. Get 100 Welcome Points on wallet: ${link}`;
+    const shareText = "Hey! Book Doorstep RO, AC & Home Appliance Repair on OMAA Company. Get rewards on wallet:";
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
         await navigator.share({
           title: "OMAA Company - Refer & Earn",
-          text: message,
+          text: shareText,
           url: link,
         });
         return;
       } catch (err) {}
     }
-    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, "_blank");
+    const fullMessage = `${shareText} ${link}`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(fullMessage)}`, "_blank");
   };
 
   const handleWithdrawSubmit = async (e: React.FormEvent) => {
@@ -297,10 +301,10 @@ function WalletContent() {
 
       <div className="flex-1 max-w-4xl w-full mx-auto px-4 py-5 sm:py-7">
         
-        {/* Compact User Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border border-gray-200/80 shadow-xs mb-4">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-500 text-white flex items-center justify-center font-bold text-base shadow-xs shrink-0">
+        {/* User Profile Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-gray-200/80 shadow-xs mb-4">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-[#5538EE] to-[#7B61FF] text-white flex items-center justify-center font-bold text-base shadow-sm shrink-0">
               <Wallet className="w-5 h-5" />
             </div>
             <div className="min-w-0">
@@ -308,42 +312,43 @@ function WalletContent() {
                 <h1 className="text-base sm:text-lg font-black text-gray-900 tracking-tight truncate">
                   {user.name || user.email?.split('@')[0]}
                 </h1>
-                <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200/60">
+                <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 text-[10.5px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-200/70 shadow-2xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                   Verified
                 </span>
               </div>
-              <p className="text-gray-500 text-xs truncate">{user.email}</p>
+              <p className="text-gray-500 text-xs truncate mt-0.5">{user.email}</p>
             </div>
           </div>
 
           {/* Referral Code Quick View */}
-          <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-200/80 self-start sm:self-center shrink-0">
-            <span className="text-[11px] font-bold text-gray-500 uppercase">My Code:</span>
-            <span className="font-mono font-black text-gray-900 text-xs tracking-wider px-2 py-0.5 bg-white rounded border border-gray-200">
+          <div className="flex items-center gap-2 bg-[#F8F9FE] px-3.5 py-2 rounded-xl border border-[#E4E0FB] self-start sm:self-center shrink-0 shadow-2xs">
+            <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wide">My Code:</span>
+            <span className="font-mono font-black text-gray-900 text-xs tracking-wider px-2 py-0.5 bg-white rounded-md border border-gray-200 shadow-2xs">
               {getCleanCode()}
             </span>
             <button 
               onClick={handleCopyCode}
               title="Copy Referral Code"
-              className="p-1 hover:bg-gray-200 rounded text-gray-600 transition cursor-pointer active:scale-95"
+              className="p-1 hover:bg-white rounded-md text-gray-600 transition cursor-pointer active:scale-95"
             >
               {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
             </button>
           </div>
         </div>
 
-        {/* 2 Clean & Compact Balance Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+        {/* 2 Clean & Premium Balance Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
           
           {/* Card 1: Reward Points */}
-          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200/80 shadow-xs flex flex-col justify-between">
+          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200/80 shadow-xs flex flex-col justify-between hover:shadow-sm transition-all duration-300">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-black text-indigo-700 uppercase tracking-wider flex items-center gap-1.5">
+                <span className="text-xs font-black text-[#5538EE] uppercase tracking-wider flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-amber-500" />
                   Reward Points
                 </span>
-                <span className="text-[11px] font-bold text-gray-600 bg-gray-100 px-2 py-0.5 rounded">
+                <span className="text-[11px] font-extrabold text-gray-700 bg-gray-100 px-2.5 py-0.5 rounded-full border border-gray-200/60">
                   1 Pt = ₹1
                 </span>
               </div>
@@ -356,47 +361,55 @@ function WalletContent() {
               </div>
 
               {/* Mini Inline Stats */}
-              <div className="flex items-center gap-3 text-[11px] text-gray-600 bg-gray-50 p-2 rounded-xl border border-gray-100 mb-2 flex-wrap">
-                <span>Welcome: <strong className="text-emerald-700">+{pointsData.welcome_points}</strong></span>
-                <span className="text-gray-300">•</span>
-                <span>Purchases: <strong className="text-indigo-700">+{pointsData.purchase_points}</strong></span>
-                <span className="text-gray-300">•</span>
-                <span>Used: <strong className="text-red-600">-{pointsData.redeemed_points}</strong></span>
+              <div className="flex items-center gap-2 text-[11px] text-gray-600 bg-gray-50/80 p-2 rounded-xl border border-gray-100 mb-2.5 flex-wrap">
+                <span className="bg-emerald-50 text-emerald-800 border border-emerald-100 px-2 py-0.5 rounded-md">
+                  Welcome: <strong>+{pointsData.welcome_points}</strong>
+                </span>
+                <span className="bg-indigo-50 text-indigo-800 border border-indigo-100 px-2 py-0.5 rounded-md">
+                  Purchases: <strong>+{pointsData.purchase_points}</strong>
+                </span>
+                <span className="bg-gray-100 text-gray-700 border border-gray-200 px-2 py-0.5 rounded-md">
+                  Used: <strong>-{pointsData.redeemed_points}</strong>
+                </span>
               </div>
             </div>
 
-            <p className="text-[11px] text-gray-500 font-medium">
-              Redeemable at checkout (up to 100% on RO AMC & Products)
+            <p className="text-[11px] text-gray-500 font-medium pt-1 border-t border-gray-100">
+              Redeemable at checkout (up to 100% on RO AMC &amp; Products)
             </p>
           </div>
 
           {/* Card 2: Referral Cash */}
-          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200/80 shadow-xs flex flex-col justify-between">
+          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200/80 shadow-xs flex flex-col justify-between hover:shadow-sm transition-all duration-300">
             <div>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-black text-emerald-700 uppercase tracking-wider flex items-center gap-1.5">
                   <IndianRupee className="w-3.5 h-3.5" />
                   Referral Cash
                 </span>
-                <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">
+                <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200/70 px-2.5 py-0.5 rounded-full">
                   Withdrawable
                 </span>
               </div>
 
               <div className="flex items-baseline gap-1 my-2">
-                <span className="text-2xl font-bold text-gray-500">₹</span>
+                <span className="text-2xl font-bold text-gray-400">₹</span>
                 <h2 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">
                   {Number(referralData.available_balance).toFixed(2)}
                 </h2>
               </div>
 
               {/* Mini Inline Stats */}
-              <div className="flex items-center gap-3 text-[11px] text-gray-600 bg-gray-50 p-2 rounded-xl border border-gray-100 mb-2 flex-wrap">
-                <span>Earned: <strong className="text-emerald-700">₹{Number(referralData.total_earned).toFixed(0)}</strong></span>
-                <span className="text-gray-300">•</span>
-                <span>Withdrawn: <strong className="text-gray-700">₹{Number(referralData.total_withdrawn).toFixed(0)}</strong></span>
-                <span className="text-gray-300">•</span>
-                <span>Min: <strong>₹200</strong></span>
+              <div className="flex items-center gap-2 text-[11px] text-gray-600 bg-gray-50/80 p-2 rounded-xl border border-gray-100 mb-2.5 flex-wrap">
+                <span className="bg-emerald-50 text-emerald-800 border border-emerald-100 px-2 py-0.5 rounded-md">
+                  Earned: <strong>₹{Number(referralData.total_earned).toFixed(0)}</strong>
+                </span>
+                <span className="bg-gray-100 text-gray-700 border border-gray-200 px-2 py-0.5 rounded-md">
+                  Withdrawn: <strong>₹{Number(referralData.total_withdrawn).toFixed(0)}</strong>
+                </span>
+                <span className="bg-amber-50 text-amber-800 border border-amber-100 px-2 py-0.5 rounded-md">
+                  Min: <strong>₹200</strong>
+                </span>
               </div>
             </div>
 
@@ -406,7 +419,7 @@ function WalletContent() {
                 setShowWithdrawModal(true);
               }}
               disabled={!referralData.can_withdraw}
-              className={`w-full py-2 px-3 rounded-xl font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer ${
+              className={`w-full py-2.5 px-3 rounded-xl font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer ${
                 referralData.can_withdraw
                   ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs active:scale-95'
                   : 'bg-gray-100 text-gray-400 cursor-not-allowed'
@@ -419,48 +432,58 @@ function WalletContent() {
 
         </div>
 
-        {/* Compact Referral Sharing Bar */}
-        <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-gray-200/80 shadow-xs mb-4">
-          <div className="flex items-center justify-between gap-2 mb-2.5">
-            <h3 className="text-[12px] xs:text-[13.5px] sm:text-[15px] font-black text-gray-900 tracking-tight leading-none whitespace-nowrap min-w-0">
-              Welcome Bonus & Refer to Earn
-            </h3>
+        {/* Clean, Modern & Designable Referral Sharing Card */}
+        <div className="bg-gradient-to-br from-[#F8F9FE] via-white to-[#F3F2FF] rounded-2xl p-4 sm:p-5 border border-[#E0DCF8] shadow-xs mb-4 transition-all duration-300 hover:shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-3.5">
+            <div>
+              <h3 className="text-sm sm:text-base font-black text-gray-900 tracking-tight leading-snug">
+                Welcome Bonus &amp; Refer to Earn
+              </h3>
+              <p className="text-xs text-gray-500 font-medium mt-0.5">
+                Share your referral link with friends to earn up to ₹400 for every booking
+              </p>
+            </div>
 
-            {/* Gift Icon with Clean Bold Points */}
-            <div className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
-              <span className="text-[20px] sm:text-[23px] leading-none select-none">🎁</span>
-              <span className="text-[12.5px] sm:text-[14px] font-black text-amber-600 tracking-tight">
-                100 Pts
-              </span>
+            {/* Bonus Points Badge (Static Pill, No link wrapper) */}
+            <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/90 text-amber-700 px-3 py-1 rounded-full font-black text-xs shadow-2xs self-start sm:self-center shrink-0">
+              <span className="text-sm leading-none">🎁</span>
+              <span>100 Pts</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <div className="relative flex-1 min-w-0">
-              <input
-                type="text"
-                readOnly
-                value={getReferralLink()}
-                className="w-full px-2 sm:px-2.5 h-8.5 sm:h-9 bg-gray-50 border border-gray-200 rounded-lg text-[9.5px] xs:text-[10px] sm:text-xs font-mono font-bold tracking-tight sm:tracking-normal text-gray-800 select-all focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
-              />
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            {/* Link Display Pill with Copy Button */}
+            <div className="flex-1 min-w-0 bg-white border border-[#E0DCF8] hover:border-[#5538EE]/40 px-3.5 py-2 rounded-xl flex items-center justify-between gap-2 shadow-2xs transition-colors">
+              <div className="flex items-center gap-2 min-w-0">
+                <Link2 className="w-4 h-4 text-[#5538EE] shrink-0" />
+                <span className="font-mono font-bold text-xs sm:text-[13px] text-gray-800 truncate select-all">
+                  {getReferralLink().replace(/^https?:\/\//, "")}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handleCopyLink}
+                title={copiedLink ? "Copied!" : "Copy link"}
+                aria-label="Copy referral link"
+                className={`shrink-0 px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer active:scale-95 ${
+                  copiedLink
+                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                    : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                }`}
+              >
+                {copiedLink ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copy</span>
+                  </>
+                )}
+              </button>
             </div>
-
-            {/* Copy Button */}
-            <button
-              type="button"
-              onClick={handleCopyLink}
-              title={copiedLink ? "Copied!" : "Copy link"}
-              aria-label="Copy referral link"
-              className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg transition shadow-xs shrink-0 flex items-center justify-center cursor-pointer active:scale-95 ${
-                copiedLink ? "bg-emerald-600 text-white" : "bg-gray-900 hover:bg-black text-white"
-              }`}
-            >
-              {copiedLink ? (
-                <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              ) : (
-                <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              )}
-            </button>
 
             {/* Share Button */}
             <button
@@ -468,9 +491,10 @@ function WalletContent() {
               onClick={handleShare}
               title="Share referral link"
               aria-label="Share referral link"
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-xs shrink-0 flex items-center justify-center active:scale-95 cursor-pointer"
+              className="bg-[#5538EE] hover:bg-[#4326D8] text-white font-bold text-xs sm:text-[13px] px-4.5 py-2.5 rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer active:scale-95"
             >
-              <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <Share2 className="w-4 h-4" />
+              <span>Share Link</span>
             </button>
           </div>
         </div>
@@ -533,8 +557,14 @@ function WalletContent() {
           {activeTab === "referrals" && (
             <div className="p-4 sm:p-5">
               {networkData.total_network_count === 0 ? (
-                <div className="text-center py-8 text-gray-400 text-xs">
-                  No referrals yet. Share your link to start earning!
+                <div className="text-center py-10 px-4 flex flex-col items-center justify-center">
+                  <div className="w-12 h-12 rounded-2xl bg-[#F0EEFF] text-[#5538EE] flex items-center justify-center mb-3 shadow-2xs">
+                    <Users className="w-6 h-6" />
+                  </div>
+                  <p className="font-extrabold text-gray-900 text-sm">No referrals yet</p>
+                  <p className="text-xs text-gray-500 max-w-xs mt-1">
+                    Share your link with friends. When they complete their first booking, you will earn rewards!
+                  </p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -598,7 +628,15 @@ function WalletContent() {
           {activeTab === "points" && (
             <div className="p-4 sm:p-5">
               {pointsData.history.length === 0 ? (
-                <div className="text-center py-8 text-gray-400 text-xs">No points history yet.</div>
+                <div className="text-center py-10 px-4 flex flex-col items-center justify-center">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-3 shadow-2xs">
+                    <Sparkles className="w-6 h-6" />
+                  </div>
+                  <p className="font-extrabold text-gray-900 text-sm">No points history yet</p>
+                  <p className="text-xs text-gray-500 max-w-xs mt-1">
+                    Points earned from welcome bonuses and purchases will appear here.
+                  </p>
+                </div>
               ) : (
                 <div className="divide-y divide-gray-100 border border-gray-100 rounded-xl overflow-hidden">
                   {pointsData.history.map((tx: any, idx: number) => (
@@ -623,8 +661,14 @@ function WalletContent() {
           {activeTab === "referral_money" && (
             <div className="p-4 sm:p-5">
               {referralData.history.length === 0 ? (
-                <div className="text-center py-8 text-gray-400 text-xs">
-                  No referral cash earnings yet.
+                <div className="text-center py-10 px-4 flex flex-col items-center justify-center">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-3 shadow-2xs">
+                    <IndianRupee className="w-6 h-6" />
+                  </div>
+                  <p className="font-extrabold text-gray-900 text-sm">No referral cash earnings yet</p>
+                  <p className="text-xs text-gray-500 max-w-xs mt-1">
+                    Your commissions from completed friend bookings will show up here.
+                  </p>
                 </div>
               ) : (
                 <div className="divide-y divide-gray-100 border border-gray-100 rounded-xl overflow-hidden">
@@ -650,7 +694,15 @@ function WalletContent() {
           {activeTab === "withdrawals" && (
             <div className="p-4 sm:p-5">
               {withdrawalsList.length === 0 ? (
-                <div className="text-center py-8 text-gray-400 text-xs">No withdrawal requests yet.</div>
+                <div className="text-center py-10 px-4 flex flex-col items-center justify-center">
+                  <div className="w-12 h-12 rounded-2xl bg-gray-100 text-gray-600 flex items-center justify-center mb-3 shadow-2xs">
+                    <Building2 className="w-6 h-6" />
+                  </div>
+                  <p className="font-extrabold text-gray-900 text-sm">No withdrawal requests yet</p>
+                  <p className="text-xs text-gray-500 max-w-xs mt-1">
+                    Once your available cash reaches ₹200, you can withdraw directly to your bank account or UPI.
+                  </p>
+                </div>
               ) : (
                 <div className="divide-y divide-gray-100 border border-gray-100 rounded-xl overflow-hidden">
                   {withdrawalsList.map((wd: any, idx: number) => (

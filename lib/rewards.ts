@@ -28,13 +28,40 @@ export interface RewardSummary {
 }
 
 /**
- * Generates a 6-character referral code with 3 alphabetic letters and 3 numbers mixed together (e.g. U2K5P0, 7K9UP2)
+ * Generates a 6-character referral code with 3 alphabetic letters and 3 numbers.
+ * When an email is passed, it generates a 100% DETERMINISTIC and PERMANENT referral code for that email,
+ * ensuring 1 email ALWAYS has the exact same fixed referral code forever.
  */
-export function generateReferralCode(): string {
-  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  const digits = "0123456789";
+export function generateReferralCode(email?: string): string {
+  const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ"; // 24 letters (excluding confusing O, I)
+  const digits = "23456789";                  // 8 digits (excluding confusing 0, 1)
+
+  if (email && typeof email === "string" && email.trim().length > 0) {
+    const normalized = email.trim().toLowerCase();
+    let hash1 = 2166136261;
+    let hash2 = 5381;
+    for (let i = 0; i < normalized.length; i++) {
+      const code = normalized.charCodeAt(i);
+      hash1 ^= code;
+      hash1 = Math.imul(hash1, 16777619);
+      hash2 = (Math.imul(hash2, 33) + code) >>> 0;
+    }
+    hash1 = hash1 >>> 0;
+    hash2 = hash2 >>> 0;
+
+    const l1 = letters[hash1 % letters.length];
+    const l2 = letters[Math.floor(hash1 / letters.length) % letters.length];
+    const l3 = letters[Math.floor(hash1 / (letters.length * letters.length)) % letters.length];
+
+    const d1 = digits[hash2 % digits.length];
+    const d2 = digits[Math.floor(hash2 / digits.length) % digits.length];
+    const d3 = digits[Math.floor(hash2 / (digits.length * digits.length)) % digits.length];
+
+    // Mixed 6 characters (3 letters + 3 digits)
+    return `${l1}${d1}${l2}${d2}${l3}${d3}`;
+  }
+
   let result = "";
-  
   do {
     const chars: string[] = [];
     for (let i = 0; i < 3; i++) {
@@ -43,7 +70,6 @@ export function generateReferralCode(): string {
     for (let i = 0; i < 3; i++) {
       chars.push(digits.charAt(Math.floor(Math.random() * digits.length)));
     }
-    // Fisher-Yates shuffle
     for (let i = chars.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [chars[i], chars[j]] = [chars[j], chars[i]];
@@ -268,7 +294,7 @@ export async function getUserRewardSummary(userEmail: string): Promise<RewardSum
   let referralCode = userRows[0]?.referral_code || "";
   if ((!referralCode || referralCode.startsWith("OC") || referralCode.length !== 6) && userEmail) {
     const oldCode = referralCode;
-    referralCode = generateReferralCode();
+    referralCode = generateReferralCode(userEmail);
     try {
       await pool.query("UPDATE users SET referral_code = ? WHERE email = ?", [referralCode, userEmail]);
       if (oldCode) {

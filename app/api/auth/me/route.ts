@@ -32,7 +32,7 @@ export async function GET(req: Request) {
     }
 
     if (!referralCode || referralCode.startsWith("OC") || referralCode.length !== 6) {
-      referralCode = generateReferralCode();
+      referralCode = generateReferralCode(decoded.email);
       if (decoded.email) {
         try {
           await pool.query(
