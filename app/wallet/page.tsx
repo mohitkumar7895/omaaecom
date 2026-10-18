@@ -430,16 +430,13 @@ function WalletContent() {
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <div className="relative flex-1 min-w-0">
-              <span className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-gray-400 text-xs">
-                🔗
-              </span>
               <input
                 type="text"
                 readOnly
                 value={getReferralLink()}
-                className="w-full pl-7 pr-2.5 h-8 bg-gray-50 border border-gray-200 rounded-lg text-xs font-mono font-bold text-gray-800 select-all focus:outline-none"
+                className="w-full px-2 sm:px-2.5 h-8 bg-gray-50 border border-gray-200 rounded-lg text-[9.5px] sm:text-xs font-mono font-semibold tracking-tight sm:tracking-normal text-gray-800 select-all focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
               />
             </div>
 
