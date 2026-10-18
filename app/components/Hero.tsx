@@ -182,56 +182,24 @@ export default function Hero({ categories = [], banners = [], hideHeadline = fal
   // Reusable Referral Card Component
   const renderReferralCard = (customWidthClass = "max-w-120 lg:max-w-130") => (
     <div className={`w-full ${customWidthClass} rounded-[22px] p-[2.5px] bg-linear-to-r from-amber-400 via-pink-500 to-indigo-500 shadow-xl transition-transform duration-300 hover:scale-[1.005]`}>
-      <div className="bg-white/95 backdrop-blur-xl rounded-[20px] p-3 sm:p-3.5 text-gray-900 flex flex-col gap-2.5">
+      <div className="bg-white/95 backdrop-blur-xl rounded-[20px] p-3.5 sm:p-4 text-gray-900 flex flex-col gap-3">
         
         {/* Header */}
-        <div className="flex items-center justify-between gap-1.5 sm:gap-2 border-b border-gray-100 pb-2">
-          <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 flex-nowrap">
-            <h4 className="text-[11.5px] xs:text-[13px] sm:text-[14px] font-black text-gray-900 tracking-tight leading-none whitespace-nowrap shrink-0">
-              Refer to earn up to ₹400
-            </h4>
+        <div className="flex items-center justify-between gap-2 border-b border-gray-100 pb-2.5">
+          <h4 className="text-[12px] xs:text-[13.5px] sm:text-[15px] font-black text-gray-900 tracking-tight leading-none whitespace-nowrap min-w-0">
+            Welcome Bonus & Refer to Earn
+          </h4>
 
-            {/* Animated Colorful Gift Box with Floating Coins */}
-            <div className="flex items-center gap-1 shrink-0 flex-nowrap">
-              <div className="relative flex items-center justify-center shrink-0">
-                {/* Emerging Coin 1 */}
-                <span 
-                  className="absolute pointer-events-none text-[9px] sm:text-[11px] leading-none animate-coin-left select-none z-10"
-                  style={{ left: "0px", top: "-2px" }}
-                >
-                  🪙
-                </span>
-                {/* Emerging Coin 2 */}
-                <span 
-                  className="absolute pointer-events-none text-[9px] sm:text-[11px] leading-none animate-coin-right select-none z-10"
-                  style={{ right: "0px", top: "-2px" }}
-                >
-                  🪙
-                </span>
-
-                {/* Colorful Glowing Box */}
-                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg sm:rounded-xl bg-linear-to-tr from-amber-400 via-rose-500 to-indigo-600 p-[1.5px] gift-box-glow shadow-sm flex items-center justify-center shrink-0">
-                  <div className="w-full h-full rounded-[6.5px] sm:rounded-[9px] bg-white flex items-center justify-center">
-                    <span className="text-[14px] sm:text-[16px] leading-none animate-gift-box select-none">
-                      🎁
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Points text - always on same line */}
-              <span className="text-[11px] xs:text-[12px] sm:text-[13px] font-black bg-linear-to-r from-amber-600 via-orange-600 to-rose-600 bg-clip-text text-transparent tracking-tight whitespace-nowrap shrink-0">
-                +100 Pts
-              </span>
-            </div>
-          </div>
-
+          {/* Clickable Gift Icon + 100 Pts opens Wallet Page */}
           <Link 
-            href="/wallet" 
-            className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-[10.5px] sm:text-[11px] px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg transition flex items-center gap-1 shrink-0 group whitespace-nowrap"
+            href="/wallet"
+            title="Open Wallet"
+            className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap hover:scale-105 active:scale-95 transition-transform cursor-pointer"
           >
-            <span>Refer</span>
-            <span className="group-hover:translate-x-0.5 transition-transform">→</span>
+            <span className="text-[20px] sm:text-[23px] leading-none select-none">🎁</span>
+            <span className="text-[12.5px] sm:text-[14px] font-black text-amber-600 hover:text-amber-700 tracking-tight">
+              100 Pts
+            </span>
           </Link>
         </div>
 
@@ -242,7 +210,7 @@ export default function Hero({ categories = [], banners = [], hideHeadline = fal
               type="text"
               readOnly
               value={referralLink}
-              className="w-full px-2 sm:px-2.5 h-8 bg-gray-50 hover:bg-gray-100/70 border border-gray-200 rounded-lg text-[9.5px] sm:text-xs font-mono font-semibold tracking-tight sm:tracking-normal text-gray-800 select-all focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
+              className="w-full px-2 sm:px-2.5 h-8.5 sm:h-9 bg-gray-50 hover:bg-gray-100/70 border border-gray-200 rounded-lg text-[9.5px] xs:text-[10px] sm:text-xs font-mono font-bold tracking-tight sm:tracking-normal text-gray-800 select-all focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
             />
           </div>
 
@@ -252,16 +220,16 @@ export default function Hero({ categories = [], banners = [], hideHeadline = fal
             onClick={handleCopyLink}
             title={copied ? "Copied to clipboard!" : "Copy link"}
             aria-label="Copy referral link"
-            className={`w-8 h-8 rounded-lg transition-all shadow-xs shrink-0 flex items-center justify-center cursor-pointer active:scale-95 ${
+            className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg transition-all shadow-xs shrink-0 flex items-center justify-center cursor-pointer active:scale-95 ${
               copied
                 ? "bg-emerald-600 text-white shadow-emerald-500/25 ring-2 ring-emerald-300"
                 : "bg-gray-900 hover:bg-black text-white hover:shadow-xs"
             }`}
           >
             {copied ? (
-              <Check className="w-4 h-4" />
+              <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             ) : (
-              <Copy className="w-4 h-4" />
+              <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             )}
           </button>
 
@@ -271,9 +239,9 @@ export default function Hero({ categories = [], banners = [], hideHeadline = fal
             onClick={handleShare}
             title="Share referral link"
             aria-label="Share referral link"
-            className="w-8 h-8 rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-xs hover:shadow-sm shrink-0 flex items-center justify-center active:scale-95 cursor-pointer"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-xs hover:shadow-sm shrink-0 flex items-center justify-center active:scale-95 cursor-pointer"
           >
-            <Share2 className="w-4 h-4" />
+            <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </button>
         </div>
 

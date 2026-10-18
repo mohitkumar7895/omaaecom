@@ -421,49 +421,18 @@ function WalletContent() {
 
         {/* Compact Referral Sharing Bar */}
         <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-gray-200/80 shadow-xs mb-4">
-          <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-2">
-            <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 flex-nowrap">
-              <h3 className="text-[11.5px] xs:text-xs sm:text-sm font-black text-gray-900 tracking-tight whitespace-nowrap shrink-0">
-                Refer to earn up to ₹400
-              </h3>
+          <div className="flex items-center justify-between gap-2 mb-2.5">
+            <h3 className="text-[12px] xs:text-[13.5px] sm:text-[15px] font-black text-gray-900 tracking-tight leading-none whitespace-nowrap min-w-0">
+              Welcome Bonus & Refer to Earn
+            </h3>
 
-              {/* Animated Colorful Gift Box with Floating Coins */}
-              <div className="flex items-center gap-1 shrink-0 flex-nowrap">
-                <div className="relative flex items-center justify-center shrink-0">
-                  {/* Emerging Coin 1 */}
-                  <span 
-                    className="absolute pointer-events-none text-[9px] sm:text-[11px] leading-none animate-coin-left select-none z-10"
-                    style={{ left: "0px", top: "-2px" }}
-                  >
-                    🪙
-                  </span>
-                  {/* Emerging Coin 2 */}
-                  <span 
-                    className="absolute pointer-events-none text-[9px] sm:text-[11px] leading-none animate-coin-right select-none z-10"
-                    style={{ right: "0px", top: "-2px" }}
-                  >
-                    🪙
-                  </span>
-
-                  {/* Colorful Glowing Box */}
-                  <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg sm:rounded-xl bg-linear-to-tr from-amber-400 via-rose-500 to-indigo-600 p-[1.5px] gift-box-glow shadow-sm flex items-center justify-center shrink-0">
-                    <div className="w-full h-full rounded-[6.5px] sm:rounded-[9px] bg-white flex items-center justify-center">
-                      <span className="text-[14px] sm:text-[16px] leading-none animate-gift-box select-none">
-                        🎁
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Slightly bigger, vibrant points text */}
-                <span className="text-[11px] xs:text-[12px] sm:text-[13px] font-black bg-linear-to-r from-amber-600 via-orange-600 to-rose-600 bg-clip-text text-transparent tracking-tight whitespace-nowrap shrink-0">
-                  +100 Pts
-                </span>
-              </div>
+            {/* Gift Icon with Clean Bold Points */}
+            <div className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
+              <span className="text-[20px] sm:text-[23px] leading-none select-none">🎁</span>
+              <span className="text-[12.5px] sm:text-[14px] font-black text-amber-600 tracking-tight">
+                100 Pts
+              </span>
             </div>
-            <span className="text-[10px] sm:text-[10.5px] text-gray-500 font-medium shrink-0 whitespace-nowrap hidden sm:inline">
-              ₹400 (L1) + ₹200 (L2)
-            </span>
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2">
@@ -472,7 +441,7 @@ function WalletContent() {
                 type="text"
                 readOnly
                 value={getReferralLink()}
-                className="w-full px-2 sm:px-2.5 h-8 bg-gray-50 border border-gray-200 rounded-lg text-[9.5px] sm:text-xs font-mono font-semibold tracking-tight sm:tracking-normal text-gray-800 select-all focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
+                className="w-full px-2 sm:px-2.5 h-8.5 sm:h-9 bg-gray-50 border border-gray-200 rounded-lg text-[9.5px] xs:text-[10px] sm:text-xs font-mono font-bold tracking-tight sm:tracking-normal text-gray-800 select-all focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition"
               />
             </div>
 
@@ -482,11 +451,15 @@ function WalletContent() {
               onClick={handleCopyLink}
               title={copiedLink ? "Copied!" : "Copy link"}
               aria-label="Copy referral link"
-              className={`w-8 h-8 rounded-lg transition shadow-xs shrink-0 flex items-center justify-center cursor-pointer active:scale-95 ${
+              className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg transition shadow-xs shrink-0 flex items-center justify-center cursor-pointer active:scale-95 ${
                 copiedLink ? "bg-emerald-600 text-white" : "bg-gray-900 hover:bg-black text-white"
               }`}
             >
-              {copiedLink ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+              {copiedLink ? (
+                <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              ) : (
+                <Copy className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              )}
             </button>
 
             {/* Share Button */}
@@ -495,9 +468,9 @@ function WalletContent() {
               onClick={handleShare}
               title="Share referral link"
               aria-label="Share referral link"
-              className="w-8 h-8 rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-xs shrink-0 flex items-center justify-center active:scale-95 cursor-pointer"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-xs shrink-0 flex items-center justify-center active:scale-95 cursor-pointer"
             >
-              <Share2 className="w-4 h-4" />
+              <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
           </div>
         </div>
