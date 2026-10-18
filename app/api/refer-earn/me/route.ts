@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import pool from "../../../../lib/db";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
+import { generateReferralCode } from "../../../../lib/rewards";
 
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_for_development_only";
 
@@ -62,10 +63,9 @@ export async function GET(req: Request) {
       }
     }
 
-    // 3. Fallback: generate dynamic OC + 6-digit code
+    // 3. Fallback: generate dynamic 6-digit code (3 letters + 3 numbers)
     if (!couponCode) {
-      const randomNum = Math.floor(100000 + Math.random() * 900000);
-      couponCode = `OC${randomNum}`;
+      couponCode = generateReferralCode();
     }
 
     const referralLink = `https://omaacompany.com/wallet?ref=${couponCode}`;
@@ -94,8 +94,7 @@ export async function GET(req: Request) {
     });
   } catch (error: any) {
     console.error("Fetch referral user error:", error);
-    const randomNum = Math.floor(100000 + Math.random() * 900000);
-    const fallbackCode = `OC${randomNum}`;
+    const fallbackCode = generateReferralCode();
     return NextResponse.json({ 
       authenticated: false,
       couponCode: fallbackCode,

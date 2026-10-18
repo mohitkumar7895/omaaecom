@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import jwt from "jsonwebtoken";
 import pool from "../../lib/db";
+import { generateReferralCode } from "../../lib/rewards";
 
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_for_development_only";
 
@@ -69,8 +70,7 @@ export default async function ReferEarnPage() {
 
       // If logged in but doesn't have a referral_code, create and save one
       if (!couponCode && userEmail) {
-        const randomNum = Math.floor(100000 + Math.random() * 900000);
-        couponCode = `OC${randomNum}`;
+        couponCode = generateReferralCode();
         try {
           await pool.query(
             "UPDATE users SET referral_code = ? WHERE email = ?",
@@ -83,10 +83,9 @@ export default async function ReferEarnPage() {
     console.error("Refer-earn redirect error:", err);
   }
 
-  // Fallback to dynamic OC + 6 digits coupon code (e.g. OC133461)
+  // Fallback to dynamic 6-digit coupon code
   if (!couponCode) {
-    const randomNum = Math.floor(100000 + Math.random() * 900000);
-    couponCode = `OC${randomNum}`;
+    couponCode = generateReferralCode();
   }
 
   redirect(`https://omaacompany.in/?ref=${couponCode}`);

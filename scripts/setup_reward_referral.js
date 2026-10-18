@@ -128,7 +128,11 @@ async function setup() {
 
     // Ensure referral_code exists
     if (!u.referral_code) {
-      const code = `OC${Math.floor(100000 + Math.random() * 900000)}`;
+      const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      const digits = "0123456789";
+      let code = "";
+      for (let i = 0; i < 3; i++) code += letters.charAt(Math.floor(Math.random() * letters.length));
+      for (let i = 0; i < 3; i++) code += digits.charAt(Math.floor(Math.random() * digits.length));
       await connection.query("UPDATE users SET referral_code = ? WHERE email = ?", [code, u.email]);
       console.log(`Generated referral code ${code} for user ${u.email}`);
     }

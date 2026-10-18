@@ -25,7 +25,7 @@ import {
 import Link from "next/link";
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { getStoredUser, fetchCurrentUser, authFetch, persistLogin } from "@/lib/client-auth";
+import { getStoredUser, fetchCurrentUser, authFetch, persistLogin, getRandomReferralCode, getActiveReferralCode } from "@/lib/client-auth";
 import LoginModal from "../components/LoginModal";
 
 function WalletContent() {
@@ -35,6 +35,7 @@ function WalletContent() {
   const [walletData, setWalletData] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<"points" | "referral_money" | "referrals" | "withdrawals">("referrals");
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [fallbackCode] = useState(() => getActiveReferralCode());
 
   const refParam = searchParams?.get("ref") || (typeof window !== "undefined" ? localStorage.getItem("omaa_referral_code") || "" : "");
 
@@ -67,6 +68,13 @@ function WalletContent() {
         if (wRes.ok) {
           const data = await wRes.json();
           setWalletData(data.summary || null);
+          const freshCode = data.summary?.referral_network?.referral_code || currentUser.referral_code;
+          if (freshCode && !freshCode.startsWith("OC") && freshCode.length === 6) {
+            try {
+              localStorage.setItem("omaa_active_ref", freshCode);
+              window.dispatchEvent(new CustomEvent("auth_changed", { detail: { user: currentUser } }));
+            } catch(e) {}
+          }
           if (data.summary?.referral_money?.available_balance) {
             setWithdrawAmount(String(data.summary.referral_money.available_balance));
           }
@@ -94,9 +102,16 @@ function WalletContent() {
     }
   }, [user, refParam]);
 
-  const getReferralLink = () => {
+  const getCleanCode = () => {
     const code = walletData?.referral_network?.referral_code || user?.referral_code || "";
-    if (!code) return "https://omaacompany.com/wallet";
+    if (code && !code.startsWith("OC") && code.length === 6) {
+      return code;
+    }
+    return getActiveReferralCode();
+  };
+
+  const getReferralLink = () => {
+    const code = getCleanCode();
     return `https://omaacompany.com/wallet?ref=${code}`;
   };
 
@@ -108,8 +123,8 @@ function WalletContent() {
   };
 
   const handleCopyCode = () => {
-    if (!walletData?.referral_network?.referral_code) return;
-    navigator.clipboard.writeText(walletData.referral_network.referral_code);
+    const code = getCleanCode();
+    navigator.clipboard.writeText(code);
     setCopiedCode(true);
     setTimeout(() => setCopiedCode(false), 2500);
   };
@@ -117,6 +132,22 @@ function WalletContent() {
   const handleWhatsAppShare = () => {
     const link = getReferralLink();
     const message = `Hey! Check out OMAA Company for doorstep RO, AC & home appliance services. Sign up on Wallet using my link to get 100 Welcome Points instantly! ${link}`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, "_blank");
+  };
+
+  const handleShare = async () => {
+    const link = getReferralLink();
+    const message = `Hey! Book Doorstep RO, AC & Home Appliance Repair on OMAA Company. Get 100 Welcome Points on wallet: ${link}`;
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({
+          title: "OMAA Company - Refer & Earn",
+          text: message,
+          url: link,
+        });
+        return;
+      } catch (err) {}
+    }
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, "_blank");
   };
 
@@ -264,356 +295,261 @@ function WalletContent() {
     <main className="min-h-screen bg-[#f8f9fa] flex flex-col font-sans">
       <Navbar />
 
-      <div className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8 mt-2 pb-24">
+      <div className="flex-1 max-w-4xl w-full mx-auto px-4 py-5 sm:py-7">
         
-        {/* User Welcome Banner */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 bg-white p-5 sm:p-6 rounded-[24px] border border-gray-100 shadow-xs">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-[#6b62d9] rounded-2xl flex items-center justify-center text-white shadow-[0_8px_20px_rgba(107,98,217,0.25)] shrink-0">
-              <Wallet className="w-7 h-7" />
+        {/* Compact User Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border border-gray-200/80 shadow-xs mb-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-500 text-white flex items-center justify-center font-bold text-base shadow-xs shrink-0">
+              <Wallet className="w-5 h-5" />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
+                <h1 className="text-base sm:text-lg font-black text-gray-900 tracking-tight truncate">
                   {user.name || user.email?.split('@')[0]}
                 </h1>
-                <span className="bg-emerald-50 text-emerald-700 text-xs font-bold px-2.5 py-0.5 rounded-full border border-emerald-200/60">
-                  Verified Member
+                <span className="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-200/60">
+                  Verified
                 </span>
               </div>
-              <p className="text-gray-500 text-xs sm:text-sm mt-0.5 font-medium">{user.email}</p>
+              <p className="text-gray-500 text-xs truncate">{user.email}</p>
             </div>
           </div>
 
           {/* Referral Code Quick View */}
-          <div className="flex items-center gap-2 bg-gray-50 p-2 sm:p-2.5 rounded-xl border border-gray-200/80 self-start sm:self-center">
-            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider pl-2">My Code:</span>
-            <span className="font-mono font-black text-gray-900 text-sm tracking-wider px-2 py-1 bg-white rounded-lg border border-gray-200">
-              {networkData.referral_code || "..."}
+          <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-200/80 self-start sm:self-center shrink-0">
+            <span className="text-[11px] font-bold text-gray-500 uppercase">My Code:</span>
+            <span className="font-mono font-black text-gray-900 text-xs tracking-wider px-2 py-0.5 bg-white rounded border border-gray-200">
+              {getCleanCode()}
             </span>
             <button 
               onClick={handleCopyCode}
               title="Copy Referral Code"
-              className="p-1.5 hover:bg-gray-200 rounded-lg text-gray-600 transition cursor-pointer"
+              className="p-1 hover:bg-gray-200 rounded text-gray-600 transition cursor-pointer active:scale-95"
             >
-              {copiedCode ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+              {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
             </button>
           </div>
         </div>
 
-        {/* 2 DISTINCT WALLETS (RULE: Reward Points aur Referral Money ke separate wallets honge) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+        {/* 2 Clean & Compact Balance Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
           
-          {/* ========================================================================= */}
-          {/* WALLET 1: REWARD POINTS WALLET */}
-          {/* ========================================================================= */}
-          <div className="relative overflow-hidden bg-gradient-to-br from-[#1e1b4b] via-[#241f5a] to-[#0f172a] rounded-[32px] p-6 sm:p-8 text-white shadow-[0_15px_40px_rgba(0,0,0,0.12)] border border-white/10 flex flex-col justify-between group">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/15 blur-3xl rounded-full pointer-events-none -translate-y-1/2 translate-x-1/3"></div>
-            
+          {/* Card 1: Reward Points */}
+          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200/80 shadow-xs flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-amber-400 font-extrabold uppercase tracking-widest text-[11px] flex items-center gap-1.5 bg-amber-400/10 px-3 py-1 rounded-full border border-amber-400/20">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  Reward Points Wallet
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-black text-indigo-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  Reward Points
                 </span>
-                <span className="text-xs font-bold text-indigo-200 bg-white/10 px-2.5 py-1 rounded-lg">
-                  1 Point = ₹1
+                <span className="text-[11px] font-bold text-gray-600 bg-gray-100 px-2 py-0.5 rounded">
+                  1 Pt = ₹1
                 </span>
               </div>
 
-              <div className="my-4">
-                <p className="text-indigo-200 text-xs font-semibold tracking-wide uppercase">Available Redeemable Points</p>
-                <div className="flex items-baseline gap-2 mt-1">
-                  <h2 className="text-5xl sm:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-amber-300 via-amber-100 to-white tracking-tight">
-                    {pointsData.available_points}
-                  </h2>
-                  <span className="text-xl font-bold text-amber-300/80">Pts</span>
-                </div>
+              <div className="flex items-baseline gap-1.5 my-2">
+                <h2 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">
+                  {pointsData.available_points}
+                </h2>
+                <span className="text-xs font-bold text-gray-500">Pts Available</span>
               </div>
 
-              {/* Points Breakdown Sub-cards */}
-              <div className="grid grid-cols-3 gap-2.5 my-6 bg-white/5 p-3.5 rounded-2xl border border-white/10 backdrop-blur-xs">
-                <div className="text-center p-2 rounded-xl bg-white/5">
-                  <p className="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Welcome</p>
-                  <p className="text-amber-300 font-extrabold text-base sm:text-lg mt-0.5">+{pointsData.welcome_points}</p>
-                </div>
-                <div className="text-center p-2 rounded-xl bg-white/5">
-                  <p className="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Purchases</p>
-                  <p className="text-emerald-400 font-extrabold text-base sm:text-lg mt-0.5">+{pointsData.purchase_points}</p>
-                </div>
-                <div className="text-center p-2 rounded-xl bg-white/5">
-                  <p className="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Redeemed</p>
-                  <p className="text-red-300 font-extrabold text-base sm:text-lg mt-0.5">-{pointsData.redeemed_points}</p>
-                </div>
+              {/* Mini Inline Stats */}
+              <div className="flex items-center gap-3 text-[11px] text-gray-600 bg-gray-50 p-2 rounded-xl border border-gray-100 mb-2 flex-wrap">
+                <span>Welcome: <strong className="text-emerald-700">+{pointsData.welcome_points}</strong></span>
+                <span className="text-gray-300">•</span>
+                <span>Purchases: <strong className="text-indigo-700">+{pointsData.purchase_points}</strong></span>
+                <span className="text-gray-300">•</span>
+                <span>Used: <strong className="text-red-600">-{pointsData.redeemed_points}</strong></span>
               </div>
             </div>
 
-            {/* Redemption Rules Checklist */}
-            <div className="bg-amber-400/10 rounded-2xl p-3.5 border border-amber-400/20 text-[12px] space-y-1.5">
-              <div className="flex items-center gap-2 text-amber-200 font-semibold">
-                <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span><strong>Services (AC, Fridge, RO etc.):</strong> Max 50% paid via Points</span>
-              </div>
-              <div className="flex items-center gap-2 text-amber-200 font-semibold">
-                <CheckCircle2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span><strong>New Products & RO AMC:</strong> Up to 100% full Points redemption</span>
-              </div>
-            </div>
+            <p className="text-[11px] text-gray-500 font-medium">
+              Redeemable at checkout (up to 100% on RO AMC & Products)
+            </p>
           </div>
 
-          {/* ========================================================================= */}
-          {/* WALLET 2: REFERRAL MONEY WALLET */}
-          {/* ========================================================================= */}
-          <div className="relative overflow-hidden bg-gradient-to-br from-[#064e3b] via-[#065f46] to-[#022c22] rounded-[32px] p-6 sm:p-8 text-white shadow-[0_15px_40px_rgba(0,0,0,0.12)] border border-white/10 flex flex-col justify-between group">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-400/15 blur-3xl rounded-full pointer-events-none -translate-y-1/2 translate-x-1/3"></div>
-
+          {/* Card 2: Referral Cash */}
+          <div className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200/80 shadow-xs flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-emerald-300 font-extrabold uppercase tracking-widest text-[11px] flex items-center gap-1.5 bg-emerald-400/10 px-3 py-1 rounded-full border border-emerald-400/20">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-black text-emerald-700 uppercase tracking-wider flex items-center gap-1.5">
                   <IndianRupee className="w-3.5 h-3.5" />
-                  Referral Money Wallet
+                  Referral Cash
                 </span>
-                <span className="text-xs font-bold text-emerald-200 bg-white/10 px-2.5 py-1 rounded-lg">
-                  Actual Rupees (₹)
+                <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded">
+                  Withdrawable
                 </span>
               </div>
 
-              <div className="my-4">
-                <p className="text-emerald-200 text-xs font-semibold tracking-wide uppercase">Withdrawable Balance</p>
-                <div className="flex items-baseline gap-1 mt-1">
-                  <span className="text-3xl sm:text-4xl font-semibold text-emerald-300/80">₹</span>
-                  <h2 className="text-5xl sm:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-emerald-200 via-white to-gray-200 tracking-tight">
-                    {Number(referralData.available_balance).toFixed(2)}
-                  </h2>
-                </div>
+              <div className="flex items-baseline gap-1 my-2">
+                <span className="text-2xl font-bold text-gray-500">₹</span>
+                <h2 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">
+                  {Number(referralData.available_balance).toFixed(2)}
+                </h2>
               </div>
 
-              {/* Referral Money Breakdown */}
-              <div className="grid grid-cols-3 gap-2.5 my-6 bg-white/5 p-3.5 rounded-2xl border border-white/10 backdrop-blur-xs">
-                <div className="text-center p-2 rounded-xl bg-white/5">
-                  <p className="text-emerald-200/70 text-[10px] font-bold uppercase tracking-wider">Total Earned</p>
-                  <p className="text-emerald-300 font-extrabold text-base sm:text-lg mt-0.5">₹{Number(referralData.total_earned).toFixed(0)}</p>
-                </div>
-                <div className="text-center p-2 rounded-xl bg-white/5">
-                  <p className="text-emerald-200/70 text-[10px] font-bold uppercase tracking-wider">Withdrawn</p>
-                  <p className="text-emerald-100 font-extrabold text-base sm:text-lg mt-0.5">₹{Number(referralData.total_withdrawn).toFixed(0)}</p>
-                </div>
-                <div className="text-center p-2 rounded-xl bg-white/5">
-                  <p className="text-emerald-200/70 text-[10px] font-bold uppercase tracking-wider">Used in Orders</p>
-                  <p className="text-emerald-100 font-extrabold text-base sm:text-lg mt-0.5">₹{Number(referralData.total_used_checkout).toFixed(0)}</p>
-                </div>
+              {/* Mini Inline Stats */}
+              <div className="flex items-center gap-3 text-[11px] text-gray-600 bg-gray-50 p-2 rounded-xl border border-gray-100 mb-2 flex-wrap">
+                <span>Earned: <strong className="text-emerald-700">₹{Number(referralData.total_earned).toFixed(0)}</strong></span>
+                <span className="text-gray-300">•</span>
+                <span>Withdrawn: <strong className="text-gray-700">₹{Number(referralData.total_withdrawn).toFixed(0)}</strong></span>
+                <span className="text-gray-300">•</span>
+                <span>Min: <strong>₹200</strong></span>
               </div>
             </div>
 
-            {/* Withdraw Action Box */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
-              <div className="text-left">
-                <p className="text-xs text-emerald-200 font-medium">
-                  Min. Withdrawal Limit: <strong className="text-white">₹200</strong>
-                </p>
-                <p className="text-[11px] text-emerald-300/80">
-                  Withdraw to UPI or Bank Account anytime
-                </p>
-              </div>
-
-              <button
-                onClick={() => {
-                  setWithdrawAmount(String(referralData.available_balance || 200));
-                  setShowWithdrawModal(true);
-                }}
-                disabled={!referralData.can_withdraw}
-                className={`w-full sm:w-auto px-6 py-3 rounded-xl font-bold text-sm transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer ${
-                  referralData.can_withdraw
-                    ? 'bg-emerald-400 hover:bg-emerald-300 text-gray-950 font-black shadow-emerald-500/25 active:scale-95'
-                    : 'bg-white/10 text-emerald-200/50 cursor-not-allowed border border-white/10'
-                }`}
-              >
-                <Building2 className="w-4 h-4" />
-                {referralData.can_withdraw ? "Withdraw Money" : "Min ₹200 Needed"}
-              </button>
-            </div>
-          </div>
-
-        </div>
-
-        {/* 🚀 REFERRAL SHARING & 2-LEVEL EXPLANATION CARD */}
-        <div className="bg-white rounded-[28px] p-6 sm:p-8 mb-10 border border-gray-100 shadow-[0_4px_25px_rgba(0,0,0,0.03)]">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-gray-100">
-            <div>
-              <div className="flex items-center gap-2 text-indigo-600 font-extrabold text-xs tracking-wider uppercase mb-1">
-                <Users className="w-4 h-4" />
-                <span>OMAA 2-Level Referral System</span>
-              </div>
-              <h3 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
-                Share Link & Earn ₹400 + ₹200 on Purchases
-              </h3>
-              <p className="text-gray-500 text-sm mt-1 max-w-xl">
-                When your referred friend buys a <strong>New Product</strong> or <strong>RO AMC</strong>, you get ₹400, your original referrer gets ₹200, and your friend gets 200 Reward Points!
-              </p>
-            </div>
-
-            {/* Share Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
-              <button 
-                onClick={handleWhatsAppShare}
-                className="bg-[#25D366] hover:bg-[#20ba59] text-white font-extrabold text-sm px-6 py-3.5 rounded-xl flex items-center justify-center gap-2 transition shadow-sm active:scale-95 cursor-pointer"
-              >
-                <Share2 className="w-4 h-4" />
-                Share on WhatsApp
-              </button>
-              <button 
-                onClick={handleCopyLink}
-                className="bg-gray-900 hover:bg-black text-white font-extrabold text-sm px-6 py-3.5 rounded-xl flex items-center justify-center gap-2 transition shadow-sm active:scale-95 cursor-pointer"
-              >
-                {copiedLink ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                {copiedLink ? "Link Copied!" : "Copy Referral Link"}
-              </button>
-            </div>
-          </div>
-
-          {/* Referral Link Field */}
-          <div className="my-6 p-3 bg-gray-50 rounded-2xl border border-gray-200/70 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
-            <span className="font-mono text-xs sm:text-sm text-gray-700 px-3 truncate font-medium">
-              {getReferralLink()}
-            </span>
             <button
-              onClick={handleCopyLink}
-              className="text-xs font-bold text-[#6b62d9] hover:text-[#584ec6] px-3 py-1.5 rounded-lg bg-white border border-gray-200 shadow-2xs shrink-0 cursor-pointer text-center"
+              onClick={() => {
+                setWithdrawAmount(String(referralData.available_balance || 200));
+                setShowWithdrawModal(true);
+              }}
+              disabled={!referralData.can_withdraw}
+              className={`w-full py-2 px-3 rounded-xl font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                referralData.can_withdraw
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs active:scale-95'
+                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              }`}
             >
-              {copiedLink ? "Copied" : "Copy"}
+              <Building2 className="w-3.5 h-3.5" />
+              {referralData.can_withdraw ? "Withdraw to Bank / UPI" : "Withdraw (Min ₹200 Needed)"}
             </button>
           </div>
 
-          {/* 3-Level Visual Infographic */}
-          <div className="mt-8">
-            <p className="text-xs font-black uppercase tracking-wider text-gray-400 mb-4 text-center">
-              How the 2-Level Referral Chain Works
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              
-              <div className="p-5 rounded-2xl bg-indigo-50/60 border border-indigo-100 flex flex-col items-center text-center">
-                <span className="w-8 h-8 rounded-full bg-indigo-600 text-white font-black text-xs flex items-center justify-center mb-2">1</span>
-                <span className="text-xs font-extrabold text-indigo-700 uppercase">Level 1 (Direct Referrer)</span>
-                <p className="text-2xl font-black text-gray-900 my-1">₹400</p>
-                <p className="text-xs text-gray-500">Earned when your direct referral buys New Product or RO AMC</p>
-              </div>
+        </div>
 
-              <div className="p-5 rounded-2xl bg-emerald-50/60 border border-emerald-100 flex flex-col items-center text-center">
-                <span className="w-8 h-8 rounded-full bg-emerald-600 text-white font-black text-xs flex items-center justify-center mb-2">2</span>
-                <span className="text-xs font-extrabold text-emerald-700 uppercase">Level 2 (Original Referrer)</span>
-                <p className="text-2xl font-black text-gray-900 my-1">₹200</p>
-                <p className="text-xs text-gray-500">Earned when your referral's friend buys New Product or RO AMC</p>
-              </div>
+        {/* Compact Referral Sharing Bar */}
+        <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-gray-200/80 shadow-xs mb-4">
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <h3 className="text-xs sm:text-sm font-black text-gray-900 tracking-tight">
+              Refer to earn up to ₹400
+            </h3>
+            <span className="text-[10.5px] text-gray-500 font-medium">
+              ₹400 (Level 1) + ₹200 (Level 2)
+            </span>
+          </div>
 
-              <div className="p-5 rounded-2xl bg-amber-50/60 border border-amber-100 flex flex-col items-center text-center">
-                <span className="w-8 h-8 rounded-full bg-amber-600 text-white font-black text-xs flex items-center justify-center mb-2">3</span>
-                <span className="text-xs font-extrabold text-amber-700 uppercase">Product Buyer</span>
-                <p className="text-2xl font-black text-gray-900 my-1">200 Pts</p>
-                <p className="text-xs text-gray-500">Credited to the buyer's reward points wallet after purchase</p>
-              </div>
-
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1 min-w-0">
+              <span className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-gray-400 text-xs">
+                🔗
+              </span>
+              <input
+                type="text"
+                readOnly
+                value={getReferralLink()}
+                className="w-full pl-7 pr-2.5 h-8 bg-gray-50 border border-gray-200 rounded-lg text-xs font-mono font-bold text-gray-800 select-all focus:outline-none"
+              />
             </div>
+
+            {/* Copy Button */}
+            <button
+              type="button"
+              onClick={handleCopyLink}
+              title={copiedLink ? "Copied!" : "Copy link"}
+              aria-label="Copy referral link"
+              className={`w-8 h-8 rounded-lg transition shadow-xs shrink-0 flex items-center justify-center cursor-pointer active:scale-95 ${
+                copiedLink ? "bg-emerald-600 text-white" : "bg-gray-900 hover:bg-black text-white"
+              }`}
+            >
+              {copiedLink ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+            </button>
+
+            {/* Share Button */}
+            <button
+              type="button"
+              onClick={handleShare}
+              title="Share referral link"
+              aria-label="Share referral link"
+              className="w-8 h-8 rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 transition shadow-xs shrink-0 flex items-center justify-center active:scale-95 cursor-pointer"
+            >
+              <Share2 className="w-4 h-4" />
+            </button>
           </div>
         </div>
 
-        {/* 📑 TABBED DETAILS & HISTORIES */}
-        <div className="bg-white rounded-[28px] border border-gray-100 shadow-sm overflow-hidden">
+        {/* Compact Tabs & History */}
+        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-xs overflow-hidden">
           
           {/* Tab Navigation */}
-          <div className="flex border-b border-gray-100 overflow-x-auto scrollbar-none">
+          <div className="flex border-b border-gray-100 overflow-x-auto scrollbar-none bg-gray-50/50">
             <button
               onClick={() => setActiveTab("referrals")}
-              className={`px-6 py-4 font-extrabold text-sm border-b-2 transition whitespace-nowrap cursor-pointer flex items-center gap-2 ${
+              className={`px-3.5 py-2.5 font-bold text-xs border-b-2 transition whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
                 activeTab === "referrals"
-                  ? "border-[#6b62d9] text-[#6b62d9] bg-[#6b62d9]/5"
+                  ? "border-indigo-600 text-indigo-700 bg-white"
                   : "border-transparent text-gray-500 hover:text-gray-900"
               }`}
             >
-              <Users className="w-4 h-4" />
-              Referral Network ({networkData.total_network_count})
+              <Users className="w-3.5 h-3.5" />
+              Network ({networkData.total_network_count})
             </button>
 
             <button
               onClick={() => setActiveTab("points")}
-              className={`px-6 py-4 font-extrabold text-sm border-b-2 transition whitespace-nowrap cursor-pointer flex items-center gap-2 ${
+              className={`px-3.5 py-2.5 font-bold text-xs border-b-2 transition whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
                 activeTab === "points"
-                  ? "border-amber-500 text-amber-600 bg-amber-50/40"
+                  ? "border-amber-500 text-amber-700 bg-white"
                   : "border-transparent text-gray-500 hover:text-gray-900"
               }`}
             >
-              <Sparkles className="w-4 h-4" />
-              Reward Points History ({pointsData.history.length})
+              <Sparkles className="w-3.5 h-3.5" />
+              Points ({pointsData.history.length})
             </button>
 
             <button
               onClick={() => setActiveTab("referral_money")}
-              className={`px-6 py-4 font-extrabold text-sm border-b-2 transition whitespace-nowrap cursor-pointer flex items-center gap-2 ${
+              className={`px-3.5 py-2.5 font-bold text-xs border-b-2 transition whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
                 activeTab === "referral_money"
-                  ? "border-emerald-600 text-emerald-700 bg-emerald-50/40"
+                  ? "border-emerald-600 text-emerald-700 bg-white"
                   : "border-transparent text-gray-500 hover:text-gray-900"
               }`}
             >
-              <IndianRupee className="w-4 h-4" />
-              Referral Money History ({referralData.history.length})
+              <IndianRupee className="w-3.5 h-3.5" />
+              Cash ({referralData.history.length})
             </button>
 
             <button
               onClick={() => setActiveTab("withdrawals")}
-              className={`px-6 py-4 font-extrabold text-sm border-b-2 transition whitespace-nowrap cursor-pointer flex items-center gap-2 ${
+              className={`px-3.5 py-2.5 font-bold text-xs border-b-2 transition whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
                 activeTab === "withdrawals"
-                  ? "border-gray-900 text-gray-900 bg-gray-50"
+                  ? "border-gray-900 text-gray-900 bg-white"
                   : "border-transparent text-gray-500 hover:text-gray-900"
               }`}
             >
-              <Building2 className="w-4 h-4" />
-              Withdrawal History ({withdrawalsList.length})
+              <Building2 className="w-3.5 h-3.5" />
+              Withdrawals ({withdrawalsList.length})
             </button>
           </div>
 
           {/* TAB 1: REFERRAL NETWORK */}
           {activeTab === "referrals" && (
-            <div className="p-6 sm:p-8">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h4 className="font-extrabold text-lg text-gray-900">Your Referred Users</h4>
-                  <p className="text-gray-500 text-xs mt-0.5">Track your direct (Level 1) and second-level (Level 2) referrals</p>
-                </div>
-              </div>
-
+            <div className="p-4 sm:p-5">
               {networkData.total_network_count === 0 ? (
-                <div className="text-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                  <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                  <h5 className="font-bold text-gray-800 text-base">No Referrals Yet</h5>
-                  <p className="text-gray-500 text-sm max-w-sm mx-auto mt-1">
-                    Share your referral link with friends. When they register, they get 100 Welcome Points and appear here!
-                  </p>
-                  <button 
-                    onClick={handleWhatsAppShare}
-                    className="mt-5 bg-[#25D366] text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-xs"
-                  >
-                    Share via WhatsApp
-                  </button>
+                <div className="text-center py-8 text-gray-400 text-xs">
+                  No referrals yet. Share your link to start earning!
                 </div>
               ) : (
-                <div className="space-y-6">
+                <div className="space-y-4">
                   {/* Level 1 Direct */}
                   <div>
-                    <h5 className="text-xs font-black uppercase tracking-wider text-indigo-700 bg-indigo-50 px-3 py-1 rounded-md inline-block mb-3">
-                      Level 1: Direct Referrals ({networkData.level1_users.length}) • ₹400 / purchase
+                    <h5 className="text-[11px] font-black uppercase tracking-wider text-indigo-700 mb-2">
+                      Level 1: Direct ({networkData.level1_users.length}) • ₹400 / purchase
                     </h5>
-                    <div className="divide-y divide-gray-100 border border-gray-100 rounded-2xl overflow-hidden">
+                    <div className="divide-y divide-gray-100 border border-gray-100 rounded-xl overflow-hidden">
                       {networkData.level1_users.map((u: any, idx: number) => (
-                        <div key={idx} className="p-4 flex items-center justify-between hover:bg-gray-50/50">
+                        <div key={idx} className="p-3 flex items-center justify-between text-xs hover:bg-gray-50/50">
                           <div>
-                            <p className="font-bold text-gray-900 text-sm">{u.name || "Customer"}</p>
-                            <p className="text-xs text-gray-500 font-mono mt-0.5">{u.email}</p>
+                            <p className="font-bold text-gray-900">{u.name || "Customer"}</p>
+                            <p className="text-[11px] text-gray-500 font-mono">{u.email}</p>
                           </div>
                           <div className="text-right">
-                            <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full">
-                              {Number(u.completed_orders || 0)} Completed Orders
+                            <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full text-[10px]">
+                              {Number(u.completed_orders || 0)} Orders
                             </span>
-                            <p className="text-[10px] text-gray-400 mt-1">
-                              Joined: {new Date(u.created_at).toLocaleDateString('en-GB')}
+                            <p className="text-[10px] text-gray-400 mt-0.5">
+                              {new Date(u.created_at).toLocaleDateString('en-GB')}
                             </p>
                           </div>
                         </div>
@@ -624,22 +560,22 @@ function WalletContent() {
                   {/* Level 2 Sub-referrals */}
                   {networkData.level2_users.length > 0 && (
                     <div>
-                      <h5 className="text-xs font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-3 py-1 rounded-md inline-block mb-3">
-                        Level 2: Second-Level Referrals ({networkData.level2_users.length}) • ₹200 / purchase
+                      <h5 className="text-[11px] font-black uppercase tracking-wider text-emerald-700 mb-2">
+                        Level 2: Indirect ({networkData.level2_users.length}) • ₹200 / purchase
                       </h5>
-                      <div className="divide-y divide-gray-100 border border-gray-100 rounded-2xl overflow-hidden">
+                      <div className="divide-y divide-gray-100 border border-gray-100 rounded-xl overflow-hidden">
                         {networkData.level2_users.map((u: any, idx: number) => (
-                          <div key={idx} className="p-4 flex items-center justify-between hover:bg-gray-50/50">
+                          <div key={idx} className="p-3 flex items-center justify-between text-xs hover:bg-gray-50/50">
                             <div>
-                              <p className="font-bold text-gray-900 text-sm">{u.name || "Customer"}</p>
-                              <p className="text-xs text-gray-500 font-mono mt-0.5">{u.email}</p>
+                              <p className="font-bold text-gray-900">{u.name || "Customer"}</p>
+                              <p className="text-[11px] text-gray-500 font-mono">{u.email}</p>
                             </div>
                             <div className="text-right">
-                              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full">
-                                {Number(u.completed_orders || 0)} Completed Orders
+                              <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full text-[10px]">
+                                {Number(u.completed_orders || 0)} Orders
                               </span>
-                              <p className="text-[10px] text-gray-400 mt-1">
-                                Joined: {new Date(u.created_at).toLocaleDateString('en-GB')}
+                              <p className="text-[10px] text-gray-400 mt-0.5">
+                                {new Date(u.created_at).toLocaleDateString('en-GB')}
                               </p>
                             </div>
                           </div>
@@ -654,38 +590,22 @@ function WalletContent() {
 
           {/* TAB 2: REWARD POINTS HISTORY */}
           {activeTab === "points" && (
-            <div className="p-6 sm:p-8">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="font-extrabold text-lg text-gray-900">Reward Points Ledger</h4>
-                <span className="text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
-                  Available: {pointsData.available_points} Points
-                </span>
-              </div>
-
+            <div className="p-4 sm:p-5">
               {pointsData.history.length === 0 ? (
-                <div className="text-center py-12 text-gray-400">No points transactions recorded.</div>
+                <div className="text-center py-8 text-gray-400 text-xs">No points history yet.</div>
               ) : (
-                <div className="divide-y divide-gray-100 border border-gray-100 rounded-2xl overflow-hidden">
+                <div className="divide-y divide-gray-100 border border-gray-100 rounded-xl overflow-hidden">
                   {pointsData.history.map((tx: any, idx: number) => (
-                    <div key={idx} className="p-4 flex items-center justify-between hover:bg-gray-50/50">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
-                          tx.type === 'Credit' ? 'bg-amber-100 text-amber-700' : 'bg-red-50 text-red-600'
-                        }`}>
-                          {tx.type === 'Credit' ? <Sparkles className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
-                        </div>
-                        <div>
-                          <p className="font-bold text-gray-900 text-sm">{tx.description}</p>
-                          <p className="text-[11px] text-gray-400 mt-0.5">
-                            {new Date(tx.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                          </p>
-                        </div>
+                    <div key={idx} className="p-3 flex items-center justify-between hover:bg-gray-50/50 text-xs">
+                      <div>
+                        <p className="font-bold text-gray-900">{tx.description}</p>
+                        <p className="text-[10px] text-gray-400 mt-0.5">
+                          {new Date(tx.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </p>
                       </div>
-                      <div className="text-right">
-                        <span className={`font-black text-base ${tx.type === 'Credit' ? 'text-amber-600' : 'text-red-600'}`}>
-                          {tx.type === 'Credit' ? '+' : '-'}{tx.points} Pts
-                        </span>
-                      </div>
+                      <span className={`font-black text-sm ${tx.type === 'Credit' ? 'text-emerald-600' : 'text-red-600'}`}>
+                        {tx.type === 'Credit' ? '+' : '-'}{tx.points} Pts
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -693,42 +613,26 @@ function WalletContent() {
             </div>
           )}
 
-          {/* TAB 3: REFERRAL MONEY HISTORY */}
+          {/* TAB 3: REFERRAL CASH HISTORY */}
           {activeTab === "referral_money" && (
-            <div className="p-6 sm:p-8">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="font-extrabold text-lg text-gray-900">Referral Money Earnings (₹)</h4>
-                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-                  Balance: ₹{Number(referralData.available_balance).toFixed(2)}
-                </span>
-              </div>
-
+            <div className="p-4 sm:p-5">
               {referralData.history.length === 0 ? (
-                <div className="text-center py-12 text-gray-400">
-                  No referral earnings yet. When your referrals purchase New Products or RO AMC, your ₹400 / ₹200 commissions will show here.
+                <div className="text-center py-8 text-gray-400 text-xs">
+                  No referral cash earnings yet.
                 </div>
               ) : (
-                <div className="divide-y divide-gray-100 border border-gray-100 rounded-2xl overflow-hidden">
+                <div className="divide-y divide-gray-100 border border-gray-100 rounded-xl overflow-hidden">
                   {referralData.history.map((tx: any, idx: number) => (
-                    <div key={idx} className="p-4 flex items-center justify-between hover:bg-gray-50/50">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
-                          tx.type === 'Credit' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-50 text-red-600'
-                        }`}>
-                          {tx.type === 'Credit' ? <ArrowDownRight className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
-                        </div>
-                        <div>
-                          <p className="font-bold text-gray-900 text-sm">{tx.description}</p>
-                          <p className="text-[11px] text-gray-400 mt-0.5">
-                            {new Date(tx.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                          </p>
-                        </div>
+                    <div key={idx} className="p-3 flex items-center justify-between hover:bg-gray-50/50 text-xs">
+                      <div>
+                        <p className="font-bold text-gray-900">{tx.description}</p>
+                        <p className="text-[10px] text-gray-400 mt-0.5">
+                          {new Date(tx.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </p>
                       </div>
-                      <div className="text-right">
-                        <span className={`font-black text-base ${tx.type === 'Credit' ? 'text-emerald-600' : 'text-red-600'}`}>
-                          {tx.type === 'Credit' ? '+' : '-'}₹{Number(tx.amount).toFixed(2)}
-                        </span>
-                      </div>
+                      <span className={`font-black text-sm ${tx.type === 'Credit' ? 'text-emerald-600' : 'text-red-600'}`}>
+                        {tx.type === 'Credit' ? '+' : '-'}₹{Number(tx.amount).toFixed(2)}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -738,28 +642,17 @@ function WalletContent() {
 
           {/* TAB 4: WITHDRAWALS HISTORY */}
           {activeTab === "withdrawals" && (
-            <div className="p-6 sm:p-8">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="font-extrabold text-lg text-gray-900">Withdrawal Requests</h4>
-                <button
-                  onClick={() => setShowWithdrawModal(true)}
-                  disabled={!referralData.can_withdraw}
-                  className="text-xs font-bold bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white px-4 py-2 rounded-xl transition cursor-pointer"
-                >
-                  New Request
-                </button>
-              </div>
-
+            <div className="p-4 sm:p-5">
               {withdrawalsList.length === 0 ? (
-                <div className="text-center py-12 text-gray-400">No withdrawal requests made yet.</div>
+                <div className="text-center py-8 text-gray-400 text-xs">No withdrawal requests yet.</div>
               ) : (
-                <div className="divide-y divide-gray-100 border border-gray-100 rounded-2xl overflow-hidden">
+                <div className="divide-y divide-gray-100 border border-gray-100 rounded-xl overflow-hidden">
                   {withdrawalsList.map((wd: any, idx: number) => (
-                    <div key={idx} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-gray-50/50">
+                    <div key={idx} className="p-3 flex items-center justify-between hover:bg-gray-50/50 text-xs">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-mono font-bold text-gray-900 text-sm">#{wd.withdrawal_id}</span>
-                          <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${
+                          <span className="font-bold text-gray-900">#{wd.withdrawal_id}</span>
+                          <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
                             wd.status === 'Completed' || wd.status === 'Approved'
                               ? 'bg-emerald-100 text-emerald-800'
                               : wd.status === 'Rejected'
@@ -769,16 +662,13 @@ function WalletContent() {
                             {wd.status}
                           </span>
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Method: <strong>{wd.payment_method}</strong> • {wd.upi_id ? `UPI: ${wd.upi_id}` : `Bank: ${wd.account_number} (${wd.bank_name})`}
-                        </p>
-                        <p className="text-[10px] text-gray-400 mt-0.5">
-                          Requested: {new Date(wd.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        <p className="text-[11px] text-gray-500 mt-0.5">
+                          {wd.payment_method} • {wd.upi_id || wd.account_number}
                         </p>
                       </div>
-                      <div className="sm:text-right">
-                        <span className="text-lg font-black text-gray-900">₹{Number(wd.amount).toFixed(2)}</span>
-                      </div>
+                      <span className="font-black text-sm text-gray-900">
+                        ₹{Number(wd.amount).toFixed(2)}
+                      </span>
                     </div>
                   ))}
                 </div>

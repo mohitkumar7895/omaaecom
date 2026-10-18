@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { sendBookingEmail } from "../../../lib/mail";
 
 import { getAuthToken } from "../../../lib/auth";
+import { generateReferralCode } from "../../../lib/rewards";
 
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_for_development_only";
 
@@ -15,8 +16,7 @@ function generateOrderId(): string {
 }
 
 function generateCouponCode(): string {
-  const randomNum = Math.floor(100000 + Math.random() * 900000);
-  return `OC${randomNum}`;
+  return generateReferralCode();
 }
 
 export async function POST(req: Request) {

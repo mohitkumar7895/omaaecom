@@ -15,6 +15,8 @@ import {
   Gift
 } from "lucide-react";
 
+import { getActiveReferralCode } from "@/lib/client-auth";
+
 interface ProfileDropdownProps {
   user: any;
   onLogout: () => void;
@@ -25,8 +27,9 @@ interface ProfileDropdownProps {
 export default function ProfileDropdown({ user, onLogout, isOpen, onClose }: ProfileDropdownProps) {
   if (!isOpen) return null;
 
-  const referralCode = user?.referral_code || user?.coupon_code || "OC133461";
-  const referralUrl = `https://omaacompany.in/?ref=${referralCode}`;
+  const rawCode = user?.referral_code || user?.coupon_code || "";
+  const referralCode = (rawCode && !rawCode.startsWith("OC") && rawCode.length === 6) ? rawCode : getActiveReferralCode();
+  const referralUrl = `https://omaacompany.com/wallet?ref=${referralCode}`;
 
   return (
     <>

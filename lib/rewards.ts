@@ -28,6 +28,22 @@ export interface RewardSummary {
 }
 
 /**
+ * Generates a 6-character referral code with 3 alphabetic letters and 3 numbers (e.g. OMA482, KRT718)
+ */
+export function generateReferralCode(): string {
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const digits = "0123456789";
+  let code = "";
+  for (let i = 0; i < 3; i++) {
+    code += letters.charAt(Math.floor(Math.random() * letters.length));
+  }
+  for (let i = 0; i < 3; i++) {
+    code += digits.charAt(Math.floor(Math.random() * digits.length));
+  }
+  return code;
+}
+
+/**
  * Ensures user receives 100 Welcome Points upon signup
  */
 export async function creditWelcomePoints(connectionOrPool: any, userEmail: string): Promise<boolean> {
@@ -239,10 +255,14 @@ export async function getUserRewardSummary(userEmail: string): Promise<RewardSum
   );
 
   let referralCode = userRows[0]?.referral_code || "";
-  if (!referralCode && userEmail) {
-    referralCode = `OC${Math.floor(100000 + Math.random() * 900000)}`;
+  if ((!referralCode || referralCode.startsWith("OC") || referralCode.length !== 6) && userEmail) {
+    const oldCode = referralCode;
+    referralCode = generateReferralCode();
     try {
       await pool.query("UPDATE users SET referral_code = ? WHERE email = ?", [referralCode, userEmail]);
+      if (oldCode) {
+        await pool.query("UPDATE users SET referred_by = ? WHERE referred_by = ?", [referralCode, oldCode]);
+      }
     } catch (e) {}
   }
 

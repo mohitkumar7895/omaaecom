@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import pool from "../../../../lib/db";
 import jwt from "jsonwebtoken";
+import { generateReferralCode } from "../../../../lib/rewards";
 
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_for_development_only";
 
@@ -82,9 +83,8 @@ export async function POST(req: Request) {
         }
       }
 
-      // Generate new OC + 6-digit referral code (e.g. OC133461)
-      const randomNum = Math.floor(100000 + Math.random() * 900000);
-      referralCode = `OC${randomNum}`;
+      // Generate new 6-character referral code (3 letters + 3 numbers)
+      referralCode = generateReferralCode();
 
       const uid = `email-${Date.now()}`;
       await connection.query(
@@ -108,8 +108,7 @@ export async function POST(req: Request) {
       referralCode = user.referral_code;
 
       if (!referralCode) {
-        const randomNum = Math.floor(100000 + Math.random() * 900000);
-        referralCode = `OC${randomNum}`;
+        referralCode = generateReferralCode();
         await connection.query(
           `UPDATE users SET referral_code = ? WHERE email = ?`,
           [referralCode, email]

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import pool from "../../../../lib/db";
 import jwt from "jsonwebtoken";
+import { generateReferralCode } from "../../../../lib/rewards";
 
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_for_development_only";
 
@@ -52,8 +53,7 @@ export async function POST(req: Request) {
         }
       }
 
-      const randomNum = Math.floor(100000 + Math.random() * 900000);
-      referralCode = `OC${randomNum}`;
+      referralCode = generateReferralCode();
 
       // Create new user from Google Data
       await connection.query(
@@ -77,8 +77,7 @@ export async function POST(req: Request) {
       referralCode = user.referral_code;
 
       if (!referralCode) {
-        const randomNum = Math.floor(100000 + Math.random() * 900000);
-        referralCode = `OC${randomNum}`;
+        referralCode = generateReferralCode();
         await connection.query(
           `UPDATE users SET referral_code = ? WHERE email = ?`,
           [referralCode, email]
