@@ -13,36 +13,45 @@ const TOKEN_KEY = "omaa_auth_token";
 export function getRandomReferralCode(): string {
   const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const digits = "0123456789";
-  let code = "";
-  for (let i = 0; i < 3; i++) {
-    code += letters.charAt(Math.floor(Math.random() * letters.length));
-  }
-  for (let i = 0; i < 3; i++) {
-    code += digits.charAt(Math.floor(Math.random() * digits.length));
-  }
-  return code;
+  let result = "";
+  do {
+    const chars: string[] = [];
+    for (let i = 0; i < 3; i++) {
+      chars.push(letters.charAt(Math.floor(Math.random() * letters.length)));
+    }
+    for (let i = 0; i < 3; i++) {
+      chars.push(digits.charAt(Math.floor(Math.random() * digits.length)));
+    }
+    for (let i = chars.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [chars[i], chars[j]] = [chars[j], chars[i]];
+    }
+    result = chars.join("");
+  } while (/^[A-Z]{3}[0-9]{3}$/.test(result) || /^[0-9]{3}[A-Z]{3}$/.test(result));
+  return result;
 }
 
+const DEFAULT_CODE = "O226SC";
+
 export function getActiveReferralCode(): string {
-  if (typeof window === "undefined") return "UKP250";
+  if (typeof window === "undefined") return DEFAULT_CODE;
   try {
     const raw = localStorage.getItem(USER_KEY);
     if (raw) {
       const u = JSON.parse(raw);
-      if (u?.referral_code && !u.referral_code.startsWith("OC") && u.referral_code.length === 6) {
+      if (u?.referral_code && !u.referral_code.startsWith("OC") && u.referral_code !== "UKP250" && u.referral_code.length === 6) {
         localStorage.setItem("omaa_active_ref", u.referral_code);
         return u.referral_code;
       }
     }
     const cached = localStorage.getItem("omaa_active_ref");
-    if (cached && !cached.startsWith("OC") && cached.length === 6) {
+    if (cached && !cached.startsWith("OC") && cached !== "UKP250" && cached.length === 6) {
       return cached;
     }
-    const code = "UKP250";
-    localStorage.setItem("omaa_active_ref", code);
-    return code;
+    localStorage.setItem("omaa_active_ref", DEFAULT_CODE);
+    return DEFAULT_CODE;
   } catch (e) {
-    return "UKP250";
+    return DEFAULT_CODE;
   }
 }
 
@@ -52,9 +61,9 @@ export function getStoredUser(): AuthUser | null {
     const raw = localStorage.getItem(USER_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    if (parsed && parsed.referral_code && (parsed.referral_code.startsWith("OC") || parsed.referral_code.length !== 6)) {
-      delete parsed.referral_code;
-      delete parsed.referral_link;
+    if (parsed && parsed.referral_code && (parsed.referral_code.startsWith("OC") || parsed.referral_code === "UKP250" || parsed.referral_code.length !== 6)) {
+      parsed.referral_code = DEFAULT_CODE;
+      parsed.referral_link = `https://omaacompany.com/wallet?ref=${DEFAULT_CODE}`;
       try {
         localStorage.setItem(USER_KEY, JSON.stringify(parsed));
       } catch (e) {}

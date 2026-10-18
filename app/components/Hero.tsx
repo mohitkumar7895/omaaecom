@@ -194,7 +194,7 @@ export default function Hero({ categories = [], banners = [], hideHeadline = fal
             href="/wallet" 
             className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-[11px] px-2.5 py-1 rounded-lg transition flex items-center gap-1 shrink-0 group"
           >
-            <span>Wallet</span>
+            <span>Refer</span>
             <span className="group-hover:translate-x-0.5 transition-transform">→</span>
           </Link>
         </div>

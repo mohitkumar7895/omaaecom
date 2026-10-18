@@ -4,14 +4,22 @@ const mysql = require('mysql2/promise');
 function generateReferralCode() {
   const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const digits = "0123456789";
-  let code = "";
-  for (let i = 0; i < 3; i++) {
-    code += letters.charAt(Math.floor(Math.random() * letters.length));
-  }
-  for (let i = 0; i < 3; i++) {
-    code += digits.charAt(Math.floor(Math.random() * digits.length));
-  }
-  return code;
+  let result = "";
+  do {
+    const chars = [];
+    for (let i = 0; i < 3; i++) {
+      chars.push(letters.charAt(Math.floor(Math.random() * letters.length)));
+    }
+    for (let i = 0; i < 3; i++) {
+      chars.push(digits.charAt(Math.floor(Math.random() * digits.length)));
+    }
+    for (let i = chars.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [chars[i], chars[j]] = [chars[j], chars[i]];
+    }
+    result = chars.join("");
+  } while (/^[A-Z]{3}[0-9]{3}$/.test(result) || /^[0-9]{3}[A-Z]{3}$/.test(result));
+  return result;
 }
 
 async function migrate() {

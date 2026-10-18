@@ -28,19 +28,30 @@ export interface RewardSummary {
 }
 
 /**
- * Generates a 6-character referral code with 3 alphabetic letters and 3 numbers (e.g. OMA482, KRT718)
+ * Generates a 6-character referral code with 3 alphabetic letters and 3 numbers mixed together (e.g. U2K5P0, 7K9UP2)
  */
 export function generateReferralCode(): string {
   const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const digits = "0123456789";
-  let code = "";
-  for (let i = 0; i < 3; i++) {
-    code += letters.charAt(Math.floor(Math.random() * letters.length));
-  }
-  for (let i = 0; i < 3; i++) {
-    code += digits.charAt(Math.floor(Math.random() * digits.length));
-  }
-  return code;
+  let result = "";
+  
+  do {
+    const chars: string[] = [];
+    for (let i = 0; i < 3; i++) {
+      chars.push(letters.charAt(Math.floor(Math.random() * letters.length)));
+    }
+    for (let i = 0; i < 3; i++) {
+      chars.push(digits.charAt(Math.floor(Math.random() * digits.length)));
+    }
+    // Fisher-Yates shuffle
+    for (let i = chars.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [chars[i], chars[j]] = [chars[j], chars[i]];
+    }
+    result = chars.join("");
+  } while (/^[A-Z]{3}[0-9]{3}$/.test(result) || /^[0-9]{3}[A-Z]{3}$/.test(result));
+
+  return result;
 }
 
 /**
