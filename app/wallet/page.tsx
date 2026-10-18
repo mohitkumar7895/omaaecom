@@ -112,7 +112,7 @@ function WalletContent() {
 
   const getReferralLink = () => {
     const code = getCleanCode();
-    return `https://omaacompany.com/wallet?ref=${code}`;
+    return `https://omaacompany.com/refer?ref=${code}`;
   };
 
   const handleCopyLink = () => {

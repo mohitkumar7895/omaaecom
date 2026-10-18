@@ -381,7 +381,7 @@ export async function getUserRewardSummary(userEmail: string): Promise<RewardSum
     },
     referral_network: {
       referral_code: referralCode,
-      referral_link: `https://omaacompany.com/wallet?ref=${referralCode}`,
+      referral_link: `https://omaacompany.com/refer?ref=${referralCode}`,
       level1_users: level1Users,
       level2_users: level2Users,
       total_network_count: level1Users.length + level2Users.length

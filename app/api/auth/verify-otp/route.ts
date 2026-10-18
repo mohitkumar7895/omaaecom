@@ -141,7 +141,7 @@ export async function POST(req: Request) {
         email: user.email, 
         name: user.name,
         referral_code: user.referral_code,
-        referral_link: `https://omaacompany.com/wallet?ref=${user.referral_code}`
+        referral_link: `https://omaacompany.com/refer?ref=${user.referral_code}`
       },
       JWT_SECRET,
       { expiresIn: '30d' }
@@ -154,7 +154,7 @@ export async function POST(req: Request) {
       user: {
         ...user,
         referral_code: user.referral_code,
-        referral_link: `https://omaacompany.com/wallet?ref=${user.referral_code}`
+        referral_link: `https://omaacompany.com/refer?ref=${user.referral_code}`
       } 
     });
     

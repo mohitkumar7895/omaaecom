@@ -24,12 +24,12 @@ interface HeroProps {
 export default function Hero({ categories = [], banners = [], hideHeadline = false }: HeroProps) {
   const [userCity, setUserCity] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [referralLink, setReferralLink] = useState(() => `https://omaacompany.com/wallet?ref=${getActiveReferralCode()}`);
+  const [referralLink, setReferralLink] = useState(() => `https://omaacompany.com/refer?ref=${getActiveReferralCode()}`);
 
   useEffect(() => {
     const syncCode = (code: string) => {
       if (code && !code.startsWith("OC") && code.length === 6) {
-        setReferralLink(`https://omaacompany.com/wallet?ref=${code}`);
+        setReferralLink(`https://omaacompany.com/refer?ref=${code}`);
         try {
           localStorage.setItem("omaa_active_ref", code);
         } catch (e) {}

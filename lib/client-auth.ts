@@ -63,7 +63,7 @@ export function getStoredUser(): AuthUser | null {
     const parsed = JSON.parse(raw);
     if (parsed && parsed.referral_code && (parsed.referral_code.startsWith("OC") || parsed.referral_code === "UKP250" || parsed.referral_code.length !== 6)) {
       parsed.referral_code = DEFAULT_CODE;
-      parsed.referral_link = `https://omaacompany.com/wallet?ref=${DEFAULT_CODE}`;
+      parsed.referral_link = `https://omaacompany.com/refer?ref=${DEFAULT_CODE}`;
       try {
         localStorage.setItem(USER_KEY, JSON.stringify(parsed));
       } catch (e) {}

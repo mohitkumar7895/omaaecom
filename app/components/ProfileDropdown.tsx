@@ -29,7 +29,7 @@ export default function ProfileDropdown({ user, onLogout, isOpen, onClose }: Pro
 
   const rawCode = user?.referral_code || user?.coupon_code || "";
   const referralCode = (rawCode && !rawCode.startsWith("OC") && rawCode.length === 6) ? rawCode : getActiveReferralCode();
-  const referralUrl = `https://omaacompany.com/wallet?ref=${referralCode}`;
+  const referralUrl = `https://omaacompany.com/refer?ref=${referralCode}`;
 
   return (
     <>

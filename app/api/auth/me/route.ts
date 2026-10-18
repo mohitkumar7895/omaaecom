@@ -46,7 +46,7 @@ export async function GET(req: Request) {
     const updatedUser = {
       ...decoded,
       referral_code: referralCode,
-      referral_link: `https://omaacompany.com/wallet?ref=${referralCode}`
+      referral_link: `https://omaacompany.com/refer?ref=${referralCode}`
     };
 
     const newToken = jwt.sign(updatedUser, JWT_SECRET, { expiresIn: "30d" });
