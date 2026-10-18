@@ -421,12 +421,48 @@ function WalletContent() {
 
         {/* Compact Referral Sharing Bar */}
         <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-gray-200/80 shadow-xs mb-4">
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <h3 className="text-xs sm:text-sm font-black text-gray-900 tracking-tight">
-              Refer to earn up to ₹400
-            </h3>
-            <span className="text-[10.5px] text-gray-500 font-medium">
-              ₹400 (Level 1) + ₹200 (Level 2)
+          <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-2">
+            <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 flex-nowrap">
+              <h3 className="text-[11.5px] xs:text-xs sm:text-sm font-black text-gray-900 tracking-tight whitespace-nowrap shrink-0">
+                Refer to earn up to ₹400
+              </h3>
+
+              {/* Animated Colorful Gift Box with Floating Coins */}
+              <div className="flex items-center gap-1 shrink-0 flex-nowrap">
+                <div className="relative flex items-center justify-center shrink-0">
+                  {/* Emerging Coin 1 */}
+                  <span 
+                    className="absolute pointer-events-none text-[9px] sm:text-[11px] leading-none animate-coin-left select-none z-10"
+                    style={{ left: "0px", top: "-2px" }}
+                  >
+                    🪙
+                  </span>
+                  {/* Emerging Coin 2 */}
+                  <span 
+                    className="absolute pointer-events-none text-[9px] sm:text-[11px] leading-none animate-coin-right select-none z-10"
+                    style={{ right: "0px", top: "-2px" }}
+                  >
+                    🪙
+                  </span>
+
+                  {/* Colorful Glowing Box */}
+                  <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg sm:rounded-xl bg-linear-to-tr from-amber-400 via-rose-500 to-indigo-600 p-[1.5px] gift-box-glow shadow-sm flex items-center justify-center shrink-0">
+                    <div className="w-full h-full rounded-[6.5px] sm:rounded-[9px] bg-white flex items-center justify-center">
+                      <span className="text-[14px] sm:text-[16px] leading-none animate-gift-box select-none">
+                        🎁
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Slightly bigger, vibrant points text */}
+                <span className="text-[11px] xs:text-[12px] sm:text-[13px] font-black bg-linear-to-r from-amber-600 via-orange-600 to-rose-600 bg-clip-text text-transparent tracking-tight whitespace-nowrap shrink-0">
+                  +100 Pts
+                </span>
+              </div>
+            </div>
+            <span className="text-[10px] sm:text-[10.5px] text-gray-500 font-medium shrink-0 whitespace-nowrap hidden sm:inline">
+              ₹400 (L1) + ₹200 (L2)
             </span>
           </div>
 

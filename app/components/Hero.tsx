@@ -185,14 +185,50 @@ export default function Hero({ categories = [], banners = [], hideHeadline = fal
       <div className="bg-white/95 backdrop-blur-xl rounded-[20px] p-3 sm:p-3.5 text-gray-900 flex flex-col gap-2.5">
         
         {/* Header */}
-        <div className="flex items-center justify-between gap-2 border-b border-gray-100 pb-2">
-          <h4 className="text-[13px] sm:text-[14px] font-black text-gray-900 tracking-tight leading-none">
-            Refer to earn up to ₹400
-          </h4>
+        <div className="flex items-center justify-between gap-1.5 sm:gap-2 border-b border-gray-100 pb-2">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 flex-nowrap">
+            <h4 className="text-[11.5px] xs:text-[13px] sm:text-[14px] font-black text-gray-900 tracking-tight leading-none whitespace-nowrap shrink-0">
+              Refer to earn up to ₹400
+            </h4>
+
+            {/* Animated Colorful Gift Box with Floating Coins */}
+            <div className="flex items-center gap-1 shrink-0 flex-nowrap">
+              <div className="relative flex items-center justify-center shrink-0">
+                {/* Emerging Coin 1 */}
+                <span 
+                  className="absolute pointer-events-none text-[9px] sm:text-[11px] leading-none animate-coin-left select-none z-10"
+                  style={{ left: "0px", top: "-2px" }}
+                >
+                  🪙
+                </span>
+                {/* Emerging Coin 2 */}
+                <span 
+                  className="absolute pointer-events-none text-[9px] sm:text-[11px] leading-none animate-coin-right select-none z-10"
+                  style={{ right: "0px", top: "-2px" }}
+                >
+                  🪙
+                </span>
+
+                {/* Colorful Glowing Box */}
+                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg sm:rounded-xl bg-linear-to-tr from-amber-400 via-rose-500 to-indigo-600 p-[1.5px] gift-box-glow shadow-sm flex items-center justify-center shrink-0">
+                  <div className="w-full h-full rounded-[6.5px] sm:rounded-[9px] bg-white flex items-center justify-center">
+                    <span className="text-[14px] sm:text-[16px] leading-none animate-gift-box select-none">
+                      🎁
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Points text - always on same line */}
+              <span className="text-[11px] xs:text-[12px] sm:text-[13px] font-black bg-linear-to-r from-amber-600 via-orange-600 to-rose-600 bg-clip-text text-transparent tracking-tight whitespace-nowrap shrink-0">
+                +100 Pts
+              </span>
+            </div>
+          </div>
 
           <Link 
             href="/wallet" 
-            className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-[11px] px-2.5 py-1 rounded-lg transition flex items-center gap-1 shrink-0 group"
+            className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-[10.5px] sm:text-[11px] px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg transition flex items-center gap-1 shrink-0 group whitespace-nowrap"
           >
             <span>Refer</span>
             <span className="group-hover:translate-x-0.5 transition-transform">→</span>
