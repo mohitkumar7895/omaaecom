@@ -5,6 +5,7 @@ import Footer from "../components/Footer";
 import { SEO_LOCATIONS } from "../../lib/seo-locations";
 import { SEO_SERVICES } from "../../lib/seo-services";
 import { SEO_KEYWORD_PAGES, keywordFitsLocation } from "../../lib/seo-keywords";
+import { GAUR_CITY_SOCIETIES } from "../../lib/gaur-city-data";
 import { getSiteUrl } from "../../lib/site-url";
 
 const siteUrl = getSiteUrl();
@@ -57,7 +58,58 @@ export default function ServiceAreasPage() {
         </section>
 
         <LocationGroup title="Cities" locations={cities} />
-        <LocationGroup title="Societies near Gaur City 2" locations={societies} />
+        
+        {/* Gaur City 2 Hub & Core Avenues */}
+        <section className="mt-8">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-extrabold text-gray-900">
+              Gaur City 2 & Sector 16C Societies
+            </h2>
+            <Link
+              href="/gaur-city-2"
+              className="text-xs font-bold text-[#5c67b8] hover:underline"
+            >
+              Visit Gaur City 2 Hub &rarr;
+            </Link>
+          </div>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-50">
+            {GAUR_CITY_SOCIETIES.map((soc) => (
+              <div key={soc.slug} className="px-4 sm:px-6 py-4 hover:bg-indigo-50/40 transition-colors">
+                <div className="flex flex-wrap items-center justify-between gap-1">
+                  <Link href={`/gaur-city-2/${soc.slug}`} className="font-bold text-gray-900 hover:text-[#5c67b8] text-base">
+                    {soc.name}
+                  </Link>
+                  <span className={`text-[10px] px-2 py-0.5 rounded font-semibold ${soc.isCore ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
+                    {soc.isCore ? "Core Gaur City 2" : "Nearby Society"}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 mt-0.5">{soc.localityLabel}</p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  <Link
+                    href={`/gaur-city-2/${soc.slug}/ro-water-purifier-service`}
+                    className="text-[11px] font-semibold bg-[#eef1fc] text-[#5c67b8] px-2.5 py-1 rounded-full hover:bg-[#5c67b8] hover:text-white"
+                  >
+                    RO Service
+                  </Link>
+                  <Link
+                    href={`/gaur-city-2/${soc.slug}/ac-repair-service`}
+                    className="text-[11px] font-semibold bg-[#eef1fc] text-[#5c67b8] px-2.5 py-1 rounded-full hover:bg-[#5c67b8] hover:text-white"
+                  >
+                    AC Repair
+                  </Link>
+                  <Link
+                    href={`/gaur-city-2/${soc.slug}/washing-machine-repair`}
+                    className="text-[11px] font-semibold bg-[#eef1fc] text-[#5c67b8] px-2.5 py-1 rounded-full hover:bg-[#5c67b8] hover:text-white"
+                  >
+                    Washing Machine
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <LocationGroup title="Other Delhi NCR Societies" locations={societies} />
       </div>
       <Footer />
     </main>

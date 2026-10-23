@@ -14,8 +14,15 @@ import {
   keywordService,
 } from "../../lib/seo-keywords";
 import LocationSeoSection from "../components/LocationSeoSection";
+import GaurCitySeoLanding from "../components/GaurCitySeoLanding";
 import { getHomeCatalog } from "../../lib/home-catalog";
 import { getSiteUrl } from "../../lib/site-url";
+import {
+  getGaurCitySociety,
+  getGaurCityService,
+  getGaurCityPageSeo,
+  GAUR_CITY_GENERAL_FAQS,
+} from "../../lib/gaur-city-data";
 
 export const revalidate = 120;
 
@@ -34,6 +41,69 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (citySlug === "sitemap.xml" || citySlug === "sitemap" || citySlug === "robots.txt") {
     return { robots: { index: false, follow: false } };
   }
+
+  // Handle Gaur City 2 Hub and nested society/service routes
+  if (citySlug === "gaur-city-2") {
+    if (citySegments.length > 3) {
+      return {
+        title: absoluteTitle("Page not found | OMAA Company"),
+        robots: { index: false, follow: false },
+      };
+    }
+
+    const societySlug = citySegments[1];
+    const targetServiceSlug = citySegments[2];
+    const society = societySlug ? getGaurCitySociety(societySlug) : undefined;
+    const gaurService = targetServiceSlug ? getGaurCityService(targetServiceSlug) : undefined;
+
+    if (societySlug && !society) {
+      return {
+        title: absoluteTitle("Page not found | OMAA Company"),
+        robots: { index: false, follow: false },
+      };
+    }
+    if (targetServiceSlug && !gaurService) {
+      return {
+        title: absoluteTitle("Page not found | OMAA Company"),
+        robots: { index: false, follow: false },
+      };
+    }
+
+    const seo = getGaurCityPageSeo(society?.slug, gaurService?.slug);
+    const pagePath = gaurService
+      ? `/gaur-city-2/${society?.slug}/${gaurService.slug}`
+      : society
+      ? `/gaur-city-2/${society.slug}`
+      : `/gaur-city-2`;
+    const canonical = `${siteUrl}${pagePath}`;
+
+    return {
+      title: absoluteTitle(seo.title),
+      description: seo.description,
+      keywords: seo.keywords,
+      alternates: { canonical },
+      openGraph: {
+        title: seo.title,
+        description: seo.description,
+        url: canonical,
+        images: [
+          {
+            url: "/og-image.jpg",
+            width: 1200,
+            height: 630,
+            alt: seo.h1,
+          },
+        ],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: seo.title,
+        description: seo.description,
+        images: ["/og-image.jpg"],
+      },
+    };
+  }
+
   const seoLocation = citySlug ? getSeoLocation(citySlug) : undefined;
   const seoService = serviceSlug ? getSeoService(serviceSlug) : undefined;
   const rootKeyword = !serviceSlug && citySlug ? getKeywordPage(citySlug) : undefined;
@@ -210,6 +280,106 @@ export default async function Home({ params }: PageProps) {
   if (citySlug === "sitemap.xml" || citySlug === "sitemap" || citySlug === "robots.txt") {
     notFound();
   }
+
+  const homeSiteUrl = getSiteUrl();
+
+  // Handle Gaur City 2 Hub and nested society/service routes
+  if (citySlug === "gaur-city-2") {
+    if (citySegments.length > 3) notFound();
+
+    const societySlug = citySegments[1];
+    const targetServiceSlug = citySegments[2];
+    const society = societySlug ? getGaurCitySociety(societySlug) : undefined;
+    const gaurService = targetServiceSlug ? getGaurCityService(targetServiceSlug) : undefined;
+
+    if (societySlug && !society) notFound();
+    if (targetServiceSlug && !gaurService) notFound();
+
+    const seo = getGaurCityPageSeo(society?.slug, gaurService?.slug);
+    const pagePath = gaurService
+      ? `/gaur-city-2/${society?.slug}/${gaurService.slug}`
+      : society
+      ? `/gaur-city-2/${society.slug}`
+      : `/gaur-city-2`;
+    const canonicalUrl = `${homeSiteUrl}${pagePath}`;
+
+    const breadcrumbItems: any[] = [
+      { "@type": "ListItem", position: 1, name: "Home", item: homeSiteUrl },
+      { "@type": "ListItem", position: 2, name: "Gaur City 2", item: `${homeSiteUrl}/gaur-city-2` },
+    ];
+    if (society) {
+      breadcrumbItems.push({
+        "@type": "ListItem",
+        position: 3,
+        name: society.name,
+        item: `${homeSiteUrl}/gaur-city-2/${society.slug}`,
+      });
+    }
+    if (gaurService && society) {
+      breadcrumbItems.push({
+        "@type": "ListItem",
+        position: 4,
+        name: gaurService.name,
+        item: canonicalUrl,
+      });
+    }
+
+    const gaurCitySchema = {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "BreadcrumbList",
+          itemListElement: breadcrumbItems,
+        },
+        {
+          "@type": "HomeAndConstructionBusiness",
+          "@id": `${canonicalUrl}#business`,
+          name: `OMAA Company - ${gaurService ? gaurService.name : "Appliance Repair"} ${society ? society.name : "Gaur City 2"}`,
+          url: canonicalUrl,
+          telephone: "+919999251966",
+          priceRange: "₹₹",
+          image: `${homeSiteUrl}/og-image.jpg`,
+          address: {
+            "@type": "PostalAddress",
+            addressLocality: "Greater Noida West",
+            addressRegion: "Uttar Pradesh",
+            postalCode: "201009",
+            streetAddress: society ? `${society.name}, Sector 16C` : "Gaur City 2, Sector 16C",
+            addressCountry: "IN",
+          },
+          areaServed: {
+            "@type": "AdministrativeArea",
+            name: society ? society.name : "Gaur City 2, Greater Noida West",
+          },
+        },
+        {
+          "@type": "FAQPage",
+          mainEntity: GAUR_CITY_GENERAL_FAQS.map((faq) => ({
+            "@type": "Question",
+            name: faq.q,
+            acceptedAnswer: { "@type": "Answer", text: faq.a },
+          })),
+        },
+      ],
+    };
+
+    return (
+      <main className="min-h-screen bg-slate-50 flex flex-col font-sans">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(gaurCitySchema) }}
+        />
+        <Navbar />
+        <GaurCitySeoLanding
+          society={society}
+          service={gaurService}
+          canonicalUrl={canonicalUrl}
+        />
+        <Footer />
+      </main>
+    );
+  }
+
   const seoLocation = citySlug ? getSeoLocation(citySlug) : undefined;
   const seoService = serviceSlug ? getSeoService(serviceSlug) : undefined;
   const rootKeyword = !serviceSlug && citySlug ? getKeywordPage(citySlug) : undefined;
@@ -222,8 +392,6 @@ export default async function Home({ params }: PageProps) {
   if (extraSegment || (serviceSlug && !seoService && !keywordPage)) {
     notFound();
   }
-
-  const homeSiteUrl = getSiteUrl();
 
   if (keywordPage) {
     const location = seoLocation || getSeoLocation(keywordPage.locationSlug);

@@ -1,6 +1,7 @@
 import { SEO_LOCATIONS } from "@/lib/seo-locations";
 import { SEO_SERVICES } from "@/lib/seo-services";
 import { SEO_KEYWORD_PAGES } from "@/lib/seo-keywords";
+import { GAUR_CITY_SOCIETIES, GAUR_CITY_SERVICES } from "@/lib/gaur-city-data";
 import { getSiteUrl, toCanonicalUrl } from "@/lib/site-url";
 import type { MetadataRoute } from "next";
 
@@ -62,6 +63,31 @@ export function buildStaticSitemap(): MetadataRoute.Sitemap {
     for (const svc of SEO_SERVICES) {
       pages.push({
         url: `${baseUrl}/${loc.slug}/${svc.slug}`,
+        lastModified: now,
+        changeFrequency: "weekly",
+        priority: 0.85,
+      });
+    }
+  }
+
+  // Gaur City 2 Hub and nested Society pages
+  pages.push({
+    url: `${baseUrl}/gaur-city-2`,
+    lastModified: now,
+    changeFrequency: "weekly",
+    priority: 0.95,
+  });
+
+  for (const soc of GAUR_CITY_SOCIETIES) {
+    pages.push({
+      url: `${baseUrl}/gaur-city-2/${soc.slug}`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: soc.isCore ? 0.9 : 0.85,
+    });
+    for (const svcKey of Object.keys(GAUR_CITY_SERVICES)) {
+      pages.push({
+        url: `${baseUrl}/gaur-city-2/${soc.slug}/${svcKey}`,
         lastModified: now,
         changeFrequency: "weekly",
         priority: 0.85,

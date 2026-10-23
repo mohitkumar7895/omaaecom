@@ -87,6 +87,31 @@ export const SEO_SERVICES: SeoService[] = [
       },
     ],
   },
+  {
+    slug: "ac-repair-service",
+    name: "AC Repair & Service",
+    shortName: "AC Repair",
+    categoryId: 1,
+    titleKeyword: "AC Repair and Service",
+    description: (place) =>
+      `Doorstep AC repair and service in ${place}. Cooling issues, gas refilling, foam jet cleaning, leakage and compressor repairs by OMAA certified technicians. Call ${PHONE}.`,
+    intro: (place) =>
+      `Need fast AC repair & service in ${place}? OMAA Company sends certified cooling technicians to your doorstep for split, window, and inverter air conditioners. From power jet cleaning and refrigerant recharge (R32/R410A) to PCB circuit repairs and water leakage fixes, we offer upfront rate card pricing and a 30-day service warranty.`,
+    faqs: (place) => [
+      {
+        q: `Do you service all AC brands in ${place}?`,
+        a: `Yes. We service Voltas, Daikin, LG, Samsung, Hitachi, Lloyd, Blue Star, Carrier, Godrej, Panasonic and other popular split and window AC brands in ${place}.`,
+      },
+      {
+        q: `How quickly can an AC technician arrive in ${place}?`,
+        a: `Most AC repair and servicing requests in ${place} receive a same-day visit between 8 AM and 8 PM. Emergency response is available depending on slot availability. Call ${PHONE}.`,
+      },
+      {
+        q: `Is there a warranty on AC repair in ${place}?`,
+        a: `Yes, all completed repairs and component replacements come with our standard 30-day service warranty for complete peace of mind.`,
+      },
+    ],
+  },
 ];
 
 const SERVICE_BY_SLUG = new Map(SEO_SERVICES.map((s) => [s.slug, s]));
@@ -94,11 +119,15 @@ const SERVICE_BY_SLUG = new Map(SEO_SERVICES.map((s) => [s.slug, s]));
 const SERVICE_ALIASES: Record<string, string> = {
   "ro-repair-and-service": "ro-repair",
   "ro-repair-service": "ro-repair",
+  "ro-water-purifier-service": "ro-repair",
   "water-purifier-repair": "ro-repair",
   "fridge-repair": "refrigerator-repair",
   "refrigerator-repair-service": "refrigerator-repair",
   "washing-machines-repair": "washing-machine-repair",
   "washing-machine-repair-service": "washing-machine-repair",
+  "ac-repair": "ac-repair-service",
+  "ac-service": "ac-repair-service",
+  "ac-repair-and-service": "ac-repair-service",
 };
 
 export function getSeoService(slug: string): SeoService | undefined {

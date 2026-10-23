@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { getCurrentLocation, autoDetectLocation } from "@/lib/location";
 import { getKeywordPage } from "@/lib/seo-keywords";
 import { locationToCitySlug, matchSeoLocationSlug } from "@/lib/seo-locations";
+import { getGaurCitySociety } from "@/lib/gaur-city-data";
 import { ChevronDown, MapPin, X, LocateFixed, Search, ChevronRight, Loader2, AlertCircle } from "lucide-react";
 
 interface LocationData {
@@ -32,11 +33,13 @@ const NON_CITY_ROUTES = new Set([
   'privacy', 'privacy-policy', 'product-history', 'professional-registration', 
   'rate-card', 'refer-earn', 'service-areas', 'services', 'settings', 
   'sitemap', 'sitemap.xml', 'sitemap-directory', 'sitemap-pages', 'robots.txt', 'sso-callback', 'terms', 
-  'terms-and-conditions', 'wallet', 'member_login', 'registration_form.php'
+  'terms-and-conditions', 'wallet', 'member_login', 'registration_form.php',
+  'gaur-city-2'
 ]);
 
 function shouldSyncCityUrl(pathname: string) {
   if (pathname === "/") return true;
+  if (pathname.startsWith("/gaur-city-2")) return false;
   const parts = pathname.split("/").filter(Boolean);
   if (parts.length !== 1) return false;
   const first = parts[0].toLowerCase();
@@ -344,6 +347,15 @@ export default function LocationSelector() {
 
   // Determine what to show on the trigger button
   const getButtonText = () => {
+    if (pathname && pathname.startsWith("/gaur-city-2")) {
+      const parts = pathname.split("/").filter(Boolean);
+      if (parts.length >= 2) {
+        const soc = getGaurCitySociety(parts[1]);
+        if (soc) return `${soc.name}, Gaur City 2`;
+      }
+      return "Gaur City 2, Noida Extension";
+    }
+
     if (location) {
       const spoken = [
         location.houseNumber,
