@@ -1,7 +1,7 @@
 "use server";
 
 import pool from "../../lib/db";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { writeFile } from "fs/promises";
 import path from "path";
@@ -43,7 +43,11 @@ export async function saveBanners(formData: FormData) {
     return { error: "Failed to save banners" };
   }
 
-  revalidatePath("/admin/banners");
+  try {
+    revalidateTag("home-catalog", "max");
+    revalidatePath("/", "layout");
+    revalidatePath("/admin/banners");
+  } catch {}
   redirect("/admin/banners");
 }
 
@@ -85,6 +89,10 @@ export async function updateBanners(id: string, formData: FormData) {
     return { error: "Failed to update banners" };
   }
 
-  revalidatePath("/admin/banners");
+  try {
+    revalidateTag("home-catalog", "max");
+    revalidatePath("/", "layout");
+    revalidatePath("/admin/banners");
+  } catch {}
   redirect("/admin/banners");
 }

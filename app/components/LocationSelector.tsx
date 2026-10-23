@@ -155,12 +155,18 @@ export default function LocationSelector() {
         const detected = await autoDetectLocation();
         if (generation !== detectGenerationRef.current || isLocationLocked()) return;
         if (detected && (detected.city || detected.address || detected.latitude)) {
+          const full = detected.fullAddress || detected.address || detected.shortAddress || "";
+          const finalDetected = {
+            ...detected,
+            fullAddress: full,
+            address: full || detected.address,
+          };
           lockSavedLocation();
-          setLocation(detected);
-          localStorage.setItem("user_location", JSON.stringify(detected));
+          setLocation(finalDetected);
+          localStorage.setItem("user_location", JSON.stringify(finalDetected));
           window.dispatchEvent(new Event("location_changed"));
           if (shouldSyncCityUrl(pathname || "/")) {
-            const slug = routeSlugForLocation(detected);
+            const slug = routeSlugForLocation(finalDetected);
             if (slug && pathname !== `/${slug}`) {
               router.replace(`/${slug}`);
             }
@@ -275,13 +281,18 @@ export default function LocationSelector() {
     detectGenerationRef.current += 1;
     setIsAutoDetecting(false);
     lockSavedLocation();
-    setLocation(locationData);
-    localStorage.setItem("user_location", JSON.stringify(locationData));
+    const finalLocation: LocationData = {
+      ...locationData,
+      fullAddress: locationData.fullAddress || locationData.address,
+      address: locationData.fullAddress || locationData.address,
+    };
+    setLocation(finalLocation);
+    localStorage.setItem("user_location", JSON.stringify(finalLocation));
     window.dispatchEvent(new Event("location_changed"));
     setIsOpen(false);
 
     if (!pathname || !shouldSyncCityUrl(pathname)) return;
-    const slug = routeSlugForLocation(locationData);
+    const slug = routeSlugForLocation(finalLocation);
     if (!slug) return;
     const nextPath = `/${slug}`;
     if (pathname !== nextPath) {
@@ -308,9 +319,9 @@ export default function LocationSelector() {
         throw new Error("Could not load that address. Try another suggestion.");
       }
       applyLocation({
-        address: details.shortAddress || details.fullAddress || locationData.address,
+        address: details.fullAddress || details.address || details.shortAddress || locationData.address,
         shortAddress: details.shortAddress || locationData.shortAddress,
-        fullAddress: details.fullAddress,
+        fullAddress: details.fullAddress || details.address || locationData.address,
         city: details.city || "",
         mohalla: details.mohalla || "",
         sector: details.sector || "",
@@ -336,7 +347,7 @@ export default function LocationSelector() {
     try {
       const locationData = await getCurrentLocation();
       
-      // Save to state and local storage
+      // Save to state and local storage with full address
       applyLocation(locationData);
     } catch (err: any) {
       setError(err.message || "Failed to detect location");
@@ -345,31 +356,30 @@ export default function LocationSelector() {
     }
   };
 
-  // Determine what to show on the trigger button
+  // Determine what to show on the trigger button - shows FULL location
   const getButtonText = () => {
+    if (location) {
+      const full = location.fullAddress || location.address;
+      if (full && full.trim()) {
+        return full.trim();
+      }
+      if (location.shortAddress && location.shortAddress.trim()) {
+        return location.shortAddress.trim();
+      }
+      if (location.city) {
+        return location.city;
+      }
+    }
+
     if (pathname && pathname.startsWith("/gaur-city-2")) {
       const parts = pathname.split("/").filter(Boolean);
       if (parts.length >= 2) {
         const soc = getGaurCitySociety(parts[1]);
-        if (soc) return `${soc.name}, Gaur City 2`;
+        if (soc) return `${soc.name}, Gaur City 2, Noida Extension`;
       }
       return "Gaur City 2, Noida Extension";
     }
 
-    if (location) {
-      const spoken = [
-        location.houseNumber,
-        location.street,
-        location.sector,
-        location.mohalla,
-        location.city,
-      ]
-        .filter((part): part is string => Boolean(part))
-        .filter((v, i, a) => a.findIndex((x) => x.toLowerCase() === v.toLowerCase()) === i);
-      if (spoken.length >= 2) return spoken.join(", ");
-    }
-    if (location?.shortAddress) return location.shortAddress;
-    if (location?.address) return location.address;
     if (isAutoDetecting) {
       return "Detecting location...";
     }
@@ -381,16 +391,21 @@ export default function LocationSelector() {
       {/* Trigger Button */}
       <div 
         onClick={() => setIsOpen(true)}
-        className="flex items-center justify-between bg-white border border-gray-200 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl cursor-pointer hover:bg-gray-50 transition mr-2 min-w-[180px] max-w-[280px] sm:max-w-[440px] shadow-sm"
-        title={(location as any)?.fullAddress || getButtonText()}
+        className="flex items-center justify-between bg-white border border-gray-200 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl cursor-pointer hover:bg-gray-50 transition mr-1 sm:mr-2 min-w-[140px] sm:min-w-[200px] max-w-[240px] sm:max-w-[420px] md:max-w-[500px] lg:max-w-[580px] shadow-sm"
+        title={(location as any)?.fullAddress || (location as any)?.address || getButtonText()}
       >
-        <div className="flex items-center space-x-2 overflow-hidden">
+        <div className="flex items-center space-x-2 overflow-hidden min-w-0">
           {isAutoDetecting ? (
             <Loader2 className="text-[#6b62d9] w-4 h-4 shrink-0 animate-spin" />
           ) : (
             <MapPin className="text-rose-500 w-4 h-4 shrink-0" />
           )}
-          <span className="text-[13px] sm:text-[14px] text-gray-800 font-medium line-clamp-2 break-words leading-tight">{getButtonText()}</span>
+          <span 
+            className="text-[12px] sm:text-[13px] text-gray-800 font-medium line-clamp-2 break-words leading-tight"
+            title={(location as any)?.fullAddress || (location as any)?.address || getButtonText()}
+          >
+            {getButtonText()}
+          </span>
         </div>
         <ChevronDown className="text-gray-400 w-4 h-4 shrink-0 ml-1.5" />
       </div>

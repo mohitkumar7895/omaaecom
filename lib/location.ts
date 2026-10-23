@@ -4,6 +4,7 @@ export interface ResolvedLocation {
   accuracy: number;
   address: string;
   shortAddress: string;
+  fullAddress?: string;
   city: string;
   state: string;
   country: string;
@@ -18,12 +19,14 @@ function mapGeocodePayload(
   loc: any,
   coords?: { latitude: number; longitude: number; accuracy?: number }
 ): ResolvedLocation {
+  const full = loc.fullAddress || loc.display_name || loc.address || loc.shortAddress || "";
   return {
     latitude: coords?.latitude || loc.latitude || 0,
     longitude: coords?.longitude || loc.longitude || 0,
     accuracy: coords?.accuracy || 0,
-    address: loc.fullAddress || loc.shortAddress || loc.address || "",
-    shortAddress: loc.shortAddress || loc.fullAddress || loc.address || loc.city || "",
+    address: full || loc.shortAddress || "",
+    shortAddress: loc.shortAddress || full || loc.city || "",
+    fullAddress: full,
     city: loc.city || "",
     state: loc.state || "",
     country: loc.country || "",

@@ -23,27 +23,30 @@ export function mediaResponseFromStored(value: unknown, requestUrl?: string): Re
     return Response.redirect(new URL(trimmed, requestUrl).toString(), 302);
   }
 
-  // Never stream DB base64 through Vercel functions (each banner is ~2.5MB origin transfer).
+  // Fast extraction of data:mime;base64,data
   if (trimmed.startsWith("data:")) {
     try {
-      const match = trimmed.match(/^data:([^;]+);base64,(.+)$/);
-      if (match) {
-        const mimeType = match[1];
-        const base64Data = match[2];
+      const commaIdx = trimmed.indexOf(",");
+      if (commaIdx !== -1) {
+        const header = trimmed.substring(0, commaIdx);
+        const base64Data = trimmed.substring(commaIdx + 1);
+        const mimeMatch = header.match(/^data:([^;]+);base64/);
+        const mimeType = mimeMatch ? mimeMatch[1] : "image/png";
         const buffer = Buffer.from(base64Data, "base64");
         return new Response(buffer, {
           headers: {
             "Content-Type": mimeType,
+            "Content-Length": String(buffer.byteLength),
             "Cache-Control": cache,
           },
         });
       }
     } catch (e) {
-      // ignore parsing error and fallback
+      console.error("Failed to parse base64 media:", e);
     }
 
     if (requestUrl) {
-      return Response.redirect(new URL("/Hero1.webp", requestUrl).toString(), 302);
+      return Response.redirect(new URL("/banners/desktop-banner-1.png", requestUrl).toString(), 302);
     }
     return new Response("Not found", { status: 404 });
   }

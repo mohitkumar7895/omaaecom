@@ -8,9 +8,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const slotNum = Number(slot);
 
   const fallbackBanners = [
-    "/banners/Banner2-RO-Service.jpg",
-    "/banners/Banner3-Home-Services-Doorstep.jpg",
-    "/banners/Banner3-Premium-Package.jpg"
+    "/banners/desktop-banner-1.png",
+    "/banners/desktop-banner-2.png",
+    "/banners/desktop-banner-3.png"
   ];
   const fallbackUrl = fallbackBanners[slotNum - 1] || fallbackBanners[0];
 

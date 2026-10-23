@@ -117,8 +117,8 @@ export default function HomeCategoryStream({
               className="w-full h-auto object-contain max-h-[260px] md:max-h-[320px] lg:max-h-[480px]"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
-                if (!target.src.includes("/banners/Banner2-RO-Service.jpg")) {
-                  target.src = "/banners/Banner2-RO-Service.jpg";
+                if (!target.src.includes("/banners/desktop-banner-1.png")) {
+                  target.src = "/banners/desktop-banner-1.png";
                 }
               }}
             />
@@ -147,8 +147,8 @@ export default function HomeCategoryStream({
               className="w-full h-auto object-contain max-h-[260px] md:max-h-[320px] lg:max-h-[480px]"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
-                if (!target.src.includes("/banners/Banner3-Home-Services-Doorstep.jpg")) {
-                  target.src = "/banners/Banner3-Home-Services-Doorstep.jpg";
+                if (!target.src.includes("/banners/desktop-banner-2.png")) {
+                  target.src = "/banners/desktop-banner-2.png";
                 }
               }}
             />
@@ -177,8 +177,8 @@ export default function HomeCategoryStream({
               className="w-full h-auto object-contain max-h-[260px] md:max-h-[320px] lg:max-h-[480px]"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
-                if (!target.src.includes("/banners/Banner3-Premium-Package.jpg")) {
-                  target.src = "/banners/Banner3-Premium-Package.jpg";
+                if (!target.src.includes("/banners/desktop-banner-3.png")) {
+                  target.src = "/banners/desktop-banner-3.png";
                 }
               }}
             />

@@ -9,15 +9,15 @@ export type HomeCatalog = {
 };
 
 const DESKTOP_BANNERS = [
-  "/banners/Banner2-RO-Service.jpg",
-  "/banners/Banner3-Home-Services-Doorstep.jpg",
-  "/banners/Banner3-Premium-Package.jpg",
+  "/banners/desktop-banner-1.png",
+  "/banners/desktop-banner-2.png",
+  "/banners/desktop-banner-3.png",
 ];
 
 const MOBILE_BANNERS = [
-  "/banners/Mobile-Banner1-AC-3D.jpg",
-  "/banners/Mobile-Banner3-Premium-Package-3D.jpg",
-  "/banners/Banner2-RO-Service.jpg",
+  "/banners/mobile-banner-1.png",
+  "/banners/mobile-banner-2.png",
+  "/banners/mobile-banner-3.png",
 ];
 
 async function loadHomeCatalog(): Promise<HomeCatalog> {
@@ -26,7 +26,7 @@ async function loadHomeCatalog(): Promise<HomeCatalog> {
     pool.query(
       "SELECT id, category_id, subcategory_id, title, original_price, selling_price, rating, warranty_days, short_description, image_url FROM services"
     ),
-    pool.query("SELECT id, banner1_url, banner2_url, banner3_url, type FROM banners"),
+    pool.query("SELECT id, banner1_url, banner2_url, banner3_url, type FROM banners ORDER BY id ASC"),
   ]);
 
   const catRows = catResult.status === "fulfilled" ? ((catResult.value as any)[0] as any[]) || [] : [];
@@ -106,7 +106,7 @@ async function loadHomeCatalog(): Promise<HomeCatalog> {
 }
 
 export function getHomeCatalog(_locationTitle = "") {
-  return unstable_cache(() => loadHomeCatalog(), ["home-catalog-v11"], {
+  return unstable_cache(() => loadHomeCatalog(), ["home-catalog-v13"], {
     revalidate: 300,
     tags: ["home-catalog"],
   })();
