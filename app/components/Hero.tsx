@@ -110,11 +110,11 @@ export default function Hero({
   }, []);
 
   const visibleCategories = useMemo(() => {
+    if (currentCity) {
+      return filterCategoriesByUserLocation(categories, { city: currentCity, address: currentCity, fullAddress: currentCity });
+    }
     if (userLocation) {
       return filterCategoriesByUserLocation(categories, userLocation);
-    }
-    if (currentCity) {
-      return filterCategoriesByUserLocation(categories, { city: currentCity, address: currentCity });
     }
     return categories;
   }, [categories, userLocation, currentCity]);

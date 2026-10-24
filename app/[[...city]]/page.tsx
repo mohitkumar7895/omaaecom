@@ -15,7 +15,6 @@ import {
 } from "../../lib/seo-keywords";
 import LocationSeoSection from "../components/LocationSeoSection";
 import GaurCitySeoLanding from "../components/GaurCitySeoLanding";
-import CustomSitemapLanding from "../components/CustomSitemapLanding";
 import { getHomeCatalog } from "../../lib/home-catalog";
 import { getSiteUrl } from "../../lib/site-url";
 import pool from "../../lib/db";
@@ -402,12 +401,31 @@ export default async function Home({ params }: PageProps) {
 
   const homeSiteUrl = getSiteUrl();
 
+  let categories: any[] = [];
+  let desktopBanners: any[] = [];
+  let mobileBanners: any[] = [];
+
+  try {
+    const catalog = await getHomeCatalog();
+    categories = catalog.categories;
+    desktopBanners = catalog.desktopBanners;
+    mobileBanners = catalog.mobileBanners;
+  } catch (error) {
+    console.error("Database connection error on Home page:", error);
+  }
+
   // 1. Check if this route matches an admin-created custom sitemap link (e.g. /sitemap/keyword)
   if (citySegments.length > 0) {
     const customPage = await getCustomSitemapPage(citySegments);
     if (customPage) {
       const pageTitle = customPage.heading || customPage.title;
       const canonicalUrl = `${homeSiteUrl}/${citySegments.join("/")}`;
+      const targetLocation =
+        [customPage.area, customPage.city].filter(Boolean).join(", ") ||
+        customPage.city ||
+        customPage.area ||
+        "Noida";
+
       const customSchema = {
         "@context": "https://schema.org",
         "@graph": [
@@ -435,20 +453,30 @@ export default async function Home({ params }: PageProps) {
             },
             areaServed: {
               "@type": "AdministrativeArea",
-              name: customPage.area ? `${customPage.area}, ${customPage.city || ""}` : (customPage.city || "Delhi NCR"),
+              name: targetLocation,
             },
           },
         ],
       };
 
       return (
-        <main className="min-h-screen bg-slate-50 flex flex-col font-sans">
+        <main className="min-h-screen bg-gray-50 flex flex-col font-sans">
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: JSON.stringify(customSchema) }}
           />
           <Navbar />
-          <CustomSitemapLanding pageData={customPage} />
+          <Hero
+            categories={categories}
+            banners={mobileBanners.length > 0 ? mobileBanners : desktopBanners}
+            currentCity={targetLocation}
+          />
+          <NewProductsSection />
+          <HomeCategoryStream
+            initialCategories={categories}
+            banners={desktopBanners}
+            currentCity={targetLocation}
+          />
           <Footer />
         </main>
       );
@@ -570,59 +598,6 @@ export default async function Home({ params }: PageProps) {
     rootKeyword ||
     (nestedKeyword && keywordFitsLocation(nestedKeyword, citySlug) ? nestedKeyword : undefined);
 
-  // Check if this route matches an admin-created custom sitemap link
-  if (citySegments.length > 0) {
-    const customPage = await getCustomSitemapPage(citySegments);
-    if (customPage) {
-      const pageTitle = customPage.heading || customPage.title;
-      const canonicalUrl = `${homeSiteUrl}/${citySegments.join("/")}`;
-      const customSchema = {
-        "@context": "https://schema.org",
-        "@graph": [
-          {
-            "@type": "BreadcrumbList",
-            itemListElement: [
-              { "@type": "ListItem", position: 1, name: "Home", item: homeSiteUrl },
-              { "@type": "ListItem", position: 2, name: "Service Directory", item: `${homeSiteUrl}/sitemap-directory` },
-              { "@type": "ListItem", position: 3, name: pageTitle, item: canonicalUrl },
-            ],
-          },
-          {
-            "@type": "HomeAndConstructionBusiness",
-            "@id": `${canonicalUrl}#business`,
-            name: `OMAA Company - ${pageTitle}`,
-            url: canonicalUrl,
-            telephone: "+919999251966",
-            priceRange: "₹₹",
-            image: `${homeSiteUrl}/og-image.jpg`,
-            address: {
-              "@type": "PostalAddress",
-              addressLocality: customPage.area || customPage.city || "Delhi NCR",
-              addressRegion: "Uttar Pradesh",
-              addressCountry: "IN",
-            },
-            areaServed: {
-              "@type": "AdministrativeArea",
-              name: customPage.area ? `${customPage.area}, ${customPage.city || ""}` : (customPage.city || "Delhi NCR"),
-            },
-          },
-        ],
-      };
-
-      return (
-        <main className="min-h-screen bg-slate-50 flex flex-col font-sans">
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(customSchema) }}
-          />
-          <Navbar />
-          <CustomSitemapLanding pageData={customPage} />
-          <Footer />
-        </main>
-      );
-    }
-  }
-
   if (extraSegment || (serviceSlug && !seoService && !keywordPage)) {
     notFound();
   }
@@ -664,6 +639,17 @@ export default async function Home({ params }: PageProps) {
         />
         <Navbar />
         <LocationSeoSection location={location} service={service} heading={heading} />
+        <Hero
+          categories={categories}
+          banners={mobileBanners.length > 0 ? mobileBanners : desktopBanners}
+          currentCity={location.title}
+        />
+        <NewProductsSection />
+        <HomeCategoryStream
+          initialCategories={categories}
+          banners={desktopBanners}
+          currentCity={location.title}
+        />
         <Footer />
       </main>
     );
@@ -701,22 +687,20 @@ export default async function Home({ params }: PageProps) {
         />
         <Navbar />
         <LocationSeoSection location={seoLocation} service={seoService} />
+        <Hero
+          categories={categories}
+          banners={mobileBanners.length > 0 ? mobileBanners : desktopBanners}
+          currentCity={seoLocation.title}
+        />
+        <NewProductsSection />
+        <HomeCategoryStream
+          initialCategories={categories}
+          banners={desktopBanners}
+          currentCity={seoLocation.title}
+        />
         <Footer />
       </main>
     );
-  }
-
-  let categories: any[] = [];
-  let desktopBanners: any[] = [];
-  let mobileBanners: any[] = [];
-
-  try {
-    const catalog = await getHomeCatalog();
-    categories = catalog.categories;
-    desktopBanners = catalog.desktopBanners;
-    mobileBanners = catalog.mobileBanners;
-  } catch (error) {
-    console.error("Database connection error on Home page:", error);
   }
 
   const homepageSchema = {

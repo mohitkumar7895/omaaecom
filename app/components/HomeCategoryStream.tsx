@@ -48,11 +48,11 @@ export default function HomeCategoryStream({
   }, []);
 
   const visibleCategories = useMemo(() => {
+    if (currentCity) {
+      return filterCategoriesByUserLocation(initialCategories, { city: currentCity, address: currentCity, fullAddress: currentCity });
+    }
     if (userLocation) {
       return filterCategoriesByUserLocation(initialCategories, userLocation);
-    }
-    if (currentCity) {
-      return filterCategoriesByUserLocation(initialCategories, { city: currentCity, address: currentCity });
     }
     return initialCategories;
   }, [initialCategories, userLocation, currentCity]);

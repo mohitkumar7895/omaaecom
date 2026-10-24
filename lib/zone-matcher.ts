@@ -177,6 +177,102 @@ export function getAvailableCategoryIdsForLocation(
 }
 
 /**
+/**
+ * Normalizes and expands locality names to their parent zone and aliases.
+ * E.g. "Noida Extension" -> ["noida extension", "greater noida west", "greater noida", "noida", "gautam buddha nagar"]
+ */
+export function expandLocationAliases(text: string): string[] {
+  const lower = text.toLowerCase().trim();
+  const set = new Set<string>();
+  set.add(lower);
+
+  // Split tokens if comma/slash separated
+  lower.split(/[,/]+/).forEach((part) => {
+    const trimmed = part.trim();
+    if (trimmed) set.add(trimmed);
+  });
+
+  if (
+    lower.includes("noida extension") ||
+    lower.includes("greater noida west") ||
+    lower.includes("gr noida west") ||
+    lower.includes("gaur city") ||
+    lower.includes("crossing republik") ||
+    lower.includes("crossings republik")
+  ) {
+    set.add("noida extension");
+    set.add("greater noida west");
+    set.add("greater noida");
+    set.add("gr noida");
+    set.add("noida");
+    set.add("gautam buddha nagar");
+    set.add("gautam budh nagar");
+  } else if (
+    lower.includes("greater noida") ||
+    lower.includes("gr noida") ||
+    lower.includes("pari chowk") ||
+    lower.includes("knowledge park")
+  ) {
+    set.add("greater noida");
+    set.add("gr noida");
+    set.add("noida");
+    set.add("gautam buddha nagar");
+  } else if (lower.includes("noida")) {
+    set.add("noida");
+    set.add("gautam buddha nagar");
+  }
+
+  if (
+    lower.includes("indirapuram") ||
+    lower.includes("vaishali") ||
+    lower.includes("vasundhara") ||
+    lower.includes("kaushambi") ||
+    lower.includes("raj nagar") ||
+    lower.includes("sahibabad") ||
+    lower.includes("ghaziabad")
+  ) {
+    set.add("ghaziabad");
+  }
+
+  if (
+    lower.includes("delhi") ||
+    lower.includes("dwarka") ||
+    lower.includes("rohini") ||
+    lower.includes("saket") ||
+    lower.includes("janakpuri") ||
+    lower.includes("lajpat nagar") ||
+    lower.includes("karol bagh") ||
+    lower.includes("connaught place") ||
+    lower.includes("laxmi nagar")
+  ) {
+    set.add("delhi");
+    set.add("new delhi");
+  }
+
+  if (
+    lower.includes("gurgaon") ||
+    lower.includes("gurugram") ||
+    lower.includes("cyber city") ||
+    lower.includes("sohna") ||
+    lower.includes("dlf") ||
+    lower.includes("golf course")
+  ) {
+    set.add("gurgaon");
+    set.add("gurugram");
+  }
+
+  if (
+    lower.includes("faridabad") ||
+    lower.includes("ballabhgarh") ||
+    lower.includes("nit faridabad")
+  ) {
+    set.add("faridabad");
+  }
+
+  return Array.from(set);
+}
+
+/**
  * Determines whether a category is available in the selected location.
  * Category zones are stored as comma-separated city, locality, or area names (e.g. "Noida, Greater Noida, Delhi, Bharthana").
  */
@@ -200,16 +296,21 @@ export function isCategoryAvailableAtLocation(
   }
 
   // Combined search text of user's current location
-  const combinedText = `${cityName || ""} ${address || ""} ${fullAddress || ""}`.toLowerCase();
+  const combinedText = `${cityName || ""} ${address || ""} ${fullAddress || ""}`.toLowerCase().trim();
 
-  if (!combinedText.trim()) return true;
+  if (!combinedText) return true;
 
-  // Check if any defined zone is inside user's location string OR user location is inside zone
+  const locationTokens = expandLocationAliases(combinedText);
+
+  // Check if any defined zone is inside user's location tokens OR user location token matches zone
   return rawZones.some((zone) => {
-    return (
-      combinedText.includes(zone) ||
-      (cityName && zone.includes(cityName.toLowerCase().trim())) ||
-      (address && zone.includes(address.toLowerCase().trim()))
-    );
+    return locationTokens.some((tok) => {
+      return (
+        tok === zone ||
+        tok.includes(zone) ||
+        zone.includes(tok)
+      );
+    });
   });
 }
+

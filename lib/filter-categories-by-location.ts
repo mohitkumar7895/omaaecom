@@ -18,7 +18,7 @@ export function filterCategoriesByUserLocation<T extends LocatableCategory>(
   location: UserLocationLike,
   allowedCategoryIds: number[] | null = null
 ): T[] {
-  if (!location || (!location.city && !location.address && !location.latitude)) {
+  if (!location || (!location.city && !location.address && !location.fullAddress && !location.latitude)) {
     return categories;
   }
 
@@ -37,5 +37,5 @@ export function filterCategoriesByUserLocation<T extends LocatableCategory>(
     isCategoryAvailableAtLocation(category.zones_location, city, address, fullAddress)
   );
 
-  return next.length > 0 ? next : categories;
+  return next;
 }
