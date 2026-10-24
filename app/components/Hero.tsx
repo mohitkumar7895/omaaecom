@@ -6,7 +6,6 @@ import Link from "next/link";
 import MobileBannerCarousel from "./MobileBannerCarousel";
 import LiveSearchBar from "./LiveSearchBar";
 import { getRandomReferralCode, getActiveReferralCode, fetchCurrentUser } from "@/lib/client-auth";
-import { filterCategoriesByUserLocation, type UserLocationLike } from "@/lib/filter-categories-by-location";
 
 interface HeroCategory {
   id: number;
@@ -29,7 +28,6 @@ export default function Hero({
   hideHeadline = false,
   currentCity,
 }: HeroProps) {
-  const [userLocation, setUserLocation] = useState<UserLocationLike>(null);
   const [copied, setCopied] = useState(false);
   const [referralLink, setReferralLink] = useState(() => `https://omaacompany.com/?ref=${getActiveReferralCode()}`);
 
@@ -88,14 +86,16 @@ export default function Hero({
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, "_blank");
   };
 
+  const [userCity, setUserCity] = useState<string | null>(null);
+
   useEffect(() => {
     const handleLocationChange = () => {
       try {
         const savedLocation = localStorage.getItem("user_location");
         if (savedLocation) {
           const parsed = JSON.parse(savedLocation);
-          if (parsed) {
-            setUserLocation(parsed);
+          if (parsed && (parsed.city || parsed.shortAddress || parsed.address)) {
+            setUserCity(parsed.city || parsed.shortAddress || parsed.address);
           }
         }
       } catch (e) {}
@@ -110,14 +110,19 @@ export default function Hero({
   }, []);
 
   const visibleCategories = useMemo(() => {
-    if (currentCity) {
-      return filterCategoriesByUserLocation(categories, { city: currentCity, address: currentCity, fullAddress: currentCity });
-    }
-    if (userLocation) {
-      return filterCategoriesByUserLocation(categories, userLocation);
-    }
-    return categories;
-  }, [categories, userLocation, currentCity]);
+    const activeLoc = currentCity || userCity;
+    if (!activeLoc) return categories;
+
+    const filtered = categories.filter((cat) => {
+      if (!cat.zones_location) return true;
+      const zones = cat.zones_location.split(",").map((z) => z.trim().toLowerCase());
+      const loc = activeLoc.toLowerCase();
+      if (zones.length === 0 || zones.includes("all") || zones.includes("")) return true;
+      return zones.some((zone) => loc.includes(zone) || zone.includes(loc));
+    });
+
+    return filtered.length > 0 ? filtered : categories;
+  }, [categories, userCity, currentCity]);
 
   const getIcon = (title: string) => {
     if (title.includes("Ac Repair")) return "❄️";
@@ -134,8 +139,7 @@ export default function Hero({
   // Col 1: AC -> Microwave
   // Col 2: Refrigerator -> Water Purifier
   // Col 3: Washing Machine
-  const activeList = visibleCategories.length > 0 ? visibleCategories : categories;
-  const allServices = activeList.filter(c => c.type && c.type.toLowerCase().includes("service"));
+  const allServices = visibleCategories.filter(c => c.type && c.type.toLowerCase().includes("service"));
   const fallbackServices = categories.filter(c => c.type && c.type.toLowerCase().includes("service"));
   const servicesToUse = allServices.length > 0 ? allServices : fallbackServices;
   
@@ -191,15 +195,6 @@ export default function Hero({
     hasNewProducts &&
     hasAmc
   );
-
-  const zoneFilteredBanners = useMemo(() => {
-    if (banners.length === 0) return banners;
-    const list: string[] = [];
-    if (banners[0]) list.push(banners[0]);
-    if (hasAc && banners[1]) list.push(banners[1]);
-    if ((hasFridge || hasWashing) && banners[2]) list.push(banners[2]);
-    return list.length > 0 ? list : banners.slice(0, 1);
-  }, [banners, hasAc, hasFridge, hasWashing]);
 
   // Reusable Referral Card Component
   const renderReferralCard = (customWidthClass = "max-w-120 lg:max-w-130") => (
@@ -279,9 +274,9 @@ export default function Hero({
         {/* Left Side: Title & Services Card */}
         <div className="w-full lg:w-1/2 flex flex-col space-y-3 md:space-y-4 z-10">
 
-          {/* Mobile / tablet promotional banners (Zone Filtered) */}
+          {/* Mobile / tablet promotional banners */}
           <div className="lg:hidden">
-            <MobileBannerCarousel banners={zoneFilteredBanners} />
+            <MobileBannerCarousel banners={banners} />
           </div>
 
           {!hideHeadline && (

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import CategoryGrid from "./CategoryGrid";
-import { filterCategoriesByUserLocation, type UserLocationLike } from "@/lib/filter-categories-by-location";
+
 
 interface CategoryWithServices {
   id: number;
@@ -24,7 +24,7 @@ export default function HomeCategoryStream({
   banners,
   currentCity,
 }: HomeCategoryStreamProps) {
-  const [userLocation, setUserLocation] = useState<UserLocationLike>(null);
+  const [userCity, setUserCity] = useState<string | null>(null);
 
   useEffect(() => {
     const handleLocationChange = () => {
@@ -32,8 +32,8 @@ export default function HomeCategoryStream({
         const savedLocation = localStorage.getItem("user_location");
         if (savedLocation) {
           const parsed = JSON.parse(savedLocation);
-          if (parsed) {
-            setUserLocation(parsed);
+          if (parsed && (parsed.city || parsed.shortAddress || parsed.address)) {
+            setUserCity(parsed.city || parsed.shortAddress || parsed.address);
           }
         }
       } catch (e) {}
@@ -48,14 +48,19 @@ export default function HomeCategoryStream({
   }, []);
 
   const visibleCategories = useMemo(() => {
-    if (currentCity) {
-      return filterCategoriesByUserLocation(initialCategories, { city: currentCity, address: currentCity, fullAddress: currentCity });
-    }
-    if (userLocation) {
-      return filterCategoriesByUserLocation(initialCategories, userLocation);
-    }
-    return initialCategories;
-  }, [initialCategories, userLocation, currentCity]);
+    const activeLoc = currentCity || userCity;
+    if (!activeLoc) return initialCategories;
+
+    const filtered = initialCategories.filter((cat) => {
+      if (!cat.zones_location) return true;
+      const zones = cat.zones_location.split(",").map((z) => z.trim().toLowerCase());
+      const loc = activeLoc.toLowerCase();
+      if (zones.length === 0 || zones.includes("all") || zones.includes("")) return true;
+      return zones.some((zone) => loc.includes(zone) || zone.includes(loc));
+    });
+
+    return filtered.length > 0 ? filtered : initialCategories;
+  }, [initialCategories, userCity, currentCity]);
 
   // Helper to match category rank according to exact sequence:
   // 1. RO AMC
@@ -90,44 +95,10 @@ export default function HomeCategoryStream({
     (c) => getCategoryRank(c.title, c.type) >= 10
   );
 
-  const banner1 = banners[0] || null; // RO AMC / Purifier banner
-  const banner2 = banners[1] || null; // AC Repair banner
-  const banner3 = banners[2] || null; // Fridge / Washing Machine banner
+  const banner1 = banners[0] || null;
+  const banner2 = banners[1] || null;
+  const banner3 = banners[2] || null;
   const remainingBanners = banners.slice(3);
-
-  // If no services available in selected area at all
-  if (visibleCategories.length === 0) {
-    const locationName = userLocation?.city || userLocation?.address || currentCity || "your area";
-    return (
-      <div className="max-w-3xl mx-auto px-4 py-10 my-4 text-center">
-        <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm flex flex-col items-center">
-          <span className="text-4xl mb-3">📍</span>
-          <h3 className="text-lg font-bold text-gray-900">
-            Services currently not available in {locationName}
-          </h3>
-          <p className="text-sm text-gray-500 mt-2 max-w-md">
-            OMAA Company verified doorstep appliance repair is currently operational across Noida, Greater Noida, Ghaziabad, Delhi, Faridabad & Gurgaon.
-          </p>
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
-            <a
-              href="tel:9999251966"
-              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition"
-            >
-              📞 Call 9999251966
-            </a>
-            <a
-              href="https://wa.me/919999251966?text=Hi%2C%20I%20want%20to%20inquire%20about%20service%20in%20my%20area"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs transition"
-            >
-              💬 WhatsApp Us
-            </a>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="mt-2 mb-10 space-y-2">
@@ -139,8 +110,8 @@ export default function HomeCategoryStream({
         </div>
       )}
 
-      {/* 2. Banner 1 (RO / Purifier Banner) - Only show if RO AMC or Purifier is available */}
-      {banner1 && (roAmcCat || waterPurifierCat) && (
+      {/* 2. Banner 1 */}
+      {banner1 && (
         <div className="block max-w-7xl mx-auto px-4 lg:px-12 py-3 lg:py-5 my-2 lg:my-4">
           <div className="w-full relative rounded-2xl md:rounded-3xl overflow-hidden shadow-md bg-gray-50 flex items-center justify-center border border-gray-100">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -169,8 +140,8 @@ export default function HomeCategoryStream({
         <CategoryGrid title={fridgeCat.title} services={fridgeCat.services} />
       )}
 
-      {/* 5. Banner 2 (AC Repair Banner) - Only show if AC repair is active in this zone */}
-      {banner2 && acCat && (
+      {/* 5. Banner 2 */}
+      {banner2 && (
         <div className="block max-w-7xl mx-auto px-4 lg:px-12 py-3 lg:py-5 my-2 lg:my-4">
           <div className="w-full relative rounded-2xl md:rounded-3xl overflow-hidden shadow-md bg-gray-50 flex items-center justify-center border border-gray-100">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -199,8 +170,8 @@ export default function HomeCategoryStream({
         <CategoryGrid title={microwaveCat.title} services={microwaveCat.services} />
       )}
 
-      {/* 8. Banner 3 (Fridge & Washing Banner) - Only show if Fridge or Washing is active in this zone */}
-      {banner3 && (fridgeCat || washingCat) && (
+      {/* 8. Banner 3 */}
+      {banner3 && (
         <div className="block max-w-7xl mx-auto px-4 lg:px-12 py-3 lg:py-5 my-2 lg:my-4">
           <div className="w-full relative rounded-2xl md:rounded-3xl overflow-hidden shadow-md bg-gray-50 flex items-center justify-center border border-gray-100">
             {/* eslint-disable-next-line @next/next/no-img-element */}
