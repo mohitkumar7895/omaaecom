@@ -92,10 +92,10 @@ export default function AddCategoryForm() {
             <AutoImageUpload
               name="image"
               label="Category Image"
-              targetWidth={500}
-              targetHeight={500}
-              defaultFit="contain"
-              aspectRatioDisplay="1:1 Square"
+              targetWidth={400}
+              targetHeight={300}
+              defaultFit="cover"
+              aspectRatioDisplay="4:3 Card Fit"
               required
             />
 

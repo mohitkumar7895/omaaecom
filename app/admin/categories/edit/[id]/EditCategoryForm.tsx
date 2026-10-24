@@ -96,10 +96,10 @@ export default function EditCategoryForm({ category }: { category: any }) {
                 name="image"
                 label="Category Image"
                 currentImageUrl={category.image_url}
-                targetWidth={500}
-                targetHeight={500}
-                defaultFit="contain"
-                aspectRatioDisplay="1:1 Square"
+                targetWidth={400}
+                targetHeight={300}
+                defaultFit="cover"
+                aspectRatioDisplay="4:3 Card Fit"
               />
             </div>
 

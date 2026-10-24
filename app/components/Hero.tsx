@@ -306,7 +306,7 @@ export default function Hero({
                       <div className="w-full h-16 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
                         {service.image_url && service.image_url.length > 5 ? (
                           /* eslint-disable-next-line @next/next/no-img-element */
-                          <img src={service.image_url} alt={service.title} className="w-full h-full object-contain" />
+                          <img src={service.image_url} alt={service.title} className="max-h-full max-w-full object-contain rounded-xl" />
                         ) : (
                           <span className="text-[28px]">{getIcon(service.title)}</span>
                         )}
@@ -330,7 +330,7 @@ export default function Hero({
                         <div className="w-full h-16 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
                           {service.image_url && service.image_url.length > 5 ? (
                             /* eslint-disable-next-line @next/next/no-img-element */
-                            <img src={service.image_url} alt={service.title} className="w-full h-full object-contain" />
+                            <img src={service.image_url} alt={service.title} className="max-h-full max-w-full object-contain rounded-xl" />
                           ) : (
                             <span className="text-[28px]">{getIcon(service.title)}</span>
                           )}
@@ -356,7 +356,7 @@ export default function Hero({
                     <div className="w-full h-18 md:h-19 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
                       {service.image_url && service.image_url.length > 5 ? (
                         /* eslint-disable-next-line @next/next/no-img-element */
-                        <img src={service.image_url} alt={service.title} className="w-full h-full object-contain" />
+                        <img src={service.image_url} alt={service.title} className="max-h-full max-w-full object-contain rounded-xl" />
                       ) : (
                         <span className="text-[32px]">{getIcon(service.title)}</span>
                       )}
@@ -408,7 +408,7 @@ export default function Hero({
                       <div className="w-full h-16 sm:h-18 md:h-19 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
                         {newProducts[0].image_url && newProducts[0].image_url.length > 5 ? (
                           /* eslint-disable-next-line @next/next/no-img-element */
-                          <img src={newProducts[0].image_url} alt={newProducts[0].title} className="w-full h-full object-contain" />
+                          <img src={newProducts[0].image_url} alt={newProducts[0].title} className="max-h-full max-w-full object-contain rounded-xl" />
                         ) : (
                           <span className="text-[28px] sm:text-[32px]">📦</span>
                         )}
@@ -429,7 +429,7 @@ export default function Hero({
                       <div className="w-full h-16 sm:h-18 md:h-19 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
                         {amcProducts[0].image_url && amcProducts[0].image_url.length > 5 ? (
                           /* eslint-disable-next-line @next/next/no-img-element */
-                          <img src={amcProducts[0].image_url} alt={amcProducts[0].title} className="w-full h-full object-contain" />
+                          <img src={amcProducts[0].image_url} alt={amcProducts[0].title} className="max-h-full max-w-full object-contain rounded-xl" />
                         ) : (
                           <span className="text-[28px] sm:text-[32px]">🛡️</span>
                         )}

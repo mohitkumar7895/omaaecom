@@ -106,8 +106,11 @@ async function loadHomeCatalog(): Promise<HomeCatalog> {
 }
 
 export function getHomeCatalog(_locationTitle = "") {
-  return unstable_cache(() => loadHomeCatalog(), ["home-catalog-v13"], {
-    revalidate: 300,
+  if (process.env.NODE_ENV !== "production") {
+    return loadHomeCatalog();
+  }
+  return unstable_cache(() => loadHomeCatalog(), ["home-catalog-v16"], {
+    revalidate: 60,
     tags: ["home-catalog"],
   })();
 }
