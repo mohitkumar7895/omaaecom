@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Home, ShoppingCart, ShieldCheck, Sparkles, Copy, Check, Share2 } from "lucide-react";
 import Link from "next/link";
 import MobileBannerCarousel from "./MobileBannerCarousel";
 import LiveSearchBar from "./LiveSearchBar";
 import { getRandomReferralCode, getActiveReferralCode, fetchCurrentUser } from "@/lib/client-auth";
+import { filterCategoriesByUserLocation, type UserLocationLike } from "@/lib/filter-categories-by-location";
 
 interface HeroCategory {
   id: number;
@@ -19,10 +20,16 @@ interface HeroProps {
   categories?: HeroCategory[];
   banners?: string[];
   hideHeadline?: boolean;
+  currentCity?: string;
 }
 
-export default function Hero({ categories = [], banners = [], hideHeadline = false }: HeroProps) {
-  const [userCity, setUserCity] = useState<string | null>(null);
+export default function Hero({
+  categories = [],
+  banners = [],
+  hideHeadline = false,
+  currentCity,
+}: HeroProps) {
+  const [userLocation, setUserLocation] = useState<UserLocationLike>(null);
   const [copied, setCopied] = useState(false);
   const [referralLink, setReferralLink] = useState(() => `https://omaacompany.com/?ref=${getActiveReferralCode()}`);
 
@@ -87,8 +94,8 @@ export default function Hero({ categories = [], banners = [], hideHeadline = fal
         const savedLocation = localStorage.getItem("user_location");
         if (savedLocation) {
           const parsed = JSON.parse(savedLocation);
-          if (parsed && parsed.city) {
-            setUserCity(parsed.city);
+          if (parsed) {
+            setUserLocation(parsed);
           }
         }
       } catch (e) {}
@@ -102,17 +109,15 @@ export default function Hero({ categories = [], banners = [], hideHeadline = fal
     };
   }, []);
 
-  const visibleCategories = categories.filter((cat) => {
-    if (!userCity) return true;
-    if (!cat.zones_location) return true;
-    
-    const zones = cat.zones_location.split(',').map((z) => z.trim().toLowerCase());
-    const city = userCity.toLowerCase();
-    
-    if (zones.length === 0 || zones.includes("all") || zones.includes("")) return true;
-    
-    return zones.some(zone => city.includes(zone) || zone.includes(city));
-  });
+  const visibleCategories = useMemo(() => {
+    if (userLocation) {
+      return filterCategoriesByUserLocation(categories, userLocation);
+    }
+    if (currentCity) {
+      return filterCategoriesByUserLocation(categories, { city: currentCity, address: currentCity });
+    }
+    return categories;
+  }, [categories, userLocation, currentCity]);
 
   const getIcon = (title: string) => {
     if (title.includes("Ac Repair")) return "❄️";
@@ -178,6 +183,15 @@ export default function Hero({ categories = [], banners = [], hideHeadline = fal
     hasNewProducts &&
     hasAmc
   );
+
+  const zoneFilteredBanners = useMemo(() => {
+    if (banners.length === 0) return banners;
+    const list: string[] = [];
+    if (banners[0]) list.push(banners[0]);
+    if (hasAc && banners[1]) list.push(banners[1]);
+    if ((hasFridge || hasWashing) && banners[2]) list.push(banners[2]);
+    return list.length > 0 ? list : banners.slice(0, 1);
+  }, [banners, hasAc, hasFridge, hasWashing]);
 
   // Reusable Referral Card Component
   const renderReferralCard = (customWidthClass = "max-w-120 lg:max-w-130") => (
@@ -257,9 +271,9 @@ export default function Hero({ categories = [], banners = [], hideHeadline = fal
         {/* Left Side: Title & Services Card */}
         <div className="w-full lg:w-1/2 flex flex-col space-y-3 md:space-y-4 z-10">
 
-          {/* Mobile / tablet promotional banners */}
+          {/* Mobile / tablet promotional banners (Zone Filtered) */}
           <div className="lg:hidden">
-            <MobileBannerCarousel banners={banners} />
+            <MobileBannerCarousel banners={zoneFilteredBanners} />
           </div>
 
           {!hideHeadline && (
@@ -281,80 +295,93 @@ export default function Hero({ categories = [], banners = [], hideHeadline = fal
                 Home Services
               </h3>
               
-              {/* Mobile View: Row 1 (3 cols) + Row 2 (2 cols full width) */}
-              <div className="md:hidden space-y-3">
-                <div className="grid grid-cols-3 gap-3 text-center justify-items-center w-full">
-                  {orderedCategories.slice(0, 3).map((service, index) => (
-                    <Link 
-                      href={`/services/${service.id}`} 
-                      prefetch={true}
-                      key={index} 
-                      className="flex flex-col items-center group w-full cursor-pointer"
-                    >
-                      <div className="w-full h-16 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
-                        {service.image_url && service.image_url.length > 5 ? (
-                          /* eslint-disable-next-line @next/next/no-img-element */
-                          <img src={service.image_url} alt={service.title} className="w-full h-full object-contain" />
-                        ) : (
-                          <span className="text-[28px]">{getIcon(service.title)}</span>
-                        )}
-                      </div>
-                      <span className="text-[12px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-8 flex items-start justify-center text-center">
-                        {service.title}
-                      </span>
-                    </Link>
-                  ))}
+              {orderedCategories.length === 0 ? (
+                <div className="bg-[#f8f9fa] border border-gray-200/80 rounded-2xl p-4 text-center my-2">
+                  <p className="text-xs font-bold text-gray-800">
+                    Doorstep appliance repair is coming soon to your location.
+                  </p>
+                  <p className="text-[11px] text-gray-500 mt-1">
+                    Please check our available packages below or call 9999251966.
+                  </p>
                 </div>
+              ) : (
+                <>
+                  {/* Mobile View: Row 1 (3 cols) + Row 2 (2 cols full width) */}
+                  <div className="md:hidden space-y-3">
+                    <div className="grid grid-cols-3 gap-3 text-center justify-items-center w-full">
+                      {orderedCategories.slice(0, 3).map((service, index) => (
+                        <Link 
+                          href={`/services/${service.id}`} 
+                          prefetch={true}
+                          key={index} 
+                          className="flex flex-col items-center group w-full cursor-pointer"
+                        >
+                          <div className="w-full h-16 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
+                            {service.image_url && service.image_url.length > 5 ? (
+                              /* eslint-disable-next-line @next/next/no-img-element */
+                              <img src={service.image_url} alt={service.title} className="w-full h-full object-contain" />
+                            ) : (
+                              <span className="text-[28px]">{getIcon(service.title)}</span>
+                            )}
+                          </div>
+                          <span className="text-[12px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-8 flex items-start justify-center text-center">
+                            {service.title}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
 
-                {orderedCategories.length > 3 && (
-                  <div className="grid grid-cols-2 gap-3 text-center justify-items-center w-full">
-                    {orderedCategories.slice(3, 5).map((service, index) => (
+                    {orderedCategories.length > 3 && (
+                      <div className="grid grid-cols-2 gap-3 text-center justify-items-center w-full">
+                        {orderedCategories.slice(3, 5).map((service, index) => (
+                          <Link 
+                            href={`/services/${service.id}`} 
+                            prefetch={true}
+                            key={index + 3} 
+                            className="flex flex-col items-center group w-full cursor-pointer"
+                          >
+                            <div className="w-full h-16 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
+                              {service.image_url && service.image_url.length > 5 ? (
+                                /* eslint-disable-next-line @next/next/no-img-element */
+                                <img src={service.image_url} alt={service.title} className="w-full h-full object-contain" />
+                              ) : (
+                                <span className="text-[28px]">{getIcon(service.title)}</span>
+                              )}
+                            </div>
+                            <span className="text-[12px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-8 flex items-start justify-center text-center">
+                              {service.title}
+                            </span>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Desktop View: Exact Original 3-Column Layout */}
+                  <div className="hidden md:grid md:grid-cols-3 gap-4 text-center justify-items-center w-full">
+                    {orderedCategories.map((service, index) => (
                       <Link 
                         href={`/services/${service.id}`} 
                         prefetch={true}
-                        key={index + 3} 
+                        key={index} 
                         className="flex flex-col items-center group w-full cursor-pointer"
                       >
-                        <div className="w-full h-16 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
+                        <div className="w-full h-18 md:h-19 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
                           {service.image_url && service.image_url.length > 5 ? (
                             /* eslint-disable-next-line @next/next/no-img-element */
                             <img src={service.image_url} alt={service.title} className="w-full h-full object-contain" />
                           ) : (
-                            <span className="text-[28px]">{getIcon(service.title)}</span>
+                            <span className="text-[32px]">{getIcon(service.title)}</span>
                           )}
                         </div>
-                        <span className="text-[12px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-8 flex items-start justify-center text-center">
+                        <span className="text-[13px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-9 flex items-start justify-center text-center">
                           {service.title}
                         </span>
                       </Link>
                     ))}
                   </div>
-                )}
-              </div>
-
-              {/* Desktop View: Exact Original 3-Column Layout */}
-              <div className="hidden md:grid md:grid-cols-3 gap-4 text-center justify-items-center w-full">
-                {orderedCategories.map((service, index) => (
-                  <Link 
-                    href={`/services/${service.id}`} 
-                    prefetch={true}
-                    key={index} 
-                    className="flex flex-col items-center group w-full cursor-pointer"
-                  >
-                    <div className="w-full h-18 md:h-19 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
-                      {service.image_url && service.image_url.length > 5 ? (
-                        /* eslint-disable-next-line @next/next/no-img-element */
-                        <img src={service.image_url} alt={service.title} className="w-full h-full object-contain" />
-                      ) : (
-                        <span className="text-[32px]">{getIcon(service.title)}</span>
-                      )}
-                    </div>
-                    <span className="text-[13px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-9 flex items-start justify-center text-center">
-                      {service.title}
-                    </span>
-                  </Link>
-                ))}
-              </div>
+                </>
+              )}
             </div>
 
             {/* Bottom Row: OMAA PREMIUM PACKAGE (New Products & RO AMC) */}

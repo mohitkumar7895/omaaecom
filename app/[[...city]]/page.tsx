@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import NewProductsSection from "../components/NewProductsSection";
@@ -33,14 +33,20 @@ async function getCustomSitemapPage(segments: string[]) {
   if (!segments || segments.length === 0) return null;
   const pathWithSlash = "/" + segments.join("/");
   const pathWithoutSlash = segments.join("/");
+  
+  // Cross-compatibility: support both /sitemap/keyword and /keyword in database
+  const alternatePath = segments[0] === "sitemap" && segments.length > 1
+    ? "/" + segments.slice(1).join("/")
+    : "/sitemap" + pathWithSlash;
+
   try {
     const [rows]: any = await pool.query(
       `SELECT * FROM sitemap_links 
-       WHERE (url = ? OR url = ? OR url LIKE ? OR url = ?) 
+       WHERE (url = ? OR url = ? OR url = ? OR url LIKE ? OR url = ?) 
        AND is_active = TRUE 
        ORDER BY priority DESC, id DESC 
        LIMIT 1`,
-      [pathWithSlash, pathWithoutSlash, `${pathWithSlash}%`, pathWithSlash.replace(/^\//, "")]
+      [pathWithSlash, pathWithoutSlash, alternatePath, `${pathWithSlash}%`, pathWithSlash.replace(/^\//, "")]
     );
     if (rows && rows.length > 0) {
       return rows[0];
@@ -63,7 +69,53 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const citySlug = citySegments[0] || "";
   const serviceSlug = citySegments[1] || "";
   const extraSegment = citySegments[2];
-  if (citySlug === "sitemap.xml" || citySlug === "sitemap" || citySlug === "robots.txt") {
+
+  // 1. Check if this route matches an admin-created custom sitemap link (e.g. /sitemap/keyword or /keyword)
+  if (citySegments.length > 0) {
+    const customPage = await getCustomSitemapPage(citySegments);
+    if (customPage) {
+      const pageTitle = customPage.heading || customPage.title;
+      const pageDesc =
+        customPage.meta_description ||
+        customPage.subheading ||
+        customPage.content ||
+        `Verified doorstep home appliance repair in ${customPage.area || customPage.city || "Delhi NCR"}. Call 9999251966 for 30-day warranty & instant service.`;
+      const canonical = `${siteUrl}/${citySegments.join("/")}`;
+      const isIndexable = Boolean(customPage.is_indexable);
+
+      return {
+        title: absoluteTitle(`${pageTitle} | Call 9999251966`),
+        description: pageDesc,
+        keywords: [pageTitle, customPage.area || "", customPage.city || "", "OMAA Company"].filter(Boolean),
+        alternates: { canonical },
+        robots: isIndexable
+          ? { index: true, follow: true }
+          : {
+              index: false,
+              follow: false,
+              googleBot: {
+                index: false,
+                follow: false,
+                noimageindex: true,
+              },
+            },
+        openGraph: {
+          title: pageTitle,
+          description: pageDesc,
+          url: canonical,
+          images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: pageTitle }],
+        },
+        twitter: {
+          card: "summary_large_image",
+          title: pageTitle,
+          description: pageDesc,
+          images: ["/og-image.jpg"],
+        },
+      };
+    }
+  }
+
+  if (citySlug === "sitemap.xml" || citySlug === "robots.txt" || (citySlug === "sitemap" && citySegments.length === 1)) {
     return { robots: { index: false, follow: false } };
   }
 
@@ -347,11 +399,70 @@ export default async function Home({ params }: PageProps) {
   const citySlug = citySegments[0] || "";
   const serviceSlug = citySegments[1] || "";
   const extraSegment = citySegments[2];
-  if (citySlug === "sitemap.xml" || citySlug === "sitemap" || citySlug === "robots.txt") {
-    notFound();
-  }
 
   const homeSiteUrl = getSiteUrl();
+
+  // 1. Check if this route matches an admin-created custom sitemap link (e.g. /sitemap/keyword)
+  if (citySegments.length > 0) {
+    const customPage = await getCustomSitemapPage(citySegments);
+    if (customPage) {
+      const pageTitle = customPage.heading || customPage.title;
+      const canonicalUrl = `${homeSiteUrl}/${citySegments.join("/")}`;
+      const customSchema = {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Home", item: homeSiteUrl },
+              { "@type": "ListItem", position: 2, name: "Service Directory", item: `${homeSiteUrl}/sitemap-directory` },
+              { "@type": "ListItem", position: 3, name: pageTitle, item: canonicalUrl },
+            ],
+          },
+          {
+            "@type": "HomeAndConstructionBusiness",
+            "@id": `${canonicalUrl}#business`,
+            name: `OMAA Company - ${pageTitle}`,
+            url: canonicalUrl,
+            telephone: "+919999251966",
+            priceRange: "₹₹",
+            image: `${homeSiteUrl}/og-image.jpg`,
+            address: {
+              "@type": "PostalAddress",
+              addressLocality: customPage.area || customPage.city || "Delhi NCR",
+              addressRegion: "Uttar Pradesh",
+              addressCountry: "IN",
+            },
+            areaServed: {
+              "@type": "AdministrativeArea",
+              name: customPage.area ? `${customPage.area}, ${customPage.city || ""}` : (customPage.city || "Delhi NCR"),
+            },
+          },
+        ],
+      };
+
+      return (
+        <main className="min-h-screen bg-slate-50 flex flex-col font-sans">
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(customSchema) }}
+          />
+          <Navbar />
+          <CustomSitemapLanding pageData={customPage} />
+          <Footer />
+        </main>
+      );
+    }
+  }
+
+  // 2. If just /sitemap (without keyword), redirect to sitemap directory
+  if (citySlug === "sitemap" && citySegments.length === 1) {
+    redirect("/sitemap-directory");
+  }
+
+  if (citySlug === "sitemap.xml" || citySlug === "robots.txt") {
+    notFound();
+  }
 
   // Handle Gaur City 2 Hub and nested society/service routes
   if (citySlug === "gaur-city-2") {
@@ -657,11 +768,13 @@ export default async function Home({ params }: PageProps) {
       <Hero
         categories={categories}
         banners={mobileBanners.length > 0 ? mobileBanners : desktopBanners}
+        currentCity={seoLocation?.title || (citySlug ? citySlug.replace(/-/g, " ") : undefined)}
       />
       <NewProductsSection />
       <HomeCategoryStream
         initialCategories={categories}
         banners={desktopBanners}
+        currentCity={seoLocation?.title || (citySlug ? citySlug.replace(/-/g, " ") : undefined)}
       />
       <Footer />
     </main>

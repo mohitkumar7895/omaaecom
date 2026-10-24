@@ -163,6 +163,20 @@ export async function POST(request: Request) {
     if (!url.startsWith("/") && !url.startsWith("http")) {
       url = "/" + url;
     }
+    const isStandardPath = 
+      url === "/" ||
+      url.startsWith("/services") ||
+      url.startsWith("/about") ||
+      url.startsWith("/contact") ||
+      url.startsWith("/rate-card") ||
+      url.startsWith("/complaint") ||
+      url.startsWith("/privacy") ||
+      url.startsWith("/terms") ||
+      url.startsWith("http");
+
+    if (!isStandardPath && !url.startsWith("/sitemap/")) {
+      url = `/sitemap/${url.replace(/^\/sitemap\/?/, "").replace(/^\//, "")}`;
+    }
 
     const featuresJson = Array.isArray(features) ? JSON.stringify(features) : (features ? JSON.stringify(features) : null);
 

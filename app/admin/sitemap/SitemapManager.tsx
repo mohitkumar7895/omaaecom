@@ -260,7 +260,7 @@ export default function SitemapManager({
     const pageTitle = `${cleanService} in ${cleanArea}, ${cleanCity}`;
     const slugService = cleanService.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     const slugArea = cleanArea.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-    const pageUrl = `/${slugService}-${slugArea}`;
+    const pageUrl = `/sitemap/${slugService}-${slugArea}`;
 
     try {
       setQuickCreating(true);
@@ -677,7 +677,7 @@ export default function SitemapManager({
                 </span>
                 {quickArea.trim() && (
                   <span className="ml-2 font-mono text-[11px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">
-                    /{quickService.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}-{quickArea.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}
+                    /sitemap/{quickService.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}-{quickArea.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}
                   </span>
                 )}
                 <span className="block text-[11px] text-emerald-600 font-medium mt-0.5">
@@ -1451,7 +1451,7 @@ export default function SitemapManager({
                   value={editingLink.title || ""}
                   onChange={(e) => {
                     const val = e.target.value;
-                    const autoSlug = "/" + val.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+                    const autoSlug = "/sitemap/" + val.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
                     setEditingLink({
                       ...editingLink,
                       title: val,
@@ -1472,7 +1472,7 @@ export default function SitemapManager({
                   required
                   value={editingLink.url || ""}
                   onChange={(e) => setEditingLink({ ...editingLink, url: e.target.value })}
-                  placeholder="e.g. /ro-service-gaur-city-2"
+                  placeholder="e.g. /sitemap/ro-service-gaur-city-2"
                   className="w-full bg-gray-50 border border-gray-300 rounded-xl px-3.5 py-2 text-gray-900 font-mono focus:outline-none focus:border-indigo-600 focus:bg-white"
                 />
                 <span className="text-[10px] text-emerald-600 font-semibold mt-1 block">
