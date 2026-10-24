@@ -134,10 +134,13 @@ export default function Hero({
   // Col 1: AC -> Microwave
   // Col 2: Refrigerator -> Water Purifier
   // Col 3: Washing Machine
-  const allServices = visibleCategories.filter(c => c.type && c.type.toLowerCase().includes("service"));
+  const activeList = visibleCategories.length > 0 ? visibleCategories : categories;
+  const allServices = activeList.filter(c => c.type && c.type.toLowerCase().includes("service"));
+  const fallbackServices = categories.filter(c => c.type && c.type.toLowerCase().includes("service"));
+  const servicesToUse = allServices.length > 0 ? allServices : fallbackServices;
   
   const findService = (query: string) => 
-    allServices.find(s => s.title.toLowerCase().includes(query.toLowerCase()));
+    servicesToUse.find(s => s.title.toLowerCase().includes(query.toLowerCase()));
 
   const acService = findService("ac");
   const fridgeService = findService("refrigerator");
@@ -155,13 +158,18 @@ export default function Hero({
 
   // Fallback if any missing
   const usedIds = new Set(orderedCategories.map(s => s.id));
-  const remainingServices = allServices.filter(s => !usedIds.has(s.id));
+  const remainingServices = servicesToUse.filter(s => !usedIds.has(s.id));
   while (orderedCategories.length < 5 && remainingServices.length > 0) {
     orderedCategories.push(remainingServices.shift()!);
   }
 
-  const newProducts = visibleCategories.filter(c => c.type && c.type.toLowerCase().includes("product")).slice(0, 1);
-  const amcProducts = visibleCategories.filter(c => c.type && c.type.toLowerCase().includes("amc")).slice(0, 1);
+  const newProducts = (visibleCategories.filter(c => c.type && c.type.toLowerCase().includes("product")).length > 0
+    ? visibleCategories.filter(c => c.type && c.type.toLowerCase().includes("product"))
+    : categories.filter(c => c.type && c.type.toLowerCase().includes("product"))).slice(0, 1);
+
+  const amcProducts = (visibleCategories.filter(c => c.type && c.type.toLowerCase().includes("amc")).length > 0
+    ? visibleCategories.filter(c => c.type && c.type.toLowerCase().includes("amc"))
+    : categories.filter(c => c.type && c.type.toLowerCase().includes("amc"))).slice(0, 1);
 
   // Check if ALL 7 services/packages are available:
   // Home Services (5): AC, Refrigerator, Washing Machine, Microwave, RO / Water Purifier
@@ -295,93 +303,80 @@ export default function Hero({
                 Home Services
               </h3>
               
-              {orderedCategories.length === 0 ? (
-                <div className="bg-[#f8f9fa] border border-gray-200/80 rounded-2xl p-4 text-center my-2">
-                  <p className="text-xs font-bold text-gray-800">
-                    Doorstep appliance repair is coming soon to your location.
-                  </p>
-                  <p className="text-[11px] text-gray-500 mt-1">
-                    Please check our available packages below or call 9999251966.
-                  </p>
-                </div>
-              ) : (
-                <>
-                  {/* Mobile View: Row 1 (3 cols) + Row 2 (2 cols full width) */}
-                  <div className="md:hidden space-y-3">
-                    <div className="grid grid-cols-3 gap-3 text-center justify-items-center w-full">
-                      {orderedCategories.slice(0, 3).map((service, index) => (
-                        <Link 
-                          href={`/services/${service.id}`} 
-                          prefetch={true}
-                          key={index} 
-                          className="flex flex-col items-center group w-full cursor-pointer"
-                        >
-                          <div className="w-full h-16 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
-                            {service.image_url && service.image_url.length > 5 ? (
-                              /* eslint-disable-next-line @next/next/no-img-element */
-                              <img src={service.image_url} alt={service.title} className="w-full h-full object-contain" />
-                            ) : (
-                              <span className="text-[28px]">{getIcon(service.title)}</span>
-                            )}
-                          </div>
-                          <span className="text-[12px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-8 flex items-start justify-center text-center">
-                            {service.title}
-                          </span>
-                        </Link>
-                      ))}
-                    </div>
-
-                    {orderedCategories.length > 3 && (
-                      <div className="grid grid-cols-2 gap-3 text-center justify-items-center w-full">
-                        {orderedCategories.slice(3, 5).map((service, index) => (
-                          <Link 
-                            href={`/services/${service.id}`} 
-                            prefetch={true}
-                            key={index + 3} 
-                            className="flex flex-col items-center group w-full cursor-pointer"
-                          >
-                            <div className="w-full h-16 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
-                              {service.image_url && service.image_url.length > 5 ? (
-                                /* eslint-disable-next-line @next/next/no-img-element */
-                                <img src={service.image_url} alt={service.title} className="w-full h-full object-contain" />
-                              ) : (
-                                <span className="text-[28px]">{getIcon(service.title)}</span>
-                              )}
-                            </div>
-                            <span className="text-[12px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-8 flex items-start justify-center text-center">
-                              {service.title}
-                            </span>
-                          </Link>
-                        ))}
+              {/* Mobile View: Row 1 (3 cols) + Row 2 (2 cols full width) */}
+              <div className="md:hidden space-y-3">
+                <div className="grid grid-cols-3 gap-3 text-center justify-items-center w-full">
+                  {orderedCategories.slice(0, 3).map((service, index) => (
+                    <Link 
+                      href={`/services/${service.id}`} 
+                      prefetch={true}
+                      key={index} 
+                      className="flex flex-col items-center group w-full cursor-pointer"
+                    >
+                      <div className="w-full h-16 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
+                        {service.image_url && service.image_url.length > 5 ? (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img src={service.image_url} alt={service.title} className="w-full h-full object-contain" />
+                        ) : (
+                          <span className="text-[28px]">{getIcon(service.title)}</span>
+                        )}
                       </div>
-                    )}
-                  </div>
+                      <span className="text-[12px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-8 flex items-start justify-center text-center">
+                        {service.title}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
 
-                  {/* Desktop View: Exact Original 3-Column Layout */}
-                  <div className="hidden md:grid md:grid-cols-3 gap-4 text-center justify-items-center w-full">
-                    {orderedCategories.map((service, index) => (
+                {orderedCategories.length > 3 && (
+                  <div className="grid grid-cols-2 gap-3 text-center justify-items-center w-full">
+                    {orderedCategories.slice(3, 5).map((service, index) => (
                       <Link 
                         href={`/services/${service.id}`} 
                         prefetch={true}
-                        key={index} 
+                        key={index + 3} 
                         className="flex flex-col items-center group w-full cursor-pointer"
                       >
-                        <div className="w-full h-18 md:h-19 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
+                        <div className="w-full h-16 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
                           {service.image_url && service.image_url.length > 5 ? (
                             /* eslint-disable-next-line @next/next/no-img-element */
                             <img src={service.image_url} alt={service.title} className="w-full h-full object-contain" />
                           ) : (
-                            <span className="text-[32px]">{getIcon(service.title)}</span>
+                            <span className="text-[28px]">{getIcon(service.title)}</span>
                           )}
                         </div>
-                        <span className="text-[13px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-9 flex items-start justify-center text-center">
+                        <span className="text-[12px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-8 flex items-start justify-center text-center">
                           {service.title}
                         </span>
                       </Link>
                     ))}
                   </div>
-                </>
-              )}
+                )}
+              </div>
+
+              {/* Desktop View: Exact Original 3-Column Layout */}
+              <div className="hidden md:grid md:grid-cols-3 gap-4 text-center justify-items-center w-full">
+                {orderedCategories.map((service, index) => (
+                  <Link 
+                    href={`/services/${service.id}`} 
+                    prefetch={true}
+                    key={index} 
+                    className="flex flex-col items-center group w-full cursor-pointer"
+                  >
+                    <div className="w-full h-18 md:h-19 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
+                      {service.image_url && service.image_url.length > 5 ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img src={service.image_url} alt={service.title} className="w-full h-full object-contain" />
+                      ) : (
+                        <span className="text-[32px]">{getIcon(service.title)}</span>
+                      )}
+                    </div>
+                    <span className="text-[13px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-9 flex items-start justify-center text-center">
+                      {service.title}
+                    </span>
+                  </Link>
+                ))}
+              </div>
             </div>
 
             {/* Bottom Row: OMAA PREMIUM PACKAGE (New Products & RO AMC) */}
