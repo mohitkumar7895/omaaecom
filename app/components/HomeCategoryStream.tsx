@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import CategoryGrid from "./CategoryGrid";
-
+import { expandLocationAliases } from "@/lib/zone-matcher";
 
 interface CategoryWithServices {
   id: number;
@@ -51,15 +51,17 @@ export default function HomeCategoryStream({
     const activeLoc = currentCity || userCity;
     if (!activeLoc) return initialCategories;
 
-    const filtered = initialCategories.filter((cat) => {
-      if (!cat.zones_location) return true;
-      const zones = cat.zones_location.split(",").map((z) => z.trim().toLowerCase());
-      const loc = activeLoc.toLowerCase();
-      if (zones.length === 0 || zones.includes("all") || zones.includes("")) return true;
-      return zones.some((zone) => loc.includes(zone) || zone.includes(loc));
-    });
+    const locTokens = expandLocationAliases(activeLoc);
 
-    return filtered.length > 0 ? filtered : initialCategories;
+    return initialCategories.filter((cat) => {
+      if (!cat.zones_location) return true;
+      const zones = cat.zones_location.split(",").map((z) => z.trim().toLowerCase()).filter(Boolean);
+      if (zones.length === 0 || zones.some((z) => z === "all" || z === "pan india")) return true;
+
+      return zones.some((zone) =>
+        locTokens.some((tok) => tok === zone || tok.includes(zone) || zone.includes(tok))
+      );
+    });
   }, [initialCategories, userCity, currentCity]);
 
   // Helper to match category rank according to exact sequence:

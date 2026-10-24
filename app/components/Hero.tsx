@@ -6,6 +6,7 @@ import Link from "next/link";
 import MobileBannerCarousel from "./MobileBannerCarousel";
 import LiveSearchBar from "./LiveSearchBar";
 import { getRandomReferralCode, getActiveReferralCode, fetchCurrentUser } from "@/lib/client-auth";
+import { expandLocationAliases } from "@/lib/zone-matcher";
 
 interface HeroCategory {
   id: number;
@@ -113,15 +114,17 @@ export default function Hero({
     const activeLoc = currentCity || userCity;
     if (!activeLoc) return categories;
 
-    const filtered = categories.filter((cat) => {
-      if (!cat.zones_location) return true;
-      const zones = cat.zones_location.split(",").map((z) => z.trim().toLowerCase());
-      const loc = activeLoc.toLowerCase();
-      if (zones.length === 0 || zones.includes("all") || zones.includes("")) return true;
-      return zones.some((zone) => loc.includes(zone) || zone.includes(loc));
-    });
+    const locTokens = expandLocationAliases(activeLoc);
 
-    return filtered.length > 0 ? filtered : categories;
+    return categories.filter((cat) => {
+      if (!cat.zones_location) return true;
+      const zones = cat.zones_location.split(",").map((z) => z.trim().toLowerCase()).filter(Boolean);
+      if (zones.length === 0 || zones.some((z) => z === "all" || z === "pan india")) return true;
+
+      return zones.some((zone) =>
+        locTokens.some((tok) => tok === zone || tok.includes(zone) || zone.includes(tok))
+      );
+    });
   }, [categories, userCity, currentCity]);
 
   const getIcon = (title: string) => {
@@ -140,11 +143,9 @@ export default function Hero({
   // Col 2: Refrigerator -> Water Purifier
   // Col 3: Washing Machine
   const allServices = visibleCategories.filter(c => c.type && c.type.toLowerCase().includes("service"));
-  const fallbackServices = categories.filter(c => c.type && c.type.toLowerCase().includes("service"));
-  const servicesToUse = allServices.length > 0 ? allServices : fallbackServices;
   
   const findService = (query: string) => 
-    servicesToUse.find(s => s.title.toLowerCase().includes(query.toLowerCase()));
+    allServices.find(s => s.title.toLowerCase().includes(query.toLowerCase()));
 
   const acService = findService("ac");
   const fridgeService = findService("refrigerator");
@@ -160,20 +161,13 @@ export default function Hero({
     roService,        // Col 2, Row 2 (Water Purifier - under Refrigerator!)
   ].filter(Boolean) as HeroCategory[];
 
-  // Fallback if any missing
+  // Also include any other location-matched services that weren't in the default 5
   const usedIds = new Set(orderedCategories.map(s => s.id));
-  const remainingServices = servicesToUse.filter(s => !usedIds.has(s.id));
-  while (orderedCategories.length < 5 && remainingServices.length > 0) {
-    orderedCategories.push(remainingServices.shift()!);
-  }
+  const remainingServices = allServices.filter(s => !usedIds.has(s.id));
+  orderedCategories.push(...remainingServices);
 
-  const newProducts = (visibleCategories.filter(c => c.type && c.type.toLowerCase().includes("product")).length > 0
-    ? visibleCategories.filter(c => c.type && c.type.toLowerCase().includes("product"))
-    : categories.filter(c => c.type && c.type.toLowerCase().includes("product"))).slice(0, 1);
-
-  const amcProducts = (visibleCategories.filter(c => c.type && c.type.toLowerCase().includes("amc")).length > 0
-    ? visibleCategories.filter(c => c.type && c.type.toLowerCase().includes("amc"))
-    : categories.filter(c => c.type && c.type.toLowerCase().includes("amc"))).slice(0, 1);
+  const newProducts = visibleCategories.filter(c => c.type && c.type.toLowerCase().includes("product")).slice(0, 1);
+  const amcProducts = visibleCategories.filter(c => c.type && c.type.toLowerCase().includes("amc")).slice(0, 1);
 
   // Check if ALL 7 services/packages are available:
   // Home Services (5): AC, Refrigerator, Washing Machine, Microwave, RO / Water Purifier
@@ -293,10 +287,11 @@ export default function Hero({
           <div className="bg-white rounded-[21px] p-5 sm:p-6 text-gray-800 flex flex-col space-y-5">
 
             {/* Top Section: Home Services */}
-            <div>
-              <h3 className="font-bold text-[18px] md:text-[20px] text-gray-900 tracking-tight mb-3">
-                Home Services
-              </h3>
+            {orderedCategories.length > 0 && (
+              <div>
+                <h3 className="font-bold text-[18px] md:text-[20px] text-gray-900 tracking-tight mb-3">
+                  Home Services
+                </h3>
               
               {/* Mobile View: Row 1 (3 cols) + Row 2 (2 cols full width) */}
               <div className="md:hidden space-y-3">
@@ -373,6 +368,7 @@ export default function Hero({
                 ))}
               </div>
             </div>
+            )}
 
             {/* Bottom Row: OMAA PREMIUM PACKAGE (New Products & RO AMC) */}
             {(newProducts.length > 0 || amcProducts.length > 0) && (
