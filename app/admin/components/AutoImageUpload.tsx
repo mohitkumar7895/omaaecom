@@ -38,6 +38,8 @@ export default function AutoImageUpload({
   
   const [originalFile, setOriginalFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [imageBase64, setImageBase64] = useState<string>("");
+  const [isRemoved, setIsRemoved] = useState<boolean>(false);
   const [processing, setProcessing] = useState(false);
   const [stats, setStats] = useState<{
     originalSize: string;
@@ -88,9 +90,7 @@ export default function AutoImageUpload({
 
       // Background handling
       if (mode === "contain") {
-        // Clear with transparent or soft neutral background
         ctx.clearRect(0, 0, targetWidth, targetHeight);
-        // For standard image exports (jpg/webp), transparent pixels look clean
         const scale = Math.min(targetWidth / origW, targetHeight / origH);
         const nw = origW * scale;
         const nh = origH * scale;
@@ -98,7 +98,6 @@ export default function AutoImageUpload({
         const dy = (targetHeight - nh) / 2;
         ctx.drawImage(img, dx, dy, nw, nh);
       } else {
-        // Cover mode: crop to center
         const scale = Math.max(targetWidth / origW, targetHeight / origH);
         const nw = origW * scale;
         const nh = origH * scale;
@@ -108,6 +107,16 @@ export default function AutoImageUpload({
       }
 
       URL.revokeObjectURL(objectUrl);
+
+      // Convert to webp data URL
+      try {
+        const webpDataUrl = canvas.toDataURL("image/webp", 0.90);
+        if (webpDataUrl && webpDataUrl.startsWith("data:image/")) {
+          setImageBase64(webpDataUrl);
+        }
+      } catch (e) {
+        console.warn("Could not generate webp dataUrl:", e);
+      }
 
       // Convert to webp blob (fallback to jpeg if webp unsupported)
       const blob = await new Promise<Blob | null>((resolve) => {
@@ -128,9 +137,11 @@ export default function AutoImageUpload({
 
       // Populate file to hidden form input via DataTransfer
       if (hiddenInputRef.current && typeof DataTransfer !== "undefined") {
-        const dt = new DataTransfer();
-        dt.items.add(optimizedFile);
-        hiddenInputRef.current.files = dt.files;
+        try {
+          const dt = new DataTransfer();
+          dt.items.add(optimizedFile);
+          hiddenInputRef.current.files = dt.files;
+        } catch (e) {}
       }
 
       // Update preview & stats
@@ -139,6 +150,7 @@ export default function AutoImageUpload({
         URL.revokeObjectURL(previewUrl);
       }
       setPreviewUrl(newPreview);
+      setIsRemoved(false);
       setStats({
         originalSize: formatBytes(file.size),
         originalDimensions: `${origW}×${origH}`,
@@ -149,11 +161,14 @@ export default function AutoImageUpload({
       console.error("Auto image resizing failed, using raw file:", err);
       // Fallback: attach raw file if canvas fails
       if (hiddenInputRef.current && typeof DataTransfer !== "undefined") {
-        const dt = new DataTransfer();
-        dt.items.add(file);
-        hiddenInputRef.current.files = dt.files;
+        try {
+          const dt = new DataTransfer();
+          dt.items.add(file);
+          hiddenInputRef.current.files = dt.files;
+        } catch (e) {}
       }
       setPreviewUrl(URL.createObjectURL(file));
+      setIsRemoved(false);
     } finally {
       setProcessing(false);
     }
@@ -162,7 +177,28 @@ export default function AutoImageUpload({
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setIsRemoved(false);
       setOriginalFile(file);
+
+      // 1. Immediately read file as base64 so submission NEVER fails even if clicked right away
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === "string") {
+          setImageBase64(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+
+      // 2. Try to sync hidden input with raw file immediately
+      if (hiddenInputRef.current && typeof DataTransfer !== "undefined") {
+        try {
+          const dt = new DataTransfer();
+          dt.items.add(file);
+          hiddenInputRef.current.files = dt.files;
+        } catch (err) {}
+      }
+
+      // 3. Process & resize asynchronously
       processAndResize(file, fitMode);
     }
   };
@@ -182,6 +218,8 @@ export default function AutoImageUpload({
     }
     setPreviewUrl(null);
     setOriginalFile(null);
+    setImageBase64("");
+    setIsRemoved(true);
     setStats(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
     if (hiddenInputRef.current) {
@@ -200,7 +238,7 @@ export default function AutoImageUpload({
     }
   }, [targetWidth, targetHeight]);
 
-  const displayImage = previewUrl || currentImageUrl || null;
+  const displayImage = !isRemoved ? (previewUrl || currentImageUrl || null) : null;
 
   return (
     <div className={`space-y-2 ${className}`}>
@@ -215,6 +253,20 @@ export default function AutoImageUpload({
           Auto-Sizing Active ({targetWidth} × {targetHeight} px)
         </span>
       </div>
+
+      {/* Hidden input for base64 fallback (guarantees image transfer across all browsers & Server Actions) */}
+      <input
+        type="hidden"
+        name={`${name}_base64`}
+        value={imageBase64}
+      />
+
+      {/* Hidden input if image removed */}
+      <input
+        type="hidden"
+        name={`${name}_removed`}
+        value={isRemoved ? "1" : "0"}
+      />
 
       {/* Actual Form Input (Receives the optimized file for server action) */}
       <input
@@ -238,6 +290,7 @@ export default function AutoImageUpload({
         <input
           ref={fileInputRef}
           type="file"
+          name={`${name}_raw`}
           accept="image/*"
           onChange={handleFileSelect}
           className="hidden"

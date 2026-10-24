@@ -12,6 +12,8 @@ export async function saveBrand(formData: FormData) {
   const category = formData.get("category") as string;
   const status = formData.get("status") as string;
   const logo = formData.get("logo") as File | null;
+  const logoRaw = formData.get("logo_raw") as File | null;
+  const logoBase64 = formData.get("logo_base64") as string | null;
 
   let logoUrl = null;
 
@@ -20,13 +22,28 @@ export async function saveBrand(formData: FormData) {
     fs.mkdirSync(uploadDir, { recursive: true });
   }
 
-  if (logo && logo.size > 0) {
-    const bytes = await logo.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const fileName = `${Date.now()}-${logo.name.replace(/\s+/g, '-')}`;
-    const filePath = path.join(uploadDir, fileName);
-    await writeFile(filePath, buffer);
-    logoUrl = `/uploads/brands/${fileName}`;
+  let logoBuffer: Buffer | null = null;
+  let logoFileName = "";
+
+  if (logo && typeof logo === "object" && "size" in logo && logo.size > 0) {
+    logoBuffer = Buffer.from(await logo.arrayBuffer());
+    logoFileName = `${Date.now()}-${(logo.name || "logo.webp").replace(/\s+/g, '-')}`;
+  } else if (logoRaw && typeof logoRaw === "object" && "size" in logoRaw && logoRaw.size > 0) {
+    logoBuffer = Buffer.from(await logoRaw.arrayBuffer());
+    logoFileName = `${Date.now()}-${(logoRaw.name || "logo.webp").replace(/\s+/g, '-')}`;
+  } else if (logoBase64 && typeof logoBase64 === "string" && logoBase64.startsWith("data:image/")) {
+    const match = logoBase64.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
+    if (match && match[2]) {
+      const ext = match[1] === "jpeg" ? "jpg" : match[1];
+      logoBuffer = Buffer.from(match[2], "base64");
+      logoFileName = `${Date.now()}-brand.${ext}`;
+    }
+  }
+
+  if (logoBuffer && logoFileName) {
+    const filePath = path.join(uploadDir, logoFileName);
+    await writeFile(filePath, logoBuffer);
+    logoUrl = `/uploads/brands/${logoFileName}`;
   }
 
   try {

@@ -17,20 +17,33 @@ export async function saveBanners(formData: FormData) {
   let url2 = null;
   let url3 = null;
 
-  async function saveFile(file: File | null) {
-    if (!file || file.size === 0) return null;
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    // Convert directly to base64 to avoid local filesystem dependency on Vercel
-    const mimeType = file.type || "image/jpeg";
-    const base64Data = buffer.toString("base64");
-    return `data:${mimeType};base64,${base64Data}`;
+  async function resolveBannerUrl(fieldName: string) {
+    const file = formData.get(fieldName) as File | null;
+    const fileRaw = formData.get(`${fieldName}_raw`) as File | null;
+    const base64Str = formData.get(`${fieldName}_base64`) as string | null;
+
+    if (file && typeof file === "object" && "size" in file && file.size > 0) {
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      const mimeType = file.type || "image/webp";
+      return `data:${mimeType};base64,${buffer.toString("base64")}`;
+    }
+    if (fileRaw && typeof fileRaw === "object" && "size" in fileRaw && fileRaw.size > 0) {
+      const bytes = await fileRaw.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      const mimeType = fileRaw.type || "image/jpeg";
+      return `data:${mimeType};base64,${buffer.toString("base64")}`;
+    }
+    if (base64Str && typeof base64Str === "string" && base64Str.startsWith("data:image/")) {
+      return base64Str;
+    }
+    return null;
   }
 
   try {
-    url1 = await saveFile(banner1);
-    url2 = await saveFile(banner2);
-    url3 = await saveFile(banner3);
+    url1 = await resolveBannerUrl("banner1");
+    url2 = await resolveBannerUrl("banner2");
+    url3 = await resolveBannerUrl("banner3");
 
     const query = `
       INSERT INTO banners (banner1_url, banner2_url, banner3_url, type)
@@ -52,24 +65,35 @@ export async function saveBanners(formData: FormData) {
 }
 
 export async function updateBanners(id: string, formData: FormData) {
-  const banner1 = formData.get("banner1") as File | null;
-  const banner2 = formData.get("banner2") as File | null;
-  const banner3 = formData.get("banner3") as File | null;
   const banner_type = (formData.get("banner_type") as string) || "desktop";
 
-  async function saveFile(file: File | null) {
-    if (!file || file.size === 0) return null;
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const mimeType = file.type || "image/jpeg";
-    const base64Data = buffer.toString("base64");
-    return `data:${mimeType};base64,${base64Data}`;
+  async function resolveBannerUrl(fieldName: string) {
+    const file = formData.get(fieldName) as File | null;
+    const fileRaw = formData.get(`${fieldName}_raw`) as File | null;
+    const base64Str = formData.get(`${fieldName}_base64`) as string | null;
+
+    if (file && typeof file === "object" && "size" in file && file.size > 0) {
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      const mimeType = file.type || "image/webp";
+      return `data:${mimeType};base64,${buffer.toString("base64")}`;
+    }
+    if (fileRaw && typeof fileRaw === "object" && "size" in fileRaw && fileRaw.size > 0) {
+      const bytes = await fileRaw.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      const mimeType = fileRaw.type || "image/jpeg";
+      return `data:${mimeType};base64,${buffer.toString("base64")}`;
+    }
+    if (base64Str && typeof base64Str === "string" && base64Str.startsWith("data:image/")) {
+      return base64Str;
+    }
+    return null;
   }
 
   try {
-    const url1 = await saveFile(banner1);
-    const url2 = await saveFile(banner2);
-    const url3 = await saveFile(banner3);
+    const url1 = await resolveBannerUrl("banner1");
+    const url2 = await resolveBannerUrl("banner2");
+    const url3 = await resolveBannerUrl("banner3");
 
     // Fetch existing
     const [existingRows]: any = await pool.query("SELECT * FROM banners WHERE id = ?", [id]);

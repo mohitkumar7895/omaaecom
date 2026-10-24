@@ -6,6 +6,43 @@ import { redirect } from "next/navigation";
 import path from "path";
 import fs from "fs";
 
+async function extractImageBuffer(
+  image: File | null,
+  imageRaw: File | null,
+  imageBase64: string | null
+): Promise<{ buffer: Buffer; fileName: string } | null> {
+  if (image && typeof image === "object" && "size" in image && image.size > 0) {
+    const bytes = await image.arrayBuffer();
+    const safeName = (image.name || "service.webp").replace(/\s+/g, "-");
+    return {
+      buffer: Buffer.from(bytes),
+      fileName: `${Date.now()}-${safeName}`,
+    };
+  }
+
+  if (imageRaw && typeof imageRaw === "object" && "size" in imageRaw && imageRaw.size > 0) {
+    const bytes = await imageRaw.arrayBuffer();
+    const safeName = (imageRaw.name || "service.webp").replace(/\s+/g, "-");
+    return {
+      buffer: Buffer.from(bytes),
+      fileName: `${Date.now()}-${safeName}`,
+    };
+  }
+
+  if (imageBase64 && typeof imageBase64 === "string" && imageBase64.startsWith("data:image/")) {
+    const match = imageBase64.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
+    if (match && match[2]) {
+      const ext = match[1] === "jpeg" ? "jpg" : match[1];
+      return {
+        buffer: Buffer.from(match[2], "base64"),
+        fileName: `${Date.now()}-service.${ext}`,
+      };
+    }
+  }
+
+  return null;
+}
+
 export async function saveService(formData: FormData) {
   const category_id = formData.get("category_id") as string;
   const subcategory_id = formData.get("subcategory_id") as string;
@@ -19,18 +56,19 @@ export async function saveService(formData: FormData) {
   const long_description = formData.get("long_description") as string || "";
   
   const image = formData.get("image") as File | null;
+  const imageRaw = formData.get("image_raw") as File | null;
+  const imageBase64 = formData.get("image_base64") as string | null;
   let imageUrl = "";
 
-  if (image && image.size > 0) {
+  const extracted = await extractImageBuffer(image, imageRaw, imageBase64);
+  if (extracted) {
     const uploadDir = path.join(process.cwd(), "public/uploads/services");
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
-    const fileName = `${Date.now()}-${image.name.replace(/\s+/g, '-')}`;
-    const filePath = path.join(uploadDir, fileName);
-    const buffer = Buffer.from(await image.arrayBuffer());
-    fs.writeFileSync(filePath, buffer);
-    imageUrl = `/uploads/services/${fileName}`;
+    const filePath = path.join(uploadDir, extracted.fileName);
+    fs.writeFileSync(filePath, extracted.buffer);
+    imageUrl = `/uploads/services/${extracted.fileName}`;
   }
 
   try {
@@ -81,6 +119,9 @@ export async function updateService(formData: FormData) {
   const long_description = formData.get("long_description") as string || "";
   
   const image = formData.get("image") as File | null;
+  const imageRaw = formData.get("image_raw") as File | null;
+  const imageBase64 = formData.get("image_base64") as string | null;
+  const imageRemoved = formData.get("image_removed") as string | null;
 
   try {
     let query = `
@@ -95,18 +136,19 @@ export async function updateService(formData: FormData) {
       rating, parseInt(warranty_days), warranty_description, short_description, long_description
     ];
 
-    if (image && image.size > 0) {
+    const extracted = await extractImageBuffer(image, imageRaw, imageBase64);
+    if (extracted) {
       const uploadDir = path.join(process.cwd(), "public/uploads/services");
       if (!fs.existsSync(uploadDir)) {
         fs.mkdirSync(uploadDir, { recursive: true });
       }
-      const fileName = `${Date.now()}-${image.name.replace(/\s+/g, '-')}`;
-      const filePath = path.join(uploadDir, fileName);
-      const buffer = Buffer.from(await image.arrayBuffer());
-      fs.writeFileSync(filePath, buffer);
+      const filePath = path.join(uploadDir, extracted.fileName);
+      fs.writeFileSync(filePath, extracted.buffer);
       
       query += `, image_url = ?`;
-      params.push(`/uploads/services/${fileName}`);
+      params.push(`/uploads/services/${extracted.fileName}`);
+    } else if (imageRemoved === "1") {
+      query += `, image_url = NULL`;
     }
 
     query += ` WHERE id = ?`;

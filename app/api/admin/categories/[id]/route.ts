@@ -5,16 +5,49 @@ import pool from "../../../../../lib/db";
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const { title, status } = await req.json();
+    const body = await req.json();
+    const { title, status, image_url, type, labour_charges, zones, zones_location, warranty_days, short_description } = body;
 
     if (!title) {
       return NextResponse.json({ error: "Title is required" }, { status: 400 });
     }
 
-    const [result]: any = await pool.query(
-      "UPDATE categories SET title = ?, status = ? WHERE id = ?",
-      [title, status || 'Active', id]
-    );
+    let query = "UPDATE categories SET title = ?, status = ?";
+    const queryParams: any[] = [title, status || 'Active'];
+
+    if (image_url !== undefined) {
+      query += ", image_url = ?";
+      queryParams.push(image_url);
+    }
+    if (type !== undefined) {
+      query += ", type = ?";
+      queryParams.push(type);
+    }
+    if (labour_charges !== undefined) {
+      query += ", labour_charges = ?";
+      queryParams.push(labour_charges);
+    }
+    if (zones !== undefined) {
+      query += ", zones = ?";
+      queryParams.push(zones);
+    }
+    if (zones_location !== undefined) {
+      query += ", zones_location = ?";
+      queryParams.push(zones_location);
+    }
+    if (warranty_days !== undefined) {
+      query += ", warranty_days = ?";
+      queryParams.push(warranty_days);
+    }
+    if (short_description !== undefined) {
+      query += ", short_description = ?";
+      queryParams.push(short_description);
+    }
+
+    query += " WHERE id = ?";
+    queryParams.push(id);
+
+    const [result]: any = await pool.query(query, queryParams);
 
     if (result.affectedRows === 0) {
       return NextResponse.json({ error: "Category not found" }, { status: 404 });
