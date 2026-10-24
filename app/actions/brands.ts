@@ -3,9 +3,7 @@
 import pool from "../../lib/db";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { writeFile } from "fs/promises";
-import path from "path";
-import fs from "fs";
+import { uploadImageToSupabase } from "../../lib/supabase";
 
 export async function saveBrand(formData: FormData) {
   const name = formData.get("name") as string;
@@ -17,33 +15,29 @@ export async function saveBrand(formData: FormData) {
 
   let logoUrl = null;
 
-  const uploadDir = path.join(process.cwd(), "public/uploads/brands");
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-  }
-
   let logoBuffer: Buffer | null = null;
   let logoFileName = "";
 
   if (logo && typeof logo === "object" && "size" in logo && logo.size > 0) {
     logoBuffer = Buffer.from(await logo.arrayBuffer());
-    logoFileName = `${Date.now()}-${(logo.name || "logo.webp").replace(/\s+/g, '-')}`;
+    logoFileName = `${Date.now()}-${(logo.name || "logo.webp").replace(/[^a-zA-Z0-9._-]/g, '-')}`;
   } else if (logoRaw && typeof logoRaw === "object" && "size" in logoRaw && logoRaw.size > 0) {
     logoBuffer = Buffer.from(await logoRaw.arrayBuffer());
-    logoFileName = `${Date.now()}-${(logoRaw.name || "logo.webp").replace(/\s+/g, '-')}`;
+    logoFileName = `${Date.now()}-${(logoRaw.name || "logo.webp").replace(/[^a-zA-Z0-9._-]/g, '-')}`;
   } else if (logoBase64 && typeof logoBase64 === "string" && logoBase64.startsWith("data:image/")) {
-    const match = logoBase64.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
-    if (match && match[2]) {
-      const ext = match[1] === "jpeg" ? "jpg" : match[1];
-      logoBuffer = Buffer.from(match[2], "base64");
+    const commaIdx = logoBase64.indexOf(",");
+    if (commaIdx !== -1) {
+      const header = logoBase64.substring(0, commaIdx);
+      const data = logoBase64.substring(commaIdx + 1);
+      const match = header.match(/^data:image\/([a-zA-Z0-9+.-]+);base64$/);
+      const ext = match ? (match[1] === "jpeg" ? "jpg" : match[1]) : "webp";
+      logoBuffer = Buffer.from(data, "base64");
       logoFileName = `${Date.now()}-brand.${ext}`;
     }
   }
 
   if (logoBuffer && logoFileName) {
-    const filePath = path.join(uploadDir, logoFileName);
-    await writeFile(filePath, logoBuffer);
-    logoUrl = `/uploads/brands/${logoFileName}`;
+    logoUrl = await uploadImageToSupabase(logoBuffer, logoFileName, "brands", "image/webp");
   }
 
   try {

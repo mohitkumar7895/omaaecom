@@ -179,26 +179,7 @@ export default function AutoImageUpload({
     if (file) {
       setIsRemoved(false);
       setOriginalFile(file);
-
-      // 1. Immediately read file as base64 so submission NEVER fails even if clicked right away
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === "string") {
-          setImageBase64(reader.result);
-        }
-      };
-      reader.readAsDataURL(file);
-
-      // 2. Try to sync hidden input with raw file immediately
-      if (hiddenInputRef.current && typeof DataTransfer !== "undefined") {
-        try {
-          const dt = new DataTransfer();
-          dt.items.add(file);
-          hiddenInputRef.current.files = dt.files;
-        } catch (err) {}
-      }
-
-      // 3. Process & resize asynchronously
+      // Process & resize instantly to target dimensions and WebP format
       processAndResize(file, fitMode);
     }
   };
@@ -290,7 +271,6 @@ export default function AutoImageUpload({
         <input
           ref={fileInputRef}
           type="file"
-          name={`${name}_raw`}
           accept="image/*"
           onChange={handleFileSelect}
           className="hidden"

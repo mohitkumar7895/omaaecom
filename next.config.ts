@@ -5,10 +5,16 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
     minimumCacheTTL: 86400,
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "nyonmwpxzzwkhwylxkcs.supabase.co",
+      },
+    ],
   },
   experimental: {
     serverActions: {
-      bodySizeLimit: '10mb',
+      bodySizeLimit: '50mb',
     },
     staleTimes: {
       dynamic: 30,

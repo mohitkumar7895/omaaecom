@@ -3,8 +3,7 @@
 import pool from "../../lib/db";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import path from "path";
-import fs from "fs";
+import { uploadImageToSupabase } from "../../lib/supabase";
 
 async function extractImageBuffer(
   image: File | null,
@@ -54,14 +53,7 @@ export async function saveSubcategory(formData: FormData) {
 
   const extracted = await extractImageBuffer(image, imageRaw, imageBase64);
   if (extracted) {
-    const uploadDir = path.join(process.cwd(), "public/uploads/subcategories");
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-
-    const filePath = path.join(uploadDir, extracted.fileName);
-    fs.writeFileSync(filePath, extracted.buffer);
-    imageUrl = `/uploads/subcategories/${extracted.fileName}`;
+    imageUrl = await uploadImageToSupabase(extracted.buffer, extracted.fileName, "subcategories", "image/webp");
   }
 
   try {
@@ -101,15 +93,7 @@ export async function updateSubcategory(formData: FormData) {
 
     const extracted = await extractImageBuffer(image, imageRaw, imageBase64);
     if (extracted) {
-      const uploadDir = path.join(process.cwd(), "public/uploads/subcategories");
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-      }
-
-      const filePath = path.join(uploadDir, extracted.fileName);
-      fs.writeFileSync(filePath, extracted.buffer);
-
-      const imageUrl = `/uploads/subcategories/${extracted.fileName}`;
+      const imageUrl = await uploadImageToSupabase(extracted.buffer, extracted.fileName, "subcategories", "image/webp");
       query += `, image_url = ?`;
       params.push(imageUrl);
     } else if (imageRemoved === "1") {

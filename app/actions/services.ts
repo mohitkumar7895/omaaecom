@@ -3,8 +3,7 @@
 import pool from "../../lib/db";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import path from "path";
-import fs from "fs";
+import { uploadImageToSupabase } from "../../lib/supabase";
 
 async function extractImageBuffer(
   image: File | null,
@@ -62,13 +61,7 @@ export async function saveService(formData: FormData) {
 
   const extracted = await extractImageBuffer(image, imageRaw, imageBase64);
   if (extracted) {
-    const uploadDir = path.join(process.cwd(), "public/uploads/services");
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    const filePath = path.join(uploadDir, extracted.fileName);
-    fs.writeFileSync(filePath, extracted.buffer);
-    imageUrl = `/uploads/services/${extracted.fileName}`;
+    imageUrl = await uploadImageToSupabase(extracted.buffer, extracted.fileName, "services", "image/webp");
   }
 
   try {
@@ -138,15 +131,9 @@ export async function updateService(formData: FormData) {
 
     const extracted = await extractImageBuffer(image, imageRaw, imageBase64);
     if (extracted) {
-      const uploadDir = path.join(process.cwd(), "public/uploads/services");
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
-      }
-      const filePath = path.join(uploadDir, extracted.fileName);
-      fs.writeFileSync(filePath, extracted.buffer);
-      
+      const imageUrl = await uploadImageToSupabase(extracted.buffer, extracted.fileName, "services", "image/webp");
       query += `, image_url = ?`;
-      params.push(`/uploads/services/${extracted.fileName}`);
+      params.push(imageUrl);
     } else if (imageRemoved === "1") {
       query += `, image_url = NULL`;
     }

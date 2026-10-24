@@ -3,14 +3,9 @@
 import pool from "../../lib/db";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { redirect } from "next/navigation";
-import { writeFile } from "fs/promises";
-import path from "path";
-import fs from "fs";
+import { uploadImageToSupabase } from "../../lib/supabase";
 
 export async function saveBanners(formData: FormData) {
-  const banner1 = formData.get("banner1") as File | null;
-  const banner2 = formData.get("banner2") as File | null;
-  const banner3 = formData.get("banner3") as File | null;
   const banner_type = (formData.get("banner_type") as string) || "desktop";
 
   let url1 = null;
@@ -25,17 +20,26 @@ export async function saveBanners(formData: FormData) {
     if (file && typeof file === "object" && "size" in file && file.size > 0) {
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
-      const mimeType = file.type || "image/webp";
-      return `data:${mimeType};base64,${buffer.toString("base64")}`;
+      const safeName = `${Date.now()}-${fieldName}.webp`;
+      return await uploadImageToSupabase(buffer, safeName, "banners", file.type || "image/webp");
     }
     if (fileRaw && typeof fileRaw === "object" && "size" in fileRaw && fileRaw.size > 0) {
       const bytes = await fileRaw.arrayBuffer();
       const buffer = Buffer.from(bytes);
-      const mimeType = fileRaw.type || "image/jpeg";
-      return `data:${mimeType};base64,${buffer.toString("base64")}`;
+      const safeName = `${Date.now()}-${fieldName}.webp`;
+      return await uploadImageToSupabase(buffer, safeName, "banners", fileRaw.type || "image/jpeg");
     }
     if (base64Str && typeof base64Str === "string" && base64Str.startsWith("data:image/")) {
-      return base64Str;
+      const commaIdx = base64Str.indexOf(",");
+      if (commaIdx !== -1) {
+        const header = base64Str.substring(0, commaIdx);
+        const data = base64Str.substring(commaIdx + 1);
+        const match = header.match(/^data:image\/([a-zA-Z0-9+.-]+);base64$/);
+        const ext = match ? (match[1] === "jpeg" ? "jpg" : match[1]) : "webp";
+        const buffer = Buffer.from(data, "base64");
+        const safeName = `${Date.now()}-${fieldName}.${ext}`;
+        return await uploadImageToSupabase(buffer, safeName, "banners", `image/${ext}`);
+      }
     }
     return null;
   }
@@ -75,17 +79,26 @@ export async function updateBanners(id: string, formData: FormData) {
     if (file && typeof file === "object" && "size" in file && file.size > 0) {
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
-      const mimeType = file.type || "image/webp";
-      return `data:${mimeType};base64,${buffer.toString("base64")}`;
+      const safeName = `${Date.now()}-${fieldName}.webp`;
+      return await uploadImageToSupabase(buffer, safeName, "banners", file.type || "image/webp");
     }
     if (fileRaw && typeof fileRaw === "object" && "size" in fileRaw && fileRaw.size > 0) {
       const bytes = await fileRaw.arrayBuffer();
       const buffer = Buffer.from(bytes);
-      const mimeType = fileRaw.type || "image/jpeg";
-      return `data:${mimeType};base64,${buffer.toString("base64")}`;
+      const safeName = `${Date.now()}-${fieldName}.webp`;
+      return await uploadImageToSupabase(buffer, safeName, "banners", fileRaw.type || "image/jpeg");
     }
     if (base64Str && typeof base64Str === "string" && base64Str.startsWith("data:image/")) {
-      return base64Str;
+      const commaIdx = base64Str.indexOf(",");
+      if (commaIdx !== -1) {
+        const header = base64Str.substring(0, commaIdx);
+        const data = base64Str.substring(commaIdx + 1);
+        const match = header.match(/^data:image\/([a-zA-Z0-9+.-]+);base64$/);
+        const ext = match ? (match[1] === "jpeg" ? "jpg" : match[1]) : "webp";
+        const buffer = Buffer.from(data, "base64");
+        const safeName = `${Date.now()}-${fieldName}.${ext}`;
+        return await uploadImageToSupabase(buffer, safeName, "banners", `image/${ext}`);
+      }
     }
     return null;
   }
