@@ -3,11 +3,15 @@
 import { useState, useEffect } from "react";
 import { updateBanners } from "../../../../actions/banners";
 import { useParams, useRouter } from "next/navigation";
+import AutoImageUpload from "../../../components/AutoImageUpload";
+import AdminSubmitButton from "../../../components/AdminSubmitButton";
+import { showAdminToast } from "../../../components/AdminToast";
 
 export default function EditBannerPage() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [banner, setBanner] = useState<any>(null);
+  const [bannerType, setBannerType] = useState<"desktop" | "mobile">("desktop");
   
   const params = useParams();
   const router = useRouter();
@@ -20,6 +24,9 @@ export default function EditBannerPage() {
         if (res.ok) {
           const data = await res.json();
           setBanner(data);
+          if (data?.type) {
+            setBannerType(data.type);
+          }
         } else {
           console.error("Failed to fetch banner");
         }
@@ -32,9 +39,33 @@ export default function EditBannerPage() {
     fetchBanner();
   }, [id]);
 
+  const [isSuccess, setIsSuccess] = useState(false);
+
   async function handleSubmit(formData: FormData) {
     setLoading(true);
-    await updateBanners(id, formData);
+    setIsSuccess(false);
+
+    try {
+      const res = await updateBanners(id, formData);
+      if (res?.error) {
+        setLoading(false);
+        showAdminToast(res.error, "error");
+        return;
+      }
+
+      setIsSuccess(true);
+      setLoading(false);
+      showAdminToast("Banner updated successfully!", "success", "Promotional banners have been updated.");
+
+      setTimeout(() => {
+        router.push("/admin/banners?status=updated");
+        router.refresh();
+      }, 500);
+    } catch (err) {
+      console.error(err);
+      setLoading(false);
+      showAdminToast("Failed to update banner. Please try again.", "error");
+    }
   }
 
   if (fetching) {
@@ -66,114 +97,58 @@ export default function EditBannerPage() {
               <label className="text-[13px] font-bold text-gray-800">Banner Type</label>
               <select 
                 name="banner_type" 
-                defaultValue={banner.type || "desktop"}
-                className="block w-full text-sm text-gray-700 border border-gray-200 rounded p-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                value={bannerType}
+                onChange={(e) => setBannerType(e.target.value as "desktop" | "mobile")}
+                className="block w-full text-sm text-gray-700 border border-gray-200 rounded p-2.5 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
               >
-                <option value="desktop">Desktop Banner</option>
-                <option value="mobile">Mobile Banner</option>
+                <option value="desktop">Desktop Banner (Auto-sizes to 1200 × 400 px)</option>
+                <option value="mobile">Mobile Banner (Auto-sizes to 600 × 600 px)</option>
               </select>
             </div>
 
             {/* Banner 1 */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-[13px] font-bold text-gray-800">Banner 1 (Leave empty to keep current)</label>
-                <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                  Recommended: 1200 × 400 px (Desktop) / 600 × 600 px (Mobile)
-                </span>
-              </div>
-              <div className="flex flex-col space-y-2">
-                {banner.banner1_url && (
-                  <div className="h-16 w-32 bg-gray-100 rounded overflow-hidden relative shadow-sm border">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={banner.banner1_url} alt="Current Banner 1" className="w-full h-full object-contain" />
-                  </div>
-                )}
-                <input 
-                  type="file" 
-                  name="banner1" 
-                  accept="image/*"
-                  className="block w-full text-sm text-gray-500
-                    file:mr-4 file:py-2 file:px-4
-                    file:border file:border-gray-300
-                    file:text-sm file:font-medium
-                    file:bg-gray-50 file:text-gray-700
-                    hover:file:bg-gray-100
-                    border border-gray-200 rounded p-1.5"
-                />
-              </div>
-            </div>
+            <AutoImageUpload
+              name="banner1"
+              label="Banner 1"
+              targetWidth={bannerType === "desktop" ? 1200 : 600}
+              targetHeight={bannerType === "desktop" ? 400 : 600}
+              currentImageUrl={banner.banner1_url}
+              defaultFit="cover"
+              aspectRatioDisplay={bannerType === "desktop" ? "3:1 Landscape" : "1:1 Square"}
+            />
 
             {/* Banner 2 */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-[13px] font-bold text-gray-800">Banner 2 (Leave empty to keep current)</label>
-                <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                  Recommended: 1200 × 400 px (Desktop) / 600 × 600 px (Mobile)
-                </span>
-              </div>
-              <div className="flex flex-col space-y-2">
-                {banner.banner2_url && (
-                  <div className="h-16 w-32 bg-gray-100 rounded overflow-hidden relative shadow-sm border">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={banner.banner2_url} alt="Current Banner 2" className="w-full h-full object-contain" />
-                  </div>
-                )}
-                <input 
-                  type="file" 
-                  name="banner2" 
-                  accept="image/*"
-                  className="block w-full text-sm text-gray-500
-                    file:mr-4 file:py-2 file:px-4
-                    file:border file:border-gray-300
-                    file:text-sm file:font-medium
-                    file:bg-gray-50 file:text-gray-700
-                    hover:file:bg-gray-100
-                    border border-gray-200 rounded p-1.5"
-                />
-              </div>
-            </div>
+            <AutoImageUpload
+              name="banner2"
+              label="Banner 2"
+              targetWidth={bannerType === "desktop" ? 1200 : 600}
+              targetHeight={bannerType === "desktop" ? 400 : 600}
+              currentImageUrl={banner.banner2_url}
+              defaultFit="cover"
+              aspectRatioDisplay={bannerType === "desktop" ? "3:1 Landscape" : "1:1 Square"}
+            />
 
             {/* Banner 3 */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-[13px] font-bold text-gray-800">Banner 3 (Leave empty to keep current)</label>
-                <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                  Recommended: 1200 × 400 px (Desktop) / 600 × 600 px (Mobile)
-                </span>
-              </div>
-              <div className="flex flex-col space-y-2">
-                {banner.banner3_url && (
-                  <div className="h-16 w-32 bg-gray-100 rounded overflow-hidden relative shadow-sm border">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={banner.banner3_url} alt="Current Banner 3" className="w-full h-full object-contain" />
-                  </div>
-                )}
-                <input 
-                  type="file" 
-                  name="banner3" 
-                  accept="image/*"
-                  className="block w-full text-sm text-gray-500
-                    file:mr-4 file:py-2 file:px-4
-                    file:border file:border-gray-300
-                    file:text-sm file:font-medium
-                    file:bg-gray-50 file:text-gray-700
-                    hover:file:bg-gray-100
-                    border border-gray-200 rounded p-1.5"
-                />
-              </div>
-            </div>
+            <AutoImageUpload
+              name="banner3"
+              label="Banner 3"
+              targetWidth={bannerType === "desktop" ? 1200 : 600}
+              targetHeight={bannerType === "desktop" ? 400 : 600}
+              currentImageUrl={banner.banner3_url}
+              defaultFit="cover"
+              aspectRatioDisplay={bannerType === "desktop" ? "3:1 Landscape" : "1:1 Square"}
+            />
 
           </div>
 
           <div className="mt-8 flex justify-end border-t border-gray-100 pt-6">
-            <button 
-              type="submit" 
-              disabled={loading}
-              className="bg-[#2c3e50] hover:bg-[#1a252f] text-white font-medium px-6 py-2.5 rounded text-sm transition disabled:opacity-70"
-            >
-              {loading ? "Updating..." : "Update Banner"}
-            </button>
+            <AdminSubmitButton 
+              loading={loading} 
+              success={isSuccess}
+              label="Update Banner" 
+              loadingLabel="Updating Banner..." 
+              successLabel="✓ Banner Updated!"
+            />
           </div>
         </form>
 

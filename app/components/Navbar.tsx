@@ -135,7 +135,7 @@ export default function Navbar() {
 
           {/* Navigation Links */}
           <div className="hidden lg:flex items-center space-x-6">
-            <Link href="/" className="font-semibold text-gray-900 hover:text-[#5c67b8] transition text-[15px]">
+            <Link href="/" prefetch={true} className="font-semibold text-gray-900 hover:text-[#5c67b8] transition text-[15px]">
               Home
             </Link>
             <div className="relative group">
@@ -146,7 +146,7 @@ export default function Navbar() {
               <div className="absolute top-[80%] left-0 w-56 bg-white shadow-xl rounded-md overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 border border-gray-100">
                 {categories.length > 0 ? (
                   categories.map((cat, idx) => (
-                    <Link key={cat.id} href={`/services/${cat.id}`} className={`block px-4 py-3 text-[14px] font-medium text-gray-700 hover:bg-gray-50 hover:text-[#5c67b8] ${idx !== categories.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                    <Link key={cat.id} href={`/services/${cat.id}`} prefetch={true} className={`block px-4 py-3 text-[14px] font-medium text-gray-700 hover:bg-gray-50 hover:text-[#5c67b8] ${idx !== categories.length - 1 ? 'border-b border-gray-50' : ''}`}>
                       {cat.title}
                     </Link>
                   ))
@@ -171,7 +171,7 @@ export default function Navbar() {
           </div>
 
           {/* Cart Button */}
-          <Link href="/cart" className="order-3">
+          <Link href="/cart" prefetch={true} className="order-3">
             <button className="relative bg-[#6069c9] p-1.5 lg:p-2.5 rounded-[8px] lg:rounded-[10px] text-white hover:bg-[#525ab5] transition shadow-sm flex items-center justify-center">
               <ShoppingCart className="w-4 h-4 lg:w-5 lg:h-5 stroke-[1.5]" />
               {cartItemCount > 0 && (

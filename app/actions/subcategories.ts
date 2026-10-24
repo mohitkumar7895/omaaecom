@@ -40,8 +40,11 @@ export async function saveSubcategory(formData: FormData) {
     return { error: "Failed to save subcategory" };
   }
 
-  revalidatePath("/admin/subcategories");
-  redirect("/admin/subcategories");
+  try {
+    revalidatePath("/admin/subcategories");
+    revalidatePath("/", "layout");
+  } catch {}
+  return { success: true };
 }
 
 export async function updateSubcategory(formData: FormData) {
@@ -83,8 +86,11 @@ export async function updateSubcategory(formData: FormData) {
     return { error: "Failed to update subcategory" };
   }
 
-  revalidatePath("/admin/subcategories");
-  redirect("/admin/subcategories");
+  try {
+    revalidatePath("/admin/subcategories");
+    revalidatePath("/", "layout");
+  } catch {}
+  return { success: true };
 }
 
 export async function deleteSubcategory(formData: FormData) {

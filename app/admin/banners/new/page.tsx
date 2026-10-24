@@ -1,15 +1,43 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { saveBanners } from "../../../actions/banners";
+import AutoImageUpload from "../../components/AutoImageUpload";
+import AdminSubmitButton from "../../components/AdminSubmitButton";
+import { showAdminToast } from "../../components/AdminToast";
 
 export default function AddBannerPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [bannerType, setBannerType] = useState<"desktop" | "mobile">("desktop");
 
   async function handleSubmit(formData: FormData) {
     setLoading(true);
-    await saveBanners(formData);
-    // Note: The server action will redirect back to /admin/banners automatically
+    setIsSuccess(false);
+
+    try {
+      const res = await saveBanners(formData);
+      if (res?.error) {
+        setLoading(false);
+        showAdminToast(res.error, "error");
+        return;
+      }
+
+      setIsSuccess(true);
+      setLoading(false);
+      showAdminToast("Banner saved successfully!", "success", "Promotional banners are now live.");
+
+      setTimeout(() => {
+        router.push("/admin/banners?status=saved");
+        router.refresh();
+      }, 500);
+    } catch (err) {
+      console.error(err);
+      setLoading(false);
+      showAdminToast("Failed to save banner. Please try again.", "error");
+    }
   }
 
   return (
@@ -30,95 +58,56 @@ export default function AddBannerPage() {
               <label className="text-[13px] font-bold text-gray-800">Banner Type</label>
               <select 
                 name="banner_type" 
-                className="block w-full text-sm text-gray-700 border border-gray-200 rounded p-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                value={bannerType}
+                onChange={(e) => setBannerType(e.target.value as "desktop" | "mobile")}
+                className="block w-full text-sm text-gray-700 border border-gray-200 rounded p-2.5 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
               >
-                <option value="desktop">Desktop Banner</option>
-                <option value="mobile">Mobile Banner</option>
+                <option value="desktop">Desktop Banner (Auto-sizes to 1200 × 400 px)</option>
+                <option value="mobile">Mobile Banner (Auto-sizes to 600 × 600 px)</option>
               </select>
             </div>
 
             {/* Banner 1 */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-[13px] font-bold text-gray-800">Banner 1</label>
-                <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                  Recommended: 1200 × 400 px (Desktop) / 600 × 600 px (Mobile)
-                </span>
-              </div>
-              <div className="flex">
-                <input 
-                  type="file" 
-                  name="banner1" 
-                  accept="image/*"
-                  className="block w-full text-sm text-gray-500
-                    file:mr-4 file:py-2 file:px-4
-                    file:border file:border-gray-300
-                    file:text-sm file:font-medium
-                    file:bg-gray-50 file:text-gray-700
-                    hover:file:bg-gray-100
-                    border border-gray-200 rounded p-1.5"
-                />
-              </div>
-            </div>
+            <AutoImageUpload
+              name="banner1"
+              label="Banner 1"
+              targetWidth={bannerType === "desktop" ? 1200 : 600}
+              targetHeight={bannerType === "desktop" ? 400 : 600}
+              defaultFit="cover"
+              aspectRatioDisplay={bannerType === "desktop" ? "3:1 Landscape" : "1:1 Square"}
+              required
+            />
 
             {/* Banner 2 */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-[13px] font-bold text-gray-800">Banner 2</label>
-                <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                  Recommended: 1200 × 400 px (Desktop) / 600 × 600 px (Mobile)
-                </span>
-              </div>
-              <div className="flex">
-                <input 
-                  type="file" 
-                  name="banner2" 
-                  accept="image/*"
-                  className="block w-full text-sm text-gray-500
-                    file:mr-4 file:py-2 file:px-4
-                    file:border file:border-gray-300
-                    file:text-sm file:font-medium
-                    file:bg-gray-50 file:text-gray-700
-                    hover:file:bg-gray-100
-                    border border-gray-200 rounded p-1.5"
-                />
-              </div>
-            </div>
+            <AutoImageUpload
+              name="banner2"
+              label="Banner 2"
+              targetWidth={bannerType === "desktop" ? 1200 : 600}
+              targetHeight={bannerType === "desktop" ? 400 : 600}
+              defaultFit="cover"
+              aspectRatioDisplay={bannerType === "desktop" ? "3:1 Landscape" : "1:1 Square"}
+            />
 
             {/* Banner 3 */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-[13px] font-bold text-gray-800">Banner 3</label>
-                <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                  Recommended: 1200 × 400 px (Desktop) / 600 × 600 px (Mobile)
-                </span>
-              </div>
-              <div className="flex">
-                <input 
-                  type="file" 
-                  name="banner3" 
-                  accept="image/*"
-                  className="block w-full text-sm text-gray-500
-                    file:mr-4 file:py-2 file:px-4
-                    file:border file:border-gray-300
-                    file:text-sm file:font-medium
-                    file:bg-gray-50 file:text-gray-700
-                    hover:file:bg-gray-100
-                    border border-gray-200 rounded p-1.5"
-                />
-              </div>
-            </div>
+            <AutoImageUpload
+              name="banner3"
+              label="Banner 3"
+              targetWidth={bannerType === "desktop" ? 1200 : 600}
+              targetHeight={bannerType === "desktop" ? 400 : 600}
+              defaultFit="cover"
+              aspectRatioDisplay={bannerType === "desktop" ? "3:1 Landscape" : "1:1 Square"}
+            />
 
           </div>
 
           <div className="mt-8 flex justify-end border-t border-gray-100 pt-6">
-            <button 
-              type="submit" 
-              disabled={loading}
-              className="bg-[#2c3e50] hover:bg-[#1a252f] text-white font-medium px-6 py-2.5 rounded text-sm transition disabled:opacity-70"
-            >
-              {loading ? "Saving..." : "Save Banner"}
-            </button>
+            <AdminSubmitButton 
+              loading={loading} 
+              success={isSuccess}
+              label="Save Banner" 
+              loadingLabel="Saving Banner..." 
+              successLabel="✓ Banner Saved!"
+            />
           </div>
         </form>
 

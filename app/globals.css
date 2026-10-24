@@ -19,9 +19,24 @@ body {
   color: #fff;
 }
 
+/* Eliminate 300ms mobile tap delay & highlight box globally */
+html, body, button, a, [role="button"], select, summary, input, textarea, .cursor-pointer {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* Ensure hand pointer on all clickable elements globally */
 button, a, [role="button"], select, summary, .cursor-pointer {
   cursor: pointer !important;
+}
+
+/* Instant tactile feedback on click anywhere on site */
+button:active, 
+a:active, 
+[role="button"]:active, 
+.cursor-pointer:active {
+  transform: scale(0.97) !important;
+  transition: transform 0.05s ease-out !important;
 }
 
 /* Premium scrollbar for all overflow elements */

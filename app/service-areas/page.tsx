@@ -7,6 +7,10 @@ import { SEO_SERVICES } from "../../lib/seo-services";
 import { SEO_KEYWORD_PAGES, keywordFitsLocation } from "../../lib/seo-keywords";
 import { GAUR_CITY_SOCIETIES } from "../../lib/gaur-city-data";
 import { getSiteUrl } from "../../lib/site-url";
+import pool from "../../lib/db";
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 const siteUrl = getSiteUrl();
 
@@ -17,9 +21,19 @@ export const metadata: Metadata = {
   alternates: { canonical: `${siteUrl}/service-areas` },
 };
 
-export default function ServiceAreasPage() {
+export default async function ServiceAreasPage() {
   const cities = SEO_LOCATIONS.filter((loc) => loc.kind !== "society");
   const societies = SEO_LOCATIONS.filter((loc) => loc.kind === "society");
+
+  let customLinks: any[] = [];
+  try {
+    const [rows]: any = await pool.query(
+      "SELECT id, title, url, group_name, city, area FROM sitemap_links WHERE is_active = TRUE AND is_indexable = TRUE ORDER BY priority DESC, id DESC LIMIT 100"
+    );
+    customLinks = rows || [];
+  } catch (e) {
+    console.error("Error loading sitemap links for service-areas:", e);
+  }
 
   return (
     <main className="min-h-screen bg-slate-50 flex flex-col font-sans">
@@ -38,6 +52,42 @@ export default function ServiceAreasPage() {
         <p className="mt-2 text-gray-600 max-w-2xl">
           Search keywords, cities and societies. Click any keyword to open its repair page.
         </p>
+
+        {customLinks.length > 0 && (
+          <section className="mt-8">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-extrabold text-gray-900">
+                Custom Service Areas & Dedicated Landing Pages
+              </h2>
+              <Link href="/sitemap-directory" className="text-xs font-bold text-[#5c67b8] hover:underline">
+                Full Directory &rarr;
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {customLinks.map((link) => (
+                <Link
+                  key={link.id}
+                  href={link.url}
+                  className="bg-white p-3.5 rounded-xl border border-gray-100 hover:border-indigo-200 hover:shadow-xs transition group flex flex-col justify-between"
+                >
+                  <div>
+                    <p className="font-bold text-gray-900 group-hover:text-[#5c67b8] text-xs sm:text-sm line-clamp-2">
+                      {link.title}
+                    </p>
+                    {(link.area || link.city) && (
+                      <span className="inline-block mt-1 text-[10px] text-gray-500 font-medium">
+                        📍 {[link.area, link.city].filter(Boolean).join(", ")}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[11px] font-semibold text-[#5c67b8] mt-2 flex items-center gap-1">
+                    Book Service &rarr;
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="mt-8">
           <h2 className="text-lg font-extrabold text-gray-900 mb-3">Search keywords</h2>

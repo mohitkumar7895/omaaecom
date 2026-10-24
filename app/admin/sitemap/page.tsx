@@ -9,6 +9,8 @@ export default async function AdminSitemapPage() {
   let stats = {
     total: 0,
     active: 0,
+    indexable: 0,
+    noIndex: 0,
     areaWise: 0,
     services: 0,
     mainPages: 0,
@@ -29,6 +31,8 @@ export default async function AdminSitemapPage() {
       SELECT 
         COUNT(*) as total,
         SUM(CASE WHEN is_active = TRUE THEN 1 ELSE 0 END) as active_count,
+        SUM(CASE WHEN is_indexable = TRUE THEN 1 ELSE 0 END) as indexable_count,
+        SUM(CASE WHEN is_indexable = FALSE OR is_indexable IS NULL THEN 1 ELSE 0 END) as noindex_count,
         SUM(CASE WHEN group_name = 'Area-wise SEO' THEN 1 ELSE 0 END) as area_count,
         SUM(CASE WHEN group_name = 'Services' THEN 1 ELSE 0 END) as services_count,
         SUM(CASE WHEN group_name = 'Main Pages' THEN 1 ELSE 0 END) as main_count
@@ -39,6 +43,8 @@ export default async function AdminSitemapPage() {
       stats = {
         total: Number(statsRows[0].total) || 0,
         active: Number(statsRows[0].active_count) || 0,
+        indexable: Number(statsRows[0].indexable_count) || 0,
+        noIndex: Number(statsRows[0].noindex_count) || 0,
         areaWise: Number(statsRows[0].area_count) || 0,
         services: Number(statsRows[0].services_count) || 0,
         mainPages: Number(statsRows[0].main_count) || 0,

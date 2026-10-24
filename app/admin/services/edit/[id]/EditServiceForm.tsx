@@ -3,12 +3,23 @@
 import { updateService } from "@/app/actions/services";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { CheckCircle2 } from "lucide-react";
+import AutoImageUpload from "@/app/admin/components/AutoImageUpload";
+import AdminSubmitButton from "@/app/admin/components/AdminSubmitButton";
+import { showAdminToast } from "@/app/admin/components/AdminToast";
 
 export default function EditServiceForm({ service, categories, subcategories }: { service: any, categories: any[], subcategories: any[] }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState(service.category_id.toString());
   const [selectedSubcategoryId, setSelectedSubcategoryId] = useState(service.subcategory_id.toString());
+
+  // Prefetch services list for instant transition
+  useEffect(() => {
+    router.prefetch("/admin/services");
+  }, [router]);
 
   // Reset subcategory if category changes manually
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -16,16 +27,31 @@ export default function EditServiceForm({ service, categories, subcategories }: 
     setSelectedSubcategoryId(""); 
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async (formData: FormData) => {
     setIsSubmitting(true);
-    const formData = new FormData(e.currentTarget);
-    
+    setIsSuccess(false);
+
     try {
-      await updateService(formData);
-    } catch (error) {
-      console.error("Error saving:", error);
+      const res = await updateService(formData);
+      if (res?.error) {
+        setIsSubmitting(false);
+        showAdminToast(res.error, "error");
+        return;
+      }
+      
+      // Instant clear feedback
+      setIsSuccess(true);
       setIsSubmitting(false);
+      showAdminToast("Service Updated Successfully!", "success", "All changes & prices saved.");
+
+      // Smooth transition after showing green status
+      setTimeout(() => {
+        router.push("/admin/services?status=updated");
+      }, 600);
+    } catch (err) {
+      console.error(err);
+      setIsSubmitting(false);
+      showAdminToast("Failed to update service. Please try again.", "error");
     }
   };
 
@@ -43,7 +69,7 @@ export default function EditServiceForm({ service, categories, subcategories }: 
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-8">
+        <form action={handleSubmit} className="p-8">
           <input type="hidden" name="id" value={service.id} />
           
           <div className="space-y-6">
@@ -147,51 +173,46 @@ export default function EditServiceForm({ service, categories, subcategories }: 
               />
             </div>
 
-            {/* Current Image Preview */}
-            {service.image_url && (
-              <div>
-                <label className="block text-gray-700 text-sm mb-1">
-                  Current Image
-                </label>
-                <div className="w-32 h-32 rounded border border-gray-200 overflow-hidden shadow-sm">
-                  <img 
-                    src={service.image_url} 
-                    alt={service.title} 
-                    className="w-full h-full object-cover" 
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Upload New Image */}
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-gray-700 text-sm font-semibold">
-                  New Image (optional)
-                </label>
-                <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                  Recommended: 600 × 400 px (3:2) / 500 × 500 px (1:1)
-                </span>
-              </div>
-              <input 
-                type="file" 
-                name="image"
-                accept="image/*"
-                className="w-full border border-gray-300 rounded text-sm px-3 py-2 outline-none focus:border-[#2c3e50] bg-white file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100 cursor-pointer"
-              />
-            </div>
+            {/* Auto Image Upload */}
+            <AutoImageUpload
+              name="image"
+              label="Service Image"
+              currentImageUrl={service.image_url}
+              targetWidth={600}
+              targetHeight={400}
+              defaultFit="contain"
+              aspectRatioDisplay="3:2 Standard"
+            />
 
           </div>
 
-          {/* Submit Button */}
-          <div className="mt-8 flex justify-end">
-            <button 
-              type="submit" 
-              disabled={isSubmitting}
-              className="bg-[#2c3e50] hover:bg-[#1a252f] text-white px-6 py-2.5 rounded text-[15px] font-medium transition shadow-sm disabled:opacity-70"
+          {/* Inline Success Notice */}
+          {isSuccess && (
+            <div className="mt-6 flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 animate-in fade-in slide-in-from-bottom-2 duration-300 shadow-sm">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 animate-bounce" />
+              <div>
+                <p className="font-bold text-sm">Service Updated Successfully!</p>
+                <p className="text-xs text-emerald-700">All changes and prices have been saved. Taking you back to services list...</p>
+              </div>
+            </div>
+          )}
+
+          {/* Submit Button & Cancel */}
+          <div className="mt-8 flex justify-between items-center pt-4 border-t border-gray-100">
+            <Link 
+              href="/admin/services"
+              className="text-gray-500 hover:text-gray-800 text-sm font-semibold px-4 py-2 rounded-lg hover:bg-gray-100 transition"
             >
-              {isSubmitting ? "Updating..." : "Update Service"}
-            </button>
+              ← Back to Services
+            </Link>
+
+            <AdminSubmitButton 
+              loading={isSubmitting} 
+              success={isSuccess}
+              label="Update Service" 
+              loadingLabel="Updating Service..." 
+              successLabel="✓ Service Updated!"
+            />
           </div>
         </form>
 

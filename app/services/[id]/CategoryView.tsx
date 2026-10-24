@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import ServiceCard from "./ServiceCard";
 import ServiceDetailsModal from "./ServiceDetailsModal";
 import Link from "next/link";
+import { Phone, MessageCircle } from "lucide-react";
 
 
 type CategoryViewProps = {
@@ -171,8 +172,28 @@ export default function CategoryView({ category, subcategories, services, rateCa
               <li className="text-gray-800 font-semibold">{category.title}</li>
             </ol>
           </nav>
-          <h1 className="text-2xl sm:text-3xl font-bold text-[#111827] mb-1">{category.title} in Delhi NCR</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#111827] mb-1">{category.title}</h1>
+        </div>
 
+        {/* Quick Call & WhatsApp Action Buttons */}
+        <div className="flex items-center gap-2.5 sm:gap-3">
+          <a
+            href="tel:+919999251966"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#5c67b8] hover:bg-[#4b55a0] text-white font-bold text-xs sm:text-sm shadow-sm transition-all active:scale-95"
+          >
+            <Phone className="w-4 h-4 stroke-[2.5]" />
+            <span>Call 9999251966</span>
+          </a>
+
+          <a
+            href={`https://wa.me/919999251966?text=${encodeURIComponent(`Hello OMAA Company! I need ${category.title} service. Please share technician availability.`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#25D366] hover:bg-[#20b858] text-white font-bold text-xs sm:text-sm shadow-sm transition-all active:scale-95"
+          >
+            <MessageCircle className="w-4 h-4 stroke-[2.5]" />
+            <span>WhatsApp</span>
+          </a>
         </div>
       </div>
 

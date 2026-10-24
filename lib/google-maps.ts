@@ -221,7 +221,7 @@ async function reverseViaGeocodingJson(key: string, latitude: number, longitude:
   }
   const finest = pickFinestGoogleResult(all.results);
   if (!finest) return null;
-  return fromGooglePlace(mergeGoogleComponents(all.results, finest), gps, 400);
+  return fromGooglePlace(mergeGoogleComponents(all.results, finest), gps, 5000);
 }
 
 async function reverseViaPlacesSearchText(key: string, latitude: number, longitude: number) {

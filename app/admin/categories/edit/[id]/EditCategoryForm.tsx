@@ -1,15 +1,43 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { updateCategory } from "../../../../../app/actions/categories";
 import CategoryZonePicker from "../../../components/CategoryZonePicker";
+import AutoImageUpload from "../../../components/AutoImageUpload";
+import AdminSubmitButton from "../../../components/AdminSubmitButton";
+import { showAdminToast } from "../../../components/AdminToast";
 
 export default function EditCategoryForm({ category }: { category: any }) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   async function handleSubmit(formData: FormData) {
     setLoading(true);
-    await updateCategory(formData);
+    setIsSuccess(false);
+
+    try {
+      const res = await updateCategory(formData);
+      if (res?.error) {
+        setLoading(false);
+        showAdminToast(res.error, "error");
+        return;
+      }
+
+      setIsSuccess(true);
+      setLoading(false);
+      showAdminToast("Category updated successfully!", "success", "All category changes have been saved.");
+
+      setTimeout(() => {
+        router.push("/admin/categories?status=updated");
+        router.refresh();
+      }, 500);
+    } catch (err) {
+      console.error(err);
+      setLoading(false);
+      showAdminToast("Failed to update category. Please try again.", "error");
+    }
   }
 
   return (
@@ -63,29 +91,15 @@ export default function EditCategoryForm({ category }: { category: any }) {
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="text-[13px] font-bold text-gray-800">Current Image</label>
-              <div className="w-20 h-20 border border-gray-200 bg-gray-50 flex items-center justify-center p-2 rounded">
-                {category.image_url ? (
-                  <img src={category.image_url} alt="Current" className="max-w-full max-h-full object-contain" />
-                ) : (
-                  <span className="text-gray-400 text-xs">None</span>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2 md:col-span-2 mt-2">
-              <div className="flex items-center justify-between">
-                <label className="text-[13px] font-bold text-gray-800">New Image (optional)</label>
-                <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                  Recommended: 500 × 500 px (Square 1:1)
-                </span>
-              </div>
-              <input 
-                type="file" 
+            <div className="md:col-span-2">
+              <AutoImageUpload
                 name="image"
-                accept="image/*"
-                className="w-full border border-gray-200 rounded text-sm px-4 py-2.5 outline-none focus:border-blue-500 bg-white"
+                label="Category Image"
+                currentImageUrl={category.image_url}
+                targetWidth={500}
+                targetHeight={500}
+                defaultFit="contain"
+                aspectRatioDisplay="1:1 Square"
               />
             </div>
 
@@ -120,13 +134,13 @@ export default function EditCategoryForm({ category }: { category: any }) {
           </div>
 
           <div className="mt-8 flex justify-end">
-            <button 
-              type="submit" 
-              disabled={loading}
-              className="bg-[#2c3e50] hover:bg-[#1a252f] text-white font-medium px-8 py-2.5 rounded text-[13px] shadow-sm transition disabled:opacity-70"
-            >
-              {loading ? "Updating..." : "Update Category"}
-            </button>
+            <AdminSubmitButton 
+              loading={loading} 
+              success={isSuccess}
+              label="Update Category" 
+              loadingLabel="Updating Category..." 
+              successLabel="✓ Category Updated!"
+            />
           </div>
         </form>
 

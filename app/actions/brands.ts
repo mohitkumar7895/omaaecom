@@ -41,6 +41,9 @@ export async function saveBrand(formData: FormData) {
     return { error: "Failed to save brand" };
   }
 
-  revalidatePath("/admin/brands");
-  redirect("/admin/brands");
+  try {
+    revalidatePath("/admin/brands");
+    revalidatePath("/", "layout");
+  } catch {}
+  return { success: true };
 }

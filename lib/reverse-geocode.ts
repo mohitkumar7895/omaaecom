@@ -169,7 +169,7 @@ async function fetchOsm(latitude: number, longitude: number, zoom: number) {
     headers: {
       "User-Agent": "OmaaEcomApp/4.0 (contact@omaacompany.com)",
       Accept: "application/json",
-      "Accept-Language": "en-IN,hi,en;q=0.9",
+      "Accept-Language": "en-IN,en;q=0.9",
     },
     signal: AbortSignal.timeout(8000),
   });
@@ -182,13 +182,9 @@ export async function reverseGeocodeCoords(
   longitude: number
 ): Promise<ResolvedAddress | null> {
   try {
-    const { googleReverseGeocode, googleMapsKey } = await import("@/lib/google-maps");
+    const { googleReverseGeocode } = await import("./google-maps");
     const google = await googleReverseGeocode(latitude, longitude);
     if (google?.shortAddress) return google;
-    if (googleMapsKey()) {
-      console.warn("Google reverse geocode returned no address");
-      return null;
-    }
   } catch (e) {
     console.warn("Google reverse geocode failed:", e);
   }

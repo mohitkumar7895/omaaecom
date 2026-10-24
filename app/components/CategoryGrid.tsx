@@ -67,6 +67,7 @@ export default function CategoryGrid({ title, services }: CategoryGridProps) {
             return (
             <Link 
               href={`/services/${service.category_id}`}
+              prefetch={true}
               key={`${service.id}-${index}`} 
               aria-hidden={isClone ? true : undefined}
               tabIndex={isClone ? -1 : undefined}

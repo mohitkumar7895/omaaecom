@@ -81,15 +81,15 @@ function readGps(options: PositionOptions): Promise<GeolocationPosition> {
   });
 }
 
-async function detectFromGpsOrIp(): Promise<ResolvedLocation> {
+async function detectFromGpsOrIp(forceFresh = false): Promise<ResolvedLocation> {
   let coords: { latitude: number; longitude: number; accuracy?: number } | undefined;
 
   if (await gpsAllowed()) {
     try {
       const position = await readGps({
         enableHighAccuracy: true,
-        timeout: 12000,
-        maximumAge: 60_000,
+        timeout: forceFresh ? 15000 : 10000,
+        maximumAge: forceFresh ? 0 : 30_000,
       });
       coords = {
         latitude: position.coords.latitude,
@@ -105,13 +105,13 @@ async function detectFromGpsOrIp(): Promise<ResolvedLocation> {
   return mapGeocodePayload(loc, coords);
 }
 
-export const getCurrentLocation = async (): Promise<ResolvedLocation> => {
-  return detectFromGpsOrIp();
+export const getCurrentLocation = async (forceFresh = true): Promise<ResolvedLocation> => {
+  return detectFromGpsOrIp(forceFresh);
 };
 
 export const autoDetectLocation = async (): Promise<ResolvedLocation | null> => {
   try {
-    return await detectFromGpsOrIp();
+    return await detectFromGpsOrIp(false);
   } catch (err) {
     console.error("Auto detect location failed:", err);
     return null;

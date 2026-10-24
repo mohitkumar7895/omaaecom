@@ -1,15 +1,43 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { saveCategory } from "../../../../app/actions/categories";
 import CategoryZonePicker from "../../components/CategoryZonePicker";
+import AutoImageUpload from "../../components/AutoImageUpload";
+import AdminSubmitButton from "../../components/AdminSubmitButton";
+import { showAdminToast } from "../../components/AdminToast";
 
 export default function AddCategoryForm() {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   async function handleSubmit(formData: FormData) {
     setLoading(true);
-    await saveCategory(formData);
+    setIsSuccess(false);
+
+    try {
+      const res = await saveCategory(formData);
+      if (res?.error) {
+        setLoading(false);
+        showAdminToast(res.error, "error");
+        return;
+      }
+
+      setIsSuccess(true);
+      setLoading(false);
+      showAdminToast("Category created successfully!", "success", "New category added to catalog.");
+
+      setTimeout(() => {
+        router.push("/admin/categories?status=saved");
+        router.refresh();
+      }, 500);
+    } catch (err) {
+      console.error(err);
+      setLoading(false);
+      showAdminToast("Failed to save category. Please try again.", "error");
+    }
   }
 
   return (
@@ -61,21 +89,15 @@ export default function AddCategoryForm() {
               />
             </div>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-[13px] font-bold text-gray-800">Category Image</label>
-                <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                  Recommended: 500 × 500 px (Square 1:1)
-                </span>
-              </div>
-              <input 
-                type="file" 
-                name="image"
-                accept="image/*"
-                required
-                className="w-full border border-gray-200 rounded text-sm px-4 py-2.5 outline-none focus:border-blue-500 bg-white"
-              />
-            </div>
+            <AutoImageUpload
+              name="image"
+              label="Category Image"
+              targetWidth={500}
+              targetHeight={500}
+              defaultFit="contain"
+              aspectRatioDisplay="1:1 Square"
+              required
+            />
 
             <div className="space-y-2">
               <label className="text-[13px] font-bold text-gray-800">Warranty (days)</label>
@@ -107,13 +129,13 @@ export default function AddCategoryForm() {
           </div>
 
           <div className="mt-8 flex justify-end">
-            <button 
-              type="submit" 
-              disabled={loading}
-              className="bg-[#2c3e50] hover:bg-[#1a252f] text-white font-medium px-8 py-2.5 rounded text-[13px] shadow-sm transition disabled:opacity-70"
-            >
-              {loading ? "Saving..." : "Add Category"}
-            </button>
+            <AdminSubmitButton 
+              loading={loading} 
+              success={isSuccess}
+              label="Add Category" 
+              loadingLabel="Saving Category..." 
+              successLabel="✓ Category Added!"
+            />
           </div>
         </form>
 

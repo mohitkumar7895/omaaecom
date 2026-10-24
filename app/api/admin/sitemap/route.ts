@@ -33,6 +33,8 @@ export async function GET(request: Request) {
       SELECT 
         COUNT(*) as total,
         SUM(CASE WHEN is_active = TRUE THEN 1 ELSE 0 END) as active_count,
+        SUM(CASE WHEN is_indexable = TRUE THEN 1 ELSE 0 END) as indexable_count,
+        SUM(CASE WHEN is_indexable = FALSE OR is_indexable IS NULL THEN 1 ELSE 0 END) as noindex_count,
         SUM(CASE WHEN group_name = 'Area-wise SEO' THEN 1 ELSE 0 END) as area_count,
         SUM(CASE WHEN group_name = 'Services' THEN 1 ELSE 0 END) as services_count,
         SUM(CASE WHEN group_name = 'Main Pages' THEN 1 ELSE 0 END) as main_count
@@ -42,6 +44,8 @@ export async function GET(request: Request) {
     const stats = statsRows[0] || {
       total: 0,
       active_count: 0,
+      indexable_count: 0,
+      noindex_count: 0,
       area_count: 0,
       services_count: 0,
       main_count: 0,
@@ -53,6 +57,8 @@ export async function GET(request: Request) {
       stats: {
         total: Number(stats.total) || 0,
         active: Number(stats.active_count) || 0,
+        indexable: Number(stats.indexable_count) || 0,
+        noIndex: Number(stats.noindex_count) || 0,
         areaWise: Number(stats.area_count) || 0,
         services: Number(stats.services_count) || 0,
         mainPages: Number(stats.main_count) || 0,
@@ -74,7 +80,7 @@ export async function POST(request: Request) {
 
     // 1. BULK AREA-WISE GENERATION
     if (body.is_bulk_area) {
-      const { category_id, city, areas, priority = 0.8, changefreq = "weekly" } = body;
+      const { category_id, city, areas, priority = 0.8, changefreq = "weekly", is_indexable = false } = body;
 
       if (!city || !areas || !Array.isArray(areas) || areas.length === 0) {
         return NextResponse.json(
@@ -112,17 +118,17 @@ export async function POST(request: Request) {
         }
 
         await pool.query(
-          `INSERT INTO sitemap_links (title, url, group_name, city, area, category_id, priority, changefreq, is_active, is_system)
-           VALUES (?, ?, 'Area-wise SEO', ?, ?, ?, ?, ?, TRUE, FALSE)
-           ON DUPLICATE KEY UPDATE title = VALUES(title), city = VALUES(city), area = VALUES(area), priority = VALUES(priority)`,
-          [linkTitle, linkUrl, city, areaName, category_id || null, priority, changefreq]
+          `INSERT INTO sitemap_links (title, url, group_name, city, area, category_id, priority, changefreq, is_active, is_indexable, is_system)
+           VALUES (?, ?, 'Area-wise SEO', ?, ?, ?, ?, ?, TRUE, ?, FALSE)
+           ON DUPLICATE KEY UPDATE title = VALUES(title), city = VALUES(city), area = VALUES(area), priority = VALUES(priority), is_indexable = VALUES(is_indexable)`,
+          [linkTitle, linkUrl, city, areaName, category_id || null, priority, changefreq, Boolean(is_indexable)]
         );
         inserted.push(linkUrl);
       }
 
       return NextResponse.json({
         success: true,
-        message: `Generated ${inserted.length} Area-wise SEO links successfully!`,
+        message: `Generated ${inserted.length} Area-wise pages successfully!`,
         count: inserted.length,
       });
     }
@@ -137,6 +143,7 @@ export async function POST(request: Request) {
       priority = 0.8, 
       changefreq = "weekly", 
       is_active = true,
+      is_indexable = false, // DEFAULT FALSE: SEO BAND
       heading,
       subheading,
       content,
@@ -160,8 +167,8 @@ export async function POST(request: Request) {
     const featuresJson = Array.isArray(features) ? JSON.stringify(features) : (features ? JSON.stringify(features) : null);
 
     await pool.query(
-      `INSERT INTO sitemap_links (title, url, group_name, city, area, priority, changefreq, is_active, is_system, heading, subheading, content, meta_description, features)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, FALSE, ?, ?, ?, ?, ?)
+      `INSERT INTO sitemap_links (title, url, group_name, city, area, priority, changefreq, is_active, is_indexable, is_system, heading, subheading, content, meta_description, features)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, FALSE, ?, ?, ?, ?, ?)
        ON DUPLICATE KEY UPDATE 
          title = VALUES(title), 
          group_name = VALUES(group_name), 
@@ -170,17 +177,18 @@ export async function POST(request: Request) {
          priority = VALUES(priority), 
          changefreq = VALUES(changefreq), 
          is_active = VALUES(is_active),
+         is_indexable = VALUES(is_indexable),
          heading = VALUES(heading),
          subheading = VALUES(subheading),
          content = VALUES(content),
          meta_description = VALUES(meta_description),
          features = VALUES(features)`,
-      [title.trim(), url, group_name, city || null, area || null, priority, changefreq, is_active, heading || null, subheading || null, content || null, meta_description || null, featuresJson]
+      [title.trim(), url, group_name, city || null, area || null, priority, changefreq, is_active, Boolean(is_indexable), heading || null, subheading || null, content || null, meta_description || null, featuresJson]
     );
 
     return NextResponse.json({
       success: true,
-      message: "Sitemap link and content details saved successfully!",
+      message: "Page saved successfully!",
     });
   } catch (error: any) {
     console.error("Error creating sitemap link:", error);
@@ -191,7 +199,7 @@ export async function POST(request: Request) {
   }
 }
 
-// PUT: Update an existing link (or toggle active status)
+// PUT: Update an existing link (or toggle active status / SEO indexable status)
 export async function PUT(request: Request) {
   try {
     const body = await request.json();
@@ -205,6 +213,7 @@ export async function PUT(request: Request) {
       priority, 
       changefreq, 
       is_active,
+      is_indexable,
       heading,
       subheading,
       content,
@@ -217,9 +226,18 @@ export async function PUT(request: Request) {
     }
 
     // If only toggling active status
-    if (is_active !== undefined && title === undefined && url === undefined) {
+    if (is_active !== undefined && title === undefined && url === undefined && is_indexable === undefined) {
       await pool.query("UPDATE sitemap_links SET is_active = ? WHERE id = ?", [Boolean(is_active), id]);
       return NextResponse.json({ success: true, message: `Status updated to ${is_active ? "Active" : "Inactive"}` });
+    }
+
+    // If only toggling SEO Indexable status (ON / OFF)
+    if (is_indexable !== undefined && title === undefined && url === undefined && is_active === undefined) {
+      await pool.query("UPDATE sitemap_links SET is_indexable = ? WHERE id = ?", [Boolean(is_indexable), id]);
+      return NextResponse.json({ 
+        success: true, 
+        message: `Status updated successfully!`, 
+      });
     }
 
     const featuresJson = Array.isArray(features) ? JSON.stringify(features) : (features ? JSON.stringify(features) : null);
@@ -235,16 +253,17 @@ export async function PUT(request: Request) {
            priority = COALESCE(?, priority),
            changefreq = COALESCE(?, changefreq),
            is_active = COALESCE(?, is_active),
+           is_indexable = COALESCE(?, is_indexable),
            heading = ?,
            subheading = ?,
            content = ?,
            meta_description = ?,
            features = ?
        WHERE id = ?`,
-      [title, url, group_name, city, area, priority, changefreq, is_active, heading || null, subheading || null, content || null, meta_description || null, featuresJson, id]
+      [title, url, group_name, city, area, priority, changefreq, is_active, is_indexable !== undefined ? Boolean(is_indexable) : null, heading || null, subheading || null, content || null, meta_description || null, featuresJson, id]
     );
 
-    return NextResponse.json({ success: true, message: "Link and page content updated successfully!" });
+    return NextResponse.json({ success: true, message: "Page content & SEO settings updated successfully!" });
   } catch (error: any) {
     console.error("Error updating sitemap link:", error);
     return NextResponse.json(

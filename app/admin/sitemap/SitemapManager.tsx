@@ -35,6 +35,7 @@ interface SitemapLink {
   priority: number;
   changefreq: string;
   is_active: boolean | number;
+  is_indexable?: boolean | number;
   is_system: boolean | number;
   heading?: string | null;
   subheading?: string | null;
@@ -52,6 +53,8 @@ interface CategoryOption {
 interface Stats {
   total: number;
   active: number;
+  indexable?: number;
+  noIndex?: number;
   areaWise: number;
   services: number;
   mainPages: number;
@@ -88,10 +91,17 @@ export default function SitemapManager({
     areasInput: "Sector 62, Sector 18, Sector 137, Sector 76, Sector 50, Gaur City 1, Gaur City 2, Indirapuram, Vaishali, Crossings Republik",
     priority: "0.9",
     changefreq: "weekly",
+    is_indexable: false, // DEFAULT FALSE: SEO BAND
   });
 
   // Selected items for bulk operations
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+
+  // Quick Creator State (Super Simple 1-Click Page Creation)
+  const [quickService, setQuickService] = useState("RO Water Purifier Repair");
+  const [quickArea, setQuickArea] = useState("");
+  const [quickCity, setQuickCity] = useState("Noida");
+  const [quickCreating, setQuickCreating] = useState(false);
 
   // Prevent background scrolling when modals are open and enable Escape key to close
   useEffect(() => {
@@ -236,6 +246,56 @@ export default function SitemapManager({
     }
   };
 
+  // Quick 1-Click Simple Page Creator Handler
+  const handleQuickCreatePage = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!quickArea.trim()) {
+      showFeedback("Kripya Area / Locality ka naam likhein ya niche se select karein.", "error");
+      return;
+    }
+    const cleanArea = quickArea.trim();
+    const cleanCity = quickCity.trim() || "Noida";
+    const cleanService = quickService.trim() || "Appliance Repair";
+
+    const pageTitle = `${cleanService} in ${cleanArea}, ${cleanCity}`;
+    const slugService = cleanService.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    const slugArea = cleanArea.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    const pageUrl = `/${slugService}-${slugArea}`;
+
+    try {
+      setQuickCreating(true);
+      const res = await fetch("/api/admin/sitemap", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: pageTitle,
+          url: pageUrl,
+          group_name: "Area-wise SEO",
+          city: cleanCity,
+          area: cleanArea,
+          heading: `${cleanService} in ${cleanArea}`,
+          subheading: `Verified doorstep ${cleanService} in ${cleanArea}, ${cleanCity}. Certified technician dispatch within 60 minutes with 30-day warranty.`,
+          priority: 0.9,
+          changefreq: "weekly",
+          is_active: true,
+          is_indexable: false,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showFeedback(`Page "${pageTitle}" turant live ban gaya! Call & WhatsApp buttons ke sath tayyar hai.`);
+        setQuickArea("");
+        await refreshData();
+      } else {
+        showFeedback(data.error || "Page banane me samasya aayi.", "error");
+      }
+    } catch (err: any) {
+      showFeedback(err.message || "Failed to create page", "error");
+    } finally {
+      setQuickCreating(false);
+    }
+  };
+
   // Submit Area Generator
   const handleGenerateAreas = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -261,6 +321,7 @@ export default function SitemapManager({
           areas: areasArray,
           priority: parseFloat(areaForm.priority),
           changefreq: areaForm.changefreq,
+          is_indexable: Boolean(areaForm.is_indexable),
         }),
       });
 
@@ -476,9 +537,9 @@ export default function SitemapManager({
               onClick={() => {
                 setEditingLink({
                   title: "",
-                  url: "/",
-                  group_name: "Custom",
-                  priority: 0.8,
+                  url: "",
+                  group_name: "Area-wise SEO",
+                  priority: 0.9,
                   changefreq: "weekly",
                   is_active: true,
                 });
@@ -490,6 +551,150 @@ export default function SitemapManager({
               <span>Add Custom Link</span>
             </button>
           </div>
+        </div>
+
+        {/* QUICK 1-CLICK SIMPLE PAGE CREATOR */}
+        <div className="bg-gradient-to-br from-indigo-50/90 via-purple-50/50 to-white border-2 border-indigo-200/80 rounded-2xl p-4 sm:p-5 shadow-xs space-y-3.5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 bg-gradient-to-tr from-indigo-600 to-purple-600 text-white rounded-xl shadow-xs">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div>
+                <h2 className="text-sm sm:text-base font-black text-gray-900 flex items-center gap-2">
+                  <span>⚡ Aasan Page Creator (Sirf Area Likhiye Aur Page Banaiye)</span>
+                  <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
+                    Aaram Se Banta Hai
+                  </span>
+                </h2>
+                <p className="text-[11px] text-gray-500">
+                  Service aur Area daliye, page Call Button & WhatsApp Button ke sath automatic live ban jayega.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <form onSubmit={handleQuickCreatePage} className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
+              {/* 1. Select Service */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  1. Service Chuniye
+                </label>
+                <select
+                  value={quickService}
+                  onChange={(e) => setQuickService(e.target.value)}
+                  className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs font-bold text-gray-800 focus:outline-none focus:border-indigo-600 shadow-2xs"
+                >
+                  <option value="RO Water Purifier Repair">RO Water Purifier Repair</option>
+                  <option value="RO AMC Annual Maintenance">RO AMC Annual Maintenance</option>
+                  <option value="AC Foam Jet Service & Repair">AC Foam Jet Service & Repair</option>
+                  <option value="Refrigerator Repair">Refrigerator Repair</option>
+                  <option value="Washing Machine Service">Washing Machine Service</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.title}>
+                      {c.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 2. City */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  2. City Chuniye
+                </label>
+                <select
+                  value={quickCity}
+                  onChange={(e) => setQuickCity(e.target.value)}
+                  className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs font-bold text-gray-800 focus:outline-none focus:border-indigo-600 shadow-2xs"
+                >
+                  <option value="Noida">Noida</option>
+                  <option value="Greater Noida">Greater Noida</option>
+                  <option value="Ghaziabad">Ghaziabad</option>
+                  <option value="Delhi">Delhi NCR</option>
+                  <option value="Gurgaon">Gurgaon</option>
+                </select>
+              </div>
+
+              {/* 3. Area / Locality Input */}
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  3. Area / Locality Likhiye *
+                </label>
+                <input
+                  type="text"
+                  value={quickArea}
+                  onChange={(e) => setQuickArea(e.target.value)}
+                  placeholder="e.g. Gaur City 2, Sector 62, Indirapuram..."
+                  className="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs font-bold text-gray-900 focus:outline-none focus:border-indigo-600 shadow-2xs placeholder:font-normal placeholder:text-gray-400"
+                />
+              </div>
+            </div>
+
+            {/* Quick 1-Tap Area Pills */}
+            <div>
+              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
+                Popular Area Quick Fill:
+              </span>
+              <div className="flex flex-wrap gap-1">
+                {[
+                  { label: "Gaur City 2", city: "Greater Noida" },
+                  { label: "Gaur City 1", city: "Greater Noida" },
+                  { label: "Sector 62", city: "Noida" },
+                  { label: "Indirapuram", city: "Ghaziabad" },
+                  { label: "Sector 18", city: "Noida" },
+                  { label: "Sector 76", city: "Noida" },
+                  { label: "Sector 137", city: "Noida" },
+                  { label: "Crossings Republik", city: "Ghaziabad" },
+                  { label: "Vaishali", city: "Ghaziabad" },
+                ].map((item, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => {
+                      setQuickArea(item.label);
+                      setQuickCity(item.city);
+                    }}
+                    className={`px-2 py-0.5 rounded-lg text-[11px] font-semibold transition border ${
+                      quickArea === item.label
+                        ? "bg-indigo-600 text-white border-indigo-600"
+                        : "bg-white text-gray-700 border-gray-200 hover:bg-indigo-50 hover:text-indigo-700"
+                    }`}
+                  >
+                    + {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Live Preview Box & Submit Button */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2.5 border-t border-indigo-100">
+              <div className="text-xs">
+                <span className="text-[10px] font-bold text-indigo-700 uppercase">Live Preview: </span>
+                <span className="font-bold text-gray-900">
+                  {quickArea.trim() ? `${quickService} in ${quickArea.trim()}, ${quickCity}` : "Area likhiye..."}
+                </span>
+                {quickArea.trim() && (
+                  <span className="ml-2 font-mono text-[11px] text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">
+                    /{quickService.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}-{quickArea.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}
+                  </span>
+                )}
+                <span className="block text-[11px] text-emerald-600 font-medium mt-0.5">
+                  ✓ Call Button + WhatsApp Button + 30-Day Guarantee automatic shamil honge.
+                </span>
+              </div>
+
+              <button
+                type="submit"
+                disabled={quickCreating || !quickArea.trim()}
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+              >
+                <Plus className="w-4 h-4" />
+                <span>{quickCreating ? "Ban Raha Hai..." : "🚀 Ye Page Banaye"}</span>
+              </button>
+            </div>
+          </form>
         </div>
 
         {/* Collapsible How It Works / SEO Guide Card */}
@@ -533,7 +738,7 @@ export default function SitemapManager({
             </div>
             <div className="mt-2 flex items-baseline gap-2">
               <span className="text-xl sm:text-2xl font-black text-gray-900">{stats.total}</span>
-              <span className="text-[11px] text-gray-500">total indexed</span>
+              <span className="text-[11px] text-gray-500">total links</span>
             </div>
           </div>
 
@@ -1244,10 +1449,20 @@ export default function SitemapManager({
                   type="text"
                   required
                   value={editingLink.title || ""}
-                  onChange={(e) => setEditingLink({ ...editingLink, title: e.target.value })}
-                  placeholder="e.g. AC Repair in Noida Sector 62"
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const autoSlug = "/" + val.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+                    setEditingLink({
+                      ...editingLink,
+                      title: val,
+                      url: !editingLink.id ? autoSlug : (editingLink.url || autoSlug),
+                      heading: editingLink.heading || val,
+                    });
+                  }}
+                  placeholder="e.g. RO Service in Gaur City 2"
                   className="w-full bg-gray-50 border border-gray-300 rounded-xl px-3.5 py-2 text-gray-900 font-semibold focus:outline-none focus:border-indigo-600 focus:bg-white"
                 />
+                <span className="text-[10px] text-gray-400 mt-1 block">Title likhte hi URL apne aap generate ho jayega.</span>
               </div>
 
               <div>
@@ -1257,9 +1472,12 @@ export default function SitemapManager({
                   required
                   value={editingLink.url || ""}
                   onChange={(e) => setEditingLink({ ...editingLink, url: e.target.value })}
-                  placeholder="e.g. /services/1?city=noida or /noida"
+                  placeholder="e.g. /ro-service-gaur-city-2"
                   className="w-full bg-gray-50 border border-gray-300 rounded-xl px-3.5 py-2 text-gray-900 font-mono focus:outline-none focus:border-indigo-600 focus:bg-white"
                 />
+                <span className="text-[10px] text-emerald-600 font-semibold mt-1 block">
+                  ✓ Is page par Call Button aur WhatsApp Button automatic shamil rahenge.
+                </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">

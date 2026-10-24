@@ -15,8 +15,10 @@ import {
 } from "../../lib/seo-keywords";
 import LocationSeoSection from "../components/LocationSeoSection";
 import GaurCitySeoLanding from "../components/GaurCitySeoLanding";
+import CustomSitemapLanding from "../components/CustomSitemapLanding";
 import { getHomeCatalog } from "../../lib/home-catalog";
 import { getSiteUrl } from "../../lib/site-url";
+import pool from "../../lib/db";
 import {
   getGaurCitySociety,
   getGaurCityService,
@@ -24,7 +26,30 @@ import {
   GAUR_CITY_GENERAL_FAQS,
 } from "../../lib/gaur-city-data";
 
-export const revalidate = 120;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+async function getCustomSitemapPage(segments: string[]) {
+  if (!segments || segments.length === 0) return null;
+  const pathWithSlash = "/" + segments.join("/");
+  const pathWithoutSlash = segments.join("/");
+  try {
+    const [rows]: any = await pool.query(
+      `SELECT * FROM sitemap_links 
+       WHERE (url = ? OR url = ? OR url LIKE ? OR url = ?) 
+       AND is_active = TRUE 
+       ORDER BY priority DESC, id DESC 
+       LIMIT 1`,
+      [pathWithSlash, pathWithoutSlash, `${pathWithSlash}%`, pathWithSlash.replace(/^\//, "")]
+    );
+    if (rows && rows.length > 0) {
+      return rows[0];
+    }
+  } catch (err) {
+    console.error("Error querying custom sitemap page:", err);
+  }
+  return null;
+}
 
 type PageProps = {
   params: Promise<{ city?: string[] }>;
@@ -112,6 +137,51 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const keywordPage =
     rootKeyword ||
     (nestedKeyword && keywordFitsLocation(nestedKeyword, citySlug) ? nestedKeyword : undefined);
+
+  // Check if this route matches an admin-created custom sitemap link
+  if (citySegments.length > 0) {
+    const customPage = await getCustomSitemapPage(citySegments);
+    if (customPage) {
+      const pageTitle = customPage.heading || customPage.title;
+      const pageDesc =
+        customPage.meta_description ||
+        customPage.subheading ||
+        customPage.content ||
+        `Verified doorstep home appliance repair in ${customPage.area || customPage.city || "Delhi NCR"}. Call 9999251966 for 30-day warranty & instant service.`;
+      const canonical = `${siteUrl}/${citySegments.join("/")}`;
+      const isIndexable = Boolean(customPage.is_indexable);
+
+      return {
+        title: absoluteTitle(`${pageTitle} | Call 9999251966`),
+        description: pageDesc,
+        keywords: [pageTitle, customPage.area || "", customPage.city || "", "OMAA Company"].filter(Boolean),
+        alternates: { canonical },
+        robots: isIndexable
+          ? { index: true, follow: true }
+          : {
+              index: false,
+              follow: false,
+              googleBot: {
+                index: false,
+                follow: false,
+                noimageindex: true,
+              },
+            },
+        openGraph: {
+          title: pageTitle,
+          description: pageDesc,
+          url: canonical,
+          images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: pageTitle }],
+        },
+        twitter: {
+          card: "summary_large_image",
+          title: pageTitle,
+          description: pageDesc,
+          images: ["/og-image.jpg"],
+        },
+      };
+    }
+  }
 
   if (extraSegment) {
     return {
@@ -388,6 +458,59 @@ export default async function Home({ params }: PageProps) {
   const keywordPage =
     rootKeyword ||
     (nestedKeyword && keywordFitsLocation(nestedKeyword, citySlug) ? nestedKeyword : undefined);
+
+  // Check if this route matches an admin-created custom sitemap link
+  if (citySegments.length > 0) {
+    const customPage = await getCustomSitemapPage(citySegments);
+    if (customPage) {
+      const pageTitle = customPage.heading || customPage.title;
+      const canonicalUrl = `${homeSiteUrl}/${citySegments.join("/")}`;
+      const customSchema = {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Home", item: homeSiteUrl },
+              { "@type": "ListItem", position: 2, name: "Service Directory", item: `${homeSiteUrl}/sitemap-directory` },
+              { "@type": "ListItem", position: 3, name: pageTitle, item: canonicalUrl },
+            ],
+          },
+          {
+            "@type": "HomeAndConstructionBusiness",
+            "@id": `${canonicalUrl}#business`,
+            name: `OMAA Company - ${pageTitle}`,
+            url: canonicalUrl,
+            telephone: "+919999251966",
+            priceRange: "₹₹",
+            image: `${homeSiteUrl}/og-image.jpg`,
+            address: {
+              "@type": "PostalAddress",
+              addressLocality: customPage.area || customPage.city || "Delhi NCR",
+              addressRegion: "Uttar Pradesh",
+              addressCountry: "IN",
+            },
+            areaServed: {
+              "@type": "AdministrativeArea",
+              name: customPage.area ? `${customPage.area}, ${customPage.city || ""}` : (customPage.city || "Delhi NCR"),
+            },
+          },
+        ],
+      };
+
+      return (
+        <main className="min-h-screen bg-slate-50 flex flex-col font-sans">
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(customSchema) }}
+          />
+          <Navbar />
+          <CustomSitemapLanding pageData={customPage} />
+          <Footer />
+        </main>
+      );
+    }
+  }
 
   if (extraSegment || (serviceSlug && !seoService && !keywordPage)) {
     notFound();

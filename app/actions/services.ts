@@ -59,8 +59,12 @@ export async function saveService(formData: FormData) {
     return { error: "Failed to save service" };
   }
 
-  revalidatePath("/admin/services");
-  redirect("/admin/services");
+  try {
+    revalidatePath("/admin/services");
+    revalidatePath("/services");
+    revalidatePath("/");
+  } catch {}
+  return { success: true };
 }
 
 export async function updateService(formData: FormData) {
@@ -114,8 +118,13 @@ export async function updateService(formData: FormData) {
     return { error: "Failed to update service" };
   }
 
-  revalidatePath("/admin/services");
-  redirect("/admin/services");
+  try {
+    revalidatePath("/admin/services");
+    revalidatePath(`/admin/services/edit/${id}`);
+    revalidatePath("/services");
+    revalidatePath("/");
+  } catch {}
+  return { success: true };
 }
 
 export async function deleteService(formData: FormData) {
@@ -128,4 +137,5 @@ export async function deleteService(formData: FormData) {
   }
 
   revalidatePath("/admin/services");
+  redirect("/admin/services?status=deleted");
 }

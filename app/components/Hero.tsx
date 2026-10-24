@@ -287,6 +287,7 @@ export default function Hero({ categories = [], banners = [], hideHeadline = fal
                   {orderedCategories.slice(0, 3).map((service, index) => (
                     <Link 
                       href={`/services/${service.id}`} 
+                      prefetch={true}
                       key={index} 
                       className="flex flex-col items-center group w-full cursor-pointer"
                     >
@@ -310,6 +311,7 @@ export default function Hero({ categories = [], banners = [], hideHeadline = fal
                     {orderedCategories.slice(3, 5).map((service, index) => (
                       <Link 
                         href={`/services/${service.id}`} 
+                        prefetch={true}
                         key={index + 3} 
                         className="flex flex-col items-center group w-full cursor-pointer"
                       >
@@ -335,6 +337,7 @@ export default function Hero({ categories = [], banners = [], hideHeadline = fal
                 {orderedCategories.map((service, index) => (
                   <Link 
                     href={`/services/${service.id}`} 
+                    prefetch={true}
                     key={index} 
                     className="flex flex-col items-center group w-full cursor-pointer"
                   >
@@ -386,6 +389,7 @@ export default function Hero({ categories = [], banners = [], hideHeadline = fal
                   {newProducts.length > 0 && (
                     <Link 
                       href={`/services/${newProducts[0].id}`} 
+                      prefetch={true}
                       className="flex flex-col items-center group w-full cursor-pointer"
                     >
                       <div className="w-full h-16 sm:h-18 md:h-19 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
@@ -406,6 +410,7 @@ export default function Hero({ categories = [], banners = [], hideHeadline = fal
                   {amcProducts.length > 0 && (
                     <Link 
                       href={`/services/${amcProducts[0].id}`} 
+                      prefetch={true}
                       className="flex flex-col items-center group w-full cursor-pointer"
                     >
                       <div className="w-full h-16 sm:h-18 md:h-19 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">

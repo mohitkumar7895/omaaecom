@@ -105,7 +105,7 @@ export async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const pool = (await import("@/lib/db")).default;
     const query = pool.query(
-      "SELECT url, priority, changefreq, updated_at FROM sitemap_links WHERE is_active = TRUE ORDER BY priority DESC, id ASC LIMIT 400"
+      "SELECT url, priority, changefreq, updated_at FROM sitemap_links WHERE is_active = TRUE AND is_indexable = TRUE ORDER BY priority DESC, id ASC LIMIT 400"
     );
     const timeout = new Promise<never>((_, reject) => {
       setTimeout(() => reject(new Error("sitemap db timeout")), 2500);

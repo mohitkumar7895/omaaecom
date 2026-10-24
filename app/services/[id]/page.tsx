@@ -8,7 +8,8 @@ import CategoryView from "./CategoryView";
 import { absoluteTitle } from "../../../lib/seo-locations";
 import { getSiteUrl } from "../../../lib/site-url";
 
-export const revalidate = 120;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const resolvedParams = await params;
@@ -27,10 +28,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     const cat = catRows[0];
     const catTitle = cat.title || "Appliance Service";
 
-    let pageTitle = `${catTitle} in Delhi NCR | Doorstep Repair & Service`;
-    let metaDescription = `Book expert doorstep ${catTitle} with OMAA Company in Delhi NCR. Genuine parts, certified technicians, upfront rate card & 30-day warranty.`;
+    let pageTitle = `${catTitle} | Doorstep Repair & Service`;
+    let metaDescription = `Book expert doorstep ${catTitle} with OMAA Company. Genuine parts, certified technicians, upfront rate card & 30-day warranty.`;
     if (cat.id === 1 || catTitle.toLowerCase().includes("ac repair")) {
-      metaDescription = "Doorstep AC repair, foam jet service, gas refill and installation in Delhi NCR. Split and window AC servicing with 30-day warranty.";
+      metaDescription = "Doorstep AC repair, foam jet service, gas refill and installation. Split and window AC servicing with 30-day warranty.";
     } else if (cat.id === 5 || catTitle.toLowerCase().includes("water purifier")) {
       pageTitle = "RO Repair Near Me | Water Purifier Repair Noida";
       metaDescription = "RO repair near me, RO service near me and water purifier repair near me in Noida. Filter, TDS and leakage at home. Call 9999251966.";
@@ -147,7 +148,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ id: s
           "serviceType": category.title,
           "url": `${siteUrl}/services/${categoryId}`,
           "image": category.image_url || `${siteUrl}/og-image.jpg`,
-          "description": `Certified doorstep ${category.title} in Delhi NCR with 30-day warranty.`,
+          "description": `Certified doorstep ${category.title} with 30-day warranty.`,
           "provider": {
             "@id": `${siteUrl}/#business`,
             "@type": "HomeAndConstructionBusiness",

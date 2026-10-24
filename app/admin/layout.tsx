@@ -1,8 +1,9 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Sidebar from "./components/Sidebar";
+import AdminToast from "./components/AdminToast";
 import { Search, Bell, UserCircle, Menu } from "lucide-react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -26,6 +27,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="flex h-screen bg-[#F8FAFC] font-sans overflow-hidden selection:bg-indigo-500/30">
+      <Suspense fallback={null}>
+        <AdminToast />
+      </Suspense>
+
       {/* Mobile Sidebar Overlay */}
       {isMobileMenuOpen && (
         <div 

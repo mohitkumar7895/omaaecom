@@ -18,7 +18,8 @@ import {
 } from "lucide-react";
 import { getSiteUrl } from "../../lib/site-url";
 
-export const revalidate = 120;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 const siteUrl = getSiteUrl();
 
@@ -192,7 +193,7 @@ export default async function ServicesPage() {
         <div className="max-w-7xl mx-auto relative z-10 text-center">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs sm:text-sm font-medium text-indigo-200 mb-6">
             <Sparkles className="w-4 h-4 text-amber-300" />
-            Doorstep Home Appliance Care in Delhi NCR
+            Doorstep Home Appliance Care
           </div>
 
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight mb-4 leading-tight">
@@ -489,7 +490,7 @@ export default async function ServicesPage() {
         {/* SECTION 3: Why Choose Us Guarantee Strip */}
         <div className="bg-white rounded-2xl border border-gray-200 p-8 lg:p-10 mb-16 shadow-sm">
           <div className="text-center max-w-2xl mx-auto mb-10">
-            <h2 className="text-2xl font-bold text-gray-900">Why Delhi NCR Trusts OMAA Company</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Why Customers Trust OMAA Company</h2>
             <p className="text-gray-600 text-sm mt-1">
               Transparent, accountable, and customer-first doorstep home appliance repairs.
             </p>

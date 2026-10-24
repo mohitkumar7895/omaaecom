@@ -14,13 +14,16 @@ import {
   AlertCircle,
   Zap,
   Sparkles,
-  Loader2
+  Loader2,
+  Eye,
+  EyeOff
 } from "lucide-react";
 
 export default function AdminLogin() {
   const [step, setStep] = useState<1 | 2>(1);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [tempToken, setTempToken] = useState("");
   const [targetEmail, setTargetEmail] = useState("mail.omaacompany@gmail.com");
@@ -344,21 +347,54 @@ export default function AdminLogin() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                  Password
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                    Password
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="text-xs font-medium text-slate-400 hover:text-indigo-400 flex items-center gap-1.5 transition cursor-pointer select-none"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? (
+                      <>
+                        <EyeOff className="w-3.5 h-3.5" />
+                        <span>Hide</span>
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>Show</span>
+                      </>
+                    )}
+                  </button>
+                </div>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <Lock className="h-5 w-5 text-slate-500" />
                   </div>
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3.5 bg-slate-900/90 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-sm font-medium"
+                    className="w-full pl-11 pr-11 py-3.5 bg-slate-900/90 border border-slate-700/80 rounded-xl text-white placeholder-slate-500 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-sm font-medium"
                     placeholder="••••••••••••"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-white transition cursor-pointer"
+                    title={showPassword ? "Hide password" : "Show password"}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
                 </div>
               </div>
 

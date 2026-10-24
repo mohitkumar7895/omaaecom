@@ -48,7 +48,7 @@ export async function saveBanners(formData: FormData) {
     revalidatePath("/", "layout");
     revalidatePath("/admin/banners");
   } catch {}
-  redirect("/admin/banners");
+  return { success: true };
 }
 
 export async function updateBanners(id: string, formData: FormData) {
@@ -94,5 +94,5 @@ export async function updateBanners(id: string, formData: FormData) {
     revalidatePath("/", "layout");
     revalidatePath("/admin/banners");
   } catch {}
-  redirect("/admin/banners");
+  return { success: true };
 }

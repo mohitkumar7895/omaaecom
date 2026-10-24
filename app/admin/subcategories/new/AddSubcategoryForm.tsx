@@ -3,22 +3,39 @@
 import { saveSubcategory } from "@/app/actions/subcategories";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import AutoImageUpload from "@/app/admin/components/AutoImageUpload";
+import AdminSubmitButton from "@/app/admin/components/AdminSubmitButton";
+import { showAdminToast } from "@/app/admin/components/AdminToast";
 
 export default function AddSubcategoryForm({ categories }: { categories: any[] }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async (formData: FormData) => {
     setIsSubmitting(true);
-    const formData = new FormData(e.currentTarget);
-    
+    setIsSuccess(false);
+
     try {
-      await saveSubcategory(formData);
-      // The action handles the redirect
-    } catch (error) {
-      console.error("Error saving:", error);
+      const res = await saveSubcategory(formData);
+      if (res?.error) {
+        setIsSubmitting(false);
+        showAdminToast(res.error, "error");
+        return;
+      }
+
+      setIsSuccess(true);
       setIsSubmitting(false);
+      showAdminToast("Subcategory created successfully!", "success", "New subcategory added to catalog.");
+
+      setTimeout(() => {
+        router.push("/admin/subcategories?status=saved");
+        router.refresh();
+      }, 500);
+    } catch (err) {
+      console.error(err);
+      setIsSubmitting(false);
+      showAdminToast("Failed to save subcategory. Please try again.", "error");
     }
   };
 
@@ -34,7 +51,7 @@ export default function AddSubcategoryForm({ categories }: { categories: any[] }
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-8">
+        <form action={handleSubmit} className="p-8">
           <div className="space-y-6">
             
             {/* Select Category */}
@@ -71,34 +88,26 @@ export default function AddSubcategoryForm({ categories }: { categories: any[] }
             </div>
 
             {/* Upload Image */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="block text-[#2c3e50] text-[15px] font-bold">
-                  Upload Image
-                </label>
-                <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                  Recommended: 500 × 500 px (Square 1:1)
-                </span>
-              </div>
-              <input 
-                type="file" 
-                name="image"
-                accept="image/*"
-                className="w-full border border-gray-200 rounded text-[15px] px-4 py-2 outline-none focus:border-blue-500 shadow-sm bg-white file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200 cursor-pointer"
-              />
-            </div>
+            <AutoImageUpload
+              name="image"
+              label="Subcategory Image"
+              targetWidth={500}
+              targetHeight={500}
+              defaultFit="contain"
+              aspectRatioDisplay="1:1 Square"
+            />
 
           </div>
 
           {/* Submit Button */}
           <div className="mt-8 flex justify-end">
-            <button 
-              type="submit" 
-              disabled={isSubmitting}
-              className="bg-[#2c3e50] hover:bg-[#1a252f] text-white px-6 py-2.5 rounded text-[15px] font-medium transition shadow-sm disabled:opacity-70"
-            >
-              {isSubmitting ? "Saving..." : "Add Subcategory"}
-            </button>
+            <AdminSubmitButton 
+              loading={isSubmitting} 
+              success={isSuccess}
+              label="Add Subcategory" 
+              loadingLabel="Saving Subcategory..." 
+              successLabel="✓ Subcategory Added!"
+            />
           </div>
         </form>
 

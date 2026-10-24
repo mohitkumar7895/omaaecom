@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Phone, MessageCircle } from "lucide-react";
 import type { SeoLocation } from "../../lib/seo-locations";
 import type { SeoService } from "../../lib/seo-services";
 import { SEO_SERVICES } from "../../lib/seo-services";
@@ -79,16 +80,26 @@ export default function LocationSeoSection({
             </div>
           ))}
         </div>
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-5 flex flex-wrap items-center gap-3">
           <a
             href="tel:+919999251966"
-            className="text-xs sm:text-sm font-semibold bg-[#5c67b8] text-white px-3 py-1.5 rounded-full"
+            className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold bg-[#5c67b8] hover:bg-[#4a55a2] text-white px-4 py-2.5 rounded-xl shadow-xs transition active:scale-95"
           >
-            Call 9999251966
+            <Phone className="w-4 h-4" />
+            <span>Call 9999251966</span>
+          </a>
+          <a
+            href={`https://wa.me/919999251966?text=${encodeURIComponent(`Hello OMAA Company! I need ${service ? service.name : 'appliance repair'} in ${location.title}. Please confirm availability.`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold bg-[#25D366] hover:bg-[#20b858] text-white px-4 py-2.5 rounded-xl shadow-xs transition active:scale-95"
+          >
+            <MessageCircle className="w-4 h-4" />
+            <span>WhatsApp Chat</span>
           </a>
           <Link
             href="/service-areas"
-            className="text-xs sm:text-sm font-semibold bg-[#eef1fc] text-[#5c67b8] px-3 py-1.5 rounded-full"
+            className="inline-flex items-center text-xs sm:text-sm font-semibold bg-[#eef1fc] text-[#5c67b8] hover:bg-[#dfe4f9] px-4 py-2.5 rounded-xl transition"
           >
             All service areas
           </Link>

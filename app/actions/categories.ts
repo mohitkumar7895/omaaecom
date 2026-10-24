@@ -82,8 +82,11 @@ export async function saveCategory(formData: FormData) {
     return { error: "Failed to save category" };
   }
 
-  revalidatePath("/admin/categories");
-  redirect("/admin/categories");
+  try {
+    revalidatePath("/admin/categories");
+    revalidatePath("/", "layout");
+  } catch {}
+  return { success: true };
 }
 
 export async function deleteCategory(formData: FormData) {
@@ -140,7 +143,10 @@ export async function updateCategory(formData: FormData) {
     return { error: "Failed to update category" };
   }
 
-  revalidatePath("/admin/categories");
-  redirect("/admin/categories");
+  try {
+    revalidatePath("/admin/categories");
+    revalidatePath("/", "layout");
+  } catch {}
+  return { success: true };
 }
 

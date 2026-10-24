@@ -5,7 +5,8 @@ import Footer from "../components/Footer";
 import SitemapClient from "@/app/sitemap-directory/SitemapClient";
 import { getSiteUrl } from "@/lib/site-url";
 
-export const revalidate = 3600;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 const siteUrl = getSiteUrl();
 
@@ -24,7 +25,7 @@ export default async function SitemapPage() {
 
   try {
     const [rows]: any = await pool.query(
-      "SELECT id, title, url, group_name, city, area, priority, changefreq FROM sitemap_links WHERE is_active = TRUE ORDER BY priority DESC, title ASC LIMIT 400"
+      "SELECT id, title, url, group_name, city, area, priority, changefreq FROM sitemap_links WHERE is_active = TRUE AND is_indexable = TRUE ORDER BY priority DESC, title ASC LIMIT 400"
     );
     links = rows || [];
   } catch (error) {

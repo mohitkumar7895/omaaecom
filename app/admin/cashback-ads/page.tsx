@@ -69,22 +69,52 @@ export default function CashbackAdsAdmin() {
     }
   };
 
-  const handleImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImagesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const files = Array.from(e.target.files);
-      if (files.length > 6) {
+      const rawFiles = Array.from(e.target.files);
+      if (rawFiles.length > 6) {
         setMessage({ type: 'error', text: 'Maximum 6 images allowed' });
         return;
       }
-      // Check total size under 4MB
-      const totalSize = files.reduce((acc, f) => acc + f.size, 0);
-      if (totalSize > 4 * 1024 * 1024) {
-        setMessage({ type: 'error', text: 'Images ka total size 4MB se kam hona chahiye.' });
-        return;
+      
+      // Auto-resize and optimize each image to 800x500 WebP so it fits perfectly and stays well below Vercel limits
+      const processed: File[] = [];
+      for (const file of rawFiles) {
+        try {
+          const img = new Image();
+          const objUrl = URL.createObjectURL(file);
+          await new Promise<void>((resolve, reject) => {
+            img.onload = () => resolve();
+            img.onerror = reject;
+            img.src = objUrl;
+          });
+          const canvas = document.createElement("canvas");
+          canvas.width = 800;
+          canvas.height = 500;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.imageSmoothingQuality = "high";
+            const scale = Math.max(800 / img.width, 500 / img.height);
+            const w = img.width * scale;
+            const h = img.height * scale;
+            ctx.drawImage(img, (800 - w) / 2, (500 - h) / 2, w, h);
+            const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/webp", 0.88));
+            if (blob) {
+              processed.push(new File([blob], `${file.name.replace(/\.[^/.]+$/, "")}.webp`, { type: "image/webp" }));
+            } else {
+              processed.push(file);
+            }
+          }
+          URL.revokeObjectURL(objUrl);
+        } catch {
+          processed.push(file);
+        }
       }
-      setImageFiles(files);
-      const autoDuration = Math.ceil(files.length / 3) * 10;
+
+      setImageFiles(processed);
+      const autoDuration = Math.ceil(processed.length / 3) * 10;
       setDuration(autoDuration);
+      setMessage({ type: 'success', text: `✓ ${processed.length} photos automatically sized & set to 800 × 500 px WebP!` });
     }
   };
 

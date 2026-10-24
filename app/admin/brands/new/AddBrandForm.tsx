@@ -1,16 +1,44 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { saveBrand } from "../../../actions/brands";
 import { Check } from "lucide-react";
 import Link from "next/link";
+import AutoImageUpload from "../../components/AutoImageUpload";
+import AdminSubmitButton from "../../components/AdminSubmitButton";
+import { showAdminToast } from "../../components/AdminToast";
 
 export default function AddBrandForm({ categories }: { categories: any[] }) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   async function handleSubmit(formData: FormData) {
     setLoading(true);
-    await saveBrand(formData);
+    setIsSuccess(false);
+
+    try {
+      const res = await saveBrand(formData);
+      if (res?.error) {
+        setLoading(false);
+        showAdminToast(res.error, "error");
+        return;
+      }
+
+      setIsSuccess(true);
+      setLoading(false);
+      showAdminToast("Brand saved successfully!", "success", "Brand has been added to catalog.");
+
+      setTimeout(() => {
+        router.push("/admin/brands?status=saved");
+        router.refresh();
+      }, 500);
+    } catch (err) {
+      console.error(err);
+      setLoading(false);
+      showAdminToast("Failed to save brand. Please try again.", "error");
+    }
   }
 
   return (
@@ -54,30 +82,15 @@ export default function AddBrandForm({ categories }: { categories: any[] }) {
             </div>
 
             {/* Brand Logo */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label className="text-[14px] font-bold text-gray-800">Brand Logo</label>
-                <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
-                  Recommended: 300 × 300 px (Square 1:1) / PNG
-                </span>
-              </div>
-              <div className="flex">
-                <input 
-                  type="file" 
-                  name="logo" 
-                  accept="image/*"
-                  required
-                  className="block w-full text-sm text-gray-500
-                    file:mr-4 file:py-2.5 file:px-4
-                    file:border-0 file:border-r file:border-gray-200
-                    file:text-sm file:font-medium
-                    file:bg-gray-50 file:text-gray-700
-                    hover:file:bg-gray-100
-                    border border-gray-200 rounded bg-white transition"
-                />
-              </div>
-              <p className="text-xs text-gray-400 mt-1">Recommended size: 300 × 300 px (1:1 ratio), transparent PNG for best display.</p>
-            </div>
+            <AutoImageUpload
+              name="logo"
+              label="Brand Logo"
+              targetWidth={300}
+              targetHeight={300}
+              defaultFit="contain"
+              aspectRatioDisplay="1:1 Square"
+              required
+            />
 
             {/* Status */}
             <div className="space-y-2 pt-2">
@@ -106,14 +119,13 @@ export default function AddBrandForm({ categories }: { categories: any[] }) {
               </button>
             </Link>
             
-            <button 
-              type="submit" 
-              disabled={loading}
-              className="bg-[#2962ff] hover:bg-[#1e4ad8] text-white font-medium px-6 py-2.5 rounded flex items-center space-x-2 text-sm transition disabled:opacity-70"
-            >
-              <Check className="w-4 h-4" />
-              <span>{loading ? "Saving..." : "Save Brand"}</span>
-            </button>
+            <AdminSubmitButton 
+              loading={loading} 
+              success={isSuccess}
+              label="Save Brand" 
+              loadingLabel="Saving Brand..." 
+              successLabel="✓ Brand Saved!"
+            />
           </div>
         </form>
 
