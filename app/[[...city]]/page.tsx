@@ -15,6 +15,7 @@ import {
 } from "../../lib/seo-keywords";
 import LocationSeoSection from "../components/LocationSeoSection";
 import GaurCitySeoLanding from "../components/GaurCitySeoLanding";
+import DynamicSeoPageTemplate from "../components/DynamicSeoPageTemplate";
 import { getHomeCatalog } from "../../lib/home-catalog";
 import { getSiteUrl } from "../../lib/site-url";
 import pool from "../../lib/db";
@@ -32,6 +33,9 @@ async function getCustomSitemapPage(segments: string[]) {
   if (!segments || segments.length === 0) return null;
   const pathWithSlash = "/" + segments.join("/");
   const pathWithoutSlash = segments.join("/");
+  const pathWithTrailing = pathWithSlash + "/";
+  const slug = segments[segments.length - 1];
+  const fullSlug = segments.join("-");
   
   // Cross-compatibility: support both /sitemap/keyword and /keyword in database
   const alternatePath = segments[0] === "sitemap" && segments.length > 1
@@ -41,11 +45,34 @@ async function getCustomSitemapPage(segments: string[]) {
   try {
     const [rows]: any = await pool.query(
       `SELECT * FROM sitemap_links 
-       WHERE (url = ? OR url = ? OR url = ? OR url LIKE ? OR url = ?) 
-       AND is_active = TRUE 
+       WHERE (
+         url = ? 
+         OR url = ? 
+         OR url = ?
+         OR url = ?
+         OR slug = ? 
+         OR slug = ? 
+         OR slug = ? 
+         OR slug = ?
+         OR canonical_url = ? 
+         OR canonical_url = ?
+         OR canonical_url = ?
+       ) 
        ORDER BY priority DESC, id DESC 
        LIMIT 1`,
-      [pathWithSlash, pathWithoutSlash, alternatePath, `${pathWithSlash}%`, pathWithSlash.replace(/^\//, "")]
+      [
+        pathWithSlash,
+        pathWithoutSlash,
+        pathWithTrailing,
+        alternatePath,
+        pathWithSlash,
+        pathWithoutSlash,
+        slug,
+        fullSlug,
+        pathWithSlash,
+        pathWithoutSlash,
+        pathWithTrailing
+      ]
     );
     if (rows && rows.length > 0) {
       return rows[0];
@@ -69,17 +96,35 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const serviceSlug = citySegments[1] || "";
   const extraSegment = citySegments[2];
 
-  // 1. Check if this route matches an admin-created custom sitemap link (e.g. /sitemap/keyword or /keyword)
+  // 1. Never intercept internal /api or /admin routes
+  if (citySlug === "api" || citySlug === "admin" || citySlug === "_next") {
+    return { robots: { index: false, follow: false } };
+  }
+
+  // 2. Check if this route matches an admin-created custom SEO page
   if (citySegments.length > 0) {
     const customPage = await getCustomSitemapPage(citySegments);
     if (customPage) {
-      const pageTitle = customPage.heading || customPage.title;
+      // If page is draft or not active, hide from search engines
+      if (customPage.status === "draft" || customPage.is_active === 0) {
+        return {
+          title: absoluteTitle("Page not found | OMAA Company"),
+          robots: { index: false, follow: false },
+        };
+      }
+
+      const pageTitle = customPage.meta_title || customPage.h1 || customPage.heading || customPage.title;
       const pageDesc =
         customPage.meta_description ||
         customPage.subheading ||
         customPage.content ||
         `Verified doorstep home appliance repair in ${customPage.area || customPage.city || "Delhi NCR"}. Call 9999251966 for 30-day warranty & instant service.`;
-      const canonical = `${siteUrl}/${citySegments.join("/")}`;
+      
+      const cleanSlug = customPage.slug || citySegments.join("/");
+      const canonical = customPage.canonical_url
+        ? (customPage.canonical_url.startsWith("http") ? customPage.canonical_url : `${siteUrl}${customPage.canonical_url.startsWith("/") ? "" : "/"}${customPage.canonical_url}`)
+        : `${siteUrl}/${cleanSlug}`;
+
       const isIndexable = Boolean(customPage.is_indexable);
 
       return {
@@ -102,13 +147,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
           title: pageTitle,
           description: pageDesc,
           url: canonical,
-          images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: pageTitle }],
+          images: [{ url: customPage.featured_image || "/og-image.jpg", width: 1200, height: 630, alt: pageTitle }],
         },
         twitter: {
           card: "summary_large_image",
           title: pageTitle,
           description: pageDesc,
-          images: ["/og-image.jpg"],
+          images: [customPage.featured_image || "/og-image.jpg"],
         },
       };
     }
@@ -129,8 +174,31 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
     const societySlug = citySegments[1];
     const targetServiceSlug = citySegments[2];
-    const society = societySlug ? getGaurCitySociety(societySlug) : undefined;
+    let society = societySlug ? getGaurCitySociety(societySlug) : undefined;
     const gaurService = targetServiceSlug ? getGaurCityService(targetServiceSlug) : undefined;
+
+    if (societySlug && !society) {
+      try {
+        const [dbSocRows]: any = await pool.query(
+          "SELECT * FROM sitemap_links WHERE slug = ? AND (parent_id IS NOT NULL OR url LIKE '/gaur-city-2/%') AND status = 'published' AND is_active = 1 LIMIT 1",
+          [societySlug]
+        );
+        if (dbSocRows && dbSocRows.length > 0) {
+          const dbSoc = dbSocRows[0];
+          society = {
+            slug: dbSoc.slug,
+            name: dbSoc.h1 || dbSoc.title.replace(/^Doorstep Appliance Repair in /i, "").replace(/, Gaur City 2.*$/i, ""),
+            localityLabel: dbSoc.area ? `${dbSoc.area}, ${dbSoc.city || "Greater Noida West"}` : "Gaur City 2, Sector 16C, Greater Noida West",
+            isCore: dbSoc.page_type === "avenue" || dbSoc.slug.includes("avenue"),
+            classificationNote: "Verified residential society inside Gaur City 2",
+            landmarkContext: "Sector 16C near Gaur City 2",
+            coverageNotice: `Prompt same-day doorstep service available for ${dbSoc.title}.`,
+          };
+        }
+      } catch (err) {
+        console.error("Error looking up dynamic society in generateMetadata:", err);
+      }
+    }
 
     if (societySlug && !society) {
       return {
@@ -414,18 +482,102 @@ export default async function Home({ params }: PageProps) {
     console.error("Database connection error on Home page:", error);
   }
 
-  // 1. Check if this route matches an admin-created custom sitemap link (e.g. /sitemap/keyword)
+  const newProductsServices =
+    categories.find((c: any) => c.id === 6 || (c.title && c.title.toLowerCase().includes("product")))?.services || [];
+
+  // 1. Never handle internal /api or /admin routes in public dynamic catch-all
+  if (citySlug === "api" || citySlug === "admin" || citySlug === "_next") {
+    notFound();
+  }
+
+  // 1.1 Check 301 permanent redirects table
+  if (citySegments.length > 0) {
+    const requestPath = "/" + citySegments.join("/");
+    try {
+      const [redirRows]: any = await pool.query(
+        "SELECT target_url FROM url_redirects WHERE source_url = ? OR source_url = ? LIMIT 1",
+        [requestPath, `${requestPath}/`]
+      );
+      if (redirRows && redirRows.length > 0 && redirRows[0].target_url) {
+        redirect(redirRows[0].target_url);
+      }
+    } catch (redirErr) {
+      console.error("Redirect query error:", redirErr);
+    }
+  }
+
+  // 2. Check if this route matches an admin-created custom sitemap / SEO page
   if (citySegments.length > 0) {
     const customPage = await getCustomSitemapPage(citySegments);
     if (customPage) {
-      const pageTitle = customPage.heading || customPage.title;
-      const canonicalUrl = `${homeSiteUrl}/${citySegments.join("/")}`;
+      // If draft or inactive: 404
+      if (customPage.status === "draft" || customPage.is_active === 0) {
+        notFound();
+      }
+
+      // 301 Permanent Redirect: if accessed via /sitemap/slug and clean slug exists
+      if (citySegments[0] === "sitemap" && customPage.slug && customPage.slug !== "sitemap") {
+        redirect(`/${customPage.slug}`);
+      }
+
+      const pageTitle = customPage.h1 || customPage.heading || customPage.title;
+      const cleanSlug = customPage.slug || citySegments.join("/");
+      const canonicalUrl = customPage.canonical_url
+        ? (customPage.canonical_url.startsWith("http") ? customPage.canonical_url : `${homeSiteUrl}${customPage.canonical_url.startsWith("/") ? "" : "/"}${customPage.canonical_url}`)
+        : `${homeSiteUrl}/${cleanSlug}`;
+        
       const targetLocation =
         [customPage.area, customPage.city].filter(Boolean).join(", ") ||
         customPage.city ||
         customPage.area ||
-        "Noida";
+        "Delhi NCR";
 
+      // Parse structured FAQs if present
+      let parsedFaqs: Array<{ question: string; answer: string }> = [];
+      try {
+        if (typeof customPage.faqs === "string") {
+          parsedFaqs = JSON.parse(customPage.faqs);
+        } else if (Array.isArray(customPage.faqs)) {
+          parsedFaqs = customPage.faqs;
+        }
+      } catch {}
+
+      if (!parsedFaqs || parsedFaqs.length === 0) {
+        parsedFaqs = [
+          {
+            question: `How fast can a technician reach ${targetLocation}?`,
+            answer: `Most service visits in ${targetLocation} get a same-day doorstep technician within 60 to 90 minutes. Call 9999251966 for immediate slot booking.`,
+          },
+          {
+            question: `Is there a warranty on repairs in ${targetLocation}?`,
+            answer: `Yes, all completed repairs by OMAA Company include an official 30-day service warranty with genuine spare parts.`,
+          },
+          {
+            question: `What are the inspection and visit charges in ${targetLocation}?`,
+            answer: `Our inspection charges follow the published Rate Card. If you proceed with the repair on the same visit, inspection charges are adjusted in your final bill.`,
+          },
+        ];
+      }
+
+      // Fetch related services for internal linking
+      let relatedServices: any[] = [];
+      try {
+        const [relSvcRows]: any = await pool.query(
+          "SELECT id, category_id, title FROM services ORDER BY RAND() LIMIT 4"
+        );
+        relatedServices = relSvcRows || [];
+      } catch {}
+
+      // Nearby locations for internal linking
+      const relatedLocations = [
+        { name: "Sector 62, Noida", slug: "noida", city: "Noida" },
+        { name: "Gaur City 1", slug: "gaur-city-2", city: "Greater Noida" },
+        { name: "Gaur City 2", slug: "gaur-city-2", city: "Greater Noida" },
+        { name: "Indirapuram", slug: "ghaziabad", city: "Ghaziabad" },
+        { name: "Sector 137, Noida", slug: "noida", city: "Noida" },
+      ];
+
+      // Build Schema.org structured data
       const customSchema = {
         "@context": "https://schema.org",
         "@graph": [
@@ -433,7 +585,7 @@ export default async function Home({ params }: PageProps) {
             "@type": "BreadcrumbList",
             itemListElement: [
               { "@type": "ListItem", position: 1, name: "Home", item: homeSiteUrl },
-              { "@type": "ListItem", position: 2, name: "Service Directory", item: `${homeSiteUrl}/sitemap-directory` },
+              { "@type": "ListItem", position: 2, name: targetLocation, item: `${homeSiteUrl}/${customPage.city ? customPage.city.toLowerCase() : "service-areas"}` },
               { "@type": "ListItem", position: 3, name: pageTitle, item: canonicalUrl },
             ],
           },
@@ -444,7 +596,7 @@ export default async function Home({ params }: PageProps) {
             url: canonicalUrl,
             telephone: "+919999251966",
             priceRange: "₹₹",
-            image: `${homeSiteUrl}/og-image.jpg`,
+            image: customPage.featured_image || `${homeSiteUrl}/og-image.jpg`,
             address: {
               "@type": "PostalAddress",
               addressLocality: customPage.area || customPage.city || "Delhi NCR",
@@ -456,27 +608,65 @@ export default async function Home({ params }: PageProps) {
               name: targetLocation,
             },
           },
+          {
+            "@type": "Service",
+            name: pageTitle,
+            provider: {
+              "@type": "HomeAndConstructionBusiness",
+              name: "OMAA Company",
+              telephone: "+919999251966",
+            },
+            areaServed: {
+              "@type": "AdministrativeArea",
+              name: targetLocation,
+            },
+            description: customPage.meta_description || customPage.subheading || customPage.content || "",
+          },
+          {
+            "@type": "FAQPage",
+            mainEntity: parsedFaqs.map((faq) => ({
+              "@type": "Question",
+              name: faq.question,
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: faq.answer,
+              },
+            })),
+          },
         ],
       };
 
+      const seoData = {
+        id: customPage.id,
+        title: customPage.title,
+        slug: cleanSlug,
+        url: canonicalUrl,
+        h1: customPage.h1 || customPage.heading || customPage.title,
+        h2: customPage.h2 || `Why Choose OMAA for Repair in ${targetLocation}?`,
+        h3: customPage.h3 || "Genuine Spare Parts & Certified Technicians",
+        meta_title: customPage.meta_title,
+        meta_description: customPage.meta_description,
+        subheading: customPage.subheading,
+        content: customPage.content,
+        city: customPage.city,
+        area: customPage.area,
+        category_id: customPage.category_id,
+        service_id: customPage.service_id,
+        service_name: customPage.heading || customPage.title,
+        faqs: parsedFaqs,
+        canonical_url: canonicalUrl,
+        related_services: relatedServices,
+        related_locations: relatedLocations,
+      };
+
       return (
-        <main className="min-h-screen bg-gray-50 flex flex-col font-sans">
+        <main className="min-h-screen bg-slate-50 flex flex-col font-sans">
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: JSON.stringify(customSchema) }}
           />
           <Navbar />
-          <Hero
-            categories={categories}
-            banners={mobileBanners.length > 0 ? mobileBanners : desktopBanners}
-            currentCity={targetLocation}
-          />
-          <NewProductsSection />
-          <HomeCategoryStream
-            initialCategories={categories}
-            banners={desktopBanners}
-            currentCity={targetLocation}
-          />
+          <DynamicSeoPageTemplate data={seoData} />
           <Footer />
         </main>
       );
@@ -498,8 +688,60 @@ export default async function Home({ params }: PageProps) {
 
     const societySlug = citySegments[1];
     const targetServiceSlug = citySegments[2];
-    const society = societySlug ? getGaurCitySociety(societySlug) : undefined;
+    let society = societySlug ? getGaurCitySociety(societySlug) : undefined;
     const gaurService = targetServiceSlug ? getGaurCityService(targetServiceSlug) : undefined;
+
+    // Fetch published child societies dynamically from database for Gaur City 2
+    let dynamicSocieties: any[] = [];
+    try {
+      const [parentRow]: any = await pool.query(
+        "SELECT id FROM sitemap_links WHERE slug = 'gaur-city-2' OR url = '/gaur-city-2' LIMIT 1"
+      );
+      if (parentRow && parentRow.length > 0) {
+        const [childRows]: any = await pool.query(
+          `SELECT id, title, slug, url, page_type, h1, meta_title, meta_description, status, is_active
+           FROM sitemap_links 
+           WHERE parent_id = ? AND status = 'published' AND is_active = 1
+           ORDER BY title ASC`,
+          [parentRow[0].id]
+        );
+        if (childRows && childRows.length > 0) {
+          dynamicSocieties = childRows.map((r: any) => ({
+            slug: r.slug,
+            name: r.h1 || r.title.replace(/^Doorstep Appliance Repair in /i, "").replace(/, Gaur City 2.*$/i, ""),
+            url: r.url,
+            isCore: r.page_type === "avenue" || r.slug.includes("avenue"),
+            localityLabel: "Gaur City 2, Sector 16C, Greater Noida West",
+          }));
+        }
+      }
+    } catch (dbErr) {
+      console.error("Error fetching dynamic child societies:", dbErr);
+    }
+
+    // Dynamic society fallback for newly added Admin panel child societies
+    if (societySlug && !society) {
+      try {
+        const [dbSocRows]: any = await pool.query(
+          "SELECT * FROM sitemap_links WHERE slug = ? AND (parent_id IS NOT NULL OR url LIKE '/gaur-city-2/%') AND status = 'published' AND is_active = 1 LIMIT 1",
+          [societySlug]
+        );
+        if (dbSocRows && dbSocRows.length > 0) {
+          const dbSoc = dbSocRows[0];
+          society = {
+            slug: dbSoc.slug,
+            name: dbSoc.h1 || dbSoc.title.replace(/^Doorstep Appliance Repair in /i, "").replace(/, Gaur City 2.*$/i, ""),
+            localityLabel: dbSoc.area ? `${dbSoc.area}, ${dbSoc.city || "Greater Noida West"}` : "Gaur City 2, Sector 16C, Greater Noida West",
+            isCore: dbSoc.page_type === "avenue" || dbSoc.slug.includes("avenue"),
+            classificationNote: "Verified residential society inside Gaur City 2",
+            landmarkContext: "Sector 16C near Gaur City 2",
+            coverageNotice: `Prompt same-day doorstep service available for ${dbSoc.title}.`,
+          };
+        }
+      } catch (err) {
+        console.error("Error finding dynamic society in Home:", err);
+      }
+    }
 
     if (societySlug && !society) notFound();
     if (targetServiceSlug && !gaurService) notFound();
@@ -583,6 +825,7 @@ export default async function Home({ params }: PageProps) {
           society={society}
           service={gaurService}
           canonicalUrl={canonicalUrl}
+          dynamicSocieties={dynamicSocieties}
         />
         <Footer />
       </main>
@@ -644,7 +887,7 @@ export default async function Home({ params }: PageProps) {
           banners={mobileBanners.length > 0 ? mobileBanners : desktopBanners}
           currentCity={location.title}
         />
-        <NewProductsSection />
+        <NewProductsSection services={newProductsServices} />
         <HomeCategoryStream
           initialCategories={categories}
           banners={desktopBanners}
@@ -692,7 +935,7 @@ export default async function Home({ params }: PageProps) {
           banners={mobileBanners.length > 0 ? mobileBanners : desktopBanners}
           currentCity={seoLocation.title}
         />
-        <NewProductsSection />
+        <NewProductsSection services={newProductsServices} />
         <HomeCategoryStream
           initialCategories={categories}
           banners={desktopBanners}
@@ -754,7 +997,7 @@ export default async function Home({ params }: PageProps) {
         banners={mobileBanners.length > 0 ? mobileBanners : desktopBanners}
         currentCity={seoLocation?.title || (citySlug ? citySlug.replace(/-/g, " ") : undefined)}
       />
-      <NewProductsSection />
+      <NewProductsSection services={newProductsServices} />
       <HomeCategoryStream
         initialCategories={categories}
         banners={desktopBanners}

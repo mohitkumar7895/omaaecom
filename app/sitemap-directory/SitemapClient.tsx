@@ -37,13 +37,26 @@ export default function SitemapClient({ initialLinks }: { initialLinks: SitemapL
   const [activeTab, setActiveTab] = useState<string>("All");
   const [selectedCity, setSelectedCity] = useState<string>("All");
 
+  const isAreaOrLocationGroup = (group: string) => {
+    if (!group) return false;
+    const g = group.toLowerCase();
+    return (
+      g.includes("area") ||
+      g.includes("society") ||
+      g.includes("location") ||
+      g.includes("gaur city") ||
+      g.includes("localit")
+    );
+  };
+
   const filteredLinks = useMemo(() => {
     const term = searchTerm.toLowerCase().trim();
     return initialLinks.filter((link) => {
       const matchesTab =
         activeTab === "All" ||
         (activeTab === "Services" && link.group_name === "Services") ||
-        (activeTab === "Areas" && link.group_name === "Area-wise SEO") ||
+        (activeTab === "Areas" && isAreaOrLocationGroup(link.group_name)) ||
+        (activeTab === "Keywords" && link.group_name === "Keyword SEO") ||
         (activeTab === "Main" && link.group_name === "Main Pages") ||
         (activeTab === "Legal" && link.group_name === "Legal & Policies");
 
@@ -64,7 +77,8 @@ export default function SitemapClient({ initialLinks }: { initialLinks: SitemapL
 
   // Groupings
   const servicesLinks = filteredLinks.filter((l) => l.group_name === "Services");
-  const areaLinks = filteredLinks.filter((l) => l.group_name === "Area-wise SEO");
+  const areaLinks = filteredLinks.filter((l) => isAreaOrLocationGroup(l.group_name));
+  const keywordLinks = filteredLinks.filter((l) => l.group_name === "Keyword SEO");
   const mainLinks = filteredLinks.filter((l) => l.group_name === "Main Pages");
   const legalLinks = filteredLinks.filter((l) => l.group_name === "Legal & Policies");
 
@@ -209,10 +223,11 @@ export default function SitemapClient({ initialLinks }: { initialLinks: SitemapL
               {[
                 { id: "All", label: "All Pages", count: initialLinks.length },
                 { id: "Services", label: "Appliance Services", count: initialLinks.filter((l) => l.group_name === "Services").length },
-                { id: "Areas", label: "Area Localities", count: initialLinks.filter((l) => l.group_name === "Area-wise SEO").length },
+                { id: "Areas", label: "Area Localities", count: initialLinks.filter((l) => isAreaOrLocationGroup(l.group_name)).length },
+                { id: "Keywords", label: "Search Keywords", count: initialLinks.filter((l) => l.group_name === "Keyword SEO").length },
                 { id: "Main", label: "Core Portals", count: initialLinks.filter((l) => l.group_name === "Main Pages").length },
                 { id: "Legal", label: "Policies & Terms", count: initialLinks.filter((l) => l.group_name === "Legal & Policies").length },
-              ].map((tab) => (
+              ].filter((tab) => tab.id === "All" || tab.count > 0).map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
@@ -401,6 +416,48 @@ export default function SitemapClient({ initialLinks }: { initialLinks: SitemapL
                     ))}
                   </div>
                 </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* SECTION: Popular Search Keywords & Dynamic SEO Landing Pages */}
+        {(activeTab === "All" || activeTab === "Keywords") && keywordLinks.length > 0 && (
+          <section className="space-y-4 sm:space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div className="flex items-center gap-2.5 sm:gap-3">
+                <div className="p-2 sm:p-2.5 bg-blue-100 text-blue-700 rounded-2xl">
+                  <Compass className="w-4 h-4 sm:w-5 sm:h-5" />
+                </div>
+                <div>
+                  <h2 className="text-base sm:text-xl font-extrabold text-slate-900">Search Keywords & Dedicated Landing Pages</h2>
+                  <p className="text-[11px] sm:text-xs text-slate-500">Popular doorstep appliance repair searches with direct booking</p>
+                </div>
+              </div>
+              <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 sm:px-3 py-1 rounded-full border border-blue-100 shrink-0">
+                {keywordLinks.length} Keywords
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+              {keywordLinks.map((link) => (
+                <Link
+                  key={link.id}
+                  href={link.url}
+                  className="group p-4 sm:p-5 bg-white rounded-3xl border border-slate-200/90 hover:border-blue-500 shadow-2xs hover:shadow-md transition-all flex items-center justify-between"
+                >
+                  <div className="space-y-1">
+                    <div className="font-bold text-slate-900 group-hover:text-blue-700 text-xs sm:text-sm">
+                      {link.title}
+                    </div>
+                    <span className="inline-block text-[10px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+                      Doorstep Repair Landing Page
+                    </span>
+                  </div>
+                  <div className="p-2 rounded-xl bg-slate-50 group-hover:bg-blue-50 text-slate-400 group-hover:text-blue-600 transition shrink-0">
+                    <ArrowUpRight className="w-4 h-4" />
+                  </div>
+                </Link>
               ))}
             </div>
           </section>

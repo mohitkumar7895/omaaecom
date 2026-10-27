@@ -1,7 +1,3 @@
-import { SEO_LOCATIONS } from "@/lib/seo-locations";
-import { SEO_SERVICES } from "@/lib/seo-services";
-import { SEO_KEYWORD_PAGES } from "@/lib/seo-keywords";
-import { GAUR_CITY_SOCIETIES, GAUR_CITY_SERVICES } from "@/lib/gaur-city-data";
 import { getSiteUrl, toCanonicalUrl } from "@/lib/site-url";
 import type { MetadataRoute } from "next";
 
@@ -44,57 +40,6 @@ export function buildStaticSitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/terms-and-conditions`, lastModified: now, changeFrequency: "yearly", priority: 0.5 },
   ];
 
-  for (const kw of SEO_KEYWORD_PAGES) {
-    pages.push({
-      url: `${baseUrl}/${kw.slug}`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.95,
-    });
-  }
-
-  for (const loc of SEO_LOCATIONS) {
-    pages.push({
-      url: `${baseUrl}/${loc.slug}`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: loc.kind === "society" ? 0.9 : 0.8,
-    });
-    for (const svc of SEO_SERVICES) {
-      pages.push({
-        url: `${baseUrl}/${loc.slug}/${svc.slug}`,
-        lastModified: now,
-        changeFrequency: "weekly",
-        priority: 0.85,
-      });
-    }
-  }
-
-  // Gaur City 2 Hub and nested Society pages
-  pages.push({
-    url: `${baseUrl}/gaur-city-2`,
-    lastModified: now,
-    changeFrequency: "weekly",
-    priority: 0.95,
-  });
-
-  for (const soc of GAUR_CITY_SOCIETIES) {
-    pages.push({
-      url: `${baseUrl}/gaur-city-2/${soc.slug}`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: soc.isCore ? 0.9 : 0.85,
-    });
-    for (const svcKey of Object.keys(GAUR_CITY_SERVICES)) {
-      pages.push({
-        url: `${baseUrl}/gaur-city-2/${soc.slug}/${svcKey}`,
-        lastModified: now,
-        changeFrequency: "weekly",
-        priority: 0.85,
-      });
-    }
-  }
-
   return pages.filter((page) => isHttpUrl(page.url));
 }
 
@@ -105,10 +50,16 @@ export async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const pool = (await import("@/lib/db")).default;
     const query = pool.query(
-      "SELECT url, priority, changefreq, updated_at FROM sitemap_links WHERE is_active = TRUE AND is_indexable = TRUE ORDER BY priority DESC, id ASC LIMIT 400"
+      `SELECT url, slug, canonical_url, priority, changefreq, updated_at 
+       FROM sitemap_links 
+       WHERE is_active = TRUE 
+         AND is_indexable = TRUE 
+         AND (status = 'published' OR status IS NULL)
+       ORDER BY priority DESC, id ASC 
+       LIMIT 1500`
     );
     const timeout = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error("sitemap db timeout")), 2500);
+      setTimeout(() => reject(new Error("sitemap db timeout")), 3000);
     });
     const [rows]: any = await Promise.race([query, timeout]);
 
@@ -125,7 +76,9 @@ export async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
     const validFreqs = new Set(["always", "hourly", "daily", "weekly", "monthly", "yearly", "never"]);
 
     for (const row of rows) {
-      let fullUrl = String(row.url || "").trim();
+      // Prioritize full canonical URL or URL path over naked slug to preserve hierarchical routes
+      let path = row.canonical_url || row.url || (row.slug ? `/${row.slug}` : "");
+      let fullUrl = String(path).trim();
       if (!fullUrl) continue;
       if (!fullUrl.startsWith("http")) {
         fullUrl = `${baseUrl}${fullUrl.startsWith("/") ? "" : "/"}${fullUrl}`;

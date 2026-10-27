@@ -7,7 +7,9 @@ export function isPremiumServiceCategory(title?: string, type?: string): boolean
     blob.includes("refrigerator") ||
     blob.includes("fridge") ||
     blob.includes("microwave") ||
-    blob.includes("water purifier")
+    blob.includes("water purifier") ||
+    blob.includes("product") ||
+    blob.includes("new product")
   );
 }
 

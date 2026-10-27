@@ -7,16 +7,25 @@ import {
   GAUR_CITY_GENERAL_FAQS,
 } from "../../lib/gaur-city-data";
 
+export type DynamicChildLocation = {
+  slug: string;
+  name: string;
+  url?: string;
+  isCore?: boolean;
+  localityLabel?: string;
+};
+
 type Props = {
   society?: GaurCitySociety;
   service?: GaurCityServiceConfig;
   canonicalUrl: string;
+  dynamicSocieties?: DynamicChildLocation[];
 };
 
 const PHONE = "9999251966";
 const WHATSAPP_PHONE = "919999251966";
 
-export default function GaurCitySeoLanding({ society, service, canonicalUrl }: Props) {
+export default function GaurCitySeoLanding({ society, service, canonicalUrl, dynamicSocieties }: Props) {
   const isHub = !society && !service;
   const isSocietyHub = society && !service;
   const isServiceSociety = Boolean(society && service);
@@ -379,11 +388,11 @@ export default function GaurCitySeoLanding({ society, service, canonicalUrl }: P
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {GAUR_CITY_SOCIETIES.map((soc) => {
+            {(dynamicSocieties && dynamicSocieties.length > 0 ? dynamicSocieties : GAUR_CITY_SOCIETIES).map((soc) => {
               const active = society?.slug === soc.slug;
               const targetUrl = service
                 ? `/gaur-city-2/${soc.slug}/${service.slug}`
-                : `/gaur-city-2/${soc.slug}`;
+                : ('url' in soc && soc.url ? soc.url : `/gaur-city-2/${soc.slug}`);
 
               return (
                 <Link
@@ -411,7 +420,7 @@ export default function GaurCitySeoLanding({ society, service, canonicalUrl }: P
                       {soc.isCore ? "Core GC2" : "Nearby"}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">{soc.localityLabel}</p>
+                  <p className="text-xs text-gray-500 mt-1">{soc.localityLabel || "Gaur City 2, Sector 16C, Greater Noida West"}</p>
                 </Link>
               );
             })}

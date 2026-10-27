@@ -92,9 +92,9 @@ export default function HomeCategoryStream({
   const microwaveCat = visibleCategories.find((c) => getCategoryRank(c.title, c.type) === 5);
   const waterPurifierCat = visibleCategories.find((c) => getCategoryRank(c.title, c.type) === 6);
 
-  // Remaining categories not in the primary 6
+  // Remaining categories not in the primary 6 (excluding New Products which is featured above)
   const otherCats = visibleCategories.filter(
-    (c) => getCategoryRank(c.title, c.type) >= 10
+    (c) => getCategoryRank(c.title, c.type) >= 10 && Number(c.id) !== 6 && !(c.title && c.title.toLowerCase().includes("product"))
   );
 
   const banner1 = banners[0] || null;

@@ -79,13 +79,15 @@ export default function Sidebar() {
   ];
 
   const marketingItems = [
+    { name: "Dynamic SEO Pages", icon: <Globe className="w-[18px] h-[18px]" />, href: "/admin/seo" },
     { name: "Banners", icon: <ImageIcon className="w-[18px] h-[18px]" />, href: "/admin/banners" },
     { name: "Cashback Ads", icon: <PlaySquare className="w-[18px] h-[18px]" />, href: "/admin/cashback-ads" },
   ];
 
   const settingsItems = [
     { name: "System Settings", icon: <Settings className="w-[18px] h-[18px]" />, href: "/admin/settings" },
-    { name: "Sitemap & SEO", icon: <Globe className="w-[18px] h-[18px]" />, href: "/admin/sitemap" },
+    { name: "Service Zones", icon: <MapPin className="w-[18px] h-[18px]" />, href: "/admin/zones" },
+    { name: "Sitemap & SEO Links", icon: <Globe className="w-[18px] h-[18px]" />, href: "/admin/sitemap" },
     { name: "GST Settings", icon: <FileText className="w-[18px] h-[18px]" />, href: "/admin/gst-settings" },
     { name: "Privacy Policy", icon: <Shield className="w-[18px] h-[18px]" />, href: "/admin/privacy-policy" },
     { name: "Terms & Conditions", icon: <FileText className="w-[18px] h-[18px]" />, href: "/admin/terms-and-conditions" },
