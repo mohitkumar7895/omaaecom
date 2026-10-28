@@ -140,7 +140,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   };
 
   return (
-    <html lang="en" className="font-sans h-full antialiased">
+    <html lang="en" className="font-sans h-full antialiased" suppressHydrationWarning>
       <head>
         <meta name="google-site-verification" content="6chr3KOkEHLF43tQxoATLMWdqqMjuPAQYsldOANyayQ" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
