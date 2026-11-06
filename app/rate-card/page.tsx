@@ -6,7 +6,8 @@ import Footer from "../components/Footer";
 import RateCardClient from "./RateCardClient";
 import { getSiteUrl } from "@/lib/site-url";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 const siteUrl = getSiteUrl();
 
@@ -21,9 +22,9 @@ export default async function RateCardPage() {
   let rateCards: any[] = [];
 
   try {
-    // 1. Fetch Categories that have rate cards or all categories
+    // 1. Fetch Categories
     const [catRows]: any = await pool.query("SELECT id, title FROM categories ORDER BY id ASC");
-    categories = catRows;
+    categories = catRows || [];
 
     // 2. Fetch all Rate Cards with heading and category
     const [cardRows]: any = await pool.query(`
@@ -36,7 +37,7 @@ export default async function RateCardPage() {
       LEFT JOIN rate_headings h ON rc.heading_id = h.id
       ORDER BY rc.category_id ASC, rc.heading_id ASC, rc.id ASC
     `);
-    rateCards = cardRows;
+    rateCards = cardRows || [];
   } catch (error) {
     console.error("Error loading rate cards page:", error);
   }
