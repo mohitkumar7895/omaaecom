@@ -45,6 +45,36 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: "/d-dri",
+        destination: "/",
+        permanent: true,
+      },
+      {
+        source: "/d-dri/:path*",
+        destination: "/",
+        permanent: true,
+      },
+      {
+        source: "/gh-zi-b-d",
+        destination: "/",
+        permanent: true,
+      },
+      {
+        source: "/gh-zi-b-d/:path*",
+        destination: "/",
+        permanent: true,
+      },
+      {
+        source: "/dadri",
+        destination: "/",
+        permanent: true,
+      },
+      {
+        source: "/dadri/:path*",
+        destination: "/",
+        permanent: true,
+      },
+      {
         source: "/",
         has: [{ type: "header", key: "x-forwarded-proto", value: "http" }],
         destination: "https://omaacompany.com",
