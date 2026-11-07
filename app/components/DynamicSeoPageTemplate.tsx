@@ -15,7 +15,10 @@ import {
   Wrench,
   Sparkles,
   Calendar,
-  AlertCircle
+  Layers,
+  Building,
+  Compass,
+  ArrowRight
 } from "lucide-react";
 
 export interface DynamicSeoPageData {
@@ -23,6 +26,7 @@ export interface DynamicSeoPageData {
   title: string;
   slug: string;
   url: string;
+  page_type?: "location" | "avenue" | "society" | "service";
   h1?: string | null;
   h2?: string | null;
   h3?: string | null;
@@ -41,6 +45,10 @@ export interface DynamicSeoPageData {
   faqs?: Array<{ question: string; answer: string }> | null;
   features?: string[] | null;
   canonical_url?: string | null;
+  parent_location?: { name: string; slug: string; url: string; city?: string } | null;
+  child_avenues?: Array<{ name: string; slug: string; url: string }>;
+  child_societies?: Array<{ name: string; slug: string; url: string }>;
+  service_pages?: Array<{ title: string; slug: string; url: string }>;
   related_services?: Array<{ id: number; title: string; slug?: string; category_id?: number }>;
   related_locations?: Array<{ name: string; slug: string; city: string }>;
 }
@@ -90,7 +98,6 @@ export default function DynamicSeoPageTemplate({ data }: { data: DynamicSeoPageD
         },
       ];
 
-  // Parse structured features
   const featuresList = Array.isArray(data.features) && data.features.length > 0
     ? data.features
     : [
@@ -106,7 +113,7 @@ export default function DynamicSeoPageTemplate({ data }: { data: DynamicSeoPageD
 
   return (
     <div className="bg-[#FAFBFD] text-slate-800 font-sans min-h-screen">
-      {/* 1. Breadcrumbs Bar */}
+      {/* 1. Breadcrumbs Bar with Full Hierarchy */}
       <div className="bg-white border-b border-slate-200/70 py-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <nav aria-label="Breadcrumb" className="text-xs sm:text-sm text-slate-500">
@@ -117,6 +124,7 @@ export default function DynamicSeoPageTemplate({ data }: { data: DynamicSeoPageD
                 </Link>
               </li>
               <li aria-hidden="true" className="text-slate-300">/</li>
+
               {data.city && (
                 <>
                   <li>
@@ -125,7 +133,24 @@ export default function DynamicSeoPageTemplate({ data }: { data: DynamicSeoPageD
                   <li aria-hidden="true" className="text-slate-300">/</li>
                 </>
               )}
-              {data.area && data.area !== data.city && (
+
+              {/* Parent Location in Breadcrumb */}
+              {data.parent_location && (
+                <>
+                  <li>
+                    <Link
+                      href={data.parent_location.url}
+                      className="text-slate-600 hover:text-indigo-600 font-medium"
+                    >
+                      {data.parent_location.name}
+                    </Link>
+                  </li>
+                  <li aria-hidden="true" className="text-slate-300">/</li>
+                </>
+              )}
+
+              {/* Area / Avenue / Society in Breadcrumb */}
+              {data.area && (!data.parent_location || data.area !== data.parent_location.name) && (
                 <>
                   <li>
                     <span className="text-slate-600 font-medium">{data.area}</span>
@@ -133,6 +158,7 @@ export default function DynamicSeoPageTemplate({ data }: { data: DynamicSeoPageD
                   <li aria-hidden="true" className="text-slate-300">/</li>
                 </>
               )}
+
               <li className="text-indigo-700 font-semibold truncate max-w-[260px] sm:max-w-none">
                 {serviceDisplay}
               </li>
@@ -143,7 +169,6 @@ export default function DynamicSeoPageTemplate({ data }: { data: DynamicSeoPageD
 
       {/* 2. Hero Section with Rich Aesthetics */}
       <section className="relative overflow-hidden bg-gradient-to-b from-indigo-50/70 via-white to-[#FAFBFD] border-b border-slate-200/70 pt-10 pb-14 sm:py-16">
-        {/* Subtle geometric background glow */}
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-indigo-200/30 rounded-full blur-3xl pointer-events-none -z-0" />
         <div className="absolute top-1/2 left-10 w-72 h-72 bg-blue-100/40 rounded-full blur-2xl pointer-events-none -z-0" />
 
@@ -290,7 +315,7 @@ export default function DynamicSeoPageTemplate({ data }: { data: DynamicSeoPageD
         </div>
       </section>
 
-      {/* 3. Dynamic H2 & H3 SEO Content Sections */}
+      {/* 3. Main Content & Hierarchy Internal Linking */}
       <section className="py-12 sm:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-12 gap-10">
@@ -333,6 +358,94 @@ export default function DynamicSeoPageTemplate({ data }: { data: DynamicSeoPageD
                   </div>
                 )}
               </div>
+
+              {/* ------------------------------------------------------------- */}
+              {/* INTERNAL LINKING BLOCK 1: CHILD AVENUES IN THIS LOCATION */}
+              {/* ------------------------------------------------------------- */}
+              {data.child_avenues && data.child_avenues.length > 0 && (
+                <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/80 shadow-xs">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                      <Layers className="w-5 h-5 text-sky-600" />
+                      <span>Avenues Covered in {locationDisplay}</span>
+                    </h3>
+                    <span className="text-xs font-semibold text-sky-700 bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-100">
+                      {data.child_avenues.length} Avenues
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mb-4">
+                    Doorstep technicians available across all avenues with verified 60–90 minute arrival:
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                    {data.child_avenues.map((ave, i) => (
+                      <Link
+                        key={i}
+                        href={ave.url}
+                        className="p-3 rounded-xl bg-slate-50 hover:bg-sky-50/70 border border-slate-200/80 hover:border-sky-300 transition-all text-xs font-bold text-slate-800 hover:text-sky-700 flex items-center justify-between"
+                      >
+                        <span className="truncate">{ave.name}</span>
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ------------------------------------------------------------- */}
+              {/* INTERNAL LINKING BLOCK 2: CHILD SOCIETIES IN THIS LOCATION */}
+              {/* ------------------------------------------------------------- */}
+              {data.child_societies && data.child_societies.length > 0 && (
+                <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/80 shadow-xs">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                      <Building className="w-5 h-5 text-purple-600" />
+                      <span>Residential Societies Covered in {locationDisplay}</span>
+                    </h3>
+                    <span className="text-xs font-semibold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-100">
+                      {data.child_societies.length} Societies
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mb-4">
+                    Same-day service slots and verified technicians for gated communities:
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                    {data.child_societies.map((soc, i) => (
+                      <Link
+                        key={i}
+                        href={soc.url}
+                        className="p-3 rounded-xl bg-slate-50 hover:bg-purple-50/70 border border-slate-200/80 hover:border-purple-300 transition-all text-xs font-bold text-slate-800 hover:text-purple-700 flex items-center justify-between"
+                      >
+                        <span className="truncate">{soc.name}</span>
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ------------------------------------------------------------- */}
+              {/* INTERNAL LINKING BLOCK 3: SERVICE PAGES IN THIS LOCATION */}
+              {/* ------------------------------------------------------------- */}
+              {data.service_pages && data.service_pages.length > 0 && (
+                <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/80 shadow-xs">
+                  <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <Wrench className="w-5 h-5 text-indigo-600" />
+                    <span>Specialized Repair Services in {locationDisplay}</span>
+                  </h3>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {data.service_pages.map((sp, i) => (
+                      <Link
+                        key={i}
+                        href={sp.url}
+                        className="p-3.5 rounded-xl bg-indigo-50/40 hover:bg-indigo-50 border border-indigo-100 hover:border-indigo-300 transition text-xs font-bold text-indigo-950 flex items-center justify-between"
+                      >
+                        <span>{sp.title}</span>
+                        <ArrowRight className="w-4 h-4 text-indigo-600 shrink-0" />
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Service Process Section */}
               <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/80 shadow-xs">
@@ -408,7 +521,7 @@ export default function DynamicSeoPageTemplate({ data }: { data: DynamicSeoPageD
 
             </div>
 
-            {/* Sidebar (4 Cols): Related Services & Coverage Areas */}
+            {/* Sidebar (4 Cols): Emergency Helpdesk, Parent Link & Related Sectors */}
             <div className="lg:col-span-4 space-y-6">
               
               {/* Direct Emergency Contact Box */}
@@ -426,6 +539,29 @@ export default function DynamicSeoPageTemplate({ data }: { data: DynamicSeoPageD
                   <span>Call {PHONE_NUMBER}</span>
                 </a>
               </div>
+
+              {/* Parent Hub Link (for child pages) */}
+              {data.parent_location && (
+                <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs">
+                  <div className="flex items-center gap-2 text-emerald-700 text-xs font-bold uppercase mb-2">
+                    <Compass className="w-4 h-4" />
+                    <span>Parent Location Hub</span>
+                  </div>
+                  <h4 className="font-bold text-slate-900 text-sm">
+                    {data.parent_location.name}
+                  </h4>
+                  <p className="text-xs text-slate-500 mt-1 mb-3">
+                    View full coverage map, all avenues, and societies under {data.parent_location.name}.
+                  </p>
+                  <Link
+                    href={data.parent_location.url}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-800 hover:underline"
+                  >
+                    <span>Explore {data.parent_location.name} Hub</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              )}
 
               {/* Related Services */}
               {data.related_services && data.related_services.length > 0 && (

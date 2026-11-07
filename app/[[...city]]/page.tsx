@@ -571,11 +571,98 @@ export default async function Home({ params }: PageProps) {
       // Nearby locations for internal linking
       const relatedLocations = [
         { name: "Sector 62, Noida", slug: "noida", city: "Noida" },
-        { name: "Gaur City 1", slug: "gaur-city-2", city: "Greater Noida" },
-        { name: "Gaur City 2", slug: "gaur-city-2", city: "Greater Noida" },
+        { name: "Gaur City 1", slug: "gaur-city-1", city: "Greater Noida West" },
+        { name: "Gaur City 2", slug: "gaur-city-2", city: "Greater Noida West" },
+        { name: "Noida Extension", slug: "noida-extension", city: "Greater Noida West" },
         { name: "Indirapuram", slug: "ghaziabad", city: "Ghaziabad" },
         { name: "Sector 137, Noida", slug: "noida", city: "Noida" },
       ];
+
+      // Fetch Location Hierarchy & Internal Links
+      let parentLocationInfo: any = null;
+      let childAvenuesList: Array<{ name: string; slug: string; url: string }> = [];
+      let childSocietiesList: Array<{ name: string; slug: string; url: string }> = [];
+      let locationServicePages: Array<{ title: string; slug: string; url: string }> = [];
+
+      try {
+        let parentLocId = customPage.parent_location_id || customPage.parent_id || null;
+
+        // If this page itself is a Parent Location
+        if (customPage.page_type === "location" || (!parentLocId && customPage.slug?.includes("gaur-city"))) {
+          const [parentMatch]: any = await pool.query(
+            "SELECT id, name, slug, city FROM parent_locations WHERE slug = ? OR id = ? LIMIT 1",
+            [customPage.slug, parentLocId || 0]
+          );
+          if (parentMatch && parentMatch.length > 0) {
+            parentLocId = parentMatch[0].id;
+          }
+        }
+
+        // Fetch parent location details if this is a child page
+        if (parentLocId) {
+          const [pRows]: any = await pool.query(
+            "SELECT id, name, slug, city FROM parent_locations WHERE id = ? LIMIT 1",
+            [parentLocId]
+          );
+          if (pRows && pRows.length > 0) {
+            const p = pRows[0];
+            parentLocationInfo = {
+              name: p.name,
+              slug: p.slug,
+              url: `/${p.slug}`,
+              city: p.city,
+            };
+
+            // Fetch Child Avenues under this Parent
+            const [aveRows]: any = await pool.query(
+              "SELECT name, slug FROM child_avenues WHERE parent_location_id = ? AND status = 'Active' ORDER BY name ASC",
+              [p.id]
+            );
+            if (aveRows && aveRows.length > 0) {
+              childAvenuesList = aveRows.map((a: any) => ({
+                name: a.name,
+                slug: a.slug,
+                url: `/${p.slug}/${a.slug}`,
+              }));
+            }
+
+            // Fetch Child Societies under this Parent
+            const [socRows]: any = await pool.query(
+              "SELECT name, slug FROM child_societies WHERE parent_location_id = ? AND status = 'Active' ORDER BY name ASC",
+              [p.id]
+            );
+            if (socRows && socRows.length > 0) {
+              childSocietiesList = socRows.map((s: any) => ({
+                name: s.name,
+                slug: s.slug,
+                url: `/${p.slug}/${s.slug}`,
+              }));
+            }
+
+            // Fetch Service SEO Pages linked to this Parent Location
+            const [svcPages]: any = await pool.query(
+              `SELECT title, slug, url 
+               FROM sitemap_links 
+               WHERE (parent_location_id = ? OR parent_id = ?) 
+                 AND page_type = 'service' 
+                 AND status = 'published' 
+                 AND is_active = 1 
+                 AND id != ?
+               LIMIT 8`,
+              [p.id, p.id, customPage.id]
+            );
+            if (svcPages && svcPages.length > 0) {
+              locationServicePages = svcPages.map((sp: any) => ({
+                title: sp.title,
+                slug: sp.slug,
+                url: sp.url || `/${sp.slug}`,
+              }));
+            }
+          }
+        }
+      } catch (hierErr) {
+        console.error("Error fetching location hierarchy internal links:", hierErr);
+      }
 
       // Build Schema.org structured data
       const customSchema = {
@@ -641,6 +728,7 @@ export default async function Home({ params }: PageProps) {
         title: customPage.title,
         slug: cleanSlug,
         url: canonicalUrl,
+        page_type: customPage.page_type || "service",
         h1: customPage.h1 || customPage.heading || customPage.title,
         h2: customPage.h2 || `Why Choose OMAA for Repair in ${targetLocation}?`,
         h3: customPage.h3 || "Genuine Spare Parts & Certified Technicians",
@@ -655,6 +743,10 @@ export default async function Home({ params }: PageProps) {
         service_name: customPage.heading || customPage.title,
         faqs: parsedFaqs,
         canonical_url: canonicalUrl,
+        parent_location: parentLocationInfo,
+        child_avenues: childAvenuesList,
+        child_societies: childSocietiesList,
+        service_pages: locationServicePages,
         related_services: relatedServices,
         related_locations: relatedLocations,
       };

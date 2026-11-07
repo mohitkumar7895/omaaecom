@@ -56,7 +56,7 @@ interface Booking {
   service_opted?: boolean | number | string;
 }
 
-export const isAmcBooking = (booking: any) => {
+const isAmcBooking = (booking: any) => {
   if (booking.type?.toLowerCase() === "amc") return true;
   const cat = (booking.category || "").toLowerCase();
   if (cat.includes("amc") || cat.includes("plan") || cat.includes("annual maintenance")) return true;
