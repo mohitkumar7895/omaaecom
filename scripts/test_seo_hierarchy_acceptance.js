@@ -70,6 +70,32 @@ async function testAcceptanceCriteria() {
     assert(crossLeak.length === 0, "Zero Gaur City 1 avenues leak into Gaur City 2 parent query");
 
     // -----------------------------------------------------------------
+    // TEST 3B: Indirapuram Independent Parent Location & Isolation
+    // -----------------------------------------------------------------
+    const [indRows] = await conn.query("SELECT id, name, slug, city, zone_id FROM parent_locations WHERE slug = 'indirapuram'");
+    assert(indRows.length > 0, "Parent Location 'Indirapuram' exists in parent_locations table");
+    const indId = indRows[0].id;
+    assert(indRows[0].city === 'Ghaziabad', "Indirapuram city is strictly Ghaziabad (not Greater Noida West / Gaur City)");
+
+    const [indAvenues] = await conn.query("SELECT name, slug FROM child_avenues WHERE parent_location_id = ?", [indId]);
+    assert(indAvenues.length >= 6, `Indirapuram has ${indAvenues.length} registered Avenues/Khands`);
+
+    const [indSocieties] = await conn.query("SELECT name, slug FROM child_societies WHERE parent_location_id = ?", [indId]);
+    assert(indSocieties.length >= 6, `Indirapuram has ${indSocieties.length} registered Societies`);
+
+    const [gcInInd] = await conn.query(
+      "SELECT id, name FROM child_avenues WHERE parent_location_id = ? AND (name LIKE '%Gaur%' OR name LIKE '%Avenue %')",
+      [indId]
+    );
+    assert(gcInInd.length === 0, "Zero Gaur City avenues exist under Indirapuram");
+
+    const [indInGc] = await conn.query(
+      "SELECT id, name FROM child_avenues WHERE parent_location_id IN (?, ?) AND (name LIKE '%Khand%' OR slug LIKE '%khand%')",
+      [gc1Id, gc2Id]
+    );
+    assert(indInGc.length === 0, "Zero Indirapuram Khands exist under Gaur City 1 or Gaur City 2");
+
+    // -----------------------------------------------------------------
     // TEST 4 & 5: Child Avenue & Society Parent Relationship Integrity
     // -----------------------------------------------------------------
     const [aveParentCheck] = await conn.query(

@@ -325,24 +325,24 @@ export default function SeoManager({
     const svc = services.find((s) => s.id === Number(page.service_id));
 
     const pageType = page.page_type || "service";
-    const cityName = parent?.city || page.city || "Greater Noida West";
+    const cityName = parent?.city || page.city || "Ghaziabad";
     const serviceName = svc?.title || cat?.title || "Home Appliance Repair";
 
     let locationLabel = "";
     let slugPath = "";
 
     if (pageType === "location") {
-      locationLabel = parent?.name || "Gaur City 2";
-      slugPath = parent?.slug || "gaur-city-2";
+      locationLabel = parent?.name || "Indirapuram";
+      slugPath = parent?.slug || "indirapuram";
     } else if (pageType === "avenue") {
-      locationLabel = avenue ? `${avenue.name}, ${parent?.name || "Gaur City 2"}` : "10th Avenue, Gaur City 2";
+      locationLabel = avenue ? `${avenue.name}, ${parent?.name || "Indirapuram"}` : (parent ? `Avenue, ${parent.name}` : "10th Avenue, Gaur City 2");
       slugPath = parent && avenue ? `${parent.slug}/${avenue.slug}` : (avenue?.slug || "10th-avenue");
     } else if (pageType === "society") {
-      locationLabel = society ? `${society.name}, ${parent?.name || "Gaur City 2"}` : "White Orchid, Gaur City 2";
+      locationLabel = society ? `${society.name}, ${parent?.name || "Indirapuram"}` : (parent ? `Society, ${parent.name}` : "White Orchid, Gaur City 2");
       slugPath = parent && society ? `${parent.slug}/${society.slug}` : (society?.slug || "white-orchid");
     } else {
       // Standard service page
-      const locTarget = society ? society.name : avenue ? avenue.name : parent ? parent.name : (page.area || "Gaur City 2");
+      const locTarget = society ? society.name : avenue ? avenue.name : parent ? parent.name : (page.area || "Indirapuram");
       locationLabel = `${locTarget}, ${cityName}`;
 
       const cleanSvcSlug = serviceName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -1581,11 +1581,18 @@ export default function SeoManager({
                       onChange={(e) => {
                         const nextZoneId = e.target.value ? Number(e.target.value) : null;
                         const matchedZone = zones.find((z) => z.id === nextZoneId);
+                        const zoneParents = parentLocations.filter((p) => p.zone_id === nextZoneId);
+                        const autoParent = zoneParents.length === 1 ? zoneParents[0] : null;
+
                         setActivePage((prev) => {
                           const updated = {
                             ...prev,
                             zone_id: nextZoneId,
-                            city: matchedZone ? (matchedZone.city_names?.split(",")[0]?.trim() || "Greater Noida West") : prev?.city,
+                            city: autoParent ? autoParent.city : (matchedZone ? (matchedZone.city_names?.split(",")[0]?.trim() || "Ghaziabad") : prev?.city),
+                            parent_location_id: autoParent ? autoParent.id : (prev?.parent_location_id && zoneParents.some(p => p.id === prev.parent_location_id) ? prev.parent_location_id : null),
+                            parent_id: autoParent ? autoParent.id : (prev?.parent_id && zoneParents.some(p => p.id === prev.parent_id) ? prev.parent_id : null),
+                            child_avenue_id: null,
+                            child_society_id: null,
                           };
                           const autoGen = generatePageMetadataFromSelection(updated);
                           return { ...updated, ...autoGen };
@@ -1610,7 +1617,7 @@ export default function SeoManager({
                       type="text"
                       value={activePage.city || ""}
                       onChange={(e) => setActivePage((prev) => ({ ...prev, city: e.target.value }))}
-                      placeholder="e.g. Greater Noida West, Noida, Delhi"
+                      placeholder="e.g. Ghaziabad, Greater Noida West, Noida, Delhi"
                       className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-800"
                     />
                   </div>
@@ -1647,12 +1654,35 @@ export default function SeoManager({
                     }}
                     className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                   >
-                    <option value="">-- Select Parent Location (e.g. Gaur City 2) --</option>
-                    {parentLocations.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name} ({p.city}) - /{p.slug}
-                      </option>
-                    ))}
+                    <option value="">-- Select Parent Location --</option>
+                    {activePage.zone_id && parentLocations.some((p) => p.zone_id === activePage.zone_id) ? (
+                      <>
+                        <optgroup label="Locations in Selected Zone">
+                          {parentLocations
+                            .filter((p) => p.zone_id === activePage.zone_id)
+                            .map((p) => (
+                              <option key={p.id} value={p.id}>
+                                {p.name} ({p.city}) - /{p.slug}
+                              </option>
+                            ))}
+                        </optgroup>
+                        <optgroup label="Other Locations">
+                          {parentLocations
+                            .filter((p) => p.zone_id !== activePage.zone_id)
+                            .map((p) => (
+                              <option key={p.id} value={p.id}>
+                                {p.name} ({p.city}) - /{p.slug}
+                              </option>
+                            ))}
+                        </optgroup>
+                      </>
+                    ) : (
+                      parentLocations.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name} ({p.city}) - /{p.slug}
+                        </option>
+                      ))
+                    )}
                   </select>
                 </div>
 
