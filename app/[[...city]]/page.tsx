@@ -114,11 +114,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       }
 
       const pageTitle = customPage.meta_title || customPage.h1 || customPage.heading || customPage.title;
-      const pageDesc =
+      const rawPageDesc =
         customPage.meta_description ||
         customPage.subheading ||
         customPage.content ||
-        `Verified doorstep home appliance repair in ${customPage.area || customPage.city || "Delhi NCR"}. Call 9999251966 for 30-day warranty & instant service.`;
+        `Verified doorstep home appliance repair in ${customPage.area || customPage.city || "Delhi NCR"}. Call 9999251966 for 45-day repair warranty, 90-day parts warranty & instant service.`;
+      const pageDesc = rawPageDesc
+        .replace(/30[- ]day\s+comprehensive\s+service\s+warranty/gi, "45-day repair & service warranty and 90-day spare parts warranty")
+        .replace(/30[- ]day\s+service\s+warranty/gi, "45-day repair & service warranty and 90-day spare parts warranty")
+        .replace(/30[- ]day\s+warranty/gi, "45-day repair warranty & 90-day parts warranty");
       
       const cleanSlug = customPage.slug || citySegments.join("/");
       const canonical = customPage.canonical_url
@@ -262,11 +266,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const customPage = await getCustomSitemapPage(citySegments);
     if (customPage) {
       const pageTitle = customPage.heading || customPage.title;
-      const pageDesc =
+      const rawPageDesc =
         customPage.meta_description ||
         customPage.subheading ||
         customPage.content ||
-        `Verified doorstep home appliance repair in ${customPage.area || customPage.city || "Delhi NCR"}. Call 9999251966 for 30-day warranty & instant service.`;
+        `Verified doorstep home appliance repair in ${customPage.area || customPage.city || "Delhi NCR"}. Call 9999251966 for 45-day repair warranty, 90-day parts warranty & instant service.`;
+      const pageDesc = rawPageDesc
+        .replace(/30[- ]day\s+comprehensive\s+service\s+warranty/gi, "45-day repair & service warranty and 90-day spare parts warranty")
+        .replace(/30[- ]day\s+service\s+warranty/gi, "45-day repair & service warranty and 90-day spare parts warranty")
+        .replace(/30[- ]day\s+warranty/gi, "45-day repair warranty & 90-day parts warranty");
       const canonical = `${siteUrl}/${citySegments.join("/")}`;
       const isIndexable = Boolean(customPage.is_indexable);
 
@@ -550,7 +558,7 @@ export default async function Home({ params }: PageProps) {
           },
           {
             question: `Is there a warranty on repairs in ${targetLocation}?`,
-            answer: `Yes, all completed repairs by OMAA Company include an official 30-day service warranty with genuine spare parts.`,
+            answer: `Yes, all completed repairs by OMAA Company include an official 45-day repair & service warranty and a 90-day warranty on genuine replacement spare parts.`,
           },
           {
             question: `What are the inspection and visit charges in ${targetLocation}?`,

@@ -142,7 +142,7 @@ export async function saveParentLocation(data: {
       // Automatically create a base SEO landing page for this parent location in sitemap_links
       const parentUrl = `/${slug}`;
       const pageTitle = `Doorstep Appliance Repair in ${name}, ${city}`;
-      const metaDesc = `Fast, reliable doorstep RO purifier, AC, refrigerator & washing machine repair across ${name}, ${city}. Certified local technicians, same-day service & 30-day warranty. Call 9999251966.`;
+      const metaDesc = `Fast, reliable doorstep RO purifier, AC, refrigerator & washing machine repair across ${name}, ${city}. Certified local technicians, same-day service, 45-day repair warranty & 90-day parts warranty. Call 9999251966.`;
 
       const defaultFaqs = [
         {
@@ -151,7 +151,7 @@ export async function saveParentLocation(data: {
         },
         {
           question: `Is there a warranty on repairs in ${name}?`,
-          answer: `Yes, all completed repairs by OMAA Company include an official 30-day service warranty with genuine spare parts.`,
+          answer: `Yes, all completed repairs by OMAA Company include an official 45-day repair & service warranty and a 90-day warranty on genuine spare parts.`,
         },
       ];
 
@@ -654,9 +654,15 @@ export async function saveSeoPage(pageData: any) {
   try {
     const isEdit = Boolean(pageData.id);
     const pageType = pageData.page_type || "service";
-    const parentLocationId = pageData.parent_location_id ? Number(pageData.parent_location_id) : (pageData.parent_id ? Number(pageData.parent_id) : null);
-    const childAvenueId = pageData.child_avenue_id ? Number(pageData.child_avenue_id) : null;
-    const childSocietyId = pageData.child_society_id ? Number(pageData.child_society_id) : null;
+    const parentLocationId = pageData.parent_location_id === "all" || !pageData.parent_location_id
+      ? (pageData.parent_id === "all" || !pageData.parent_id ? null : Number(pageData.parent_id))
+      : Number(pageData.parent_location_id);
+    const childAvenueId = pageData.child_avenue_id === "all" || !pageData.child_avenue_id
+      ? null
+      : Number(pageData.child_avenue_id);
+    const childSocietyId = pageData.child_society_id === "all" || !pageData.child_society_id
+      ? null
+      : Number(pageData.child_society_id);
 
     // Fetch parent details if provided
     let parentSlug = "";
@@ -750,9 +756,9 @@ export async function saveSeoPage(pageData: any) {
     const isIndexable = pageData.is_indexable !== undefined ? (pageData.is_indexable ? 1 : 0) : 0;
     const faqsJson = pageData.faqs ? (Array.isArray(pageData.faqs) ? JSON.stringify(pageData.faqs) : pageData.faqs) : null;
     const canonical = pageData.canonical_url?.trim() || url;
-    const zoneId = pageData.zone_id ? Number(pageData.zone_id) : null;
-    const categoryId = pageData.category_id ? Number(pageData.category_id) : null;
-    const serviceId = pageData.service_id ? Number(pageData.service_id) : null;
+    const zoneId = pageData.zone_id === "all" || !pageData.zone_id ? null : Number(pageData.zone_id);
+    const categoryId = pageData.category_id === "all" || !pageData.category_id ? null : Number(pageData.category_id);
+    const serviceId = pageData.service_id === "all" || !pageData.service_id ? null : Number(pageData.service_id);
 
     if (isEdit) {
       await pool.query(
@@ -1027,7 +1033,7 @@ export async function bulkGenerateSeoPages(payload: {
       const slug = parentSlug ? `${parentSlug}-${cleanLocSlug}-${cleanServiceSlug}` : `${cleanServiceSlug}-${cleanLocSlug}`;
       const pageTitle = `${serviceTitle} in ${locName}, ${cityName}`;
       const h1 = `${serviceTitle} in ${locName}`;
-      const metaDesc = `Doorstep ${serviceTitle.toLowerCase()} in ${locName}, ${cityName}. Certified local technicians, same-day service, genuine spare parts & 30-day warranty. Call 9999251966.`;
+      const metaDesc = `Doorstep ${serviceTitle.toLowerCase()} in ${locName}, ${cityName}. Certified local technicians, same-day service, genuine spare parts, 45-day service warranty & 90-day parts warranty. Call 9999251966.`;
 
       const defaultFaqs = [
         {
@@ -1036,7 +1042,7 @@ export async function bulkGenerateSeoPages(payload: {
         },
         {
           question: `Is there a warranty on ${serviceTitle} in ${locName}?`,
-          answer: `Yes, all completed repairs include an official 30-day service warranty with genuine spare parts.`,
+          answer: `Yes, all completed repairs include an official 45-day repair & service warranty and a 90-day warranty on genuine spare parts.`,
         },
       ];
 

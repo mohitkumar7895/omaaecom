@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import ServiceCard from "./ServiceCard";
 import ServiceDetailsModal from "./ServiceDetailsModal";
 import Link from "next/link";
+import { getConfirmedLocation, openLocationModal } from "@/lib/location-state";
 
 
 type CategoryViewProps = {
@@ -105,6 +106,13 @@ export default function CategoryView({ category, subcategories, services, rateCa
   };
 
   const handleAddService = (service: any) => {
+    // Check confirmed location first
+    const loc = getConfirmedLocation();
+    if (!loc || !loc.isConfirmed) {
+      openLocationModal("add_service_requires_location");
+      return;
+    }
+
     if (cart.length > 0) {
       const isNewItemCashback = isCashbackItem(service);
       const hasCashbackInCart = isCashbackItem(cart[0]);
@@ -160,7 +168,7 @@ export default function CategoryView({ category, subcategories, services, rateCa
   return (
     <div className="max-w-7xl mx-auto w-full bg-white min-h-screen pb-24">
       {/* Header Area */}
-      <div className="pt-6 sm:pt-8 pb-4 sm:pb-5 px-3.5 sm:px-6 lg:px-12 border-b border-gray-100">
+      <div className="pt-4 sm:pt-6 pb-4 sm:pb-5 px-3.5 sm:px-6 lg:px-12 border-b border-gray-100">
         <div>
           <nav aria-label="Breadcrumb" className="text-xs text-gray-500 mb-2">
             <ol className="flex flex-wrap items-center gap-1">

@@ -58,56 +58,104 @@ const PHONE_HREF = "tel:+919999251966";
 const WHATSAPP_NUMBER = "919999251966";
 
 export default function DynamicSeoPageTemplate({ data }: { data: DynamicSeoPageData }) {
-  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+  // Keep all FAQs open and visible by default so answers Q1 to Q5 are immediately visible on live page
+  const [openFaqIndices, setOpenFaqIndices] = useState<Set<number>>(
+    () => new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+  );
 
   const toggleFaq = (index: number) => {
-    setOpenFaqIndex((prev) => (prev === index ? null : index));
+    setOpenFaqIndices((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
+      return next;
+    });
   };
 
   const locationDisplay = [data.area, data.city].filter(Boolean).join(", ") || data.city || data.area || "Delhi NCR";
+  const hierarchyLocationName =
+    data.parent_location?.name ||
+    (data.area && !data.area.toLowerCase().includes("ghaziabad") ? data.area : null) ||
+    (data.slug?.includes("indirapuram") ? "Indirapuram" : data.area || data.city || "Delhi NCR");
+
   const serviceDisplay = data.service_name || data.category_name || "Appliance Repair & Service";
   const displayH1 = data.h1 || data.title || `${serviceDisplay} in ${locationDisplay}`;
-  const displaySubheading =
+  
+  const rawSubheading =
     data.subheading ||
     data.meta_description ||
-    `Verified doorstep ${serviceDisplay.toLowerCase()} in ${locationDisplay}. Certified technician dispatch within 60–90 minutes with upfront rates and a 30-day warranty.`;
+    `Verified doorstep ${serviceDisplay.toLowerCase()} in ${locationDisplay}. Certified technician dispatch within 60–90 minutes with upfront rates, 45-day repair & service warranty, and 90-day spare parts warranty.`;
+
+  const displaySubheading = rawSubheading
+    .replace(/30[- ]day\s+comprehensive\s+service\s+warranty/gi, "45-day repair & service warranty and 90-day spare parts warranty")
+    .replace(/30[- ]day\s+service\s+warranty/gi, "45-day repair & service warranty and 90-day spare parts warranty")
+    .replace(/30[- ]day\s+warranty/gi, "45-day repair & 90-day parts warranty");
+
+  const displayH3 = data.h3
+    ? data.h3
+        .replace(/30[- ]day\s+comprehensive\s+service\s+warranty/gi, "45-Day Service & 90-Day Parts Warranty")
+        .replace(/30[- ]day\s+service\s+warranty/gi, "45-Day Service & 90-Day Parts Warranty")
+        .replace(/30[- ]day\s+warranty/gi, "45-Day Service & 90-Day Parts Warranty")
+    : null;
 
   const whatsappMessage = encodeURIComponent(
     `Hello OMAA Company! I need ${serviceDisplay} in ${locationDisplay}. Please confirm technician availability.`
   );
 
-  // Fallback default FAQs if none provided
-  const faqs = data.faqs && data.faqs.length > 0
-    ? data.faqs
-    : [
-        {
-          question: `How fast can a technician reach my doorstep in ${locationDisplay}?`,
-          answer: `Most service visits in ${locationDisplay} are attended within 60 to 90 minutes from booking. Same-day service slots operate between 8:00 AM and 8:00 PM. Call ${PHONE_NUMBER} for emergency priority dispatch.`,
-        },
-        {
-          question: `Is there a warranty on ${serviceDisplay} in ${locationDisplay}?`,
-          answer: `Yes, all completed repairs by OMAA Company come with an official 30-day service warranty. Genuine spare parts carry manufacturer warranty periods as specified on your invoice.`,
-        },
-        {
-          question: `What are the visiting and inspection charges in ${locationDisplay}?`,
-          answer: `Standard inspection charges are nominal and strictly aligned with our published Rate Card. If you proceed with the repair on the same visit, the inspection charge is adjusted within the service bill.`,
-        },
-        {
-          question: `Which brands do you service for ${serviceDisplay}?`,
-          answer: `Our certified technicians service all major Indian and international brands including Kent, Livpure, Aquaguard, Pureit, LG, Samsung, Whirlpool, Haier, Voltas, Godrej, IFB, Bosch, and Daikin.`,
-        },
-      ];
+  // Fallback default FAQs with official 45-day service & 90-day spare parts warranty policy
+  const defaultFaqs = [
+    {
+      question: `How fast can a technician reach my doorstep in ${locationDisplay}?`,
+      answer: `Most service visits in ${locationDisplay} are attended within 60 to 90 minutes from booking. Same-day service slots operate between 8:00 AM and 8:00 PM. Call ${PHONE_NUMBER} for emergency priority dispatch.`,
+    },
+    {
+      question: `Is there a warranty on ${serviceDisplay} in ${locationDisplay}?`,
+      answer: `Yes! All completed repairs by OMAA Company include an official dual warranty: 45 Days on Repair & Workmanship, and 90 Days on Genuine Replacement Spare Parts, documented on your official invoice.`,
+    },
+    {
+      question: `What are the visiting and inspection charges in ${locationDisplay}?`,
+      answer: `Standard inspection charges are nominal and strictly aligned with our published Rate Card. If you proceed with the repair on the same visit, the inspection charge is adjusted within the service bill.`,
+    },
+    {
+      question: `Which brands do you service for ${serviceDisplay}?`,
+      answer: `Our certified technicians service all major Indian and international brands including Kent, Livpure, Aquaguard, Pureit, LG, Samsung, Whirlpool, Haier, Voltas, Godrej, IFB, Bosch, Daikin, Blue Star, Carrier, and Hitachi.`,
+    },
+    {
+      question: `How do I receive my official warranty card?`,
+      answer: `Upon completion of service, our technician generates an official digital job sheet and warranty card. It is sent immediately to your registered mobile number via SMS and WhatsApp confirming your 45-day service warranty and 90-day spare parts warranty.`,
+    },
+  ];
 
-  const featuresList = Array.isArray(data.features) && data.features.length > 0
-    ? data.features
-    : [
-        "Doorstep technician within 60-90 minutes",
-        "100% Genuine manufacturer spare parts",
-        "Transparent published rate card (No hidden costs)",
-        "Verified background-checked technicians",
-        "30-day comprehensive service warranty",
-        "Post-service digital invoice & warranty card",
-      ];
+  const rawFaqs = data.faqs && data.faqs.length > 0 ? data.faqs : defaultFaqs;
+  const faqs = rawFaqs.map((faq) => ({
+    question: faq.question,
+    answer: faq.answer
+      .replace(/30[- ]day\s+comprehensive\s+service\s+warranty/gi, "45-day repair & service warranty and 90-day spare parts warranty")
+      .replace(/30[- ]day\s+service\s+warranty/gi, "45-day repair & service warranty and 90-day spare parts warranty")
+      .replace(/30[- ]day\s+warranty/gi, "45-day repair & 90-day parts warranty"),
+  }));
+
+  const defaultFeatures = [
+    "Doorstep technician within 60-90 minutes",
+    "100% Genuine manufacturer spare parts",
+    "Transparent published rate card (No hidden costs)",
+    "Verified background-checked technicians",
+    "45-Day Repair & Service Warranty",
+    "90-Day Spare Parts Warranty",
+    "Post-service digital invoice & 45/90-day warranty card",
+  ];
+
+  const featuresList = (
+    Array.isArray(data.features) && data.features.length > 0 ? data.features : defaultFeatures
+  ).map((feature) =>
+    feature
+      .replace(/30[- ]day\s+comprehensive\s+service\s+warranty/gi, "45-Day Repair & Service Warranty")
+      .replace(/30[- ]day\s+service\s+warranty/gi, "45-Day Repair & Service Warranty")
+      .replace(/30[- ]day\s+warranty/gi, "45-Day Service & 90-Day Parts Warranty")
+  );
 
   const bookUrl = data.category_id ? `/services/${data.category_id}` : "/";
 
@@ -242,8 +290,8 @@ export default function DynamicSeoPageTemplate({ data }: { data: DynamicSeoPageD
                     <ShieldCheck className="w-4 h-4" />
                   </div>
                   <div>
-                    <div className="text-xs font-bold text-slate-800">30-Day Warranty</div>
-                    <div className="text-[11px] text-slate-500">On Repaired Parts</div>
+                    <div className="text-xs font-bold text-slate-800">45-Day Service</div>
+                    <div className="text-[11px] text-slate-500 font-medium text-emerald-700">90-Day Parts Warranty</div>
                   </div>
                 </div>
 
@@ -346,14 +394,53 @@ export default function DynamicSeoPageTemplate({ data }: { data: DynamicSeoPageD
                   </div>
                 )}
 
+                {/* Dedicated Warranty Policy & Guarantee Box */}
+                <div className="mt-8 p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-emerald-50 via-teal-50 to-indigo-50 border border-emerald-200/90 shadow-xs">
+                  <div className="flex items-start gap-4">
+                    <div className="w-11 h-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-md">
+                      <ShieldCheck className="w-6 h-6" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold uppercase tracking-wider mb-1.5">
+                        Official Warranty Policy
+                      </div>
+                      <h3 className="text-base sm:text-lg font-black text-slate-900">
+                        OMAA Complete Dual Warranty Protection
+                      </h3>
+                      <p className="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">
+                        Every repair and service visit in {locationDisplay} includes official coverage so you never have to worry after a repair:
+                      </p>
+                      
+                      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="p-3.5 rounded-xl bg-white border border-emerald-200/80 shadow-xs">
+                          <div className="text-xs font-bold text-emerald-700 uppercase tracking-wide">1. Repair & Service Warranty</div>
+                          <div className="text-xl font-black text-slate-900 mt-0.5">45 Days</div>
+                          <p className="text-[11px] text-slate-500 mt-1">Full service guarantee with free doorstep re-inspection should any issue recur.</p>
+                        </div>
+
+                        <div className="p-3.5 rounded-xl bg-white border border-emerald-200/80 shadow-xs">
+                          <div className="text-xs font-bold text-indigo-700 uppercase tracking-wide">2. Spare Parts Warranty</div>
+                          <div className="text-xl font-black text-slate-900 mt-0.5">90 Days</div>
+                          <p className="text-[11px] text-slate-500 mt-1">100% brand-genuine replacement parts covered under our 90-day replacement warranty.</p>
+                        </div>
+                      </div>
+
+                      <div className="mt-3.5 flex items-center gap-2 text-xs text-slate-600">
+                        <Award className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>Official digital warranty card and GST invoice sent directly via SMS and WhatsApp upon job completion.</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Dynamic H3 Subsection if provided */}
-                {data.h3 && (
+                {displayH3 && (
                   <div className="mt-8 pt-6 border-t border-slate-100">
                     <h3 className="text-lg sm:text-xl font-bold text-slate-900">
-                      {data.h3}
+                      {displayH3}
                     </h3>
                     <p className="mt-3 text-sm text-slate-600 leading-relaxed">
-                      All repair work in {locationDisplay} is carried out strictly under manufacturer service protocols, ensuring high durability, energy efficiency, and total safety for your family.
+                      All repair work in {locationDisplay} is carried out strictly under manufacturer service protocols, backed by our 45-Day Service Warranty and 90-Day Spare Parts Warranty.
                     </p>
                   </div>
                 )}
@@ -367,7 +454,7 @@ export default function DynamicSeoPageTemplate({ data }: { data: DynamicSeoPageD
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                       <Layers className="w-5 h-5 text-sky-600" />
-                      <span>Avenues Covered in {locationDisplay}</span>
+                      <span>Avenues Covered in {hierarchyLocationName}</span>
                     </h3>
                     <span className="text-xs font-semibold text-sky-700 bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-100">
                       {data.child_avenues.length} Avenues
@@ -399,7 +486,7 @@ export default function DynamicSeoPageTemplate({ data }: { data: DynamicSeoPageD
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                       <Building className="w-5 h-5 text-purple-600" />
-                      <span>Residential Societies Covered in {locationDisplay}</span>
+                      <span>Residential Societies Covered in {hierarchyLocationName}</span>
                     </h3>
                     <span className="text-xs font-semibold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-100">
                       {data.child_societies.length} Societies
@@ -466,7 +553,7 @@ export default function DynamicSeoPageTemplate({ data }: { data: DynamicSeoPageD
                   <div className="relative">
                     <div className="w-8 h-8 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center text-sm mb-3">3</div>
                     <h4 className="font-bold text-slate-900 text-sm">Repaired & Covered</h4>
-                    <p className="text-xs text-slate-500 mt-1">Repair completed with genuine spares and an official 30-day warranty card issued on spot.</p>
+                    <p className="text-xs text-slate-500 mt-1">Repair completed with genuine spares. Official 45-Day Service Warranty & 90-Day Spare Parts Warranty card issued on spot.</p>
                   </div>
                 </div>
               </div>
@@ -486,7 +573,7 @@ export default function DynamicSeoPageTemplate({ data }: { data: DynamicSeoPageD
 
                 <div className="space-y-3">
                   {faqs.map((faq, idx) => {
-                    const isOpen = openFaqIndex === idx;
+                    const isOpen = openFaqIndices.has(idx);
                     return (
                       <div
                         key={idx}

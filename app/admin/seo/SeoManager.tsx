@@ -62,16 +62,16 @@ export interface SeoPageItem {
   url: string;
   slug: string;
   page_type?: "location" | "avenue" | "society" | "service";
-  parent_id?: number | null;
-  parent_location_id?: number | null;
-  child_avenue_id?: number | null;
-  child_society_id?: number | null;
+  parent_id?: number | string | null;
+  parent_location_id?: number | string | null;
+  child_avenue_id?: number | string | null;
+  child_society_id?: number | string | null;
   group_name: string;
   city?: string | null;
   area?: string | null;
-  category_id?: number | null;
-  service_id?: number | null;
-  zone_id?: number | null;
+  category_id?: number | string | null;
+  service_id?: number | string | null;
+  zone_id?: number | string | null;
   priority: number;
   changefreq: string;
   is_active: number | boolean;
@@ -298,61 +298,132 @@ export default function SeoManager({
     return () => clearTimeout(timer);
   }, [search, statusFilter, indexFilter, categoryFilter, zoneFilter, pageTypeFilter, parentLocationFilter]);
 
+  // Available Parents filtered by selected zone in active editor
+  const availableParentsForEditor = useMemo(() => {
+    if (!activePage?.zone_id || activePage.zone_id === "all") return parentLocations;
+    return parentLocations.filter((p) => p.zone_id === Number(activePage.zone_id));
+  }, [parentLocations, activePage?.zone_id]);
+
   // Available Avenues filtered by selected parent in active editor
   const availableAvenuesForEditor = useMemo(() => {
     if (!activePage?.parent_location_id) return [];
+    if (activePage.parent_location_id === "all") {
+      if (activePage.zone_id && activePage.zone_id !== "all") {
+        const zoneParentIds = new Set(
+          parentLocations.filter((p) => p.zone_id === Number(activePage.zone_id)).map((p) => p.id)
+        );
+        return childAvenues.filter((a) => zoneParentIds.has(a.parent_location_id));
+      }
+      return childAvenues;
+    }
     return childAvenues.filter((a) => a.parent_location_id === Number(activePage.parent_location_id));
-  }, [childAvenues, activePage?.parent_location_id]);
+  }, [childAvenues, parentLocations, activePage?.parent_location_id, activePage?.zone_id]);
 
   // Available Societies filtered by selected parent in active editor
   const availableSocietiesForEditor = useMemo(() => {
     if (!activePage?.parent_location_id) return [];
+    if (activePage.parent_location_id === "all") {
+      if (activePage.zone_id && activePage.zone_id !== "all") {
+        const zoneParentIds = new Set(
+          parentLocations.filter((p) => p.zone_id === Number(activePage.zone_id)).map((p) => p.id)
+        );
+        return childSocieties.filter((s) => zoneParentIds.has(s.parent_location_id));
+      }
+      return childSocieties;
+    }
     return childSocieties.filter((s) => s.parent_location_id === Number(activePage.parent_location_id));
-  }, [childSocieties, activePage?.parent_location_id]);
+  }, [childSocieties, parentLocations, activePage?.parent_location_id, activePage?.zone_id]);
 
   // Available Services filtered by selected category in active editor
   const availableServicesForEditor = useMemo(() => {
-    if (!activePage?.category_id) return services;
+    if (!activePage?.category_id || activePage.category_id === "all") return services;
     return services.filter((s) => s.category_id === Number(activePage.category_id));
   }, [services, activePage?.category_id]);
 
-  // Auto-generator helper when creating a new page
+  // Auto-generator helper when creating or editing a page
   const generatePageMetadataFromSelection = (page: Partial<SeoPageItem>) => {
+    const isAllZones = page.zone_id === "all";
+    const isAllParents = page.parent_location_id === "all" || page.parent_id === "all";
+    const isAllAvenues = page.child_avenue_id === "all";
+    const isAllSocieties = page.child_society_id === "all";
+    const isAllCategories = page.category_id === "all";
+
     const parent = parentLocations.find((p) => p.id === Number(page.parent_location_id));
     const avenue = childAvenues.find((a) => a.id === Number(page.child_avenue_id));
     const society = childSocieties.find((s) => s.id === Number(page.child_society_id));
     const cat = categories.find((c) => c.id === Number(page.category_id));
     const svc = services.find((s) => s.id === Number(page.service_id));
+    const matchedZone = zones.find((z) => z.id === Number(page.zone_id));
 
     const pageType = page.page_type || "service";
-    const cityName = parent?.city || page.city || "Ghaziabad";
-    const serviceName = svc?.title || cat?.title || "Home Appliance Repair";
+    const zoneName = matchedZone?.name || (isAllZones ? "Delhi NCR" : "Delhi NCR");
+    const cityName = parent?.city || page.city || (isAllZones ? "Delhi NCR" : zoneName);
 
+    // 1. Compute Service Name
+    let serviceName = "Home Appliance Repair";
+    let cleanSvcSlug = "home-appliance-repair";
+    if (isAllCategories) {
+      serviceName = "All Home Appliances Repair & Service";
+      cleanSvcSlug = "home-appliance-repair";
+    } else if (svc) {
+      serviceName = svc.title;
+      cleanSvcSlug = svc.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    } else if (cat) {
+      serviceName = cat.title;
+      cleanSvcSlug = cat.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    }
+
+    // 2. Compute Location Label & Slug Path
     let locationLabel = "";
     let slugPath = "";
 
     if (pageType === "location") {
-      locationLabel = parent?.name || "Indirapuram";
-      slugPath = parent?.slug || "indirapuram";
+      if (isAllParents) {
+        locationLabel = isAllZones ? "Delhi NCR (All Service Zones)" : `All Locations, ${zoneName}`;
+        slugPath = isAllZones ? "delhi-ncr-all-locations" : `${zoneName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-all-locations`;
+      } else {
+        locationLabel = parent?.name || "Indirapuram";
+        slugPath = parent?.slug || "indirapuram";
+      }
     } else if (pageType === "avenue") {
-      locationLabel = avenue ? `${avenue.name}, ${parent?.name || "Indirapuram"}` : (parent ? `Avenue, ${parent.name}` : "10th Avenue, Gaur City 2");
-      slugPath = parent && avenue ? `${parent.slug}/${avenue.slug}` : (avenue?.slug || "10th-avenue");
+      if (isAllAvenues) {
+        locationLabel = parent ? `All Avenues, ${parent.name}` : "All Avenues";
+        slugPath = parent ? `${parent.slug}/all-avenues` : "all-avenues";
+      } else {
+        locationLabel = avenue ? `${avenue.name}, ${parent?.name || "Indirapuram"}` : (parent ? `Avenue, ${parent.name}` : "10th Avenue, Gaur City 2");
+        slugPath = parent && avenue ? `${parent.slug}/${avenue.slug}` : (avenue?.slug || "10th-avenue");
+      }
     } else if (pageType === "society") {
-      locationLabel = society ? `${society.name}, ${parent?.name || "Indirapuram"}` : (parent ? `Society, ${parent.name}` : "White Orchid, Gaur City 2");
-      slugPath = parent && society ? `${parent.slug}/${society.slug}` : (society?.slug || "white-orchid");
+      if (isAllSocieties) {
+        locationLabel = parent ? `All Societies, ${parent.name}` : "All Societies";
+        slugPath = parent ? `${parent.slug}/all-societies` : "all-societies";
+      } else {
+        locationLabel = society ? `${society.name}, ${parent?.name || "Indirapuram"}` : (parent ? `Society, ${parent.name}` : "White Orchid, Gaur City 2");
+        slugPath = parent && society ? `${parent.slug}/${society.slug}` : (society?.slug || "white-orchid");
+      }
     } else {
       // Standard service page
-      const locTarget = society ? society.name : avenue ? avenue.name : parent ? parent.name : (page.area || "Indirapuram");
-      locationLabel = `${locTarget}, ${cityName}`;
-
-      const cleanSvcSlug = serviceName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-      if (society && parent) {
+      if (isAllSocieties && parent) {
+        locationLabel = `All Societies, ${parent.name}`;
+        slugPath = `${parent.slug}/all-societies/${cleanSvcSlug}`;
+      } else if (isAllAvenues && parent) {
+        locationLabel = `All Avenues, ${parent.name}`;
+        slugPath = `${parent.slug}/all-avenues/${cleanSvcSlug}`;
+      } else if (society && parent) {
+        locationLabel = `${society.name}, ${parent.name}`;
         slugPath = `${parent.slug}/${society.slug}/${cleanSvcSlug}`;
       } else if (avenue && parent) {
+        locationLabel = `${avenue.name}, ${parent.name}`;
         slugPath = `${parent.slug}/${avenue.slug}/${cleanSvcSlug}`;
+      } else if (isAllParents) {
+        locationLabel = isAllZones ? "All Locations, Delhi NCR" : `All Locations in ${zoneName}`;
+        slugPath = `${cleanSvcSlug}-${(matchedZone?.name || cityName).toLowerCase().replace(/[^a-z0-9]+/g, "-")}-all-areas`;
       } else if (parent) {
+        locationLabel = `${parent.name}, ${cityName}`;
         slugPath = `${cleanSvcSlug}-${parent.slug}`;
       } else {
+        const locTarget = page.area || cityName || "Indirapuram";
+        locationLabel = `${locTarget}, ${cityName}`;
         slugPath = `${cleanSvcSlug}-${locTarget.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
       }
     }
@@ -366,10 +437,10 @@ export default function SeoManager({
       : `Doorstep Appliance Repair in ${locationLabel}`;
 
     const h2 = `Why Choose OMAA Experts in ${locationLabel}?`;
-    const h3 = `Genuine Spare Parts & Certified Technicians with 30-Day Warranty`;
+    const h3 = `Genuine Spare Parts & Certified Technicians with 45-Day Service & 90-Day Parts Warranty`;
 
     const metaTitle = `${title} | Call 9999251966`;
-    const metaDesc = `Doorstep ${serviceName.toLowerCase()} in ${locationLabel}. Certified local technicians, same-day service within 60–90 minutes, upfront pricing & 30-day warranty. Call 9999251966.`;
+    const metaDesc = `Doorstep ${serviceName.toLowerCase()} in ${locationLabel}. Certified local technicians, same-day service within 60–90 minutes, upfront pricing, 45-day repair warranty & 90-day parts warranty. Call 9999251966.`;
 
     const canonical = `/${slugPath.replace(/^\/+/, "")}`;
 
@@ -382,8 +453,8 @@ export default function SeoManager({
       meta_title: metaTitle,
       meta_description: metaDesc,
       canonical_url: canonical,
-      subheading: `Verified doorstep service in ${locationLabel} with 30-day service warranty and manufacturer spares.`,
-      content: `OMAA Company offers reliable, fast, and transparent doorstep appliance repair in ${locationLabel}. Our certified technicians arrive within 60 to 90 minutes equipped with genuine spares and advanced diagnostics.`,
+      subheading: `Verified doorstep service in ${locationLabel} with 45-day repair warranty, 90-day parts warranty and manufacturer spares.`,
+      content: `OMAA Company offers reliable, fast, and transparent doorstep appliance repair in ${locationLabel}. Our certified technicians arrive within 60 to 90 minutes equipped with genuine spares and advanced diagnostics. All services include our official 45-day repair & service warranty and 90-day spare parts warranty.`,
     };
   };
 
@@ -415,7 +486,7 @@ export default function SeoManager({
         },
         {
           question: `Is there a warranty on repairs?`,
-          answer: `Yes, all repairs include an official 30-day service warranty and brand-certified spare parts.`,
+          answer: `Yes, all repairs include an official 45-day repair & service warranty and a 90-day warranty on genuine spare parts.`,
         },
       ],
     };
@@ -431,9 +502,19 @@ export default function SeoManager({
 
   // Open Edit Page Modal
   const handleOpenEditPage = (page: SeoPageItem) => {
+    const isAvenueAll = !page.child_avenue_id && (page.slug?.includes("all-avenues") || page.title?.toLowerCase().includes("all avenue"));
+    const isSocietyAll = !page.child_society_id && (page.slug?.includes("all-societies") || page.title?.toLowerCase().includes("all societ"));
+    const isCatAll = !page.category_id && (page.slug?.includes("home-appliance") || page.title?.toLowerCase().includes("home appliance"));
+    const isParentAll = !page.parent_location_id && !page.parent_id && (page.slug?.includes("all-location") || page.slug?.includes("all-area"));
+    const isZoneAll = !page.zone_id && (page.slug?.includes("all-zone") || page.city?.toLowerCase().includes("all service zone"));
+
     setActivePage({
       ...page,
-      parent_location_id: page.parent_location_id || page.parent_id || null,
+      zone_id: isZoneAll ? "all" : (page.zone_id || null),
+      parent_location_id: isParentAll ? "all" : (page.parent_location_id || page.parent_id || null),
+      child_avenue_id: isAvenueAll ? "all" : (page.child_avenue_id || null),
+      child_society_id: isSocietyAll ? "all" : (page.child_society_id || null),
+      category_id: isCatAll ? "all" : (page.category_id || null),
       faqs: Array.isArray(page.faqs) && page.faqs.length > 0 ? page.faqs : [],
     });
     setIsEditorOpen(true);
@@ -1579,7 +1660,25 @@ export default function SeoManager({
                     <select
                       value={activePage.zone_id || ""}
                       onChange={(e) => {
-                        const nextZoneId = e.target.value ? Number(e.target.value) : null;
+                        const val = e.target.value;
+                        if (val === "all") {
+                          setActivePage((prev) => {
+                            const updated = {
+                              ...prev,
+                              zone_id: "all",
+                              city: "Delhi NCR",
+                              parent_location_id: "all",
+                              parent_id: "all",
+                              child_avenue_id: null,
+                              child_society_id: null,
+                            };
+                            const autoGen = generatePageMetadataFromSelection(updated);
+                            return { ...updated, ...autoGen };
+                          });
+                          return;
+                        }
+
+                        const nextZoneId = val ? Number(val) : null;
                         const matchedZone = zones.find((z) => z.id === nextZoneId);
                         const zoneParents = parentLocations.filter((p) => p.zone_id === nextZoneId);
                         const autoParent = zoneParents.length === 1 ? zoneParents[0] : null;
@@ -1601,6 +1700,7 @@ export default function SeoManager({
                       className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-800"
                     >
                       <option value="">-- Select Service Zone --</option>
+                      <option value="all">🌐 All Zones (All Service Zones)</option>
                       {zones.map((z) => (
                         <option key={z.id} value={z.id}>
                           {z.name}
@@ -1634,7 +1734,23 @@ export default function SeoManager({
                   <select
                     value={activePage.parent_location_id || activePage.parent_id || ""}
                     onChange={(e) => {
-                      const nextParentId = e.target.value ? Number(e.target.value) : null;
+                      const val = e.target.value;
+                      if (val === "all") {
+                        setActivePage((prev) => {
+                          const updated = {
+                            ...prev,
+                            parent_location_id: "all",
+                            parent_id: "all",
+                            child_avenue_id: null,
+                            child_society_id: null,
+                          };
+                          const autoGen = generatePageMetadataFromSelection(updated);
+                          return { ...updated, ...autoGen };
+                        });
+                        return;
+                      }
+
+                      const nextParentId = val ? Number(val) : null;
                       const selectedParent = parentLocations.find((p) => p.id === nextParentId);
 
                       setActivePage((prev) => {
@@ -1655,7 +1771,10 @@ export default function SeoManager({
                     className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                   >
                     <option value="">-- Select Parent Location --</option>
-                    {activePage.zone_id && parentLocations.some((p) => p.zone_id === activePage.zone_id) ? (
+                    <option value="all">
+                      📍 All Parent Locations {activePage.zone_id && activePage.zone_id !== "all" ? "(in Selected Zone)" : "(All Zones)"}
+                    </option>
+                    {activePage.zone_id && activePage.zone_id !== "all" && parentLocations.some((p) => p.zone_id === activePage.zone_id) ? (
                       <>
                         <optgroup label="Locations in Selected Zone">
                           {parentLocations
@@ -1700,11 +1819,13 @@ export default function SeoManager({
                       value={activePage.child_avenue_id || ""}
                       disabled={!activePage.parent_location_id || activePage.page_type === "location"}
                       onChange={(e) => {
-                        const nextAvenueId = e.target.value ? Number(e.target.value) : null;
+                        const val = e.target.value;
+                        const nextAvenueId = val === "all" ? "all" : (val ? Number(val) : null);
                         setActivePage((prev) => {
                           const updated = {
                             ...prev,
                             child_avenue_id: nextAvenueId,
+                            child_society_id: null,
                           };
                           const autoGen = generatePageMetadataFromSelection(updated);
                           return { ...updated, ...autoGen };
@@ -1713,6 +1834,11 @@ export default function SeoManager({
                       className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-800 disabled:bg-slate-100"
                     >
                       <option value="">-- Select Child Avenue (Optional / Filtered) --</option>
+                      {availableAvenuesForEditor.length > 0 && (
+                        <option value="all">
+                          🛣️ All Avenues ({availableAvenuesForEditor.length} Avenues)
+                        </option>
+                      )}
                       {availableAvenuesForEditor.map((a) => (
                         <option key={a.id} value={a.id}>
                           {a.name}
@@ -1738,11 +1864,13 @@ export default function SeoManager({
                       value={activePage.child_society_id || ""}
                       disabled={!activePage.parent_location_id || activePage.page_type === "location"}
                       onChange={(e) => {
-                        const nextSocietyId = e.target.value ? Number(e.target.value) : null;
+                        const val = e.target.value;
+                        const nextSocietyId = val === "all" ? "all" : (val ? Number(val) : null);
                         setActivePage((prev) => {
                           const updated = {
                             ...prev,
                             child_society_id: nextSocietyId,
+                            child_avenue_id: null,
                           };
                           const autoGen = generatePageMetadataFromSelection(updated);
                           return { ...updated, ...autoGen };
@@ -1751,6 +1879,11 @@ export default function SeoManager({
                       className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-800 disabled:bg-slate-100"
                     >
                       <option value="">-- Select Child Society (Optional / Filtered) --</option>
+                      {availableSocietiesForEditor.length > 0 && (
+                        <option value="all">
+                          🏢 All Societies ({availableSocietiesForEditor.length} Societies)
+                        </option>
+                      )}
                       {availableSocietiesForEditor.map((s) => (
                         <option key={s.id} value={s.id}>
                           {s.name}
@@ -1775,7 +1908,8 @@ export default function SeoManager({
                     <select
                       value={activePage.category_id || ""}
                       onChange={(e) => {
-                        const nextCatId = e.target.value ? Number(e.target.value) : null;
+                        const val = e.target.value;
+                        const nextCatId = val === "all" ? "all" : (val ? Number(val) : null);
                         setActivePage((prev) => {
                           const updated = {
                             ...prev,
@@ -1789,6 +1923,7 @@ export default function SeoManager({
                       className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-800"
                     >
                       <option value="">-- Select Service Category --</option>
+                      <option value="all">🛠️ All Categories (All Home Appliances)</option>
                       {categories.map((c) => (
                         <option key={c.id} value={c.id}>
                           {c.title}
@@ -1816,7 +1951,11 @@ export default function SeoManager({
                       }}
                       className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-800"
                     >
-                      <option value="">-- All Services in Category --</option>
+                      <option value="">
+                        {activePage.category_id === "all"
+                          ? "-- All Services in All Categories --"
+                          : "-- All Services in Category --"}
+                      </option>
                       {availableServicesForEditor.map((s) => (
                         <option key={s.id} value={s.id}>
                           {s.title}
@@ -1975,7 +2114,7 @@ export default function SeoManager({
                     {activePage.meta_title || activePage.title || "Page Title"}
                   </div>
                   <div className="text-xs text-slate-600 line-clamp-2 mt-0.5">
-                    {activePage.meta_description || "Doorstep home appliance repair in Delhi NCR with 30-day warranty."}
+                    {activePage.meta_description || "Doorstep home appliance repair in Delhi NCR with 45-day service & 90-day parts warranty."}
                   </div>
                 </div>
               </div>

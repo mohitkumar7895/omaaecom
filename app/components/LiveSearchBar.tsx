@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Search, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { getConfirmedLocation, openLocationModal } from "@/lib/location-state";
 
 export default function LiveSearchBar({ 
   placeholder = "Search for Services ...",
@@ -99,6 +100,13 @@ export default function LiveSearchBar({
     setIsOpen(false);
     setQuery("");
     
+    // Check if location is confirmed first
+    const loc = getConfirmedLocation();
+    if (!loc || !loc.isConfirmed) {
+      openLocationModal("search_bar_select");
+      return;
+    }
+
     // If it's a category, go to category page.
     // If it's a service, go to its category page (since services are shown on the category page)
     const targetUrl = item.type === 'category' 

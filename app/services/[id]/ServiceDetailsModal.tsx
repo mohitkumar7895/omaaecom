@@ -1,4 +1,4 @@
-import { X, Star, CheckCircle2, Check, FileText, ChevronDown } from "lucide-react";
+import { X, Star, CheckCircle2, Check, FileText, ChevronDown, ShieldCheck } from "lucide-react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
@@ -17,6 +17,7 @@ export default function ServiceDetailsModal({ service, categoryName, onClose, on
   const [reviewsList, setReviewsList] = useState<any[]>([]);
   const [reviewStats, setReviewStats] = useState<any>(null);
   const [loadingReviews, setLoadingReviews] = useState(true);
+  const [showWarrantyTerms, setShowWarrantyTerms] = useState(false);
 
   useEffect(() => {
     const fetchReviews = async () => {
@@ -50,19 +51,31 @@ export default function ServiceDetailsModal({ service, categoryName, onClose, on
         {/* Close Button */}
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 bg-white/80 backdrop-blur-md p-1.5 sm:p-2 rounded-full shadow-sm hover:bg-white text-gray-700 transition"
+          className="absolute top-4 right-4 z-20 bg-white/90 backdrop-blur-md p-1.5 sm:p-2 rounded-full shadow-md hover:bg-white text-gray-700 transition"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto">
-          {/* Hero Image */}
-          <div className="w-full h-[180px] sm:h-[240px] bg-gray-100 relative overflow-hidden">
+          {/* Full Service Image Container */}
+          <div className="w-full bg-slate-100/80 relative overflow-hidden flex items-center justify-center min-h-[220px] sm:min-h-[280px] max-h-[380px] sm:max-h-[440px] p-4 sm:p-6 border-b border-gray-100">
             {service.image_url ? (
-              <img src={service.image_url} alt={service.title} className="w-full h-full object-cover object-center" />
+              <>
+                {/* Soft ambient background glow from image */}
+                <div 
+                  className="absolute inset-0 bg-cover bg-center blur-2xl opacity-15 scale-110 pointer-events-none"
+                  style={{ backgroundImage: `url(${service.image_url})` }}
+                  aria-hidden="true"
+                />
+                <img 
+                  src={service.image_url} 
+                  alt={service.title} 
+                  className="relative z-1 max-w-full max-h-[320px] sm:max-h-[380px] w-auto h-auto object-contain drop-shadow-md rounded-xl" 
+                />
+              </>
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
+              <div className="w-full h-48 flex items-center justify-center text-gray-400 font-medium text-sm">No Image Available</div>
             )}
           </div>
 
@@ -75,12 +88,86 @@ export default function ServiceDetailsModal({ service, categoryName, onClose, on
               <span>({service.reviews ? `${service.reviews}` : '0 reviews'})</span>
             </div>
 
-            {/* OC Warranty Box */}
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 sm:p-4 flex gap-3 mb-4">
-              <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <h4 className="font-bold text-blue-700 mb-0.5 sm:mb-1 text-sm sm:text-base">OC Warranty</h4>
-                <p className="text-xs sm:text-sm text-gray-600">New paid service. {service.warranty_days || 180}-day warranty after completion.</p>
+            {/* OMAA Company Official Warranty Policy Section */}
+            <div className="bg-gradient-to-br from-emerald-50 via-teal-50 to-indigo-50 border border-emerald-200/90 rounded-2xl p-4 sm:p-5 mb-5 shadow-xs">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase tracking-wider mb-1">
+                    OMAA Warranty Policy
+                  </div>
+                  <h4 className="text-base sm:text-lg font-black text-slate-900 leading-tight">
+                    Official Warranty Coverage
+                  </h4>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    At OMAA Company, we are committed to delivering reliable repair services and quality workmanship. To ensure customer confidence and peace of mind, we offer the following warranty coverage:
+                  </p>
+
+                  {/* 2 Warranty Cards */}
+                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div className="p-3 rounded-xl bg-white border border-emerald-200/80 shadow-xs">
+                      <div className="text-[11px] font-bold text-emerald-700 uppercase tracking-wide">
+                        1. Repair & Service Warranty
+                      </div>
+                      <div className="text-lg font-black text-slate-900 mt-0.5">45 Days</div>
+                      <p className="text-[11px] text-slate-500 mt-1 leading-normal">
+                        Enjoy a 45-day warranty on eligible repair and service work from the date of service completion. Covers the specific repair performed against the same issue.
+                      </p>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-white border border-emerald-200/80 shadow-xs">
+                      <div className="text-[11px] font-bold text-indigo-700 uppercase tracking-wide">
+                        2. Spare Parts Warranty
+                      </div>
+                      <div className="text-lg font-black text-slate-900 mt-0.5">90 Days</div>
+                      <p className="text-[11px] text-slate-500 mt-1 leading-normal">
+                        Eligible spare parts supplied and installed by OMAA Company are covered by a 90-day warranty from the date of installation.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Expandable / Accordion for Terms & Conditions and Commitment */}
+                  <div className="mt-3 pt-3 border-t border-emerald-200/70">
+                    <button
+                      type="button"
+                      onClick={() => setShowWarrantyTerms((prev) => !prev)}
+                      className="w-full flex items-center justify-between text-xs font-bold text-slate-800 hover:text-emerald-700 transition cursor-pointer"
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <span>Warranty Terms & Conditions</span>
+                        <span className="text-[10px] font-normal text-slate-500">
+                          {showWarrantyTerms ? "(Click to hide)" : "(Click to view details)"}
+                        </span>
+                      </span>
+                      <ChevronDown
+                        className={`w-4 h-4 text-slate-500 transition-transform duration-200 ${
+                          showWarrantyTerms ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+
+                    {showWarrantyTerms && (
+                      <div className="mt-2.5 space-y-2.5 text-[11px] text-slate-600 bg-white/90 p-3.5 rounded-xl border border-emerald-100 animate-in fade-in duration-150">
+                        <ul className="space-y-1.5 list-disc pl-4 leading-relaxed">
+                          <li>Warranty applies only to the specific repair work or spare parts mentioned in the service invoice.</li>
+                          <li>New or unrelated technical issues are not covered under the existing repair warranty.</li>
+                          <li>Damage caused by misuse, accidents, voltage fluctuations, water damage or unauthorized repairs is excluded.</li>
+                          <li>Normal wear and tear and consumable items are not covered unless specifically mentioned.</li>
+                          <li>Warranty claims are subject to inspection and verification by OMAA Company&apos;s service team.</li>
+                          <li>Original service invoice or valid booking details are required for warranty claims.</li>
+                        </ul>
+                        <div className="pt-2.5 border-t border-slate-100">
+                          <strong className="text-slate-800 block mb-0.5">Our Commitment:</strong>
+                          <p className="leading-relaxed">
+                            Your trust matters to us. OMAA Company strives to provide dependable service, transparent processes and a better customer experience with every service visit.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 

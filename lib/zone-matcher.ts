@@ -90,32 +90,31 @@ export function isLocationInZone(
   return false;
 }
 
+export interface CategoryWithLocationInfo {
+  id: number;
+  title?: string;
+  type?: string;
+  zones_location?: string;
+}
+
 /**
- * Filters categories available for the user's location based on all active zones.
- * If user matches any zone(s), returns the union of categories for those zones.
- * If no active zones are defined in the system, returns all category IDs as a fallback.
+ * Filters categories available for the user's location based on:
+ * 1. Predefined service_zones (geometry/circle/city_names match -> zone.category_ids)
+ * 2. categories.zones_location (locality/city tokens match)
+ * Returns the exact list of category IDs active for that location.
  */
 export function getAvailableCategoryIdsForLocation(
   lat: number | null,
   lng: number | null,
   cityName: string | null,
   allZones: ZoneData[],
-  allCategories: Array<{ id: number }>
+  allCategories: Array<CategoryWithLocationInfo>
 ): {
   matchedZoneNames: string[];
   allowedCategoryIds: number[];
   isLocationRestricted: boolean;
 } {
   const activeZones = allZones.filter((z) => z.status === "Active");
-
-  // If no zones configured in DB, allow all categories
-  if (activeZones.length === 0) {
-    return {
-      matchedZoneNames: ["All Areas"],
-      allowedCategoryIds: allCategories.map((c) => c.id),
-      isLocationRestricted: false,
-    };
-  }
 
   const hasCoords =
     lat !== null &&
@@ -132,8 +131,9 @@ export function getAvailableCategoryIdsForLocation(
     };
   }
 
+  // 1. Check which service_zones match by coords or city_names
   const matchedZones: ZoneData[] = [];
-  const allowedIdsSet = new Set<number>();
+  const zoneAllowedIdsSet = new Set<number>();
 
   for (const zone of activeZones) {
     let inZone = false;
@@ -151,24 +151,69 @@ export function getAvailableCategoryIdsForLocation(
     if (inZone) {
       matchedZones.push(zone);
       const ids = Array.isArray(zone.category_ids) ? zone.category_ids : [];
-      if (ids.length === 0) {
-        allCategories.forEach((c) => allowedIdsSet.add(c.id));
-      } else {
-        ids.forEach((id) => allowedIdsSet.add(Number(id)));
+      if (ids.length > 0) {
+        ids.forEach((id) => zoneAllowedIdsSet.add(Number(id)));
       }
     }
   }
 
+  // 2. Check categories by zones_location
+  const categoryMatchedIds = new Set<number>();
+  if (cityName) {
+    const locTokens = expandLocationAliases(cityName);
+    for (const cat of allCategories) {
+      if (!cat.zones_location) continue;
+      const zones = cat.zones_location.split(",").map((z) => z.trim().toLowerCase()).filter(Boolean);
+      if (zones.some((z) => z === "all" || z === "pan india")) {
+        categoryMatchedIds.add(Number(cat.id));
+        continue;
+      }
+      const isMatch = zones.some((z) =>
+        locTokens.some((tok) => tok === z || tok.includes(z) || z.includes(tok))
+      );
+      if (isMatch) {
+        categoryMatchedIds.add(Number(cat.id));
+      }
+    }
+  }
+
+  // 3. Combine results based on rule:
+  // "jon se zone mai jitnii service lagi vo dikhu bhai yrr"
   if (matchedZones.length > 0) {
+    let finalIds: number[] = [];
+    if (zoneAllowedIdsSet.size > 0) {
+      // Explicit category_ids configured in Admin Zone Manager
+      finalIds = Array.from(zoneAllowedIdsSet);
+    } else if (categoryMatchedIds.size > 0) {
+      finalIds = Array.from(categoryMatchedIds);
+    } else {
+      finalIds = allCategories.map((c) => c.id);
+    }
+
     return {
       matchedZoneNames: matchedZones.map((z) => z.name),
-      allowedCategoryIds: Array.from(allowedIdsSet),
+      allowedCategoryIds: finalIds,
       isLocationRestricted: true,
     };
   }
 
-  // User location is known, but outside of all defined zones:
-  // Return empty list so we can indicate services are not in this zone yet
+  // If no zone polygon matched, but location matched categories in zones_location (e.g. Bharthana):
+  if (categoryMatchedIds.size > 0) {
+    let cleanName = "Local Service Area";
+    if (cityName) {
+      const parts = cityName.split(",").map((p) => p.trim()).filter(Boolean);
+      // Pick the city name or meaningful locality (usually the last non-numeric token)
+      const candidate = parts.slice().reverse().find((p) => !/^\d+$/.test(p) && p.length > 2);
+      cleanName = candidate ? `${candidate} Area` : `${parts[0]} Area`;
+    }
+    return {
+      matchedZoneNames: [cleanName],
+      allowedCategoryIds: Array.from(categoryMatchedIds),
+      isLocationRestricted: true,
+    };
+  }
+
+  // Outside any zone and no category assigned
   return {
     matchedZoneNames: [],
     allowedCategoryIds: [],

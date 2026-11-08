@@ -107,12 +107,18 @@ export default async function CategoryPage({ params }: { params: Promise<{ id: s
     }
     const category = { ...catRows[0], image_url: publicAssetUrl(catRows[0].image_url) };
 
-    const services = servicesRows.map((s: any) => ({
-      ...s,
-      image_url: publicAssetUrl(s.image_url) || (s.image_url ? `/api/media/service/${s.id}` : ""),
-      short_description: s.short_description || category.short_description,
-      warranty_days: s.warranty_days,
-    }));
+    const services = servicesRows.map((s: any) => {
+      const rawDesc = s.short_description || category.short_description;
+      const cleanDesc = (rawDesc && !rawDesc.includes("Warranty Policy") && !rawDesc.startsWith("###"))
+        ? rawDesc
+        : "";
+      return {
+        ...s,
+        image_url: publicAssetUrl(s.image_url) || (s.image_url ? `/api/media/service/${s.id}` : ""),
+        short_description: cleanDesc,
+        warranty_days: s.warranty_days,
+      };
+    });
 
     const siteUrl = getSiteUrl();
 

@@ -2,11 +2,28 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { getCurrentLocation, autoDetectLocation } from "@/lib/location";
+import { getCurrentLocation } from "@/lib/location";
 import { getKeywordPage } from "@/lib/seo-keywords";
 import { locationToCitySlug, matchSeoLocationSlug } from "@/lib/seo-locations";
 import { getGaurCitySociety } from "@/lib/gaur-city-data";
-import { ChevronDown, MapPin, X, LocateFixed, Search, ChevronRight, Loader2, AlertCircle } from "lucide-react";
+import {
+  getConfirmedLocation,
+  setConfirmedLocation,
+  ConfirmedLocation,
+} from "@/lib/location-state";
+import {
+  ChevronDown,
+  MapPin,
+  LocateFixed,
+  Search,
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
+  Sparkles,
+  Building,
+  Compass,
+  X
+} from "lucide-react";
 
 interface LocationData {
   latitude?: number;
@@ -15,9 +32,9 @@ interface LocationData {
   shortAddress?: string;
   fullAddress?: string;
   city: string;
-  state: string;
-  country: string;
-  postalCode: string;
+  state?: string;
+  country?: string;
+  postalCode?: string;
   mohalla?: string;
   sector?: string;
   houseNumber?: string;
@@ -27,12 +44,23 @@ interface LocationData {
   secondaryText?: string;
 }
 
+const POPULAR_HUBS = [
+  { name: "Gaur City 2", locality: "Gaur City 2, Greater Noida West", city: "Greater Noida West", lat: 28.609, lng: 77.432 },
+  { name: "Gaur City 1", locality: "Gaur City 1, Greater Noida West", city: "Greater Noida West", lat: 28.613, lng: 77.428 },
+  { name: "Indirapuram", locality: "Indirapuram, Ghaziabad", city: "Ghaziabad", lat: 28.641, lng: 77.371 },
+  { name: "Noida Extension", locality: "Noida Extension, Greater Noida West", city: "Greater Noida West", lat: 28.605, lng: 77.438 },
+  { name: "Sector 62, Noida", locality: "Sector 62, Noida", city: "Noida", lat: 28.620, lng: 77.363 },
+  { name: "Pari Chowk", locality: "Pari Chowk, Greater Noida", city: "Greater Noida", lat: 28.468, lng: 77.503 },
+  { name: "Gurugram", locality: "Gurugram, Haryana", city: "Gurugram", lat: 28.459, lng: 77.026 },
+  { name: "Delhi NCR", locality: "Delhi NCR", city: "Delhi", lat: 28.613, lng: 77.209 },
+];
+
 const NON_CITY_ROUTES = new Set([
-  'about', 'admin', 'api', 'cart', 'cashback', 'checkout', 'complaint', 
-  'contact', 'invoice', 'login', 'manage-address', 'my-amc', 'my-bookings', 
-  'privacy', 'privacy-policy', 'product-history', 'professional-registration', 
-  'rate-card', 'refer-earn', 'service-areas', 'services', 'settings', 
-  'sitemap', 'sitemap.xml', 'sitemap-directory', 'sitemap-pages', 'robots.txt', 'sso-callback', 'terms', 
+  'about', 'admin', 'api', 'cart', 'cashback', 'checkout', 'complaint',
+  'contact', 'invoice', 'login', 'manage-address', 'my-amc', 'my-bookings',
+  'privacy', 'privacy-policy', 'product-history', 'professional-registration',
+  'rate-card', 'refer-earn', 'service-areas', 'services', 'settings',
+  'sitemap', 'sitemap.xml', 'sitemap-directory', 'sitemap-pages', 'robots.txt', 'sso-callback', 'terms',
   'terms-and-conditions', 'wallet', 'member_login', 'registration_form.php',
   'gaur-city-2'
 ]);
@@ -70,151 +98,81 @@ export default function LocationSelector() {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
-  
+
   // Location States
   const [isLoading, setIsLoading] = useState(false);
-  const [isAutoDetecting, setIsAutoDetecting] = useState(false);
+  const [isVerifyingZone, setIsVerifyingZone] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [location, setLocation] = useState<LocationData | null>(null);
-  
+  const [confirmedLocation, setConfirmedState] = useState<ConfirmedLocation | null>(null);
+
   // Search States
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<LocationData[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [resolvingPlaceId, setResolvingPlaceId] = useState<string | null>(null);
+
   const sessionTokenRef = useRef(
     typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}`
   );
   const searchAbortRef = useRef<AbortController | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
-  const detectGenerationRef = useRef(0);
-
-  const lockSavedLocation = () => {
-    try {
-      sessionStorage.setItem("omaa_location_locked", "1");
-      localStorage.removeItem("omaa_location_locked");
-    } catch {}
-  };
-
-  const isLocationLocked = () => {
-    try {
-      return sessionStorage.getItem("omaa_location_locked") === "1";
-    } catch {
-      return false;
-    }
-  };
-
-  const isPageReload = () => {
-    try {
-      const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
-      if (nav?.type === "reload") return true;
-    } catch {}
-    return false;
-  };
 
   const newSessionToken = () => {
     sessionTokenRef.current =
       typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}`;
   };
 
-  // Refresh → auto GPS. Search select stays until the next refresh.
+  // 1. Initial Load & Persistence: Check if location is confirmed
   useEffect(() => {
-    const loadOrDetect = async () => {
-      if (isPageReload()) {
-        try {
-          sessionStorage.removeItem("omaa_location_locked");
-          localStorage.removeItem("omaa_location_locked");
-        } catch {}
-      }
+    const existing = getConfirmedLocation();
+    if (existing && existing.isConfirmed) {
+      setConfirmedState(existing);
+    } else {
+      // Rule 1: First visit without confirmed location -> Automatically open location modal
+      const timer = setTimeout(() => {
+        setIsOpen(true);
+      }, 350);
+      return () => clearTimeout(timer);
+    }
 
-      const savedLocation = localStorage.getItem("user_location");
-      let parsedSaved: LocationData | null = null;
-      if (savedLocation) {
-        try {
-          const parsed = JSON.parse(savedLocation);
-          if (parsed && (parsed.city || parsed.address || parsed.shortAddress)) {
-            parsedSaved = parsed;
-            setLocation(parsed);
-            if (shouldSyncCityUrl(pathname || "/") && !isPageReload()) {
-              const slug = routeSlugForLocation(parsed);
-              if (slug && pathname !== `/${slug}`) router.replace(`/${slug}`);
-            }
-          }
-        } catch (e) {
-          console.error("Failed to parse saved location");
-        }
-      }
-
-      if (!isPageReload() && isLocationLocked() && parsedSaved) {
-        return;
-      }
-
-      const generation = ++detectGenerationRef.current;
-      setIsAutoDetecting(true);
-      try {
-        const detected = await autoDetectLocation();
-        if (generation !== detectGenerationRef.current || isLocationLocked()) return;
-        if (detected && (detected.city || detected.address || detected.latitude)) {
-          const full = detected.fullAddress || detected.address || detected.shortAddress || "";
-          const finalDetected = {
-            ...detected,
-            fullAddress: full,
-            address: full || detected.address,
-          };
-          lockSavedLocation();
-          setLocation(finalDetected);
-          localStorage.setItem("user_location", JSON.stringify(finalDetected));
-          window.dispatchEvent(new Event("location_changed"));
-          if (shouldSyncCityUrl(pathname || "/")) {
-            const slug = routeSlugForLocation(finalDetected);
-            if (slug && pathname !== `/${slug}`) {
-              router.replace(`/${slug}`);
-            }
-          }
-        }
-      } catch (err) {
-        console.warn("Auto detect location failed:", err);
-      } finally {
-        if (generation === detectGenerationRef.current) setIsAutoDetecting(false);
-      }
-    };
-
-    loadOrDetect();
-
-    // Listen to location changes across windows/components
     const handleLocationChange = () => {
-      try {
-        const saved = localStorage.getItem("user_location");
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          setLocation(parsed);
-        }
-      } catch (e) {}
+      const fresh = getConfirmedLocation();
+      setConfirmedState(fresh);
     };
 
+    const handleOpenModal = () => {
+      setIsOpen(true);
+    };
+
+    window.addEventListener("location_confirmed", handleLocationChange);
     window.addEventListener("location_changed", handleLocationChange);
     window.addEventListener("storage", handleLocationChange);
+    window.addEventListener("open_location_modal", handleOpenModal);
 
     return () => {
+      window.removeEventListener("location_confirmed", handleLocationChange);
       window.removeEventListener("location_changed", handleLocationChange);
       window.removeEventListener("storage", handleLocationChange);
+      window.removeEventListener("open_location_modal", handleOpenModal);
     };
   }, []);
 
-  // Handle modal animation
+  // Modal Animation and Focus
   useEffect(() => {
     if (isOpen) {
       setMounted(true);
+      setError(null);
       newSessionToken();
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         setVisible(true);
         searchInputRef.current?.focus();
       }, 20);
+      return () => clearTimeout(timer);
     } else {
       setVisible(false);
       const timer = setTimeout(() => {
         setMounted(false);
-        setError(null); // Reset error when closed
+        setError(null);
         setSearchQuery("");
         setSearchResults([]);
       }, 300);
@@ -222,7 +180,7 @@ export default function LocationSelector() {
     }
   }, [isOpen]);
 
-  // Debounced Google autocomplete — one request after typing pauses
+  // Debounced Place Autocomplete Search
   useEffect(() => {
     const q = searchQuery.trim();
     searchAbortRef.current?.abort();
@@ -269,7 +227,7 @@ export default function LocationSelector() {
       } finally {
         if (!ctrl.signal.aborted) setIsSearching(false);
       }
-    }, 400);
+    }, 350);
 
     return () => {
       clearTimeout(timer);
@@ -277,209 +235,348 @@ export default function LocationSelector() {
     };
   }, [searchQuery]);
 
-  const applyLocation = (locationData: LocationData) => {
-    detectGenerationRef.current += 1;
-    setIsAutoDetecting(false);
-    lockSavedLocation();
-    const finalLocation: LocationData = {
-      ...locationData,
-      fullAddress: locationData.fullAddress || locationData.address,
-      address: locationData.fullAddress || locationData.address,
-    };
-    setLocation(finalLocation);
-    localStorage.setItem("user_location", JSON.stringify(finalLocation));
-    window.dispatchEvent(new Event("location_changed"));
-    setIsOpen(false);
+  // Core Zone Verification & Confirmation Function
+  const confirmAndApplyLocation = async (rawLoc: {
+    address: string;
+    shortAddress?: string;
+    city?: string;
+    state?: string;
+    postalCode?: string;
+    lat?: number;
+    lng?: number;
+  }) => {
+    setIsVerifyingZone(true);
+    setError(null);
 
-    if (!pathname || !shouldSyncCityUrl(pathname)) return;
-    const slug = routeSlugForLocation(finalLocation);
-    if (!slug) return;
-    const nextPath = `/${slug}`;
-    if (pathname !== nextPath) {
-      router.push(nextPath);
+    try {
+      const cleanCity = rawLoc.city || (rawLoc.address.includes("Noida") ? "Noida" : "Delhi NCR");
+      const shortAddr = rawLoc.shortAddress || rawLoc.address.split(",")[0].trim() || cleanCity;
+
+      let zoneId: number | null = null;
+      let zoneName: string = "Doorstep Service Zone";
+      let allowedCategoryIds: number[] = [];
+
+      try {
+        const res = await fetch("/api/zones/for-location", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            lat: rawLoc.lat,
+            lng: rawLoc.lng,
+            city: rawLoc.city || "",
+            address: rawLoc.address || "",
+          }),
+        });
+
+        const zoneInfo = await res.json();
+        if (zoneInfo) {
+          if (zoneInfo.zoneId) zoneId = zoneInfo.zoneId;
+          if (zoneInfo.zoneName) zoneName = zoneInfo.zoneName;
+          if (Array.isArray(zoneInfo.allowedCategoryIds)) {
+            allowedCategoryIds = zoneInfo.allowedCategoryIds;
+          }
+        }
+      } catch (e) {
+        // Fallback gracefully
+      }
+
+      const confirmed = setConfirmedLocation({
+        isConfirmed: true,
+        address: rawLoc.address,
+        shortAddress: shortAddr,
+        city: cleanCity,
+        state: rawLoc.state || "",
+        postalCode: rawLoc.postalCode || "",
+        latitude: rawLoc.lat,
+        longitude: rawLoc.lng,
+        zoneId: zoneId,
+        zoneName: zoneName,
+        isServiceable: allowedCategoryIds.length > 0,
+        allowedCategoryIds: allowedCategoryIds,
+      });
+
+      setConfirmedState(confirmed);
+      setIsOpen(false);
+
+      // Route synchronization if city URL
+      if (pathname && shouldSyncCityUrl(pathname)) {
+        const slug = routeSlugForLocation({
+          address: rawLoc.address,
+          city: cleanCity,
+          shortAddress: shortAddr,
+        });
+        if (slug && pathname !== `/${slug}`) {
+          router.replace(`/${slug}`);
+        }
+      }
+    } catch (err: any) {
+      console.error("Zone confirmation error:", err);
+      const cleanCity = rawLoc.city || "Delhi NCR";
+      const shortAddr = rawLoc.shortAddress || rawLoc.address.split(",")[0].trim() || cleanCity;
+      const confirmed = setConfirmedLocation({
+        isConfirmed: true,
+        address: rawLoc.address,
+        shortAddress: shortAddr,
+        city: cleanCity,
+        state: rawLoc.state || "",
+        postalCode: rawLoc.postalCode || "",
+        latitude: rawLoc.lat,
+        longitude: rawLoc.lng,
+        zoneId: null,
+        zoneName: "Doorstep Service Zone",
+        isServiceable: false,
+        allowedCategoryIds: [],
+      });
+      setConfirmedState(confirmed);
+      setIsOpen(false);
+    } finally {
+      setIsVerifyingZone(false);
     }
   };
 
-  const handleSelectLocation = async (locationData: LocationData) => {
-    if (!locationData.placeId) {
-      applyLocation(locationData);
+  // Handler for GPS Current Location
+  const handleGetCurrentLocation = async () => {
+    setError(null);
+    setIsLoading(true);
+    try {
+      const locationData = await getCurrentLocation();
+      await confirmAndApplyLocation({
+        address: locationData.fullAddress || locationData.address,
+        shortAddress: locationData.shortAddress || locationData.city,
+        city: locationData.city,
+        state: locationData.state,
+        postalCode: locationData.postalCode,
+        lat: locationData.latitude,
+        lng: locationData.longitude,
+      });
+    } catch (err: any) {
+      setError(err.message || "Failed to detect current location. Please search manually or select an area.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handler for Searching & selecting a place
+  const handleSelectSearchResult = async (item: LocationData) => {
+    if (!item.placeId) {
+      await confirmAndApplyLocation({
+        address: item.address,
+        shortAddress: item.shortAddress || item.mainText,
+        city: item.city,
+        lat: item.latitude,
+        lng: item.longitude,
+      });
       return;
     }
+
     setError(null);
-    setResolvingPlaceId(locationData.placeId);
+    setResolvingPlaceId(item.placeId);
     try {
       const params = new URLSearchParams({
-        placeId: locationData.placeId,
+        placeId: item.placeId,
         session: sessionTokenRef.current,
       });
       const response = await fetch(`/api/location/search?${params.toString()}`);
       const data = await response.json();
       const details = data.data;
       if (!response.ok || !details) {
-        throw new Error("Could not load that address. Try another suggestion.");
+        throw new Error("Could not load address details.");
       }
-      applyLocation({
-        address: details.fullAddress || details.address || details.shortAddress || locationData.address,
-        shortAddress: details.shortAddress || locationData.shortAddress,
-        fullAddress: details.fullAddress || details.address || locationData.address,
-        city: details.city || "",
-        mohalla: details.mohalla || "",
-        sector: details.sector || "",
-        state: details.state || "",
-        country: details.country || "India",
-        postalCode: details.postalCode || "",
-        houseNumber: details.houseNumber || "",
-        street: details.street || "",
-        latitude: details.latitude,
-        longitude: details.longitude,
+      await confirmAndApplyLocation({
+        address: details.fullAddress || details.address || item.address,
+        shortAddress: details.shortAddress || item.shortAddress || item.mainText,
+        city: details.city || item.city,
+        state: details.state,
+        postalCode: details.postalCode,
+        lat: details.latitude,
+        lng: details.longitude,
       });
       newSessionToken();
     } catch (err: any) {
-      setError(err.message || "Could not load that address.");
+      setError(err.message || "Could not resolve address details. Please pick a location from the list.");
     } finally {
       setResolvingPlaceId(null);
     }
   };
 
-  const handleGetCurrentLocation = async () => {
-    setError(null);
-    setIsLoading(true);
-    try {
-      const locationData = await getCurrentLocation();
-      
-      // Save to state and local storage with full address
-      applyLocation(locationData);
-    } catch (err: any) {
-      setError(err.message || "Failed to detect location");
-    } finally {
-      setIsLoading(false);
-    }
+  // Handler for Quick Hub Chips
+  const handleSelectQuickHub = async (hub: typeof POPULAR_HUBS[0]) => {
+    await confirmAndApplyLocation({
+      address: hub.locality,
+      shortAddress: hub.name,
+      city: hub.city,
+      lat: hub.lat,
+      lng: hub.lng,
+    });
   };
 
-  // Determine what to show on the trigger button - shows FULL location
+  // Trigger Button Display Text
   const getButtonText = () => {
-    if (location) {
-      const full = location.fullAddress || location.address;
-      if (full && full.trim()) {
-        return full.trim();
-      }
-      if (location.shortAddress && location.shortAddress.trim()) {
-        return location.shortAddress.trim();
-      }
-      if (location.city) {
-        return location.city;
-      }
+    if (confirmedLocation?.isConfirmed) {
+      const short = confirmedLocation.shortAddress || confirmedLocation.city;
+      if (short) return short;
+      if (confirmedLocation.address) return confirmedLocation.address.split(",")[0];
     }
 
     if (pathname && pathname.startsWith("/gaur-city-2")) {
       const parts = pathname.split("/").filter(Boolean);
       if (parts.length >= 2) {
         const soc = getGaurCitySociety(parts[1]);
-        if (soc) return `${soc.name}, Gaur City 2, Noida Extension`;
+        if (soc) return `${soc.name}, Gaur City 2`;
       }
-      return "Gaur City 2, Noida Extension";
+      return "Gaur City 2";
     }
 
-    if (isAutoDetecting) {
-      return "Detecting location...";
-    }
     return "Select Location";
   };
 
+  const isConfirmed = Boolean(confirmedLocation?.isConfirmed);
+
   return (
     <>
-      {/* Trigger Button */}
-      <div 
+      {/* Navbar Trigger Button */}
+      <div
         onClick={() => setIsOpen(true)}
-        className="flex items-center justify-between bg-white border border-gray-200 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl cursor-pointer hover:bg-gray-50 transition mr-1 sm:mr-2 min-w-[140px] sm:min-w-[200px] max-w-[240px] sm:max-w-[420px] md:max-w-[500px] lg:max-w-[580px] shadow-sm"
-        title={(location as any)?.fullAddress || (location as any)?.address || getButtonText()}
+        id="navbar-location-selector"
+        className={`flex items-center justify-between border px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl cursor-pointer transition mr-1 sm:mr-2 min-w-[130px] sm:min-w-[170px] max-w-[220px] sm:max-w-[340px] shadow-xs group ${isConfirmed
+            ? "bg-white hover:bg-slate-50 border-slate-200"
+            : "bg-amber-50 hover:bg-amber-100/80 border-amber-300 ring-2 ring-amber-400/30 animate-pulse"
+          }`}
+        title={confirmedLocation?.address || "Click to select service location"}
       >
         <div className="flex items-center space-x-2 overflow-hidden min-w-0">
-          {isAutoDetecting ? (
-            <Loader2 className="text-[#6b62d9] w-4 h-4 shrink-0 animate-spin" />
-          ) : (
-            <MapPin className="text-rose-500 w-4 h-4 shrink-0" />
-          )}
-          <span 
-            className="text-[12px] sm:text-[13px] text-gray-800 font-medium line-clamp-2 break-words leading-tight"
-            title={(location as any)?.fullAddress || (location as any)?.address || getButtonText()}
-          >
-            {getButtonText()}
-          </span>
+          <MapPin className={`w-4 h-4 shrink-0 ${isConfirmed ? "text-indigo-600" : "text-amber-600"}`} />
+          <div className="flex flex-col min-w-0">
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider leading-none">
+              {isConfirmed ? "Location" : "Select Location"}
+            </span>
+            <span className="text-xs sm:text-sm text-slate-800 font-semibold truncate leading-tight mt-0.5">
+              {getButtonText()}
+            </span>
+          </div>
         </div>
-        <ChevronDown className="text-gray-400 w-4 h-4 shrink-0 ml-1.5" />
+        <ChevronDown className="text-slate-400 group-hover:text-slate-600 w-4 h-4 shrink-0 ml-1.5 transition-transform" />
       </div>
 
-      {/* Modal Overlay */}
+      {/* Modal Overlay & Dialog */}
       {mounted && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-          
+        <div className="fixed inset-0 z-[250] flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+
           {/* Backdrop */}
-          <div 
-            className={`fixed inset-0 bg-black/60 transition-opacity duration-300 ${
-              visible ? "opacity-100" : "opacity-0"
-            }`}
-            onClick={() => !isLoading && setIsOpen(false)}
+          <div
+            className={`fixed inset-0 bg-slate-950/70 backdrop-blur-xs transition-opacity duration-300 ${visible ? "opacity-100" : "opacity-0"
+              }`}
+            onClick={() => {
+              // If location is already confirmed, allow closing. If not confirmed, prompt user.
+              if (!isVerifyingZone && !isLoading) {
+                setIsOpen(false);
+              }
+            }}
           />
-          
-          {/* Modal Card */}
-          <div 
-            className={`relative w-full sm:w-[500px] bg-white rounded-xl shadow-2xl overflow-hidden transform transition-transform duration-300 will-change-transform ${
-              visible ? "translate-y-0" : "translate-y-full"
-            }`}
-            style={{ transitionTimingFunction: "ease-out" }}
+
+          {/* Modal Container */}
+          <div
+            className={`relative w-full max-w-lg bg-white rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all duration-300 will-change-transform z-10 my-auto ${visible ? "scale-100 opacity-100 translate-y-0" : "scale-95 opacity-0 translate-y-4"
+              }`}
           >
-            <div className="p-4 sm:p-6 pb-2">
-              {/* Search Bar matching UC design */}
-              <div className="flex items-center border border-gray-300 rounded-lg bg-white p-2 sm:p-3 mb-6 focus-within:border-black">
-                <button 
-                  onClick={() => !isLoading && setIsOpen(false)}
-                  className="mr-3 text-gray-700 hover:bg-gray-100 p-1 rounded-full transition"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-                </button>
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  placeholder="Search for your location/society/apartment"
-                  disabled={isLoading || Boolean(resolvingPlaceId)}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  autoComplete="off"
-                  className="flex-1 bg-transparent border-none focus:outline-none text-gray-800 placeholder-gray-500 font-medium text-sm sm:text-base min-w-0"
-                />
-                {isSearching && <Loader2 className="w-5 h-5 text-gray-400 animate-spin ml-2" />}
+            {/* Header with Title and Trust Badge */}
+            <div className="p-5 sm:p-6 pb-4 border-b border-slate-100 bg-gradient-to-b from-indigo-50/50 to-white">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold mb-2">
+                    <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>Doorstep Appliance Repair in 60-90 Mins</span>
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+                    Select Your Service Location
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
+                    Doorstep service availability, rates, and technician slots are customized to your society & sector.
+                  </p>
+                </div>
+
+                {/* Close Button (only if already confirmed) */}
+                {isConfirmed && (
+                  <button
+                    type="button"
+                    onClick={() => setIsOpen(false)}
+                    className="p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition shrink-0"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                )}
               </div>
+
+              {/* GPS Current Location Button */}
+              <button
+                type="button"
+                onClick={handleGetCurrentLocation}
+                disabled={isLoading || isVerifyingZone}
+                className="mt-4 w-full flex items-center justify-center gap-2.5 px-4 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white font-bold text-sm shadow-md shadow-indigo-600/20 transition-all disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+              >
+                {isLoading || isVerifyingZone ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <LocateFixed className="w-4 h-4" />
+                )}
+                <span>{isLoading ? "Detecting GPS Location..." : isVerifyingZone ? "Checking Service Zone..." : "Use Current Location (GPS)"}</span>
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 sm:p-6 pt-4 max-h-[65vh] overflow-y-auto space-y-4">
 
               {/* Error Message */}
               {error && (
-                <div className="bg-red-50 text-red-600 p-3 rounded-lg flex items-start space-x-2 text-sm font-medium mb-4">
-                  <AlertCircle className="w-5 h-5 shrink-0" />
+                <div className="bg-rose-50 border border-rose-200 text-rose-700 p-3.5 rounded-xl flex items-start space-x-2 text-xs sm:text-sm font-medium">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-500" />
                   <span>{error}</span>
                 </div>
               )}
 
-              {/* Search Results */}
-              {searchResults.length > 0 ? (
-                <div className="max-h-[300px] overflow-y-auto mb-4 border border-gray-100 rounded-xl divide-y divide-gray-100 shadow-sm">
+              {/* Search Bar */}
+              <div>
+                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                  Or Search Locality / Society / Sector
+                </label>
+                <div className="flex items-center border border-slate-300 rounded-xl bg-white px-3.5 py-2.5 focus-within:border-indigo-600 focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all shadow-2xs">
+                  <Search className="w-4 h-4 text-slate-400 mr-2.5 shrink-0" />
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    placeholder="E.g. Gaur City 2, Ahinsa Khand Indirapuram, Sector 62..."
+                    disabled={isLoading || isVerifyingZone || Boolean(resolvingPlaceId)}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    autoComplete="off"
+                    className="flex-1 bg-transparent border-none focus:outline-none text-slate-800 placeholder-slate-400 font-medium text-xs sm:text-sm min-w-0"
+                  />
+                  {isSearching && <Loader2 className="w-4 h-4 text-indigo-600 animate-spin ml-2 shrink-0" />}
+                </div>
+              </div>
+
+              {/* Search Results Dropdown */}
+              {searchResults.length > 0 && (
+                <div className="border border-slate-200 rounded-xl divide-y divide-slate-100 shadow-sm max-h-[200px] overflow-y-auto">
                   {searchResults.map((res, idx) => (
                     <button
                       key={res.placeId || idx}
-                      onClick={() => handleSelectLocation(res)}
-                      disabled={Boolean(resolvingPlaceId)}
-                      className="w-full text-left p-4 hover:bg-gray-50 flex items-start space-x-3 transition-colors disabled:opacity-60"
+                      type="button"
+                      onClick={() => handleSelectSearchResult(res)}
+                      disabled={Boolean(resolvingPlaceId) || isVerifyingZone}
+                      className="w-full text-left p-3 hover:bg-indigo-50/60 flex items-start space-x-2.5 transition-colors disabled:opacity-60 text-xs sm:text-sm cursor-pointer"
                     >
                       {resolvingPlaceId && res.placeId === resolvingPlaceId ? (
-                        <Loader2 className="w-5 h-5 text-[#6b62d9] shrink-0 mt-0.5 animate-spin" />
+                        <Loader2 className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5 animate-spin" />
                       ) : (
-                        <MapPin className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
+                        <MapPin className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
                       )}
-                      <div>
-                        <p className="font-semibold text-gray-900 text-sm line-clamp-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-bold text-slate-800 truncate">
                           {res.mainText || res.shortAddress || res.address}
                         </p>
                         {(res.secondaryText || res.city) && (
-                          <p className="text-xs text-gray-500 mt-1 line-clamp-1">
+                          <p className="text-[11px] text-slate-500 truncate mt-0.5">
                             {res.secondaryText || res.city}
                           </p>
                         )}
@@ -487,35 +584,58 @@ export default function LocationSelector() {
                     </button>
                   ))}
                 </div>
-              ) : searchQuery.trim().length >= 3 && !isSearching ? (
-                <div className="text-center py-6 text-gray-500 text-sm">
-                  No locations found for "{searchQuery}"
+              )}
+
+              {/* Popular Service Hubs (One-click selection) */}
+              <div>
+                <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                  Popular OMAA Service Hubs (Instant Confirm)
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {POPULAR_HUBS.map((hub, idx) => {
+                    const isSelected =
+                      confirmedLocation?.shortAddress === hub.name ||
+                      confirmedLocation?.city === hub.city;
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleSelectQuickHub(hub)}
+                        disabled={isVerifyingZone}
+                        className={`p-2.5 rounded-xl border text-left transition-all flex items-center justify-between cursor-pointer active:scale-95 ${isSelected
+                            ? "bg-indigo-50 border-indigo-400 text-indigo-900 shadow-xs ring-1 ring-indigo-300"
+                            : "bg-slate-50 hover:bg-indigo-50/50 border-slate-200 text-slate-700 hover:border-indigo-200"
+                          }`}
+                      >
+                        <div className="truncate pr-1">
+                          <div className="text-xs font-bold truncate flex items-center gap-1.5">
+                            <Building className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                            <span>{hub.name}</span>
+                          </div>
+                          <div className="text-[10px] text-slate-500 truncate mt-0.5">
+                            {hub.city}
+                          </div>
+                        </div>
+                        {isSelected && (
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
-              ) : null}
+              </div>
 
-              {/* Use Current Location Button */}
-              <button 
-                onClick={handleGetCurrentLocation}
-                disabled={isLoading}
-                className="w-full flex items-center space-x-3 group disabled:opacity-70 disabled:cursor-not-allowed py-2"
-              >
-                {isLoading ? (
-                  <Loader2 className="w-5 h-5 text-[#6b62d9] animate-spin" />
-                ) : (
-                  <LocateFixed className="w-5 h-5 text-[#6b62d9]" />
-                )}
-                <span className="font-semibold text-[#6b62d9] text-base">
-                  {isLoading ? "Detecting location..." : "Use current location"}
-                </span>
-              </button>
             </div>
 
-            {/* Divider and Google text */}
-            <div className="w-full h-3 bg-gray-100 mt-4"></div>
-            <div className="py-4 flex justify-center items-center">
-              <span className="text-gray-500 text-xs font-medium mr-1">powered by</span>
-              <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" alt="Google" className="h-4 opacity-70 grayscale" />
+            {/* Modal Footer */}
+            <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+              <span className="flex items-center gap-1.5 font-medium">
+                <Compass className="w-4 h-4 text-indigo-600 shrink-0" />
+                <span>Verified Doorstep Service Across Delhi NCR</span>
+              </span>
+              <span className="text-[11px] text-slate-400 font-mono">OMAA Smart Location v2</span>
             </div>
+
           </div>
         </div>
       )}

@@ -6,10 +6,11 @@ import { ChevronDown, MapPin, ShoppingCart, User, Menu, X } from "lucide-react";
 import LocationSelector from "./LocationSelector";
 import LiveSearchBar from "./LiveSearchBar";
 import LoginModal from "./LoginModal";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { getActiveCategories } from "../actions/categories";
 import ProfileDropdown from "./ProfileDropdown";
 import { getStoredUser, fetchCurrentUser, clearStoredUser, isLoggedIn } from "@/lib/client-auth";
+import { getConfirmedLocation, openLocationModal, ConfirmedLocation } from "@/lib/location-state";
 
 export default function Navbar() {
   const [categories, setCategories] = useState<any[]>([]);
@@ -19,7 +20,30 @@ export default function Navbar() {
   const [cartItemCount, setCartItemCount] = useState(0);
   const [user, setUser] = useState<any>(null);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [confirmedLoc, setConfirmedLoc] = useState<ConfirmedLocation | null>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const sync = () => setConfirmedLoc(getConfirmedLocation());
+    sync();
+    window.addEventListener("location_confirmed", sync);
+    window.addEventListener("location_changed", sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener("location_confirmed", sync);
+      window.removeEventListener("location_changed", sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+
+  const displayedCategories = useMemo(() => {
+    if (!confirmedLoc?.isConfirmed) return categories;
+    const allowed = confirmedLoc.allowedCategoryIds;
+    if (Array.isArray(allowed)) {
+      return categories.filter((c) => allowed.includes(Number(c.id)));
+    }
+    return categories;
+  }, [categories, confirmedLoc]);
 
   const updateCartCount = () => {
     try {
@@ -144,9 +168,21 @@ export default function Navbar() {
                 <ChevronDown className="w-4 h-4 text-gray-500 group-hover:rotate-180 transition-transform duration-200" />
               </div>
               <div className="absolute top-[80%] left-0 w-56 bg-white shadow-xl rounded-md overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 border border-gray-100">
-                {categories.length > 0 ? (
-                  categories.map((cat, idx) => (
-                    <Link key={cat.id} href={`/services/${cat.id}`} prefetch={true} className={`block px-4 py-3 text-[14px] font-medium text-gray-700 hover:bg-gray-50 hover:text-[#5c67b8] ${idx !== categories.length - 1 ? 'border-b border-gray-50' : ''}`}>
+                {displayedCategories.length > 0 ? (
+                  displayedCategories.map((cat: any, idx: number) => (
+                    <Link
+                      key={cat.id}
+                      href={`/services/${cat.id}`}
+                      prefetch={true}
+                      onClick={(e) => {
+                        const loc = getConfirmedLocation();
+                        if (!loc || !loc.isConfirmed) {
+                          e.preventDefault();
+                          openLocationModal("nav_services_dropdown");
+                        }
+                      }}
+                      className={`block px-4 py-3 text-[14px] font-medium text-gray-700 hover:bg-gray-50 hover:text-[#5c67b8] ${idx !== categories.length - 1 ? 'border-b border-gray-50' : ''}`}
+                    >
                       {cat.title}
                     </Link>
                   ))

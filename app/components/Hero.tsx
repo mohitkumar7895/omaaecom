@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Home, ShoppingCart, ShieldCheck, Sparkles, Copy, Check, Share2 } from "lucide-react";
+import { Home, ShoppingCart, ShieldCheck, Sparkles, Copy, Check, Share2, MapPin, AlertCircle, Compass } from "lucide-react";
 import Link from "next/link";
 import MobileBannerCarousel from "./MobileBannerCarousel";
 import LiveSearchBar from "./LiveSearchBar";
 import { getRandomReferralCode, getActiveReferralCode, fetchCurrentUser } from "@/lib/client-auth";
 import { expandLocationAliases } from "@/lib/zone-matcher";
+import { getConfirmedLocation, openLocationModal, ConfirmedLocation } from "@/lib/location-state";
 
 interface HeroCategory {
   id: number;
@@ -88,44 +89,51 @@ export default function Hero({
   };
 
   const [userCity, setUserCity] = useState<string | null>(null);
+  const [confirmedLocation, setConfirmedLocation] = useState<ConfirmedLocation | null>(null);
 
   useEffect(() => {
     const handleLocationChange = () => {
       try {
-        const savedLocation = localStorage.getItem("user_location");
-        if (savedLocation) {
-          const parsed = JSON.parse(savedLocation);
-          if (parsed && (parsed.city || parsed.shortAddress || parsed.address)) {
-            setUserCity(parsed.city || parsed.shortAddress || parsed.address);
+        const confirmed = getConfirmedLocation();
+        setConfirmedLocation(confirmed);
+        if (confirmed && (confirmed.shortAddress || confirmed.city)) {
+          setUserCity(confirmed.shortAddress || confirmed.city);
+        } else {
+          const savedLocation = localStorage.getItem("user_location");
+          if (savedLocation) {
+            const parsed = JSON.parse(savedLocation);
+            if (parsed && (parsed.city || parsed.shortAddress || parsed.address)) {
+              setUserCity(parsed.city || parsed.shortAddress || parsed.address);
+            }
           }
         }
       } catch (e) {}
     };
+
     handleLocationChange();
+    window.addEventListener("location_confirmed", handleLocationChange);
     window.addEventListener("location_changed", handleLocationChange);
     window.addEventListener("storage", handleLocationChange);
     return () => {
+      window.removeEventListener("location_confirmed", handleLocationChange);
       window.removeEventListener("location_changed", handleLocationChange);
       window.removeEventListener("storage", handleLocationChange);
     };
   }, []);
 
+  const isLocationConfirmed = Boolean(confirmedLocation?.isConfirmed);
+
   const visibleCategories = useMemo(() => {
-    const activeLoc = currentCity || userCity;
-    if (!activeLoc) return categories;
+    // If location is not confirmed yet, keep empty until confirmed
+    if (!isLocationConfirmed) return [];
 
-    const locTokens = expandLocationAliases(activeLoc);
+    const allowedIds = confirmedLocation?.allowedCategoryIds;
+    if (Array.isArray(allowedIds)) {
+      return categories.filter((cat) => allowedIds.includes(Number(cat.id)));
+    }
 
-    return categories.filter((cat) => {
-      if (!cat.zones_location) return true;
-      const zones = cat.zones_location.split(",").map((z) => z.trim().toLowerCase()).filter(Boolean);
-      if (zones.length === 0 || zones.some((z) => z === "all" || z === "pan india")) return true;
-
-      return zones.some((zone) =>
-        locTokens.some((tok) => tok === zone || tok.includes(zone) || zone.includes(tok))
-      );
-    });
-  }, [categories, userCity, currentCity]);
+    return [];
+  }, [categories, confirmedLocation, isLocationConfirmed]);
 
   const getIcon = (title: string) => {
     if (title.includes("Ac Repair")) return "❄️";
@@ -284,163 +292,267 @@ export default function Hero({
 
           {/* Services Box (Urban Company Style) — 3-color gradient border */}
           <div className="rounded-3xl p-[3px] shadow-2xl bg-linear-to-r from-[#4f6fff] via-[#a855f7] to-[#f43f8c]">
-          <div className="bg-white rounded-[21px] p-5 sm:p-6 text-gray-800 flex flex-col space-y-5">
+          <div className="bg-white rounded-[21px] p-5 sm:p-6 text-gray-800 flex flex-col space-y-4">
 
-            {/* Top Section: Home Services */}
-            {orderedCategories.length > 0 && (
-              <div>
-                <h3 className="font-bold text-[18px] md:text-[20px] text-gray-900 tracking-tight mb-3">
-                  Home Services
+            {/* ------------------------------------------------------------- */}
+            {/* STATE 1: LOCATION NOT CONFIRMED (Rule 3 & 4)                   */}
+            {/* ------------------------------------------------------------- */}
+            {!isLocationConfirmed ? (
+              <div className="py-6 px-3 sm:px-4 text-center flex flex-col items-center justify-center">
+                <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200/80 flex items-center justify-center text-amber-600 mb-3 shadow-xs">
+                  <MapPin className="w-7 h-7 animate-bounce text-amber-600" />
+                </div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold mb-2">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-700" />
+                  <span>Location Confirmation Required</span>
+                </div>
+                <h3 className="font-black text-lg sm:text-xl text-slate-900 tracking-tight">
+                  Select Your Location to Unlock Services
                 </h3>
-              
-              {/* Mobile View: Row 1 (3 cols) + Row 2 (2 cols full width) */}
-              <div className="md:hidden space-y-3">
-                <div className="grid grid-cols-3 gap-3 text-center justify-items-center w-full">
-                  {orderedCategories.slice(0, 3).map((service, index) => (
-                    <Link 
-                      href={`/services/${service.id}`} 
-                      prefetch={true}
-                      key={index} 
-                      className="flex flex-col items-center group w-full cursor-pointer"
+                <p className="text-xs sm:text-sm text-slate-600 max-w-sm mt-1.5 leading-relaxed">
+                  OMAA service categories (AC, RO, Refrigerator, Washing Machine, Microwave) and technician arrival times are customized to your society & sector.
+                </p>
+                
+                <button
+                  type="button"
+                  onClick={() => openLocationModal("hero_lock_btn")}
+                  className="mt-5 inline-flex items-center justify-center gap-2.5 px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold text-sm sm:text-base shadow-lg shadow-indigo-600/25 transition-all transform active:scale-95 cursor-pointer"
+                >
+                  <MapPin className="w-4 h-4 fill-current" />
+                  <span>Confirm Your Location Now</span>
+                </button>
+
+                <div className="mt-4 flex flex-wrap items-center justify-center gap-1.5 text-[11px] text-slate-500">
+                  <span className="font-semibold text-slate-400">Popular:</span>
+                  {["Gaur City 2", "Gaur City 1", "Indirapuram", "Noida"].map((hub) => (
+                    <button
+                      key={hub}
+                      type="button"
+                      onClick={() => openLocationModal(`hero_chip_${hub}`)}
+                      className="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 font-medium transition cursor-pointer"
                     >
-                      <div className="w-full h-16 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
-                        {service.image_url && service.image_url.length > 5 ? (
-                          /* eslint-disable-next-line @next/next/no-img-element */
-                          <img src={service.image_url} alt={service.title} className="max-h-full max-w-full object-contain rounded-xl" />
-                        ) : (
-                          <span className="text-[28px]">{getIcon(service.title)}</span>
-                        )}
-                      </div>
-                      <span className="text-[12px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-8 flex items-start justify-center text-center">
-                        {service.title}
-                      </span>
-                    </Link>
+                      {hub}
+                    </button>
                   ))}
                 </div>
+              </div>
+            ) : (
+              /* ------------------------------------------------------------- */
+              /* STATE 2: LOCATION CONFIRMED -> SHOW CATEGORIES (Rule 3 & 5)   */
+              /* ------------------------------------------------------------- */
+              <>
+                {/* Active Location Info Bar */}
+                <div className="flex items-center justify-between pb-2 border-b border-slate-100 text-xs">
+                  {visibleCategories.length > 0 ? (
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                      <span className="text-slate-500 shrink-0">Serving:</span>
+                      <strong className="text-slate-900 truncate">
+                        {confirmedLocation?.shortAddress || confirmedLocation?.city}
+                      </strong>
+                      {confirmedLocation?.zoneName && (
+                        <span className="hidden sm:inline text-slate-400 font-medium truncate">
+                          ({confirmedLocation.zoneName})
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" />
+                      <span className="text-rose-600 font-semibold shrink-0">Location:</span>
+                      <strong className="text-slate-900 truncate">
+                        {confirmedLocation?.shortAddress || confirmedLocation?.city}
+                      </strong>
+                      <span className="text-rose-500 font-medium truncate">
+                        (Outside Service Area)
+                      </span>
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => openLocationModal("hero_change_active_loc")}
+                    className="text-indigo-600 hover:text-indigo-800 font-bold shrink-0 hover:underline cursor-pointer ml-2"
+                  >
+                    Change
+                  </button>
+                </div>
 
-                {orderedCategories.length > 3 && (
-                  <div className="grid grid-cols-2 gap-3 text-center justify-items-center w-full">
-                    {orderedCategories.slice(3, 5).map((service, index) => (
+                {/* If no categories available in this location */}
+                {visibleCategories.length === 0 && (
+                  <div className="py-6 px-4 text-center rounded-2xl bg-white/95 text-slate-800 my-2 shadow-xs">
+                    <p className="font-bold text-sm text-slate-900">
+                      No services currently active in {confirmedLocation?.shortAddress || confirmedLocation?.city}
+                    </p>
+                    <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+                      Doorstep service is active in Gaur City 1 & 2, Indirapuram, Noida, and Greater Noida West.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => openLocationModal("hero_no_services_pick")}
+                      className="mt-3 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-sm transition cursor-pointer"
+                    >
+                      Select Active Service Hub
+                    </button>
+                  </div>
+                )}
+
+                {/* Top Section: Home Services */}
+                {orderedCategories.length > 0 && (
+                  <div>
+                    <h3 className="font-bold text-[18px] md:text-[20px] text-gray-900 tracking-tight mb-3">
+                      Home Services
+                    </h3>
+                  
+                  {/* Mobile View: Row 1 (3 cols) + Row 2 (2 cols full width) */}
+                  <div className="md:hidden space-y-3">
+                    <div className="grid grid-cols-3 gap-3 text-center justify-items-center w-full">
+                      {orderedCategories.slice(0, 3).map((service, index) => (
+                        <Link 
+                          href={`/services/${service.id}`} 
+                          prefetch={true}
+                          key={index} 
+                          className="flex flex-col items-center group w-full cursor-pointer"
+                        >
+                          <div className="w-full h-16 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
+                            {service.image_url && service.image_url.length > 5 ? (
+                              /* eslint-disable-next-line @next/next/no-img-element */
+                              <img src={service.image_url} alt={service.title} className="max-h-full max-w-full object-contain rounded-xl" />
+                            ) : (
+                              <span className="text-[28px]">{getIcon(service.title)}</span>
+                            )}
+                          </div>
+                          <span className="text-[12px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-8 flex items-start justify-center text-center">
+                            {service.title}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+
+                    {orderedCategories.length > 3 && (
+                      <div className="grid grid-cols-2 gap-3 text-center justify-items-center w-full">
+                        {orderedCategories.slice(3, 5).map((service, index) => (
+                          <Link 
+                            href={`/services/${service.id}`} 
+                            prefetch={true}
+                            key={index + 3} 
+                            className="flex flex-col items-center group w-full cursor-pointer"
+                          >
+                            <div className="w-full h-16 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
+                              {service.image_url && service.image_url.length > 5 ? (
+                                /* eslint-disable-next-line @next/next/no-img-element */
+                                <img src={service.image_url} alt={service.title} className="max-h-full max-w-full object-contain rounded-xl" />
+                              ) : (
+                                <span className="text-[28px]">{getIcon(service.title)}</span>
+                              )}
+                            </div>
+                            <span className="text-[12px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-8 flex items-start justify-center text-center">
+                              {service.title}
+                            </span>
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Desktop View: Exact Original 3-Column Layout */}
+                  <div className="hidden md:grid md:grid-cols-3 gap-4 text-center justify-items-center w-full">
+                    {orderedCategories.map((service, index) => (
                       <Link 
                         href={`/services/${service.id}`} 
                         prefetch={true}
-                        key={index + 3} 
+                        key={index} 
                         className="flex flex-col items-center group w-full cursor-pointer"
                       >
-                        <div className="w-full h-16 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
+                        <div className="w-full h-18 md:h-19 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
                           {service.image_url && service.image_url.length > 5 ? (
                             /* eslint-disable-next-line @next/next/no-img-element */
                             <img src={service.image_url} alt={service.title} className="max-h-full max-w-full object-contain rounded-xl" />
                           ) : (
-                            <span className="text-[28px]">{getIcon(service.title)}</span>
+                            <span className="text-[32px]">{getIcon(service.title)}</span>
                           )}
                         </div>
-                        <span className="text-[12px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-8 flex items-start justify-center text-center">
+                        <span className="text-[13px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-9 flex items-start justify-center text-center">
                           {service.title}
                         </span>
                       </Link>
                     ))}
                   </div>
+                </div>
                 )}
-              </div>
 
-              {/* Desktop View: Exact Original 3-Column Layout */}
-              <div className="hidden md:grid md:grid-cols-3 gap-4 text-center justify-items-center w-full">
-                {orderedCategories.map((service, index) => (
-                  <Link 
-                    href={`/services/${service.id}`} 
-                    prefetch={true}
-                    key={index} 
-                    className="flex flex-col items-center group w-full cursor-pointer"
-                  >
-                    <div className="w-full h-18 md:h-19 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
-                      {service.image_url && service.image_url.length > 5 ? (
-                        /* eslint-disable-next-line @next/next/no-img-element */
-                        <img src={service.image_url} alt={service.title} className="max-h-full max-w-full object-contain rounded-xl" />
-                      ) : (
-                        <span className="text-[32px]">{getIcon(service.title)}</span>
+                {/* Bottom Row: OMAA PREMIUM PACKAGE (New Products & RO AMC) */}
+                {(newProducts.length > 0 || amcProducts.length > 0) && (
+                  <div className="pt-2 w-full">
+                    <style dangerouslySetInnerHTML={{__html: `
+                      @keyframes premium-shimmer {
+                        0% { background-position: 0% 50%; }
+                        50% { background-position: 100% 50%; }
+                        100% { background-position: 0% 50%; }
+                      }
+                      .omaa-premium-gradient {
+                        background: linear-gradient(90deg, #1d4ed8, #7c3aed, #06b6d4, #2563eb);
+                        background-size: 250% auto;
+                        -webkit-background-clip: text;
+                        -webkit-text-fill-color: transparent;
+                        animation: premium-shimmer 4s ease infinite;
+                        display: inline-block;
+                        padding-bottom: 2px;
+                        padding-right: 4px;
+                      }
+                    `}} />
+                    <div className="mb-3">
+                      <h3 className="omaa-premium-gradient font-black text-[17px] sm:text-[19px] md:text-[20px] tracking-tight uppercase">
+                        OMAA PREMIUM PACKAGE
+                      </h3>
+                    </div>
+
+                    {/* 2 Cols on Mobile (Full Width), 3 Cols on Desktop (Original Alignment) */}
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 text-center justify-items-center w-full">
+                      {/* New Products */}
+                      {newProducts.length > 0 && (
+                        <Link 
+                          href={`/services/${newProducts[0].id}`} 
+                          prefetch={true}
+                          className="flex flex-col items-center group w-full cursor-pointer"
+                        >
+                          <div className="w-full h-16 sm:h-18 md:h-19 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
+                            {newProducts[0].image_url && newProducts[0].image_url.length > 5 ? (
+                              /* eslint-disable-next-line @next/next/no-img-element */
+                              <img src={newProducts[0].image_url} alt={newProducts[0].title} className="max-h-full max-w-full object-contain rounded-xl" />
+                            ) : (
+                              <span className="text-[28px] sm:text-[32px]">📦</span>
+                            )}
+                          </div>
+                          <span className="text-[12px] sm:text-[13px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-8 sm:h-9 flex items-start justify-center text-center">
+                            {newProducts[0].title || "New Products"}
+                          </span>
+                        </Link>
+                      )}
+
+                      {/* RO AMC */}
+                      {amcProducts.length > 0 && (
+                        <Link 
+                          href={`/services/${amcProducts[0].id}`} 
+                          prefetch={true}
+                          className="flex flex-col items-center group w-full cursor-pointer"
+                        >
+                          <div className="w-full h-16 sm:h-18 md:h-19 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
+                            {amcProducts[0].image_url && amcProducts[0].image_url.length > 5 ? (
+                              /* eslint-disable-next-line @next/next/no-img-element */
+                              <img src={amcProducts[0].image_url} alt={amcProducts[0].title} className="max-h-full max-w-full object-contain rounded-xl" />
+                            ) : (
+                              <span className="text-[28px] sm:text-[32px]">🛡️</span>
+                            )}
+                          </div>
+                          <span className="text-[12px] sm:text-[13px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-8 sm:h-9 flex items-start justify-center text-center">
+                            {amcProducts[0].title || "RO AMC"}
+                          </span>
+                        </Link>
                       )}
                     </div>
-                    <span className="text-[13px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-9 flex items-start justify-center text-center">
-                      {service.title}
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-            )}
-
-            {/* Bottom Row: OMAA PREMIUM PACKAGE (New Products & RO AMC) */}
-            {(newProducts.length > 0 || amcProducts.length > 0) && (
-              <div className="pt-2 w-full">
-                <style dangerouslySetInnerHTML={{__html: `
-                  @keyframes premium-shimmer {
-                    0% { background-position: 0% 50%; }
-                    50% { background-position: 100% 50%; }
-                    100% { background-position: 0% 50%; }
-                  }
-                  .omaa-premium-gradient {
-                    background: linear-gradient(90deg, #1d4ed8, #7c3aed, #06b6d4, #2563eb);
-                    background-size: 250% auto;
-                    -webkit-background-clip: text;
-                    -webkit-text-fill-color: transparent;
-                    animation: premium-shimmer 4s ease infinite;
-                    display: inline-block;
-                    padding-bottom: 2px;
-                    padding-right: 4px;
-                  }
-                `}} />
-                <div className="mb-3">
-                  <h3 className="omaa-premium-gradient font-black text-[17px] sm:text-[19px] md:text-[20px] tracking-tight uppercase">
-                    OMAA PREMIUM PACKAGE
-                  </h3>
-                </div>
-
-                {/* 2 Cols on Mobile (Full Width), 3 Cols on Desktop (Original Alignment) */}
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 text-center justify-items-center w-full">
-                  {/* New Products */}
-                  {newProducts.length > 0 && (
-                    <Link 
-                      href={`/services/${newProducts[0].id}`} 
-                      prefetch={true}
-                      className="flex flex-col items-center group w-full cursor-pointer"
-                    >
-                      <div className="w-full h-16 sm:h-18 md:h-19 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
-                        {newProducts[0].image_url && newProducts[0].image_url.length > 5 ? (
-                          /* eslint-disable-next-line @next/next/no-img-element */
-                          <img src={newProducts[0].image_url} alt={newProducts[0].title} className="max-h-full max-w-full object-contain rounded-xl" />
-                        ) : (
-                          <span className="text-[28px] sm:text-[32px]">📦</span>
-                        )}
-                      </div>
-                      <span className="text-[12px] sm:text-[13px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-8 sm:h-9 flex items-start justify-center text-center">
-                        {newProducts[0].title || "New Products"}
-                      </span>
-                    </Link>
-                  )}
-
-                  {/* RO AMC */}
-                  {amcProducts.length > 0 && (
-                    <Link 
-                      href={`/services/${amcProducts[0].id}`} 
-                      prefetch={true}
-                      className="flex flex-col items-center group w-full cursor-pointer"
-                    >
-                      <div className="w-full h-16 sm:h-18 md:h-19 bg-[#f4f5f8] rounded-2xl flex items-center justify-center shadow-2xs group-hover:shadow-md transition-all overflow-hidden p-2 mb-1.5 group-hover:-translate-y-0.5">
-                        {amcProducts[0].image_url && amcProducts[0].image_url.length > 5 ? (
-                          /* eslint-disable-next-line @next/next/no-img-element */
-                          <img src={amcProducts[0].image_url} alt={amcProducts[0].title} className="max-h-full max-w-full object-contain rounded-xl" />
-                        ) : (
-                          <span className="text-[28px] sm:text-[32px]">🛡️</span>
-                        )}
-                      </div>
-                      <span className="text-[12px] sm:text-[13px] font-bold text-gray-900 leading-tight group-hover:text-black transition-colors line-clamp-2 px-0.5 h-8 sm:h-9 flex items-start justify-center text-center">
-                        {amcProducts[0].title || "RO AMC"}
-                      </span>
-                    </Link>
-                  )}
-                </div>
-              </div>
+                  </div>
+                )}
+              </>
             )}
 
           </div>

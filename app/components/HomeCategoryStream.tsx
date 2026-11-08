@@ -3,6 +3,8 @@
 import { useState, useEffect, useMemo } from "react";
 import CategoryGrid from "./CategoryGrid";
 import { expandLocationAliases } from "@/lib/zone-matcher";
+import { getConfirmedLocation, openLocationModal, ConfirmedLocation } from "@/lib/location-state";
+import { MapPin, Compass } from "lucide-react";
 
 interface CategoryWithServices {
   id: number;
@@ -25,44 +27,51 @@ export default function HomeCategoryStream({
   currentCity,
 }: HomeCategoryStreamProps) {
   const [userCity, setUserCity] = useState<string | null>(null);
+  const [confirmedLocation, setConfirmedLocation] = useState<ConfirmedLocation | null>(null);
 
   useEffect(() => {
     const handleLocationChange = () => {
       try {
-        const savedLocation = localStorage.getItem("user_location");
-        if (savedLocation) {
-          const parsed = JSON.parse(savedLocation);
-          if (parsed && (parsed.city || parsed.shortAddress || parsed.address)) {
-            setUserCity(parsed.city || parsed.shortAddress || parsed.address);
+        const confirmed = getConfirmedLocation();
+        setConfirmedLocation(confirmed);
+        if (confirmed && (confirmed.shortAddress || confirmed.city)) {
+          setUserCity(confirmed.shortAddress || confirmed.city);
+        } else {
+          const savedLocation = localStorage.getItem("user_location");
+          if (savedLocation) {
+            const parsed = JSON.parse(savedLocation);
+            if (parsed && (parsed.city || parsed.shortAddress || parsed.address)) {
+              setUserCity(parsed.city || parsed.shortAddress || parsed.address);
+            }
           }
         }
       } catch (e) {}
     };
+
     handleLocationChange();
+    window.addEventListener("location_confirmed", handleLocationChange);
     window.addEventListener("location_changed", handleLocationChange);
     window.addEventListener("storage", handleLocationChange);
     return () => {
+      window.removeEventListener("location_confirmed", handleLocationChange);
       window.removeEventListener("location_changed", handleLocationChange);
       window.removeEventListener("storage", handleLocationChange);
     };
   }, []);
 
+  const isLocationConfirmed = Boolean(confirmedLocation?.isConfirmed);
+
   const visibleCategories = useMemo(() => {
-    const activeLoc = currentCity || userCity;
-    if (!activeLoc) return initialCategories;
+    // Only show categories when location is confirmed
+    if (!isLocationConfirmed) return [];
 
-    const locTokens = expandLocationAliases(activeLoc);
+    const allowedIds = confirmedLocation?.allowedCategoryIds;
+    if (Array.isArray(allowedIds)) {
+      return initialCategories.filter((cat) => allowedIds.includes(Number(cat.id)));
+    }
 
-    return initialCategories.filter((cat) => {
-      if (!cat.zones_location) return true;
-      const zones = cat.zones_location.split(",").map((z) => z.trim().toLowerCase()).filter(Boolean);
-      if (zones.length === 0 || zones.some((z) => z === "all" || z === "pan india")) return true;
-
-      return zones.some((zone) =>
-        locTokens.some((tok) => tok === zone || tok.includes(zone) || zone.includes(tok))
-      );
-    });
-  }, [initialCategories, userCity, currentCity]);
+    return [];
+  }, [initialCategories, confirmedLocation, isLocationConfirmed]);
 
   // Helper to match category rank according to exact sequence:
   // 1. RO AMC
@@ -101,6 +110,67 @@ export default function HomeCategoryStream({
   const banner2 = banners[1] || null;
   const banner3 = banners[2] || null;
   const remainingBanners = banners.slice(3);
+
+  // Rule 3 & 4: If location not confirmed, do not load or show category services
+  if (!isLocationConfirmed) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 lg:px-12 my-6">
+        <div className="p-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 shrink-0">
+              <MapPin className="w-5 h-5 text-amber-600" />
+            </div>
+            <div>
+              <h4 className="font-extrabold text-slate-900 text-sm sm:text-base">
+                Doorstep Service Rates & Instant Technician Booking
+              </h4>
+              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                Please select your location above to unlock genuine rate cards and book technicians.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => openLocationModal("stream_prompt")}
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-bold text-xs sm:text-sm shrink-0 transition shadow-sm cursor-pointer"
+          >
+            Confirm Location
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Rule 6: If location confirmed but outside service area (0 categories available)
+  if (visibleCategories.length === 0) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 lg:px-12 my-6">
+        <div className="p-6 rounded-2xl bg-white border border-rose-200/80 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 shrink-0">
+              <MapPin className="w-5 h-5 text-rose-600" />
+            </div>
+            <div>
+              <h4 className="font-extrabold text-slate-900 text-sm sm:text-base">
+                Doorstep Services Not Active in {confirmedLocation?.shortAddress || confirmedLocation?.city}
+              </h4>
+              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                We currently provide verified doorstep service across Delhi NCR (Gaur City 1 & 2, Indirapuram, Noida, Greater Noida West).
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => openLocationModal("stream_out_of_zone")}
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-black active:scale-95 text-white font-bold text-xs sm:text-sm shrink-0 transition shadow-sm cursor-pointer"
+          >
+            Change Location
+          </button>
+        </div>
+      </div>
+    );
+  }
+
 
   return (
     <div className="mt-2 mb-10 space-y-2">
