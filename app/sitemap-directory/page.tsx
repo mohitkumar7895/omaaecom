@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   title: "Sitemap & Service Directory | OMAA Company",
   description:
     "Browse all home appliance repair, maintenance, and installation services across Noida, Greater Noida, Ghaziabad, Delhi NCR, and Gurgaon. Find local service areas and book doorstep repairs.",
-  robots: { index: false, follow: false },
+  robots: { index: true, follow: true },
   alternates: {
     canonical: `${siteUrl}/service-areas`,
   },
