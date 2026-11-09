@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { 
   LayoutDashboard, 
@@ -29,16 +29,31 @@ import {
   ChevronRight,
   PlaySquare,
   Mail,
-  Globe
+  Globe,
+  Compass,
+  Layers,
+  Building,
+  Sparkles
 } from "lucide-react";
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const currentTab = searchParams.get("tab");
   const [categoryOpen, setCategoryOpen] = useState(true);
   const [rateCardOpen, setRateCardOpen] = useState(true);
   const [bookingOpen, setBookingOpen] = useState(true);
 
-  const isActive = (href: string) => pathname === href;
+  const isActive = (href: string) => {
+    if (href.includes("?tab=")) {
+      const tab = href.split("?tab=")[1];
+      return pathname === "/admin/seo" && currentTab === tab;
+    }
+    if (href === "/admin/seo") {
+      return pathname === "/admin/seo" && !currentTab;
+    }
+    return pathname === href;
+  };
 
   const getLinkClass = (href: string, isSubItem = false) => {
     const active = isActive(href);
@@ -78,16 +93,21 @@ export default function Sidebar() {
     { name: "KYC Approvals", icon: <Users className="w-[18px] h-[18px]" />, href: "/admin/kyc" },
   ];
 
-  const marketingItems = [
+  const seoItems = [
     { name: "Dynamic SEO Pages", icon: <Globe className="w-[18px] h-[18px]" />, href: "/admin/seo" },
+    { name: "Parent Locations", icon: <Compass className="w-[18px] h-[18px]" />, href: "/admin/seo?tab=parents" },
+    { name: "Child Avenues", icon: <Layers className="w-[18px] h-[18px]" />, href: "/admin/seo?tab=avenues" },
+    { name: "Child Societies", icon: <Building className="w-[18px] h-[18px]" />, href: "/admin/seo?tab=societies" },
+  ];
+
+  const marketingItems = [
     { name: "Banners", icon: <ImageIcon className="w-[18px] h-[18px]" />, href: "/admin/banners" },
     { name: "Cashback Ads", icon: <PlaySquare className="w-[18px] h-[18px]" />, href: "/admin/cashback-ads" },
   ];
 
   const settingsItems = [
     { name: "System Settings", icon: <Settings className="w-[18px] h-[18px]" />, href: "/admin/settings" },
-    { name: "Service Zones", icon: <MapPin className="w-[18px] h-[18px]" />, href: "/admin/zones" },
-    { name: "Sitemap & SEO Links", icon: <Globe className="w-[18px] h-[18px]" />, href: "/admin/sitemap" },
+    { name: "Service Zones (Delivery)", icon: <MapPin className="w-[18px] h-[18px]" />, href: "/admin/zones" },
     { name: "GST Settings", icon: <FileText className="w-[18px] h-[18px]" />, href: "/admin/gst-settings" },
     { name: "Privacy Policy", icon: <Shield className="w-[18px] h-[18px]" />, href: "/admin/privacy-policy" },
     { name: "Terms & Conditions", icon: <FileText className="w-[18px] h-[18px]" />, href: "/admin/terms-and-conditions" },
@@ -255,7 +275,27 @@ export default function Sidebar() {
           ))}
         </div>
 
-        {/* 5. Marketing & Promotions */}
+        {/* 5. SEO & Location Engine (Dedicated Panel) */}
+        <div>
+          <div className="px-7 mb-2.5 text-[11px] font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+            <span>SEO & Location Engine</span>
+          </div>
+          {seoItems.map((item, index) => (
+            <Link
+              key={`seo-${index}`}
+              href={item.href}
+              className={getLinkClass(item.href)}
+            >
+              <div className="flex items-center space-x-3">
+                <span className={getIconClass(item.href)}>{item.icon}</span>
+                <span>{item.name}</span>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        {/* 6. Marketing & Promotions */}
         <div>
           <div className="px-7 mb-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Marketing & Ads</div>
           {marketingItems.map((item, index) => (
@@ -272,7 +312,7 @@ export default function Sidebar() {
           ))}
         </div>
 
-        {/* 6. Settings & Legal */}
+        {/* 7. Settings & Legal */}
         <div>
           <div className="px-7 mb-2.5 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Settings & Policies</div>
           {settingsItems.map((item, index) => (

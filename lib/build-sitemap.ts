@@ -53,10 +53,10 @@ export async function buildSitemap(): Promise<MetadataRoute.Sitemap> {
       `SELECT url, slug, canonical_url, priority, changefreq, updated_at 
        FROM sitemap_links 
        WHERE is_active = TRUE 
-         AND is_indexable = TRUE 
+         AND (is_indexable = TRUE OR is_indexable IS NULL)
          AND (status = 'published' OR status IS NULL)
        ORDER BY priority DESC, id ASC 
-       LIMIT 1500`
+       LIMIT 2500`
     );
     const timeout = new Promise<never>((_, reject) => {
       setTimeout(() => reject(new Error("sitemap db timeout")), 3000);

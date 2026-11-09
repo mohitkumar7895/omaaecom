@@ -25,7 +25,7 @@ export default async function SitemapPage() {
 
   try {
     const [rows]: any = await pool.query(
-      `SELECT id, title, slug, url, group_name, city, area, priority, changefreq 
+      `SELECT id, title, slug, url, group_name, city, area, priority, changefreq, page_type, category_id, service_id 
        FROM sitemap_links 
        WHERE is_active = TRUE AND (status = 'published' OR status IS NULL) 
        ORDER BY priority DESC, title ASC`

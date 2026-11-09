@@ -38,7 +38,12 @@ export default function ServiceCard({ service, quantity = 0, onAdd, onRemove, on
           </div>
 
           {/* Bullet Points */}
-          {service.short_description && !service.short_description.includes("Warranty Policy") && !service.short_description.startsWith("###") && (
+          {service.short_description && 
+            !service.short_description.includes("Warranty Policy") && 
+            !service.short_description.startsWith("#") && 
+            !service.short_description.includes("###") && 
+            !service.short_description.toLowerCase().includes("warranty") && 
+            service.short_description.length < 300 && (
             <ul className="space-y-1.5 sm:space-y-2 mb-3 sm:mb-4">
               {service.short_description.split('|').map((point: string, i: number) => (
                 <li key={i} className="flex items-start text-xs sm:text-[13px] font-bold text-gray-800">

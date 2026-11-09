@@ -753,7 +753,7 @@ export async function saveSeoPage(pageData: any) {
     const url = targetUrl;
     const status = pageData.status || "published";
     const isActive = pageData.is_active !== undefined ? (pageData.is_active ? 1 : 0) : (status === "published" ? 1 : 0);
-    const isIndexable = pageData.is_indexable !== undefined ? (pageData.is_indexable ? 1 : 0) : 0;
+    const isIndexable = pageData.is_indexable !== undefined ? (pageData.is_indexable ? 1 : 0) : (status === "published" ? 1 : 0);
     const faqsJson = pageData.faqs ? (Array.isArray(pageData.faqs) ? JSON.stringify(pageData.faqs) : pageData.faqs) : null;
     const canonical = pageData.canonical_url?.trim() || url;
     const zoneId = pageData.zone_id === "all" || !pageData.zone_id ? null : Number(pageData.zone_id);

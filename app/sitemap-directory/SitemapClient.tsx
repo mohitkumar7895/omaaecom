@@ -30,6 +30,9 @@ interface SitemapLink {
   area?: string | null;
   priority: number;
   changefreq: string;
+  page_type?: string | null;
+  category_id?: number | string | null;
+  service_id?: number | string | null;
 }
 
 export default function SitemapClient({ initialLinks }: { initialLinks: SitemapLink[] }) {
@@ -37,15 +40,31 @@ export default function SitemapClient({ initialLinks }: { initialLinks: SitemapL
   const [activeTab, setActiveTab] = useState<string>("All");
   const [selectedCity, setSelectedCity] = useState<string>("All");
 
-  const isAreaOrLocationGroup = (group: string) => {
-    if (!group) return false;
-    const g = group.toLowerCase();
+  const isAreaOrLocationGroup = (link: SitemapLink) => {
+    const g = (link.group_name || "").toLowerCase();
     return (
       g.includes("area") ||
       g.includes("society") ||
       g.includes("location") ||
       g.includes("gaur city") ||
-      g.includes("localit")
+      g.includes("localit") ||
+      Boolean(link.city) ||
+      Boolean(link.area)
+    );
+  };
+
+  const isServiceGroup = (link: SitemapLink) => {
+    const g = (link.group_name || "").toLowerCase();
+    const t = (link.title || "").toLowerCase();
+    return (
+      g === "services" ||
+      g.includes("service") ||
+      link.page_type === "service" ||
+      Boolean(link.category_id) ||
+      Boolean(link.service_id) ||
+      t.includes("repair") ||
+      t.includes("service") ||
+      t.includes("installation")
     );
   };
 
@@ -54,8 +73,8 @@ export default function SitemapClient({ initialLinks }: { initialLinks: SitemapL
     return initialLinks.filter((link) => {
       const matchesTab =
         activeTab === "All" ||
-        (activeTab === "Services" && link.group_name === "Services") ||
-        (activeTab === "Areas" && isAreaOrLocationGroup(link.group_name)) ||
+        (activeTab === "Services" && isServiceGroup(link)) ||
+        (activeTab === "Areas" && isAreaOrLocationGroup(link)) ||
         (activeTab === "Keywords" && link.group_name === "Keyword SEO") ||
         (activeTab === "Main" && link.group_name === "Main Pages") ||
         (activeTab === "Legal" && link.group_name === "Legal & Policies");
@@ -76,8 +95,8 @@ export default function SitemapClient({ initialLinks }: { initialLinks: SitemapL
   }, [initialLinks, searchTerm, activeTab, selectedCity]);
 
   // Groupings
-  const servicesLinks = filteredLinks.filter((l) => l.group_name === "Services");
-  const areaLinks = filteredLinks.filter((l) => isAreaOrLocationGroup(l.group_name));
+  const servicesLinks = filteredLinks.filter((l) => isServiceGroup(l));
+  const areaLinks = filteredLinks.filter((l) => isAreaOrLocationGroup(l));
   const keywordLinks = filteredLinks.filter((l) => l.group_name === "Keyword SEO");
   const mainLinks = filteredLinks.filter((l) => l.group_name === "Main Pages");
   const legalLinks = filteredLinks.filter((l) => l.group_name === "Legal & Policies");
@@ -222,8 +241,8 @@ export default function SitemapClient({ initialLinks }: { initialLinks: SitemapL
             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1.5 sm:pb-0">
               {[
                 { id: "All", label: "All Pages", count: initialLinks.length },
-                { id: "Services", label: "Appliance Services", count: initialLinks.filter((l) => l.group_name === "Services").length },
-                { id: "Areas", label: "Area Localities", count: initialLinks.filter((l) => isAreaOrLocationGroup(l.group_name)).length },
+                { id: "Services", label: "Appliance Services", count: initialLinks.filter((l) => isServiceGroup(l)).length },
+                { id: "Areas", label: "Area Localities", count: initialLinks.filter((l) => isAreaOrLocationGroup(l)).length },
                 { id: "Keywords", label: "Search Keywords", count: initialLinks.filter((l) => l.group_name === "Keyword SEO").length },
                 { id: "Main", label: "Core Portals", count: initialLinks.filter((l) => l.group_name === "Main Pages").length },
                 { id: "Legal", label: "Policies & Terms", count: initialLinks.filter((l) => l.group_name === "Legal & Policies").length },

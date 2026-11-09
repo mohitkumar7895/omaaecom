@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   Globe,
   Plus,
@@ -178,8 +179,18 @@ export default function SeoManager({
   initialChildAvenues?: ChildAvenueItem[];
   initialChildSocieties?: ChildSocietyItem[];
 }) {
+  const searchParams = useSearchParams();
+  const tabParam = searchParams?.get("tab") as "pages" | "parents" | "avenues" | "societies" | null;
   // Navigation tabs: 'pages' | 'parents' | 'avenues' | 'societies'
-  const [activeTab, setActiveTab] = useState<"pages" | "parents" | "avenues" | "societies">("pages");
+  const [activeTab, setActiveTab] = useState<"pages" | "parents" | "avenues" | "societies">(
+    tabParam && ["pages", "parents", "avenues", "societies"].includes(tabParam) ? tabParam : "pages"
+  );
+
+  useEffect(() => {
+    if (tabParam && ["pages", "parents", "avenues", "societies"].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam]);
 
   // Core Data Lists
   const [pages, setPages] = useState<SeoPageItem[]>(initialPages);
@@ -298,41 +309,28 @@ export default function SeoManager({
     return () => clearTimeout(timer);
   }, [search, statusFilter, indexFilter, categoryFilter, zoneFilter, pageTypeFilter, parentLocationFilter]);
 
-  // Available Parents filtered by selected zone in active editor
+  // Available Parents in active editor
   const availableParentsForEditor = useMemo(() => {
-    if (!activePage?.zone_id || activePage.zone_id === "all") return parentLocations;
-    return parentLocations.filter((p) => p.zone_id === Number(activePage.zone_id));
-  }, [parentLocations, activePage?.zone_id]);
+    return parentLocations;
+  }, [parentLocations]);
 
   // Available Avenues filtered by selected parent in active editor
   const availableAvenuesForEditor = useMemo(() => {
     if (!activePage?.parent_location_id) return [];
     if (activePage.parent_location_id === "all") {
-      if (activePage.zone_id && activePage.zone_id !== "all") {
-        const zoneParentIds = new Set(
-          parentLocations.filter((p) => p.zone_id === Number(activePage.zone_id)).map((p) => p.id)
-        );
-        return childAvenues.filter((a) => zoneParentIds.has(a.parent_location_id));
-      }
       return childAvenues;
     }
     return childAvenues.filter((a) => a.parent_location_id === Number(activePage.parent_location_id));
-  }, [childAvenues, parentLocations, activePage?.parent_location_id, activePage?.zone_id]);
+  }, [childAvenues, activePage?.parent_location_id]);
 
   // Available Societies filtered by selected parent in active editor
   const availableSocietiesForEditor = useMemo(() => {
     if (!activePage?.parent_location_id) return [];
     if (activePage.parent_location_id === "all") {
-      if (activePage.zone_id && activePage.zone_id !== "all") {
-        const zoneParentIds = new Set(
-          parentLocations.filter((p) => p.zone_id === Number(activePage.zone_id)).map((p) => p.id)
-        );
-        return childSocieties.filter((s) => zoneParentIds.has(s.parent_location_id));
-      }
       return childSocieties;
     }
     return childSocieties.filter((s) => s.parent_location_id === Number(activePage.parent_location_id));
-  }, [childSocieties, parentLocations, activePage?.parent_location_id, activePage?.zone_id]);
+  }, [childSocieties, activePage?.parent_location_id]);
 
   // Available Services filtered by selected category in active editor
   const availableServicesForEditor = useMemo(() => {
@@ -342,7 +340,6 @@ export default function SeoManager({
 
   // Auto-generator helper when creating or editing a page
   const generatePageMetadataFromSelection = (page: Partial<SeoPageItem>) => {
-    const isAllZones = page.zone_id === "all";
     const isAllParents = page.parent_location_id === "all" || page.parent_id === "all";
     const isAllAvenues = page.child_avenue_id === "all";
     const isAllSocieties = page.child_society_id === "all";
@@ -353,11 +350,10 @@ export default function SeoManager({
     const society = childSocieties.find((s) => s.id === Number(page.child_society_id));
     const cat = categories.find((c) => c.id === Number(page.category_id));
     const svc = services.find((s) => s.id === Number(page.service_id));
-    const matchedZone = zones.find((z) => z.id === Number(page.zone_id));
 
     const pageType = page.page_type || "service";
-    const zoneName = matchedZone?.name || (isAllZones ? "Delhi NCR" : "Delhi NCR");
-    const cityName = parent?.city || page.city || (isAllZones ? "Delhi NCR" : zoneName);
+    const cityName = parent?.city || page.city?.trim() || "Delhi NCR";
+    const areaInput = page.area?.trim();
 
     // 1. Compute Service Name
     let serviceName = "Home Appliance Repair";
@@ -378,32 +374,49 @@ export default function SeoManager({
     let slugPath = "";
 
     if (pageType === "location") {
-      if (isAllParents) {
-        locationLabel = isAllZones ? "Delhi NCR (All Service Zones)" : `All Locations, ${zoneName}`;
-        slugPath = isAllZones ? "delhi-ncr-all-locations" : `${zoneName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-all-locations`;
+      if (areaInput) {
+        if (parent) {
+          locationLabel = `${areaInput}, ${parent.name}`;
+          slugPath = `${parent.slug}/${areaInput.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+        } else {
+          locationLabel = `${areaInput}, ${cityName}`;
+          slugPath = `${cityName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${areaInput.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+        }
+      } else if (isAllParents) {
+        locationLabel = `All Locations, ${cityName}`;
+        slugPath = `${cityName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-all-locations`;
       } else {
-        locationLabel = parent?.name || "Indirapuram";
-        slugPath = parent?.slug || "indirapuram";
+        locationLabel = parent?.name || "Gaur City 2";
+        slugPath = parent?.slug || "gaur-city-2";
       }
     } else if (pageType === "avenue") {
       if (isAllAvenues) {
         locationLabel = parent ? `All Avenues, ${parent.name}` : "All Avenues";
         slugPath = parent ? `${parent.slug}/all-avenues` : "all-avenues";
       } else {
-        locationLabel = avenue ? `${avenue.name}, ${parent?.name || "Indirapuram"}` : (parent ? `Avenue, ${parent.name}` : "10th Avenue, Gaur City 2");
-        slugPath = parent && avenue ? `${parent.slug}/${avenue.slug}` : (avenue?.slug || "10th-avenue");
+        locationLabel = avenue ? `${avenue.name}, ${parent?.name || cityName}` : (parent ? `Avenue, ${parent.name}` : (areaInput || "10th Avenue, Gaur City 2"));
+        slugPath = parent && avenue ? `${parent.slug}/${avenue.slug}` : (avenue?.slug || (areaInput ? areaInput.toLowerCase().replace(/[^a-z0-9]+/g, "-") : "10th-avenue"));
       }
     } else if (pageType === "society") {
       if (isAllSocieties) {
         locationLabel = parent ? `All Societies, ${parent.name}` : "All Societies";
         slugPath = parent ? `${parent.slug}/all-societies` : "all-societies";
       } else {
-        locationLabel = society ? `${society.name}, ${parent?.name || "Indirapuram"}` : (parent ? `Society, ${parent.name}` : "White Orchid, Gaur City 2");
-        slugPath = parent && society ? `${parent.slug}/${society.slug}` : (society?.slug || "white-orchid");
+        locationLabel = society ? `${society.name}, ${parent?.name || cityName}` : (parent ? `Society, ${parent.name}` : (areaInput || "White Orchid, Gaur City 2"));
+        slugPath = parent && society ? `${parent.slug}/${society.slug}` : (society?.slug || (areaInput ? areaInput.toLowerCase().replace(/[^a-z0-9]+/g, "-") : "white-orchid"));
       }
     } else {
-      // Standard service page
-      if (isAllSocieties && parent) {
+      // Standard service page or Locality / Range page
+      if (areaInput) {
+        // Specific Area / Sector / Landmark / Range provided (e.g. Sector 62, Gaur Chowk, NH-24, Within 5-10 km Range)
+        if (parent) {
+          locationLabel = `${areaInput}, ${parent.name}`;
+          slugPath = `${parent.slug}/${areaInput.toLowerCase().replace(/[^a-z0-9]+/g, "-")}/${cleanSvcSlug}`;
+        } else {
+          locationLabel = `${areaInput}, ${cityName}`;
+          slugPath = `${cleanSvcSlug}-${areaInput.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+        }
+      } else if (isAllSocieties && parent) {
         locationLabel = `All Societies, ${parent.name}`;
         slugPath = `${parent.slug}/all-societies/${cleanSvcSlug}`;
       } else if (isAllAvenues && parent) {
@@ -416,15 +429,14 @@ export default function SeoManager({
         locationLabel = `${avenue.name}, ${parent.name}`;
         slugPath = `${parent.slug}/${avenue.slug}/${cleanSvcSlug}`;
       } else if (isAllParents) {
-        locationLabel = isAllZones ? "All Locations, Delhi NCR" : `All Locations in ${zoneName}`;
-        slugPath = `${cleanSvcSlug}-${(matchedZone?.name || cityName).toLowerCase().replace(/[^a-z0-9]+/g, "-")}-all-areas`;
+        locationLabel = `All Locations, ${cityName}`;
+        slugPath = `${cleanSvcSlug}-${cityName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-all-areas`;
       } else if (parent) {
         locationLabel = `${parent.name}, ${cityName}`;
         slugPath = `${cleanSvcSlug}-${parent.slug}`;
       } else {
-        const locTarget = page.area || cityName || "Indirapuram";
-        locationLabel = `${locTarget}, ${cityName}`;
-        slugPath = `${cleanSvcSlug}-${locTarget.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+        locationLabel = cityName || "Delhi NCR";
+        slugPath = `${cleanSvcSlug}-${locationLabel.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
       }
     }
 
@@ -476,7 +488,7 @@ export default function SeoManager({
       service_id: null,
       status: "published",
       is_active: 1,
-      is_indexable: 0,
+      is_indexable: 1,
       priority: 0.85,
       changefreq: "weekly",
       faqs: [
@@ -1651,22 +1663,53 @@ export default function SeoManager({
                   </select>
                 </div>
 
-                {/* Row 2: Service Zone (Step 1) & City / Region (Step 2) */}
+                {/* Row 2: Location Hierarchy & Dynamic Cascading (City / Region & Parent Location) */}
                 <div className="grid sm:grid-cols-2 gap-4">
+                  {/* City / Region */}
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1 flex items-center justify-between">
-                      <span>Step 1: Service Zone (Admin Zone)</span>
+                    <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
+                      City / Region
                     </label>
+                    <input
+                      type="text"
+                      value={activePage.city || ""}
+                      onChange={(e) => {
+                        const newCity = e.target.value;
+                        setActivePage((prev) => {
+                          const updated = { ...prev, city: newCity };
+                          const autoGen = generatePageMetadataFromSelection(updated);
+                          return { ...updated, ...autoGen };
+                        });
+                      }}
+                      placeholder="e.g. Greater Noida West, Noida, Ghaziabad, Delhi NCR"
+                      className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    />
+                  </div>
+
+                  {/* Parent Location + Inline Add Shortcut */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[11px] font-bold text-slate-700 uppercase">
+                        Parent Location <span className="text-rose-500">*</span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => handleOpenParentModal()}
+                        className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-2 py-0.5 rounded-md border border-emerald-200/60 transition cursor-pointer"
+                        title="Add a new parent location on the fly"
+                      >
+                        <Plus className="w-3 h-3" />
+                        <span>Add Parent</span>
+                      </button>
+                    </div>
                     <select
-                      value={activePage.zone_id || ""}
+                      value={activePage.parent_location_id || activePage.parent_id || ""}
                       onChange={(e) => {
                         const val = e.target.value;
                         if (val === "all") {
                           setActivePage((prev) => {
                             const updated = {
                               ...prev,
-                              zone_id: "all",
-                              city: "Delhi NCR",
                               parent_location_id: "all",
                               parent_id: "all",
                               child_avenue_id: null,
@@ -1678,143 +1721,60 @@ export default function SeoManager({
                           return;
                         }
 
-                        const nextZoneId = val ? Number(val) : null;
-                        const matchedZone = zones.find((z) => z.id === nextZoneId);
-                        const zoneParents = parentLocations.filter((p) => p.zone_id === nextZoneId);
-                        const autoParent = zoneParents.length === 1 ? zoneParents[0] : null;
+                        const nextParentId = val ? Number(val) : null;
+                        const selectedParent = parentLocations.find((p) => p.id === nextParentId);
 
                         setActivePage((prev) => {
+                          // Changing parent automatically clears avenue and society!
                           const updated = {
                             ...prev,
-                            zone_id: nextZoneId,
-                            city: autoParent ? autoParent.city : (matchedZone ? (matchedZone.city_names?.split(",")[0]?.trim() || "Ghaziabad") : prev?.city),
-                            parent_location_id: autoParent ? autoParent.id : (prev?.parent_location_id && zoneParents.some(p => p.id === prev.parent_location_id) ? prev.parent_location_id : null),
-                            parent_id: autoParent ? autoParent.id : (prev?.parent_id && zoneParents.some(p => p.id === prev.parent_id) ? prev.parent_id : null),
+                            parent_location_id: nextParentId,
+                            parent_id: nextParentId,
                             child_avenue_id: null,
                             child_society_id: null,
+                            zone_id: selectedParent?.zone_id || prev?.zone_id,
+                            city: selectedParent?.city || prev?.city,
                           };
                           const autoGen = generatePageMetadataFromSelection(updated);
                           return { ...updated, ...autoGen };
                         });
                       }}
-                      className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-800"
+                      className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                     >
-                      <option value="">-- Select Service Zone --</option>
-                      <option value="all">🌐 All Zones (All Service Zones)</option>
-                      {zones.map((z) => (
-                        <option key={z.id} value={z.id}>
-                          {z.name}
+                      <option value="">-- Select Parent Location --</option>
+                      <option value="all">
+                        📍 All Parent Locations (Whole City / Region)
+                      </option>
+                      {parentLocations.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name} ({p.city}) - /{p.slug}
                         </option>
                       ))}
                     </select>
                   </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1">
-                      Step 2: City / Region
-                    </label>
-                    <input
-                      type="text"
-                      value={activePage.city || ""}
-                      onChange={(e) => setActivePage((prev) => ({ ...prev, city: e.target.value }))}
-                      placeholder="e.g. Ghaziabad, Greater Noida West, Noida, Delhi"
-                      className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-800"
-                    />
-                  </div>
                 </div>
 
-                {/* Row 3: Parent Location (Step 3) - CASCADING CORE */}
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1 flex items-center justify-between">
-                    <span>Step 3: Parent Location <span className="text-rose-500">*</span></span>
-                    <span className="text-[10px] text-slate-500 font-normal">
-                      Changing parent automatically clears old avenue/society
-                    </span>
-                  </label>
-                  <select
-                    value={activePage.parent_location_id || activePage.parent_id || ""}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      if (val === "all") {
-                        setActivePage((prev) => {
-                          const updated = {
-                            ...prev,
-                            parent_location_id: "all",
-                            parent_id: "all",
-                            child_avenue_id: null,
-                            child_society_id: null,
-                          };
-                          const autoGen = generatePageMetadataFromSelection(updated);
-                          return { ...updated, ...autoGen };
-                        });
-                        return;
-                      }
-
-                      const nextParentId = val ? Number(val) : null;
-                      const selectedParent = parentLocations.find((p) => p.id === nextParentId);
-
-                      setActivePage((prev) => {
-                        // CRITICAL: Changing parent automatically clears avenue and society!
-                        const updated = {
-                          ...prev,
-                          parent_location_id: nextParentId,
-                          parent_id: nextParentId,
-                          child_avenue_id: null,
-                          child_society_id: null,
-                          zone_id: selectedParent?.zone_id || prev?.zone_id,
-                          city: selectedParent?.city || prev?.city,
-                        };
-                        const autoGen = generatePageMetadataFromSelection(updated);
-                        return { ...updated, ...autoGen };
-                      });
-                    }}
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                  >
-                    <option value="">-- Select Parent Location --</option>
-                    <option value="all">
-                      📍 All Parent Locations {activePage.zone_id && activePage.zone_id !== "all" ? "(in Selected Zone)" : "(All Zones)"}
-                    </option>
-                    {activePage.zone_id && activePage.zone_id !== "all" && parentLocations.some((p) => p.zone_id === activePage.zone_id) ? (
-                      <>
-                        <optgroup label="Locations in Selected Zone">
-                          {parentLocations
-                            .filter((p) => p.zone_id === activePage.zone_id)
-                            .map((p) => (
-                              <option key={p.id} value={p.id}>
-                                {p.name} ({p.city}) - /{p.slug}
-                              </option>
-                            ))}
-                        </optgroup>
-                        <optgroup label="Other Locations">
-                          {parentLocations
-                            .filter((p) => p.zone_id !== activePage.zone_id)
-                            .map((p) => (
-                              <option key={p.id} value={p.id}>
-                                {p.name} ({p.city}) - /{p.slug}
-                              </option>
-                            ))}
-                        </optgroup>
-                      </>
-                    ) : (
-                      parentLocations.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name} ({p.city}) - /{p.slug}
-                        </option>
-                      ))
-                    )}
-                  </select>
-                </div>
-
-                {/* Row 4: Child Avenue (Step 4) & Child Society (Step 5) */}
+                {/* Row 3: Child Avenue & Child Society with Add Shortcuts */}
                 <div className="grid sm:grid-cols-2 gap-4">
-                  {/* Step 4: Child Avenue */}
+                  {/* Child Avenue */}
                   <div className={activePage.page_type === "location" ? "opacity-40 pointer-events-none" : ""}>
-                    <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1 flex items-center justify-between">
-                      <span>Step 4: Child Avenue</span>
-                      <span className="text-[10px] text-sky-600 font-semibold">
-                        {availableAvenuesForEditor.length} in selected parent
-                      </span>
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[11px] font-bold text-slate-700 uppercase flex items-center gap-1.5">
+                        <span>Child Avenue</span>
+                        <span className="text-[10px] text-sky-600 font-semibold">
+                          ({availableAvenuesForEditor.length})
+                        </span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => handleOpenAvenueModal()}
+                        className="inline-flex items-center gap-1 text-[10px] font-bold text-sky-700 hover:text-sky-800 bg-sky-50 hover:bg-sky-100 px-2 py-0.5 rounded-md border border-sky-200/60 transition cursor-pointer"
+                        title="Add a new avenue"
+                      >
+                        <Plus className="w-3 h-3" />
+                        <span>Add Avenue</span>
+                      </button>
+                    </div>
                     <select
                       value={activePage.child_avenue_id || ""}
                       disabled={!activePage.parent_location_id || activePage.page_type === "location"}
@@ -1845,21 +1805,32 @@ export default function SeoManager({
                         </option>
                       ))}
                     </select>
-                    {availableAvenuesForEditor.length === 0 && activePage.parent_location_id && (
+                    {availableAvenuesForEditor.length === 0 && activePage.parent_location_id && activePage.parent_location_id !== "all" && (
                       <span className="text-[10px] text-amber-600 mt-1 block">
-                        No avenues registered under this parent yet. Add from Child Avenues tab.
+                        No avenues under this parent yet. Click &quot;+ Add Avenue&quot; to add one.
                       </span>
                     )}
                   </div>
 
-                  {/* Step 5: Child Society */}
+                  {/* Child Society */}
                   <div className={activePage.page_type === "location" ? "opacity-40 pointer-events-none" : ""}>
-                    <label className="block text-[11px] font-bold text-slate-700 uppercase mb-1 flex items-center justify-between">
-                      <span>Step 5: Child Society</span>
-                      <span className="text-[10px] text-purple-600 font-semibold">
-                        {availableSocietiesForEditor.length} in selected parent
-                      </span>
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[11px] font-bold text-slate-700 uppercase flex items-center gap-1.5">
+                        <span>Child Society</span>
+                        <span className="text-[10px] text-purple-600 font-semibold">
+                          ({availableSocietiesForEditor.length})
+                        </span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => handleOpenSocietyModal()}
+                        className="inline-flex items-center gap-1 text-[10px] font-bold text-purple-700 hover:text-purple-800 bg-purple-50 hover:bg-purple-100 px-2 py-0.5 rounded-md border border-purple-200/60 transition cursor-pointer"
+                        title="Add a new society"
+                      >
+                        <Plus className="w-3 h-3" />
+                        <span>Add Society</span>
+                      </button>
+                    </div>
                     <select
                       value={activePage.child_society_id || ""}
                       disabled={!activePage.parent_location_id || activePage.page_type === "location"}
@@ -1890,12 +1861,67 @@ export default function SeoManager({
                         </option>
                       ))}
                     </select>
-                    {availableSocietiesForEditor.length === 0 && activePage.parent_location_id && (
+                    {availableSocietiesForEditor.length === 0 && activePage.parent_location_id && activePage.parent_location_id !== "all" && (
                       <span className="text-[10px] text-amber-600 mt-1 block">
-                        No societies registered under this parent yet. Add from Child Societies tab.
+                        No societies under this parent yet. Click &quot;+ Add Society&quot; to add one.
                       </span>
                     )}
                   </div>
+                </div>
+
+                {/* Row 4: Specific Locality / Sector / Landmark / Range (Dynamic SEO Idea) */}
+                <div className="bg-white/90 p-4 rounded-xl border border-indigo-200/80 shadow-2xs space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-black text-indigo-950 uppercase tracking-wide flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-indigo-600" />
+                      <span>Locality / Sector / Landmark / Range (Dynamic Area Input)</span>
+                    </label>
+                    <span className="text-[10px] font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-full">
+                      Real-time Dynamic Sync
+                    </span>
+                  </div>
+                  <input
+                    type="text"
+                    value={activePage.area || ""}
+                    onChange={(e) => {
+                      const nextArea = e.target.value;
+                      setActivePage((prev) => {
+                        const updated = { ...prev, area: nextArea };
+                        const autoGen = generatePageMetadataFromSelection(updated);
+                        return { ...updated, ...autoGen };
+                      });
+                    }}
+                    placeholder="e.g. Sector 62, Gaur Chowk, NH-24, Pari Chowk, Within 5-10 km Range, Crossing Republik"
+                    className="w-full px-3 py-2.5 rounded-xl border border-indigo-200 bg-white text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 shadow-2xs"
+                  />
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    💡 Har tarike ka idea yahan enter karein (Jaise: Sector 62, Gaur Chowk, NH-24, 5-10 km Range). Page title, H1, H2, H3, description aur clean URL slug apne aap real-time update ho jayenge.
+                  </p>
+                </div>
+
+                {/* Optional Operational Service Zone */}
+                <div className="pt-2 border-t border-indigo-100/70 flex items-center justify-between gap-4">
+                  <span className="text-[11px] text-slate-500 font-medium">
+                    Operational Service Zone (Optional / Dispatch Reference):
+                  </span>
+                  <select
+                    value={activePage.zone_id || ""}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setActivePage((prev) => ({
+                        ...prev,
+                        zone_id: val === "all" ? "all" : (val ? Number(val) : null),
+                      }));
+                    }}
+                    className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-[11px] text-slate-700 max-w-xs"
+                  >
+                    <option value="">-- No Zone Restriction / All Zones --</option>
+                    {zones.map((z) => (
+                      <option key={z.id} value={z.id}>
+                        {z.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 {/* Row 5: Associated Service / Category (Step 6) */}
@@ -2222,8 +2248,8 @@ export default function SeoManager({
                     onChange={(e) => setActivePage((prev) => ({ ...prev, is_indexable: e.target.value === "1" ? 1 : 0 }))}
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold"
                   >
-                    <option value="0">Noindex (Recommended during staging)</option>
-                    <option value="1">Index in Google (Included in Sitemap.xml)</option>
+                    <option value="1">Index in Google (Included in Sitemap.xml) - Recommended</option>
+                    <option value="0">Noindex (Hidden from Google & Sitemap)</option>
                   </select>
                 </div>
 

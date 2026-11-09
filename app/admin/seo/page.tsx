@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import pool from "@/lib/db";
 import SeoManager from "./SeoManager";
 import { getUnifiedLocations } from "@/lib/seo-locations-provider";
@@ -180,16 +181,18 @@ export default async function AdminSeoPage() {
   }
 
   return (
-    <SeoManager
-      initialPages={initialPages}
-      initialStats={stats}
-      categories={categories}
-      services={services}
-      locations={locations}
-      zones={zones}
-      parentLocations={parentLocations}
-      initialChildAvenues={childAvenues}
-      initialChildSocieties={childSocieties}
-    />
+    <Suspense fallback={<div className="p-8 text-center text-slate-400">Loading SEO Engine...</div>}>
+      <SeoManager
+        initialPages={initialPages}
+        initialStats={stats}
+        categories={categories}
+        services={services}
+        locations={locations}
+        zones={zones}
+        parentLocations={parentLocations}
+        initialChildAvenues={childAvenues}
+        initialChildSocieties={childSocieties}
+      />
+    </Suspense>
   );
 }

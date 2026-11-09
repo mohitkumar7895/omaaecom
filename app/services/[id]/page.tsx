@@ -109,9 +109,14 @@ export default async function CategoryPage({ params }: { params: Promise<{ id: s
 
     const services = servicesRows.map((s: any) => {
       const rawDesc = s.short_description || category.short_description;
-      const cleanDesc = (rawDesc && !rawDesc.includes("Warranty Policy") && !rawDesc.startsWith("###"))
-        ? rawDesc
-        : "";
+      const cleanDesc = (
+        rawDesc && 
+        !rawDesc.includes("Warranty Policy") && 
+        !rawDesc.startsWith("#") && 
+        !rawDesc.includes("###") && 
+        !rawDesc.toLowerCase().includes("warranty") && 
+        rawDesc.length < 300
+      ) ? rawDesc : "";
       return {
         ...s,
         image_url: publicAssetUrl(s.image_url) || (s.image_url ? `/api/media/service/${s.id}` : ""),
