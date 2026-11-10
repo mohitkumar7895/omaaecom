@@ -90,7 +90,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ id: s
       pool.query("SELECT id, title, image_url, short_description, type FROM categories WHERE id = ?", [categoryId]),
       pool.query("SELECT id, title, category_id FROM subcategories WHERE category_id = ?", [categoryId]),
       pool.query(
-        "SELECT id, category_id, subcategory_id, title, rating, selling_price, original_price, warranty_days, short_description, image_url FROM services WHERE category_id = ?",
+        "SELECT id, category_id, subcategory_id, title, rating, selling_price, original_price, warranty_days, short_description, long_description, image_url FROM services WHERE category_id = ?",
         [categoryId]
       ),
       pool.query(`
@@ -121,6 +121,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ id: s
         ...s,
         image_url: publicAssetUrl(s.image_url) || (s.image_url ? `/api/media/service/${s.id}` : ""),
         short_description: cleanDesc,
+        long_description: s.long_description || "",
         warranty_days: s.warranty_days,
       };
     });

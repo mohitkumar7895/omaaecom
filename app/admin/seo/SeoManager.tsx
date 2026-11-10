@@ -730,9 +730,14 @@ export default function SeoManager({
     if (avenue) {
       setActiveAvenue({ ...avenue });
     } else {
-      const defaultPid = tabParentFilter !== "all" ? Number(tabParentFilter) : parentLocations[0]?.id || 1;
+      const parentIdToUse =
+        activePage?.parent_location_id && activePage.parent_location_id !== "all"
+          ? Number(activePage.parent_location_id)
+          : tabParentFilter !== "all"
+          ? Number(tabParentFilter)
+          : parentLocations[0]?.id || 1;
       setActiveAvenue({
-        parent_location_id: defaultPid,
+        parent_location_id: parentIdToUse,
         name: "",
         slug: "",
         description: "",
@@ -792,10 +797,15 @@ export default function SeoManager({
     if (society) {
       setActiveSociety({ ...society });
     } else {
-      const defaultPid = tabParentFilter !== "all" ? Number(tabParentFilter) : parentLocations[0]?.id || 1;
+      const parentIdToUse =
+        activePage?.parent_location_id && activePage.parent_location_id !== "all"
+          ? Number(activePage.parent_location_id)
+          : tabParentFilter !== "all"
+          ? Number(tabParentFilter)
+          : parentLocations[0]?.id || 1;
       setActiveSociety({
-        parent_location_id: defaultPid,
-        child_avenue_id: null,
+        parent_location_id: parentIdToUse,
+        child_avenue_id: activePage?.child_avenue_id && activePage.child_avenue_id !== "all" ? Number(activePage.child_avenue_id) : null,
         name: "",
         slug: "",
         description: "",

@@ -161,15 +161,23 @@ export default function EditServiceForm({ service, categories, subcategories }: 
 
             {/* Long Description */}
             <div>
-              <label className="block text-gray-700 text-sm mb-1">
-                Long Description (Detailed View)
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-gray-800 text-sm font-bold">
+                  Long Description (View Details & Read More)
+                </label>
+                <span className="text-[11px] text-indigo-600 font-semibold bg-indigo-50 px-2 py-0.5 rounded">
+                  View Details Modal
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 mb-2">
+                This description is displayed in the &quot;View Details&quot; popup on service cards with the first few lines visible and an expandable &quot;Read More / Read Less&quot; toggle. Supports paragraphs and bullet points.
+              </p>
               <textarea 
                 name="long_description"
-                rows={4}
+                rows={6}
                 defaultValue={service.long_description || ""}
-                placeholder="Detailed information for View Details modal..."
-                className="w-full border border-gray-300 rounded text-sm px-3 py-2 outline-none focus:border-[#2c3e50]"
+                placeholder="Detailed service scope, inclusions, inspection procedures, and specifications..."
+                className="w-full border border-gray-300 rounded-xl text-sm p-3 outline-none focus:border-[#2c3e50] focus:ring-1 focus:ring-[#2c3e50] leading-relaxed"
               />
             </div>
 
