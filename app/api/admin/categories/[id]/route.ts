@@ -6,7 +6,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   try {
     const { id } = await params;
     const body = await req.json();
-    const { title, status, image_url, type, labour_charges, zones, zones_location, warranty_days, short_description } = body;
+    const { title, status, image_url, type, labour_charges, zones, zones_location, warranty_days, short_description, long_description } = body;
 
     if (!title) {
       return NextResponse.json({ error: "Title is required" }, { status: 400 });
@@ -42,6 +42,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     if (short_description !== undefined) {
       query += ", short_description = ?";
       queryParams.push(short_description);
+    }
+    if (long_description !== undefined) {
+      query += ", long_description = ?";
+      queryParams.push(long_description);
     }
 
     query += " WHERE id = ?";

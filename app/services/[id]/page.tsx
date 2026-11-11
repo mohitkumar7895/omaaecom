@@ -87,7 +87,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ id: s
       [servicesRows],
       [rateCards]
     ] = (await Promise.all([
-      pool.query("SELECT id, title, image_url, short_description, type FROM categories WHERE id = ?", [categoryId]),
+      pool.query("SELECT id, title, image_url, short_description, long_description, type FROM categories WHERE id = ?", [categoryId]),
       pool.query("SELECT id, title, category_id FROM subcategories WHERE category_id = ?", [categoryId]),
       pool.query(
         "SELECT id, category_id, subcategory_id, title, rating, selling_price, original_price, warranty_days, short_description, long_description, image_url FROM services WHERE category_id = ?",
@@ -108,15 +108,25 @@ export default async function CategoryPage({ params }: { params: Promise<{ id: s
     const category = { ...catRows[0], image_url: publicAssetUrl(catRows[0].image_url) };
 
     const services = servicesRows.map((s: any) => {
-      const rawDesc = s.short_description ? String(s.short_description).trim() : "";
+      const hasCustomShortDesc = Boolean(s.short_description && String(s.short_description).trim().length > 0);
+      const rawDesc = hasCustomShortDesc 
+        ? String(s.short_description).trim() 
+        : (category.short_description ? String(category.short_description).trim() : "");
       const isPolicyDoc = rawDesc.includes("OMAA Company – Warranty Policy") || 
                           rawDesc.includes("OMAA Company - Warranty Policy");
       const cleanDesc = isPolicyDoc ? "" : rawDesc;
+
+      // Category-level or service-level long description (only what user actually inputs)
+      const serviceLongDesc = (s.long_description && String(s.long_description).trim().length > 0)
+        ? String(s.long_description).trim()
+        : (category.long_description ? String(category.long_description).trim() : "");
+
       return {
         ...s,
         image_url: publicAssetUrl(s.image_url) || (s.image_url ? `/api/media/service/${s.id}` : ""),
         short_description: cleanDesc,
-        long_description: s.long_description ? String(s.long_description).trim() : "",
+        has_custom_short_description: hasCustomShortDesc,
+        long_description: serviceLongDesc,
         warranty_days: s.warranty_days,
       };
     });

@@ -168,11 +168,11 @@ export default function EditServiceForm({ service, categories, subcategories }: 
                 name="short_description"
                 rows={3}
                 defaultValue={service.short_description || ""}
-                placeholder="Key highlights for service card (e.g. 1 Year AMC Coverage | 3 Free Maintenance Visits | 30% Off on Spares)"
+                placeholder="Key highlights for service card (separate multiple points with '|' or new lines)"
                 className="w-full border border-gray-300 rounded text-sm px-3 py-2 outline-none focus:border-[#2c3e50]"
               />
               <p className="text-xs text-gray-500 mt-1">
-                Appears as bullet points directly on the service card. Separate points using a pipe (|) or new lines (Enter).
+                Appears as bullet points directly on this service card.
               </p>
             </div>
 

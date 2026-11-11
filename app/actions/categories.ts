@@ -21,6 +21,13 @@ async function runMigration() {
       await pool.query("ALTER TABLE categories ADD COLUMN short_description TEXT DEFAULT NULL");
     } catch (err) {}
   }
+  try {
+    await pool.query("ALTER TABLE categories ADD COLUMN IF NOT EXISTS long_description TEXT DEFAULT NULL");
+  } catch (e) {
+    try {
+      await pool.query("ALTER TABLE categories ADD COLUMN long_description TEXT DEFAULT NULL");
+    } catch (err) {}
+  }
 }
 
 export async function getActiveCategories() {
@@ -103,6 +110,7 @@ export async function saveCategory(formData: FormData) {
     const imageBase64 = formData.get("image_base64") as string | null;
     const warrantyDays = formData.get("warranty_days") as string || "180";
     const shortDescription = formData.get("short_description") as string || "";
+    const longDescription = formData.get("long_description") as string || "";
 
     let imageUrl = "";
 
@@ -116,8 +124,8 @@ export async function saveCategory(formData: FormData) {
     } catch (e) {}
 
     const query = `
-      INSERT INTO categories (title, type, labour_charges, zones, zones_location, image_url, warranty_days, short_description)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO categories (title, type, labour_charges, zones, zones_location, image_url, warranty_days, short_description, long_description)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     
     await pool.query(query, [
@@ -128,7 +136,8 @@ export async function saveCategory(formData: FormData) {
       zonesLocation || "",
       imageUrl,
       parseInt(warrantyDays) || 180,
-      shortDescription || ""
+      shortDescription || "",
+      longDescription || ""
     ]);
 
     try {
@@ -166,6 +175,7 @@ export async function updateCategory(formData: FormData) {
     const imageRemoved = formData.get("image_removed") as string | null;
     const warrantyDays = formData.get("warranty_days") as string || "180";
     const shortDescription = formData.get("short_description") as string || "";
+    const longDescription = formData.get("long_description") as string || "";
 
     if (!id) {
       return { error: "Category ID is required" };
@@ -177,7 +187,7 @@ export async function updateCategory(formData: FormData) {
 
     let query = `
       UPDATE categories 
-      SET title = ?, type = ?, labour_charges = ?, zones = ?, zones_location = ?, warranty_days = ?, short_description = ?
+      SET title = ?, type = ?, labour_charges = ?, zones = ?, zones_location = ?, warranty_days = ?, short_description = ?, long_description = ?
     `;
     let params: any[] = [
       title || "",
@@ -186,7 +196,8 @@ export async function updateCategory(formData: FormData) {
       parseInt(zones) || 1,
       zonesLocation || "",
       parseInt(warrantyDays) || 180,
-      shortDescription || ""
+      shortDescription || "",
+      longDescription || ""
     ];
 
     const extracted = await extractImageBuffer(image, imageRaw, imageBase64);

@@ -20,8 +20,8 @@ export default function ServiceDetailsModal({ service, categoryName, onClose, on
   const [showWarrantyTerms, setShowWarrantyTerms] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
-  // Only display description actually entered in Admin for this service (NO PREFILLED FAKE TEXT)
-  const descriptionText = (service?.long_description || service?.short_description || "").trim();
+  // Only display description actually entered in Admin (Category or Service level)
+  const descriptionText = (service?.long_description || "").trim();
   const hasDescription = Boolean(descriptionText);
   const isLong = descriptionText.length > 130 || descriptionText.includes("\n") || descriptionText.includes("|");
 

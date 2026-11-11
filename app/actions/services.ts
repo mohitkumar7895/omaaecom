@@ -120,14 +120,23 @@ export async function updateService(formData: FormData) {
     let query = `
       UPDATE services SET 
         category_id = ?, subcategory_id = ?, title = ?, original_price = ?, selling_price = ?, 
-        rating = ?, warranty_days = ?, warranty_description = ?, short_description = ?, long_description = ?
+        rating = ?, warranty_days = ?, warranty_description = ?
     `;
     
     let params: any[] = [
       parseInt(category_id), parseInt(subcategory_id), title, 
       original_price ? parseFloat(original_price) : null, parseFloat(selling_price), 
-      rating, parseInt(warranty_days), warranty_description, short_description, long_description
+      rating, parseInt(warranty_days), warranty_description
     ];
+
+    if (formData.has("short_description")) {
+      query += `, short_description = ?`;
+      params.push((formData.get("short_description") as string) || "");
+    }
+    if (formData.has("long_description")) {
+      query += `, long_description = ?`;
+      params.push((formData.get("long_description") as string) || "");
+    }
 
     const extracted = await extractImageBuffer(image, imageRaw, imageBase64);
     if (extracted) {
