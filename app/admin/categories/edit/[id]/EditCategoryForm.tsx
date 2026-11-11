@@ -115,30 +115,6 @@ export default function EditCategoryForm({ category }: { category: any }) {
               />
             </div>
 
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-[13px] font-bold text-gray-800">Short Description (Card Bullet Points - separate with | )</label>
-              <textarea 
-                name="short_description"
-                rows={3}
-                defaultValue={category.short_description || ""}
-                placeholder="e.g. Valid on parts | Experienced staff | 100% Satisfaction Guarantee"
-                className="w-full border border-gray-200 rounded text-sm px-4 py-2.5 outline-none focus:border-blue-500"
-              />
-              <p className="text-xs text-gray-500">Appears as bullet points on all service cards in this category.</p>
-            </div>
-
-            <div className="space-y-2 md:col-span-2">
-              <label className="text-[13px] font-bold text-gray-800">Long Description (View Details & Read More)</label>
-              <textarea 
-                name="long_description"
-                rows={5}
-                defaultValue={category.long_description || ""}
-                placeholder="Detailed service scope, inclusions, inspection procedures, and specifications shown in the View Details modal..."
-                className="w-full border border-gray-200 rounded text-sm px-4 py-2.5 outline-none focus:border-blue-500"
-              />
-              <p className="text-xs text-gray-500">Appears in the &quot;View Details&quot; popup on service cards with expandable &quot;Read More / Read Less&quot; toggle.</p>
-            </div>
-
             {/* Interactive Multiple Zones & Google Map */}
             <div className="md:col-span-2 mt-2 pt-2 border-t border-gray-100">
               <CategoryZonePicker initialZonesLocation={category.zones_location || "Noida, Delhi"} />
