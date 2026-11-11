@@ -14,6 +14,17 @@ type ServiceCardProps = {
 
 export default function ServiceCard({ service, quantity = 0, onAdd, onRemove, onViewDetails, categoryTitle }: ServiceCardProps) {
   const premiumFit = isPremiumServiceCategory(categoryTitle);
+
+  // Extract clean bullet points from short_description (supports pipe '|', newlines '\n', or bullet markers)
+  const rawShortDesc = typeof service?.short_description === "string" ? service.short_description.trim() : "";
+  const isPolicyDocument = rawShortDesc.includes("OMAA Company – Warranty Policy") || rawShortDesc.includes("OMAA Company - Warranty Policy");
+  const bulletPoints = (!isPolicyDocument && rawShortDesc)
+    ? rawShortDesc
+        .split(/[|\r\n]+/)
+        .map((point: string) => point.replace(/^[\s•\-\*]+/, "").trim())
+        .filter((point: string) => point.length > 0 && !point.startsWith("###"))
+    : [];
+
   return (
     <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100/90 shadow-[0_2px_12px_rgba(0,0,0,0.04)] p-3 sm:p-6 mb-3 sm:mb-5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300 w-full">
       {/* 1. Top Section: Title & Rating */}
@@ -38,17 +49,12 @@ export default function ServiceCard({ service, quantity = 0, onAdd, onRemove, on
           </div>
 
           {/* Bullet Points */}
-          {service.short_description && 
-            !service.short_description.includes("Warranty Policy") && 
-            !service.short_description.startsWith("#") && 
-            !service.short_description.includes("###") && 
-            !service.short_description.toLowerCase().includes("warranty") && 
-            service.short_description.length < 300 && (
+          {bulletPoints.length > 0 && (
             <ul className="space-y-1.5 sm:space-y-2 mb-3 sm:mb-4">
-              {service.short_description.split('|').map((point: string, i: number) => (
+              {bulletPoints.map((point: string, i: number) => (
                 <li key={i} className="flex items-start text-xs sm:text-[13px] font-bold text-gray-800">
                   <div className="w-[5px] h-[5px] rounded-full bg-gray-800 mt-[6px] mr-2 flex-shrink-0"></div>
-                  <span className="leading-tight">{point.trim()}</span>
+                  <span className="leading-tight">{point}</span>
                 </li>
               ))}
             </ul>

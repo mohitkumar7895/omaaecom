@@ -9,14 +9,27 @@ const SMTP_PASS = process.env.SMTP_PASSWORD || process.env.SMTP_PASS || "vkrdsip
 const DEFAULT_RECIPIENT_EMAIL = process.env.RECIPIENT_EMAILS || process.env.ADMIN_EMAIL || "prtmohit.provisioningtech.com@gmail.com";
 
 function getSmtpTransporter() {
-  const user = process.env.SMTP_EMAIL || process.env.SMTP_USER || "mail.omaacompany@gmail.com";
-  const pass = process.env.SMTP_PASSWORD || process.env.SMTP_PASS || "mbsthjivpawpyics";
+  const user = process.env.SMTP_EMAIL || process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASSWORD || process.env.SMTP_PASS;
   if (!user || !pass) return null;
   return nodemailer.createTransport({
     service: "gmail",
     auth: {
-      user,
-      pass,
+      user: user.trim(),
+      pass: pass.trim(),
+    },
+  });
+}
+
+function getBackupSmtpTransporter() {
+  const user = process.env.SMTP_BACKUP_EMAIL || "prtmohit.provisioningtech.com@gmail.com";
+  const pass = process.env.SMTP_BACKUP_PASSWORD || "vkrdsipfchlkgyxj";
+  if (!user || !pass) return null;
+  return nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: user.trim(),
+      pass: pass.trim(),
     },
   });
 }
@@ -68,7 +81,25 @@ export async function sendEmail({
       console.log("✅ Email sent via Gmail SMTP:", info.messageId, "To:", recipients);
       return { success: true, provider: "smtp", data: info };
     } catch (smtpErr: any) {
-      console.error("⚠️ Gmail SMTP sending error, trying fallback:", smtpErr?.message);
+      console.error("⚠️ Gmail SMTP sending error, trying backup SMTP:", smtpErr?.message);
+    }
+  }
+
+  // 1b. Secondary Fallback: Send via Verified Backup Gmail SMTP
+  const backupTransporter = getBackupSmtpTransporter();
+  if (backupTransporter) {
+    try {
+      const backupSender = process.env.SMTP_BACKUP_EMAIL || "prtmohit.provisioningtech.com@gmail.com";
+      const info = await backupTransporter.sendMail({
+        from: `"OMAA Company" <${backupSender}>`,
+        to: recipients.join(", "),
+        subject,
+        html,
+      });
+      console.log("✅ Email sent via Backup Gmail SMTP:", info.messageId, "To:", recipients);
+      return { success: true, provider: "backup_smtp", data: info };
+    } catch (backupErr: any) {
+      console.error("⚠️ Backup Gmail SMTP sending error, trying Resend:", backupErr?.message);
     }
   }
 

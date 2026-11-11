@@ -108,20 +108,15 @@ export default async function CategoryPage({ params }: { params: Promise<{ id: s
     const category = { ...catRows[0], image_url: publicAssetUrl(catRows[0].image_url) };
 
     const services = servicesRows.map((s: any) => {
-      const rawDesc = s.short_description || category.short_description;
-      const cleanDesc = (
-        rawDesc && 
-        !rawDesc.includes("Warranty Policy") && 
-        !rawDesc.startsWith("#") && 
-        !rawDesc.includes("###") && 
-        !rawDesc.toLowerCase().includes("warranty") && 
-        rawDesc.length < 300
-      ) ? rawDesc : "";
+      const rawDesc = s.short_description ? String(s.short_description).trim() : "";
+      const isPolicyDoc = rawDesc.includes("OMAA Company – Warranty Policy") || 
+                          rawDesc.includes("OMAA Company - Warranty Policy");
+      const cleanDesc = isPolicyDoc ? "" : rawDesc;
       return {
         ...s,
         image_url: publicAssetUrl(s.image_url) || (s.image_url ? `/api/media/service/${s.id}` : ""),
         short_description: cleanDesc,
-        long_description: s.long_description || "",
+        long_description: s.long_description ? String(s.long_description).trim() : "",
         warranty_days: s.warranty_days,
       };
     });

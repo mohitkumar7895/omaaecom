@@ -158,25 +158,36 @@ export default function AddServiceForm({ categories, subcategories }: { categori
 
 
 
+            {/* Short Description */}
+            <div>
+              <label className="block text-[#2c3e50] text-[15px] font-bold mb-1">
+                Short Description
+              </label>
+              <textarea 
+                name="short_description"
+                rows={3}
+                placeholder="Key highlights for service card (e.g. 1 Year AMC Coverage | 3 Free Maintenance Visits | 30% Off on Spares)"
+                className="w-full border border-gray-200 rounded text-[15px] px-4 py-2.5 outline-none focus:border-blue-500 shadow-sm"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Appears as bullet points directly on the service card. Separate points using a pipe (|) or new lines (Enter).
+              </p>
+            </div>
+
             {/* Long Description */}
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-[#2c3e50] text-[15px] font-bold">
-                  Long Description (View Details & Read More)
-                </label>
-                <span className="text-[11px] text-indigo-600 font-semibold bg-indigo-50 px-2 py-0.5 rounded">
-                  View Details Modal
-                </span>
-              </div>
-              <p className="text-xs text-gray-500 mb-2">
-                This description is displayed in the &quot;View Details&quot; popup on service cards with the first few lines visible and an expandable &quot;Read More / Read Less&quot; toggle. Supports paragraphs and bullet points.
-              </p>
+              <label className="block text-[#2c3e50] text-[15px] font-bold mb-1">
+                Long Description
+              </label>
               <textarea 
                 name="long_description"
-                rows={6}
+                rows={5}
                 placeholder="Detailed service scope, inclusions, inspection procedures, and specifications..."
-                className="w-full border border-gray-200 rounded-xl text-sm p-3 outline-none focus:border-blue-500 shadow-sm leading-relaxed"
+                className="w-full border border-gray-200 rounded text-[15px] px-4 py-2.5 outline-none focus:border-blue-500 shadow-sm"
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Appears in the &quot;View Details&quot; popup with the first few lines visible and a &quot;Read More / Read Less&quot; toggle.
+              </p>
             </div>
 
             {/* Upload Image */}

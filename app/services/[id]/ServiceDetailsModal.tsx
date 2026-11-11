@@ -12,54 +12,6 @@ type ServiceDetailsModalProps = {
   rateCards?: any[];
 };
 
-// Fallback generator for services that don't have custom long_description in DB yet
-function getServiceLongDescription(service: any, categoryName?: string): string {
-  if (service?.long_description && String(service.long_description).trim().length > 0) {
-    return String(service.long_description).trim();
-  }
-
-  const title = (service?.title || "").toLowerCase();
-  const cat = (categoryName || "").toLowerCase();
-
-  // 1. RO / Water Purifiers
-  if (title.includes("ro") || title.includes("purifier") || cat.includes("ro") || cat.includes("water purifier")) {
-    return `Complete multi-stage doorstep RO water purifier inspection, filter check, TDS calibration, membrane testing, and internal sanitization. Certified technicians arrive within 60–90 minutes with genuine replacement filters, sediment cartridges, carbon blocks, and booster pumps. Includes our official 45-day service warranty and 90-day spare parts warranty on eligible components.\n\nAll electrical components including SMPS power supply, solenoid valve (SV), float switch, and pressure booster pump undergo thorough multi-point diagnostics. Post-service water quality verification ensures optimal TDS levels and 100% pure, safe drinking water for your household.`;
-  }
-
-  // 2. AC / Air Conditioners
-  if (title.includes("ac") || title.includes("air conditioner") || cat.includes("ac") || cat.includes("air conditioner")) {
-    return `Comprehensive doorstep AC servicing, deep jet cleaning of indoor and outdoor cooling coils, blower wheel sanitization, gas pressure checking, drain pipe unclogging, and electrical capacitor testing. Performed by verified HVAC specialists with advanced pressure pump equipment.\n\nCovers all brands including split, window, and inverter AC units. Our technicians inspect compressor current draw, PCB wiring, remote sensor calibration, and airflow performance to deliver maximum cooling efficiency and lower electricity consumption.`;
-  }
-
-  // 3. Refrigerator / Fridge
-  if (title.includes("refrigerator") || title.includes("fridge") || cat.includes("refrigerator") || cat.includes("fridge")) {
-    return `Expert doorstep refrigerator repair and maintenance for single-door, double-door, side-by-side, and inverter models. Covers compressor diagnosis, eco-friendly refrigerant gas recharging, defrost sensor & timer replacement, thermostat calibration, and cooling coil inspection.\n\nTechnicians test evaporator fan motors, door gasket magnetic seals, condenser coils, and digital inverter PCBs to resolve cooling issues, water leakage, strange noises, and excessive frost buildup with genuine spare parts.`;
-  }
-
-  // 4. Washing Machine
-  if (title.includes("washing machine") || cat.includes("washing machine") || title.includes("washer")) {
-    return `Comprehensive doorstep diagnostic and repair for top-load, front-load, and semi-automatic washing machines. Covers drum bearing inspection, motor testing, drain pump unclogging, PCB error code troubleshooting, and water inlet valve replacement with genuine manufacturer spares.\n\nIncludes dynamic spin-balance testing, drive belt tension adjustment, pulsator cleaning, suspension rod check, and internal tub sanitization to eliminate vibration, drainage failure, water overflow, and motor buzzing.`;
-  }
-
-  // 5. Microwave Oven
-  if (title.includes("microwave") || cat.includes("microwave") || title.includes("oven")) {
-    return `Certified doorstep microwave oven repair covering magnetron testing, high-voltage diode & capacitor replacement, turntable motor repair, touch panel / membrane keypad troubleshooting, and door safety interlock switches.\n\nTechnicians conduct microwave radiation leakage checks, grill/convection heating coil performance audits, and thermostat thermal fuse replacements to ensure 100% safe cooking and heating performance.`;
-  }
-
-  // 6. Chimney / Kitchen Appliances
-  if (title.includes("chimney") || cat.includes("chimney") || title.includes("hob")) {
-    return `Professional doorstep kitchen chimney deep cleaning and motor repair. Covers baffle filter degreasing, carbon filter replacement, suction blower wheel cleaning, touch control switch repair, and duct pipe inspection to restore optimal suction power and smoke elimination.`;
-  }
-
-  // 7. Geyser / Water Heater
-  if (title.includes("geyser") || cat.includes("geyser") || title.includes("water heater")) {
-    return `Complete doorstep geyser repair, heating element descaling, thermostat safety valve inspection, and tank leakage diagnostics. We service instant and storage water heaters across all major brands with genuine heating coils and safety thermostats.`;
-  }
-
-  // 8. General Appliance Fallback
-  return `Verified doorstep appliance repair and comprehensive diagnostic service for ${service?.title || "your appliance"} by certified OMAA Company technicians. We ensure transparent pricing, genuine replacement spares, upfront rate cards, and post-service warranty documentation on every visit.\n\nAll service procedures adhere strictly to manufacturer safety standards with advance diagnostic tools, verified technician arrival within 60 to 90 minutes, and dedicated customer support assistance.`;
-}
-
 export default function ServiceDetailsModal({ service, categoryName, onClose, onAdd, quantity = 0, onRemove, rateCards = [] }: ServiceDetailsModalProps) {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [reviewsList, setReviewsList] = useState<any[]>([]);
@@ -68,10 +20,14 @@ export default function ServiceDetailsModal({ service, categoryName, onClose, on
   const [showWarrantyTerms, setShowWarrantyTerms] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
-  const longDescText = getServiceLongDescription(service, categoryName);
-  const isLong = longDescText.length > 130 || longDescText.includes("\n") || longDescText.includes("|");
+  // Only display description actually entered in Admin for this service (NO PREFILLED FAKE TEXT)
+  const descriptionText = (service?.long_description || service?.short_description || "").trim();
+  const hasDescription = Boolean(descriptionText);
+  const isLong = descriptionText.length > 130 || descriptionText.includes("\n") || descriptionText.includes("|");
 
   useEffect(() => {
+    setIsDescriptionExpanded(false);
+    setShowWarrantyTerms(false);
     const fetchReviews = async () => {
       try {
         setLoadingReviews(true);
@@ -140,60 +96,59 @@ export default function ServiceDetailsModal({ service, categoryName, onClose, on
               <span>({service.reviews ? `${service.reviews}` : '0 reviews'})</span>
             </div>
 
-            {/* Long Description Section */}
-            <div className="bg-slate-50/90 border border-slate-200/80 rounded-2xl p-4 sm:p-5 mb-5 shadow-2xs">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-[#6069c9]" />
-                  <span>Long Description</span>
-                </h3>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#6069c9] bg-[#eef1fc] px-2.5 py-0.5 rounded-full">
-                  Service Details
-                </span>
-              </div>
+            {/* Description Section (Only when entered by admin, no fake prefill) */}
+            {hasDescription && (
+              <div className="bg-slate-50/90 border border-slate-200/80 rounded-2xl p-4 sm:p-5 mb-5 shadow-2xs">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-[#6069c9]" />
+                    <span>Description</span>
+                  </h3>
+                </div>
 
-              {/* Text Container with first few lines visible */}
-              <div className="relative">
-                <div
-                  className={`text-xs sm:text-sm text-slate-600 leading-relaxed space-y-2 transition-all duration-300 ${
-                    !isDescriptionExpanded && isLong ? "max-h-[72px] sm:max-h-[82px] overflow-hidden" : ""
-                  }`}
-                >
-                  {longDescText.includes("|") ? (
-                    <ul className="space-y-1.5 list-disc pl-4">
-                      {longDescText.split("|").map((item: string, idx: number) => (
-                        <li key={idx} className="leading-snug">{item.trim()}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    longDescText.split(/\n\s*\n|\r\n\r\n|\n|\r\n/).map((para: string, idx: number) => (
-                      <p key={idx}>{para.trim()}</p>
-                    ))
+                {/* Text Container with first few lines visible */}
+                <div className="relative">
+                  <div
+                    className={`text-xs sm:text-sm text-slate-600 leading-relaxed space-y-2 transition-all duration-300 ${
+                      !isDescriptionExpanded && isLong ? "max-h-[72px] sm:max-h-[82px] overflow-hidden" : ""
+                    }`}
+                  >
+                    {descriptionText.includes("|") ? (
+                      <ul className="space-y-1.5 list-disc pl-4">
+                        {descriptionText.split("|").map((item: string, idx: number) => (
+                          <li key={idx} className="leading-snug">{item.trim()}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      descriptionText.split(/\n\s*\n|\r\n\r\n|\n|\r\n/).map((para: string, idx: number) => (
+                        <p key={idx}>{para.trim()}</p>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Subtle gradient fade overlay when collapsed */}
+                  {!isDescriptionExpanded && isLong && (
+                    <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-slate-50 via-slate-50/80 to-transparent pointer-events-none" />
                   )}
                 </div>
 
-                {/* Subtle gradient fade overlay when collapsed */}
-                {!isDescriptionExpanded && isLong && (
-                  <div className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-slate-50 via-slate-50/80 to-transparent pointer-events-none" />
+                {/* Read More / Read Less Toggle */}
+                {isLong && (
+                  <button
+                    type="button"
+                    onClick={() => setIsDescriptionExpanded((prev) => !prev)}
+                    className="mt-2.5 inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-[#6069c9] hover:text-[#4a52a3] transition cursor-pointer select-none"
+                  >
+                    <span>{isDescriptionExpanded ? "Read Less" : "Read More"}</span>
+                    <ChevronDown
+                      className={`w-4 h-4 transition-transform duration-200 ${
+                        isDescriptionExpanded ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
                 )}
               </div>
-
-              {/* Read More / Read Less Toggle */}
-              {isLong && (
-                <button
-                  type="button"
-                  onClick={() => setIsDescriptionExpanded((prev) => !prev)}
-                  className="mt-2.5 inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-[#6069c9] hover:text-[#4a52a3] transition cursor-pointer select-none"
-                >
-                  <span>{isDescriptionExpanded ? "Read Less" : "Read More"}</span>
-                  <ChevronDown
-                    className={`w-4 h-4 transition-transform duration-200 ${
-                      isDescriptionExpanded ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
-              )}
-            </div>
+            )}
 
             {/* OMAA Company Official Warranty Policy Section */}
             <div className="bg-gradient-to-br from-emerald-50 via-teal-50 to-indigo-50 border border-emerald-200/90 rounded-2xl p-4 sm:p-5 mb-5 shadow-xs">
