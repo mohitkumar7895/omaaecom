@@ -6,6 +6,8 @@ import OfferMarqueeHost from "./components/OfferMarqueeHost";
 import RatingReviewModal from "./components/RatingReviewModal";
 import NavigationProgress from "./components/NavigationProgress";
 import ReferralTracker from "./components/ReferralTracker";
+import GoogleTagTracker from "./components/GoogleTagTracker";
+import { GTM_ID } from "@/lib/gtm";
 import { getSiteUrl } from "@/lib/site-url";
 
 const siteUrl = getSiteUrl();
@@ -142,6 +144,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className="font-sans h-full antialiased" suppressHydrationWarning>
       <head>
+        {/* Google Tag Manager */}
+        <script
+          id="google-tag-manager"
+          dangerouslySetInnerHTML={{
+            __html: `window.dataLayer = window.dataLayer || [];
+function gtag(){window.dataLayer.push(arguments);}
+window.gtag = window.gtag || gtag;
+gtag('js', new Date());
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s);j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i;if(f&&f.parentNode){f.parentNode.insertBefore(j,f);}else{d.head.appendChild(j);}
+})(window,document,'script','dataLayer','${GTM_ID}');`,
+          }}
+        />
+        {/* End Google Tag Manager */}
         <meta name="google-site-verification" content="6chr3KOkEHLF43tQxoATLMWdqqMjuPAQYsldOANyayQ" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -155,8 +173,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="min-h-full flex flex-col bg-[#f8f9fa] text-gray-900">
+        {/* Google Tag Manager (noscript) */}
+        <noscript>
+          <iframe
+            src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`}
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+          />
+        </noscript>
+        {/* End Google Tag Manager (noscript) */}
         <Suspense fallback={null}>
           <ReferralTracker />
+          <GoogleTagTracker />
         </Suspense>
         <NavigationProgress />
         <GlobalLoader />

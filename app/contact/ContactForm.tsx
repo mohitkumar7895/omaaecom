@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Send, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { submitContactForm } from "../actions/contacts";
+import { trackContactSubmission } from "@/lib/gtm";
 
 export default function ContactForm() {
   const [loading, setLoading] = useState(false);
@@ -20,6 +21,7 @@ export default function ContactForm() {
     if (result.error) {
       setErrorMsg(result.error);
     } else {
+      trackContactSubmission(String(formData.get("subject") || "Service Quote / Inquiry"));
       setSuccess(true);
       (e.target as HTMLFormElement).reset();
     }

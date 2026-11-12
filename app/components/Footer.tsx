@@ -64,7 +64,9 @@ export default function Footer() {
           <div className="bg-[#6b76c4] rounded-xl p-5 space-y-3.5 shadow-inner border border-indigo-400/30">
             <div className="flex items-center space-x-3 text-sm">
               <Phone className="w-4 h-4 flex-shrink-0 text-blue-200" />
-              <span className="font-medium">+91 9999251966</span>
+              <a href="tel:+919999251966" className="font-medium hover:underline">
+                +91 9999251966
+              </a>
             </div>
             <div className="flex items-center space-x-3 text-sm">
               <Mail className="w-4 h-4 flex-shrink-0 text-blue-200" />

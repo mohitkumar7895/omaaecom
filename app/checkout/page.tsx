@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, Suspense } from "react";
 import Link from "next/link";
 import Navbar from "../components/Navbar";
+import { trackServiceBooking } from "@/lib/gtm";
 import { 
   CheckCircle2, 
   Lock, 
@@ -407,6 +408,12 @@ function CheckoutContent() {
 
       if (res.ok) {
         const data = await res.json();
+        trackServiceBooking({
+          orderId: data.order_id || "",
+          value: finalPayableTotal,
+          paymentMethod: finalPayableTotal === 0 ? "wallet" : paymentMethod,
+          items: cart,
+        });
         setBookedItems([...cart]);
         localStorage.removeItem('omaa_cart');
         setOrderId(data.order_id || '');
